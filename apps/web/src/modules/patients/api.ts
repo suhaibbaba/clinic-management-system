@@ -17,7 +17,6 @@ import type {
   PresignAttachmentUploadResponse,
   ProcedureCatalogItem,
   TimelineEntry,
-  ToothHistory,
   UpdatePatientInput,
   UpdatePerformedProcedureInput,
   UpdatePrescriptionInput,
@@ -71,9 +70,6 @@ export const patientsApi = {
         query: { page, limit: PAGE_LIMIT, isActive: true },
       }),
     ),
-
-  toothHistory: (patientId: string, fdi: number): Promise<ToothHistory> =>
-    apiRequest(`/patients/${patientId}/teeth/${fdi}`),
 
   attachment: (id: string): Promise<Attachment> => apiRequest(`/attachments/${id}`),
 

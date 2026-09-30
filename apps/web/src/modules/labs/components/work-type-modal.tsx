@@ -6,10 +6,11 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Input, Modal, MoneyInput, Switch, useToast } from "@clinic/ui";
 import { useCreateWorkType, useUpdateWorkType } from "@web/modules/labs/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { useCurrency } from "@web/shared/queries/clinic";
 
 export function WorkTypeModal({
@@ -36,8 +37,9 @@ export function WorkTypeModal({
     control,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<CreateLabWorkTypeInput>({
+    mode: "onTouched",
     resolver: zodResolver(createLabWorkTypeSchema),
     defaultValues: { name: "", defaultPrice: "", isActive: true },
   });
@@ -52,20 +54,23 @@ export function WorkTypeModal({
     }
   }, [open, workType, reset]);
 
-  const submit = handleSubmit(async (values) => {
-    try {
-      if (workType) {
-        await update.mutateAsync({ id: workType.id, body: values });
-      } else {
-        await create.mutateAsync({ labId, body: values });
-      }
+  const submit = handleSubmit(
+    async (values) => {
+      try {
+        if (workType) {
+          await update.mutateAsync({ id: workType.id, body: values });
+        } else {
+          await create.mutateAsync({ labId, body: values });
+        }
 
-      toast.success("labs.prices.saved");
-      onOpenChange(false);
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
-  });
+        toast.success("labs.prices.saved");
+        onOpenChange(false);
+      } catch (error) {
+        toast.error(...errorToast(error));
+      }
+    },
+    () => revealFirstError(),
+  );
 
   return (
     <Modal
@@ -84,6 +89,7 @@ export function WorkTypeModal({
           </Button>
           <Button
             isLoading={isSubmitting}
+            aria-disabled={!isValid || isSubmitting || undefined}
             data-testid={`${testId}-save`}
             onClick={() => void submit()}
           >

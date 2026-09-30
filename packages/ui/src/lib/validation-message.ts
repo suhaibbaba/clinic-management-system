@@ -1,10 +1,23 @@
+import { VALIDATION_CODE } from "@clinic/shared";
 import type { FieldError } from "react-hook-form";
 
 const NOTHING_GIVEN = /to have >=1 (characters|items)$/;
 
+const CODED: Readonly<Record<string, string>> = {
+  [VALIDATION_CODE.YEAR_OUT_OF_RANGE]: "errors.validation.yearOutOfRange",
+  [VALIDATION_CODE.DATE_IN_FUTURE]: "errors.validation.dateInFuture",
+  [VALIDATION_CODE.DATE_IN_PAST]: "errors.validation.dateInPast",
+};
+
 export function validationMessageKey(error: FieldError | undefined): string | undefined {
   if (!error) {
     return undefined;
+  }
+
+  const coded = error.message === undefined ? undefined : CODED[error.message];
+
+  if (coded) {
+    return coded;
   }
 
   switch (error.type) {

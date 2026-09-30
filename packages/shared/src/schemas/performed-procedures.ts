@@ -45,13 +45,10 @@ export const createPerformedProcedureSchema = z
     performedAt: z.iso.datetime().optional(),
     chartMarks: z.array(createChartMarkSchema).max(32).default([]),
   })
-  .refine(
-    (input) =>
-      input.discount === undefined ||
-      input.discountReason !== undefined ||
-      input.discount === "0.00",
-    { message: "A discount requires a reason", path: ["discountReason"] },
-  );
+  .refine((input) => input.discount === "0.00" || Boolean(input.discountReason?.trim()), {
+    message: "A discount requires a reason",
+    path: ["discountReason"],
+  });
 export type CreatePerformedProcedureInput = z.infer<typeof createPerformedProcedureSchema>;
 
 export const updatePerformedProcedureSchema = z

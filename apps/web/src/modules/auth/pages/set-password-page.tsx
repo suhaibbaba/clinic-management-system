@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { setPasswordSchema, type SetPasswordInput } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useForm } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, FormField, Icon, PasswordInput, PersonName } from "@clinic/ui";
@@ -24,22 +25,26 @@ export function SetPasswordPage({ purpose }: { purpose: "activate" | "reset" }):
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<SetPasswordInput>({
+    mode: "onTouched",
     resolver: zodResolver(setPasswordSchema),
     defaultValues: { token },
   });
 
-  const onSubmit = handleSubmit(async (values) => {
-    setFormErrorKey(null);
+  const onSubmit = handleSubmit(
+    async (values) => {
+      setFormErrorKey(null);
 
-    try {
-      await authApi.setPassword(values);
-      setDone(true);
-    } catch (error) {
-      setFormErrorKey(errorMessageKey(error));
-    }
-  });
+      try {
+        await authApi.setPassword(values);
+        setDone(true);
+      } catch (error) {
+        setFormErrorKey(errorMessageKey(error));
+      }
+    },
+    () => revealFirstError(),
+  );
 
   return (
     <main
@@ -118,6 +123,7 @@ export function SetPasswordPage({ purpose }: { purpose: "activate" | "reset" }):
               <Button
                 icon={<Icon name="check" />}
                 type="submit"
+                aria-disabled={!isValid || isSubmitting || undefined}
                 data-testid="set-password-submit"
                 isLoading={isSubmitting}
                 className="mt-2 w-full"

@@ -43,7 +43,7 @@ import {
   canRecordProcedure,
   canSeePrices,
 } from "@web/shared/permissions/patients";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { useSession } from "@web/shared/providers/session";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { useDoctors } from "@web/shared/queries/doctors";
@@ -55,6 +55,7 @@ export interface TreatmentsPanelProps {
   readonly emptyTitle: string;
   readonly startAdding?: boolean | undefined;
   readonly showTotal?: boolean | undefined;
+  readonly layout?: "list" | "grid" | undefined;
   readonly onSendToLab?: ((treatment: PerformedProcedure) => void) | undefined;
   readonly "data-testid": string;
 }
@@ -68,6 +69,7 @@ export function TreatmentsPanel({
   emptyTitle,
   startAdding = false,
   showTotal = true,
+  layout = "list",
   onSendToLab,
   "data-testid": testId,
 }: TreatmentsPanelProps): JSX.Element {
@@ -85,6 +87,7 @@ export function TreatmentsPanel({
 
   const [editing, setEditing] = useState<Editing | null>(startAdding ? { treatment: null } : null);
   const [deleting, setDeleting] = useState<PerformedProcedure | null>(null);
+  const [formValid, setFormValid] = useState(false);
 
   const role = user?.role;
   const mayChange = canRecordProcedure(can);
@@ -101,7 +104,9 @@ export function TreatmentsPanel({
       ? []
       : (everything.data ?? []).filter(
           (treatment) =>
-            treatment.status === PERFORMED_PROCEDURE_STATUS.PLANNED && treatment.visitId === null,
+            treatment.visitId === null &&
+            (treatment.status === PERFORMED_PROCEDURE_STATUS.PLANNED ||
+              treatment.status === PERFORMED_PROCEDURE_STATUS.IN_PROGRESS),
         );
 
   const run = async (action: () => Promise<unknown>, success: string): Promise<void> => {
@@ -109,7 +114,7 @@ export function TreatmentsPanel({
       await action();
       toast.success(success);
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -124,7 +129,11 @@ export function TreatmentsPanel({
       () =>
         update.mutateAsync({
           id: treatment.id,
-          body: { status: PERFORMED_PROCEDURE_STATUS.DONE, visitId: defaults.visitId ?? null },
+          body: {
+            status: PERFORMED_PROCEDURE_STATUS.DONE,
+            visitId: defaults.visitId ?? null,
+            ...(defaults.performedAt !== undefined && { performedAt: defaults.performedAt }),
+          },
         }),
       "treatments.moved.done",
     );
@@ -142,7 +151,7 @@ export function TreatmentsPanel({
       }
       setEditing(null);
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -205,7 +214,12 @@ export function TreatmentsPanel({
       {ordered.length === 0 ? (
         <EmptyState icon="tooth" data-testid={`${testId}-empty`} title={emptyTitle} />
       ) : (
-        <ol data-testid={`${testId}-list`} className="flex flex-col gap-2">
+        <ol
+          data-testid={`${testId}-list`}
+          className={
+            layout === "grid" ? "grid gap-2.5 md:grid-cols-2 xl:grid-cols-3" : "flex flex-col gap-2"
+          }
+        >
           {ordered.map((treatment) => (
             <TreatmentItem
               key={treatment.id}
@@ -236,6 +250,7 @@ export function TreatmentsPanel({
             <TreatmentFormActions
               formId={TREATMENT_FORM_ID}
               submitting={create.isPending || update.isPending}
+              invalid={!formValid}
               onCancel={() => setEditing(null)}
             />
           }
@@ -244,6 +259,8 @@ export function TreatmentsPanel({
             <TreatmentForm
               key={editing.treatment?.id ?? "new"}
               formId={TREATMENT_FORM_ID}
+              patientId={patientId}
+              onValidityChange={setFormValid}
               role={role}
               catalog={catalog.data ?? []}
               doctors={doctorList}
@@ -271,7 +288,7 @@ export function TreatmentsPanel({
             await remove.mutateAsync(deleting.id);
             toast.success("treatments.deleted");
           } catch (error) {
-            toast.error(errorMessageKey(error));
+            toast.error(...errorToast(error));
             throw error;
           }
         }}

@@ -22,6 +22,7 @@ import {
   NOTIFICATION_CHANNELS,
 } from "@shared/enums";
 import {
+  calendarDateSchema,
   paginationQuerySchema,
   timeRangeSchema,
   uuidSchema,
@@ -160,8 +161,8 @@ const actionSummaryFields = z.object({
   previousStartsAt: z.iso.datetime().optional(),
   endsAt: z.iso.datetime().optional(),
   previousEndsAt: z.iso.datetime().optional(),
-  startsOn: z.iso.date().optional(),
-  endsOn: z.iso.date().optional(),
+  startsOn: calendarDateSchema.optional(),
+  endsOn: calendarDateSchema.optional(),
   onConflict: z.enum(AI_SCHEDULE_CONFLICT_CHOICES).optional(),
   durationMinutes: z.number().int().optional(),
   status: z.enum(APPOINTMENT_STATUSES).optional(),
@@ -200,7 +201,7 @@ const actionSummaryFields = z.object({
       fields: z.array(z.object({ name: z.string(), value: z.string() })),
     })
     .optional(),
-  extraHours: z.object({ date: z.iso.date(), ranges: z.array(timeRangeSchema) }).optional(),
+  extraHours: z.object({ date: calendarDateSchema, ranges: z.array(timeRangeSchema) }).optional(),
   appointments: z
     .array(
       z.object({

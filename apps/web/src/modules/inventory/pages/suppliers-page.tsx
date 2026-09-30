@@ -24,7 +24,7 @@ import { canManageSuppliers } from "@web/shared/permissions/inventory";
 import { useDeleteSupplier, useSuppliers } from "@web/modules/inventory/queries";
 import { SupplierFormModal } from "@web/modules/inventory/components/supplier-form-modal";
 import { SupplierStatementPanel } from "@web/modules/inventory/components/supplier-statement";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { useDebounced } from "@web/shared/hooks/use-debounced";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
@@ -67,7 +67,7 @@ export function SuppliersPage(): JSX.Element {
             setSelected(null);
           }
         } catch (error) {
-          toast.error(errorMessageKey(error));
+          toast.error(...errorToast(error));
           throw error;
         }
       },

@@ -1,10 +1,11 @@
 import { type PickedPatient, type PatientChoice } from "@web/shared/lib/patient-draft";
 import { type PatientView } from "@clinic/shared";
-import { useState, type JSX } from "react";
+import { useState, type JSX, type FocusEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar, Badge, Icon, Ltr, Popover, SearchField } from "@clinic/ui";
 import { Skeleton } from "@clinic/ui/components/skeleton";
 import { NewPatientFields } from "@web/shared/components/new-patient-fields";
+import type { FieldErrors } from "@web/shared/lib/form-errors";
 import { usePatients } from "@web/shared/queries/patients";
 import { useDebounced } from "@web/shared/hooks/use-debounced";
 import { cn } from "@clinic/ui/lib/cn";
@@ -16,6 +17,8 @@ export interface PatientPickerProps {
   readonly id: string;
   readonly clash?: PickedPatient | null | undefined;
   readonly allowNew?: boolean;
+  readonly errors?: FieldErrors | undefined;
+  readonly onLeave?: ((field: string) => (event: FocusEvent<HTMLElement>) => void) | undefined;
 }
 
 export function PatientPicker({
@@ -24,6 +27,8 @@ export function PatientPicker({
   id,
   clash,
   allowNew = true,
+  errors = {},
+  onLeave,
 }: PatientPickerProps): JSX.Element {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
@@ -77,6 +82,8 @@ export function PatientPicker({
       <NewPatientFields
         id={id}
         draft={value.draft}
+        errors={errors}
+        {...(onLeave && { onLeave })}
         onChange={(draft) => onChange({ kind: "new", draft })}
         onCancel={() => onChange(null)}
         {...(clash ? { clash } : {})}

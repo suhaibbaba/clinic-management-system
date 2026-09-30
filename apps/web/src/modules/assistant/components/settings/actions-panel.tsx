@@ -2,6 +2,7 @@ import {
   AI_ACTION_BASE_TIER,
   AI_ACTION_TOOLS,
   AI_RISK_TIERS,
+  aiActionsSettingsSchema,
   type AiActionsSettings,
   type AiActionTool,
   type AiRiskTier,
@@ -12,6 +13,8 @@ import { Button, Card, FormField, Input, SegmentedControl, Switch, useToast } fr
 import { Skeleton } from "@clinic/ui/components/skeleton";
 import { actionRefusalKey } from "@web/modules/assistant/lib/messages";
 import { useActionsSettings, useSaveActionsSettings } from "@web/modules/assistant/queries";
+import { schemaErrors } from "@web/shared/lib/form-errors";
+import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 
 export function ActionsPanel(): JSX.Element {
   const { t } = useTranslation();
@@ -19,6 +22,9 @@ export function ActionsPanel(): JSX.Element {
   const settings = useActionsSettings();
   const save = useSaveActionsSettings();
   const [draft, setDraft] = useState<AiActionsSettings | null>(null);
+  const form = useFormErrors<HTMLFormElement>(
+    draft ? schemaErrors(aiActionsSettingsSchema, draft) : {},
+  );
 
   useEffect(() => {
     if (settings.data) {
@@ -43,10 +49,16 @@ export function ActionsPanel(): JSX.Element {
 
   return (
     <form
+      ref={form.formRef}
       data-testid="assistant-actions"
       className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
+
+        if (!form.check()) {
+          return;
+        }
+
         save.mutate(draft, {
           onSuccess: () => toast.success("assistantSettings.saved"),
           onError: (error) => toast.error(actionRefusalKey(error)),
@@ -89,36 +101,47 @@ export function ActionsPanel(): JSX.Element {
       </Card>
 
       <Card className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <FormField
-          label="assistantSettings.actions.paymentTypedAbove"
-          htmlFor="assistant-payment-typed"
-          hint="assistantSettings.actions.paymentTypedAboveHint"
-        >
-          <WholeNumberInput
-            id="assistant-payment-typed"
-            value={draft.paymentTypedAbove}
-            min={1}
-            max={99_999_999}
-            onValue={(paymentTypedAbove) => setDraft({ ...draft, paymentTypedAbove })}
-          />
-        </FormField>
-        <FormField
-          label="assistantSettings.actions.cancelTypedAbove"
-          htmlFor="assistant-cancel-typed"
-          hint="assistantSettings.actions.cancelTypedAboveHint"
-        >
-          <WholeNumberInput
-            id="assistant-cancel-typed"
-            value={draft.cancelTypedAbove}
-            min={0}
-            max={50}
-            onValue={(cancelTypedAbove) => setDraft({ ...draft, cancelTypedAbove })}
-          />
-        </FormField>
+        <div onBlur={form.leave("paymentTypedAbove")}>
+          <FormField
+            label="assistantSettings.actions.paymentTypedAbove"
+            htmlFor="assistant-payment-typed"
+            hint="assistantSettings.actions.paymentTypedAboveHint"
+            error={form.errors["paymentTypedAbove"]}
+          >
+            <WholeNumberInput
+              id="assistant-payment-typed"
+              value={draft.paymentTypedAbove}
+              min={1}
+              max={99_999_999}
+              onValue={(paymentTypedAbove) => setDraft({ ...draft, paymentTypedAbove })}
+            />
+          </FormField>
+        </div>
+        <div onBlur={form.leave("cancelTypedAbove")}>
+          <FormField
+            label="assistantSettings.actions.cancelTypedAbove"
+            htmlFor="assistant-cancel-typed"
+            hint="assistantSettings.actions.cancelTypedAboveHint"
+            error={form.errors["cancelTypedAbove"]}
+          >
+            <WholeNumberInput
+              id="assistant-cancel-typed"
+              value={draft.cancelTypedAbove}
+              min={0}
+              max={50}
+              onValue={(cancelTypedAbove) => setDraft({ ...draft, cancelTypedAbove })}
+            />
+          </FormField>
+        </div>
       </Card>
 
       <div className="flex justify-end">
-        <Button type="submit" data-testid="assistant-actions-save" disabled={save.isPending}>
+        <Button
+          type="submit"
+          data-testid="assistant-actions-save"
+          {...(!form.isValid && { "aria-disabled": true })}
+          isLoading={save.isPending}
+        >
           {t("common.save")}
         </Button>
       </div>

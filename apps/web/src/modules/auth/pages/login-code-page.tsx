@@ -8,6 +8,7 @@ import {
 } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useForm } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Button, FormField, Icon, Input, PersonName } from "@clinic/ui";
@@ -38,11 +39,13 @@ export function LoginCodePage(): JSX.Element {
   const resend = useCountdown();
 
   const emailForm = useForm<RequestLoginCodeInput>({
+    mode: "onTouched",
     resolver: zodResolver(requestLoginCodeSchema),
     defaultValues: { email: "" },
   });
 
   const codeForm = useForm<VerifyLoginCodeInput>({
+    mode: "onTouched",
     resolver: zodResolver(verifyLoginCodeSchema),
     defaultValues: { email: "", code: "" },
   });
@@ -66,23 +69,29 @@ export function LoginCodePage(): JSX.Element {
     resend.start(LOGIN_CODE_RESEND_SECONDS);
   };
 
-  const onRequest = emailForm.handleSubmit((values) => send(values.email));
+  const onRequest = emailForm.handleSubmit(
+    (values) => send(values.email),
+    () => revealFirstError(),
+  );
 
-  const onVerify = codeForm.handleSubmit(async (values) => {
-    setFormErrorKey(null);
+  const onVerify = codeForm.handleSubmit(
+    async (values) => {
+      setFormErrorKey(null);
 
-    try {
-      await loginWithCode(values);
-      void navigate(from ?? "/", { replace: true });
-    } catch (error) {
-      setFormErrorKey(
-        error instanceof ApiError && error.statusCode === 401
-          ? "errors.auth.codeInvalid"
-          : errorMessageKey(error),
-      );
-      codeForm.setValue("code", "");
-    }
-  });
+      try {
+        await loginWithCode(values);
+        void navigate(from ?? "/", { replace: true });
+      } catch (error) {
+        setFormErrorKey(
+          error instanceof ApiError && error.statusCode === 401
+            ? "errors.auth.codeInvalid"
+            : errorMessageKey(error),
+        );
+        codeForm.setValue("code", "");
+      }
+    },
+    () => revealFirstError(),
+  );
 
   const codeField = codeForm.register("code", {
     setValueAs: (value: string) => value.replace(/\D/g, "").slice(0, LOGIN_CODE_LENGTH),
@@ -159,6 +168,7 @@ export function LoginCodePage(): JSX.Element {
               <Button
                 icon={<Icon name="mail" />}
                 type="submit"
+                aria-disabled={!emailForm.formState.isValid || submitting || undefined}
                 data-testid="login-code-send"
                 isLoading={submitting}
                 className="mt-2 w-full"
@@ -214,6 +224,7 @@ export function LoginCodePage(): JSX.Element {
               <Button
                 icon={<Icon name="login" />}
                 type="submit"
+                aria-disabled={!codeForm.formState.isValid || submitting || undefined}
                 data-testid="login-code-verify"
                 isLoading={submitting}
                 className="mt-2 w-full"

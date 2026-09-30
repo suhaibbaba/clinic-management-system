@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginInput } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useForm } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import { Logo } from "@web/shared/components/brand/logo";
 import { useClinicBranding, BRANDING_SCOPE } from "@web/shared/queries/clinic";
@@ -28,8 +29,9 @@ export function LoginPage(): JSX.Element {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<LoginInput>({
+    mode: "onTouched",
     resolver: zodResolver(loginSchema),
     defaultValues: { identifier: "", password: "" },
   });
@@ -39,21 +41,24 @@ export function LoginPage(): JSX.Element {
     return <Navigate to={from ?? "/"} replace />;
   }
 
-  const onSubmit = handleSubmit(async (values) => {
-    setFormErrorKey(null);
+  const onSubmit = handleSubmit(
+    async (values) => {
+      setFormErrorKey(null);
 
-    try {
-      await login(values);
-      const from = (location.state as LocationState | null)?.from;
-      void navigate(from ?? "/", { replace: true });
-    } catch (error) {
-      setFormErrorKey(
-        error instanceof ApiError && error.statusCode === 401
-          ? "auth.invalidCredentials"
-          : errorMessageKey(error),
-      );
-    }
-  });
+      try {
+        await login(values);
+        const from = (location.state as LocationState | null)?.from;
+        void navigate(from ?? "/", { replace: true });
+      } catch (error) {
+        setFormErrorKey(
+          error instanceof ApiError && error.statusCode === 401
+            ? "auth.invalidCredentials"
+            : errorMessageKey(error),
+        );
+      }
+    },
+    () => revealFirstError(),
+  );
 
   return (
     <main
@@ -127,6 +132,7 @@ export function LoginPage(): JSX.Element {
           <Button
             icon={<Icon name="login" />}
             type="submit"
+            aria-disabled={!isValid || isSubmitting || undefined}
             data-testid="login-submit"
             isLoading={isSubmitting}
             className="mt-2 w-full"

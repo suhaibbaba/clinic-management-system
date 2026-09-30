@@ -7,7 +7,8 @@ import { SurfaceSelector } from "@web/modules/patients/components/chart/surface-
 import { TreatmentsPanel } from "@web/modules/patients/components/treatments/treatments-panel";
 import { type ToothSummary } from "@web/shared/lib/tooth-state";
 import { useToothStates } from "@web/shared/hooks/use-tooth-states";
-import { useToothHistory } from "@web/modules/patients/queries";
+import { usePatientProcedures } from "@web/modules/patients/queries";
+import { treatmentTeeth } from "@web/modules/patients/lib/treatments/treatments";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 export interface ToothPanelProps {
@@ -29,7 +30,11 @@ export function ToothPanel({
   const { t } = useTranslation();
   const states = useToothStates();
 
-  const { data, isPending, isError } = useToothHistory(patientId, tooth);
+  const { data, isPending, isError } = usePatientProcedures(patientId);
+  const onTooth =
+    tooth === null
+      ? []
+      : (data ?? []).filter((treatment) => treatmentTeeth(treatment).includes(tooth));
   const showSkeleton = useDelayedLoading(isPending);
 
   return (
@@ -77,7 +82,7 @@ export function ToothPanel({
                 data-testid="tooth-panel-count"
                 tone={summary.surfaces.length > 0 ? "info" : "neutral"}
               >
-                {t("chart.panel.procedureCount", { count: data?.procedures.length ?? 0 })}
+                {t("chart.panel.procedureCount", { count: onTooth.length })}
               </Badge>
             </div>
 
@@ -112,7 +117,7 @@ export function ToothPanel({
           {showSkeleton && <SkeletonTimeline entries={2} />}
           {isError && (
             <p data-testid="tooth-panel-error" className="text-value text-danger-600">
-              {t("errors.generic")}
+              {t("errors.unknown")}
             </p>
           )}
 
@@ -120,7 +125,7 @@ export function ToothPanel({
             <TreatmentsPanel
               data-testid="tooth-panel-treatments"
               patientId={patientId}
-              treatments={data.procedures}
+              treatments={onTooth}
               defaults={{ tooth, status: PERFORMED_PROCEDURE_STATUS.PLANNED }}
               emptyTitle="chart.panel.noProcedures"
               {...(onSendToLab && {

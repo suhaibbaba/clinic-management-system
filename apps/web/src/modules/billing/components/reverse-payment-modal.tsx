@@ -6,11 +6,12 @@ import {
 } from "@clinic/shared";
 import { useEffect, type JSX } from "react";
 import { useForm } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Icon, Input, Modal, useToast } from "@clinic/ui";
 import { Money } from "@web/shared/components/money";
 import { useReversePayment } from "@web/modules/billing/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { ellipsis } from "@web/i18n/ellipsis";
 
 interface ReversePaymentModalProps {
@@ -34,8 +35,11 @@ export function ReversePaymentModal({
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
-  } = useForm<ReversePaymentInput>({ resolver: zodResolver(reversePaymentSchema) });
+    formState: { errors, isSubmitting, isValid },
+  } = useForm<ReversePaymentInput>({
+    mode: "onTouched",
+    resolver: zodResolver(reversePaymentSchema),
+  });
 
   useEffect(() => {
     if (payment) {
@@ -43,19 +47,22 @@ export function ReversePaymentModal({
     }
   }, [payment, reset]);
 
-  const onSubmit = handleSubmit(async (values) => {
-    if (!payment) {
-      return;
-    }
+  const onSubmit = handleSubmit(
+    async (values) => {
+      if (!payment) {
+        return;
+      }
 
-    try {
-      await reverse.mutateAsync({ id: payment.id, body: values });
-      toast.success("billing.paymentReversed");
-      onOpenChange(false);
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
-  });
+      try {
+        await reverse.mutateAsync({ id: payment.id, body: values });
+        toast.success("billing.paymentReversed");
+        onOpenChange(false);
+      } catch (error) {
+        toast.error(...errorToast(error));
+      }
+    },
+    () => revealFirstError(),
+  );
 
   return (
     <Modal
@@ -76,6 +83,7 @@ export function ReversePaymentModal({
           <Button
             icon={<Icon name="check" />}
             type="submit"
+            aria-disabled={!isValid || isSubmitting || undefined}
             form="reverse-payment-form"
             data-testid={`${testId}-confirm`}
             isLoading={isSubmitting}

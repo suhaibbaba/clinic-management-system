@@ -1,6 +1,9 @@
 import {
   LOOKUP_LIST,
   MOVEMENT_TYPE,
+  adjustStockSchema,
+  consumeStockSchema,
+  purchaseStockSchema,
   toThousandths,
   type InventoryItemRow,
   type MovementType,
@@ -32,7 +35,9 @@ import {
   usePurchaseStock,
   useSuppliers,
 } from "@web/modules/inventory/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
+import { REQUIRED, schemaErrors, type FieldErrors } from "@web/shared/lib/form-errors";
+import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { useCurrency } from "@web/shared/queries/clinic";
 
 export interface MovementModalProps {
@@ -78,6 +83,64 @@ export function MovementModal({
   const [restocking, setRestocking] = useState(false);
 
   const item = fixedItem ?? choices?.find((choice) => choice.id === pickedId);
+  const mode = restocking ? MOVEMENT_TYPE.PURCHASE : type;
+  const takingOff =
+    mode === MOVEMENT_TYPE.CONSUME || (mode === MOVEMENT_TYPE.ADJUST && direction === "remove");
+  const overdrawn =
+    takingOff &&
+    item !== undefined &&
+    quantity.trim() !== "" &&
+    toThousandths(quantity.trim()) > toThousandths(item.quantity);
+
+  const belowOne =
+    mode === MOVEMENT_TYPE.ADJUST &&
+    direction === "remove" &&
+    quantity.trim() !== "" &&
+    toThousandths(quantity.trim()) < 1000;
+
+  const itemId = item?.id ?? "";
+  const purchaseBody = {
+    itemId,
+    quantity: quantity.trim(),
+    ...(unitPrice.trim() !== "" && { unitPrice: unitPrice.trim() }),
+    ...(supplierId !== "" && { supplierId }),
+    ...(batchNo.trim() !== "" && { batchNo: batchNo.trim() }),
+    ...(expiryDate !== "" && { expiryDate }),
+  };
+  const consumeBody = {
+    itemId,
+    quantity: quantity.trim(),
+    ...(linkedPatient?.kind === "existing" && { patientId: linkedPatient.patient.id }),
+    ...(performedProcedureId && { performedProcedureId }),
+    ...(batchNo.trim() !== "" && { batchNo: batchNo.trim() }),
+    ...(reason.trim() !== "" && { reason: reason.trim() }),
+  };
+  const adjustBody = {
+    itemId,
+    quantity: `${direction === "remove" ? "-" : ""}${quantity.trim()}`,
+    reason: reason.trim(),
+    ...(batchNo.trim() !== "" && { batchNo: batchNo.trim() }),
+  };
+
+  const validate = (): FieldErrors => {
+    if (mode === null) {
+      return {};
+    }
+
+    return {
+      ...(mode === MOVEMENT_TYPE.PURCHASE
+        ? schemaErrors(purchaseStockSchema, purchaseBody)
+        : mode === MOVEMENT_TYPE.CONSUME
+          ? schemaErrors(consumeStockSchema, consumeBody)
+          : schemaErrors(adjustStockSchema, adjustBody)),
+      ...(quantity.trim() === "" && { quantity: REQUIRED }),
+      ...(overdrawn && { quantity: { type: "too_big" } }),
+      ...(belowOne && { quantity: { type: "too_small" } }),
+    };
+  };
+
+  const form = useFormErrors(validate());
+  const { reset } = form;
 
   useEffect(() => {
     if (type === null) {
@@ -94,66 +157,27 @@ export function MovementModal({
     setReason("");
     setDirection("remove");
     setLinkedPatient(patient ? { kind: "existing", patient } : null);
-  }, [type, fixedItem, patient]);
+    reset();
+  }, [type, fixedItem, patient, reset]);
 
   if (type === null || (!fixedItem && !choices)) {
     return null;
   }
 
-  const mode = restocking ? MOVEMENT_TYPE.PURCHASE : type;
-  const takingOff =
-    mode === MOVEMENT_TYPE.CONSUME || (mode === MOVEMENT_TYPE.ADJUST && direction === "remove");
-  const overdrawn =
-    takingOff &&
-    item !== undefined &&
-    quantity.trim() !== "" &&
-    toThousandths(quantity.trim()) > toThousandths(item.quantity);
-
-  const belowOne =
-    mode === MOVEMENT_TYPE.ADJUST &&
-    direction === "remove" &&
-    quantity.trim() !== "" &&
-    toThousandths(quantity.trim()) < 1000;
-
   const busy = purchase.isPending || consume.isPending || adjust.isPending;
-  const canSubmit =
-    item !== undefined &&
-    quantity.trim() !== "" &&
-    !overdrawn &&
-    !belowOne &&
-    (type !== MOVEMENT_TYPE.ADJUST || reason.trim().length >= 3);
 
   const submit = async (): Promise<void> => {
-    if (!item) {
+    if (!form.check() || !item) {
       return;
     }
 
     try {
       if (mode === MOVEMENT_TYPE.PURCHASE) {
-        await purchase.mutateAsync({
-          itemId: item.id,
-          quantity: quantity.trim(),
-          ...(unitPrice.trim() !== "" && { unitPrice: unitPrice.trim() }),
-          ...(supplierId !== "" && { supplierId }),
-          ...(batchNo.trim() !== "" && { batchNo: batchNo.trim() }),
-          ...(expiryDate !== "" && { expiryDate }),
-        });
+        await purchase.mutateAsync(purchaseBody);
       } else if (mode === MOVEMENT_TYPE.CONSUME) {
-        await consume.mutateAsync({
-          itemId: item.id,
-          quantity: quantity.trim(),
-          ...(linkedPatient?.kind === "existing" && { patientId: linkedPatient.patient.id }),
-          ...(performedProcedureId && { performedProcedureId }),
-          ...(batchNo.trim() !== "" && { batchNo: batchNo.trim() }),
-          ...(reason.trim() !== "" && { reason: reason.trim() }),
-        });
+        await consume.mutateAsync(consumeBody);
       } else {
-        await adjust.mutateAsync({
-          itemId: item.id,
-          quantity: `${direction === "remove" ? "-" : ""}${quantity.trim()}`,
-          reason: reason.trim(),
-          ...(batchNo.trim() !== "" && { batchNo: batchNo.trim() }),
-        });
+        await adjust.mutateAsync(adjustBody);
       }
 
       toast.success(`inventory.movement.recorded.${mode}`);
@@ -164,12 +188,13 @@ export function MovementModal({
         setUnitPrice("");
         setBatchNo("");
         setExpiryDate("");
+        reset();
         return;
       }
 
       onClose();
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -195,7 +220,7 @@ export function MovementModal({
           </Button>
           <Button
             data-testid={`${testId}-save`}
-            disabled={!canSubmit}
+            aria-disabled={!form.isValid || busy || undefined}
             isLoading={busy}
             onClick={() => void submit()}
           >
@@ -204,22 +229,29 @@ export function MovementModal({
         </>
       }
     >
-      <div data-testid={`${testId}-form`} className="flex flex-col gap-4">
+      <div ref={form.formRef} data-testid={`${testId}-form`} className="flex flex-col gap-4">
         {choices && (
-          <FormField label="inventory.movement.item" htmlFor="movement-item" required>
-            <Select
-              searchable
-              id="movement-item"
-              data-testid="movement-field-item"
-              value={pickedId}
-              placeholder={t("inventory.movement.selectItem")}
-              onChange={(event) => setPickedId(event.target.value)}
-              options={choices.map((choice) => ({
-                value: choice.id,
-                label: `${choice.name} — ${choice.quantity} ${unitLabel(choice.unit)}`,
-              }))}
-            />
-          </FormField>
+          <div onBlur={form.leave("itemId")}>
+            <FormField
+              error={form.errors["itemId"]}
+              label="inventory.movement.item"
+              htmlFor="movement-item"
+              required
+            >
+              <Select
+                searchable
+                id="movement-item"
+                data-testid="movement-field-item"
+                value={pickedId}
+                placeholder={t("inventory.movement.selectItem")}
+                onChange={(event) => setPickedId(event.target.value)}
+                options={choices.map((choice) => ({
+                  value: choice.id,
+                  label: `${choice.name} — ${choice.quantity} ${unitLabel(choice.unit)}`,
+                }))}
+              />
+            </FormField>
+          </div>
         )}
         {item && (
           <div
@@ -264,87 +296,125 @@ export function MovementModal({
             />
           </FormField>
         )}
-        <FormField
-          label="inventory.movement.quantity"
-          htmlFor="movement-quantity"
-          {...(item && { hint: unitLabel(item.unit) })}
-          {...(overdrawn && {
-            error: { type: "too_big" },
-            errorKey: "inventory.movement.overStock",
-          })}
-          {...(belowOne && {
-            error: { type: "too_small" },
-            errorKey: "inventory.movement.atLeastOne",
-          })}
-          required
-        >
-          <QuantityInput
-            id="movement-quantity"
-            data-testid="movement-field-quantity"
-            placeholder="0"
-            value={quantity}
-            onChange={(event) => setQuantity(event.target.value)}
-          />
-        </FormField>
+        <div onBlur={form.leave("quantity")}>
+          <FormField
+            label="inventory.movement.quantity"
+            htmlFor="movement-quantity"
+            {...(item && { hint: unitLabel(item.unit) })}
+            error={
+              overdrawn
+                ? { type: "too_big" }
+                : belowOne
+                  ? { type: "too_small" }
+                  : form.errors["quantity"]
+            }
+            {...(overdrawn && { errorKey: "inventory.movement.overStock" })}
+            {...(belowOne && { errorKey: "inventory.movement.atLeastOne" })}
+            required
+          >
+            <QuantityInput
+              id="movement-quantity"
+              data-testid="movement-field-quantity"
+              placeholder="0"
+              value={quantity}
+              onChange={(event) => setQuantity(event.target.value)}
+            />
+          </FormField>
+        </div>
         {mode === MOVEMENT_TYPE.PURCHASE && (
           <>
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="inventory.movement.unitPrice" htmlFor="movement-price" optional>
-                <MoneyInput
-                  id="movement-price"
-                  data-testid="movement-field-price"
-                  currency={currency}
-                  placeholder="0"
-                  value={unitPrice}
-                  onChange={(event) => setUnitPrice(event.target.value)}
-                />
-              </FormField>
-              <FormField label="inventory.movement.supplier" htmlFor="movement-supplier" optional>
-                <Select
-                  id="movement-supplier"
-                  data-testid="movement-field-supplier"
-                  value={supplierId}
-                  placeholder={t("inventory.movement.selectSupplier")}
-                  onChange={(event) => setSupplierId(event.target.value)}
-                  options={(suppliers.data?.items ?? []).map((supplier) => ({
-                    value: supplier.id,
-                    label: supplier.name,
-                  }))}
-                />
-              </FormField>
+              <div onBlur={form.leave("unitPrice")}>
+                <FormField
+                  error={form.errors["unitPrice"]}
+                  label="inventory.movement.unitPrice"
+                  htmlFor="movement-price"
+                  optional
+                >
+                  <MoneyInput
+                    id="movement-price"
+                    data-testid="movement-field-price"
+                    currency={currency}
+                    placeholder="0"
+                    value={unitPrice}
+                    onChange={(event) => setUnitPrice(event.target.value)}
+                  />
+                </FormField>
+              </div>
+              <div onBlur={form.leave("supplierId")}>
+                <FormField
+                  error={form.errors["supplierId"]}
+                  label="inventory.movement.supplier"
+                  htmlFor="movement-supplier"
+                  optional
+                >
+                  <Select
+                    id="movement-supplier"
+                    data-testid="movement-field-supplier"
+                    value={supplierId}
+                    placeholder={t("inventory.movement.selectSupplier")}
+                    onChange={(event) => setSupplierId(event.target.value)}
+                    options={(suppliers.data?.items ?? []).map((supplier) => ({
+                      value: supplier.id,
+                      label: supplier.name,
+                    }))}
+                  />
+                </FormField>
+              </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="inventory.movement.batchNo" htmlFor="movement-batch" optional>
-                <Input
-                  id="movement-batch"
-                  data-testid="movement-field-batch"
-                  dir="ltr"
-                  placeholder="LX-2451"
-                  value={batchNo}
-                  onChange={(event) => setBatchNo(event.target.value)}
-                />
-              </FormField>
-              <FormField label="inventory.movement.expiry" htmlFor="movement-expiry" optional>
-                <DatePicker
-                  id="movement-expiry"
-                  data-testid="movement-field-expiry"
-                  label={t("inventory.movement.expiry")}
-                  value={expiryDate}
-                  onChange={setExpiryDate}
-                />
-              </FormField>
+              <div onBlur={form.leave("batchNo")}>
+                <FormField
+                  error={form.errors["batchNo"]}
+                  label="inventory.movement.batchNo"
+                  htmlFor="movement-batch"
+                  optional
+                >
+                  <Input
+                    id="movement-batch"
+                    data-testid="movement-field-batch"
+                    dir="ltr"
+                    placeholder="LX-2451"
+                    value={batchNo}
+                    onChange={(event) => setBatchNo(event.target.value)}
+                  />
+                </FormField>
+              </div>
+              <div onBlur={form.leave("expiryDate")}>
+                <FormField
+                  error={form.errors["expiryDate"]}
+                  label="inventory.movement.expiry"
+                  htmlFor="movement-expiry"
+                  optional
+                >
+                  <DatePicker
+                    id="movement-expiry"
+                    data-testid="movement-field-expiry"
+                    label={t("inventory.movement.expiry")}
+                    value={expiryDate}
+                    onChange={setExpiryDate}
+                  />
+                </FormField>
+              </div>
             </div>
           </>
         )}
         {mode === MOVEMENT_TYPE.CONSUME && !performedProcedureId && (
-          <FormField label="inventory.movement.patient" htmlFor="movement-patient" optional>
-            <PatientPicker
-              id="movement-patient"
-              allowNew={false}
-              value={linkedPatient}
-              onChange={setLinkedPatient}
-            />
-          </FormField>
+          <div onBlur={form.leave("patientId")}>
+            <FormField
+              error={form.errors["patientId"]}
+              label="inventory.movement.patient"
+              htmlFor="movement-patient"
+              optional
+            >
+              <PatientPicker
+                id="movement-patient"
+                allowNew={false}
+                value={linkedPatient}
+                onChange={setLinkedPatient}
+              />
+            </FormField>
+          </div>
         )}
         {mode === MOVEMENT_TYPE.CONSUME && performedProcedureId && (
           <p
@@ -354,27 +424,32 @@ export function MovementModal({
             {t("inventory.movement.linkedToProcedure")}
           </p>
         )}
-        <FormField
-          label={
-            mode === MOVEMENT_TYPE.ADJUST ? "inventory.movement.reason" : "inventory.movement.note"
-          }
-          htmlFor="movement-reason"
-          {...(mode === MOVEMENT_TYPE.ADJUST
-            ? { required: true, hint: t("inventory.movement.reasonHint") }
-            : { optional: true })}
-        >
-          <Textarea
-            id="movement-reason"
-            data-testid="movement-field-reason"
-            rows={2}
-            placeholder={
-              mode === MOVEMENT_TYPE.ADJUST ? t("inventory.movement.reasonPlaceholder") : ""
+        <div onBlur={form.leave("reason")}>
+          <FormField
+            error={form.errors["reason"]}
+            label={
+              mode === MOVEMENT_TYPE.ADJUST
+                ? "inventory.movement.reason"
+                : "inventory.movement.note"
             }
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-          />
-        </FormField>
-        {!mayRecord(mode, can) && (
+            htmlFor="movement-reason"
+            {...(mode === MOVEMENT_TYPE.ADJUST
+              ? { required: true, hint: t("inventory.movement.reasonHint") }
+              : { optional: true })}
+          >
+            <Textarea
+              id="movement-reason"
+              data-testid="movement-field-reason"
+              rows={2}
+              placeholder={
+                mode === MOVEMENT_TYPE.ADJUST ? t("inventory.movement.reasonPlaceholder") : ""
+              }
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+            />
+          </FormField>
+        </div>
+        {!mayRecord(mode ?? type, can) && (
           <p
             role="alert"
             data-testid={`${testId}-not-allowed`}

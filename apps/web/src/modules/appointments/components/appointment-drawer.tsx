@@ -37,7 +37,7 @@ import {
   CANCELLABLE_STATUSES,
   statusLabelKey,
 } from "@web/shared/lib/appointment-status";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { cn } from "@clinic/ui/lib/cn";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { todayIso, toIsoDate } from "@web/shared/lib/dates";
@@ -104,7 +104,7 @@ export function AppointmentDrawer({
       await step.mutateAsync({ id: appointment.id, step: next });
       toast.success(successKey);
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -115,7 +115,7 @@ export function AppointmentDrawer({
       onClose();
       navigate(`/patients/${visit.patientId}`);
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -127,7 +127,7 @@ export function AppointmentDrawer({
       setCancelReason("");
       onClose();
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 

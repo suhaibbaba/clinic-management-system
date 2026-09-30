@@ -1,4 +1,8 @@
-import type { ClinicClosure, ConflictingAppointment } from "@clinic/shared";
+import {
+  createClinicClosureSchema,
+  type ClinicClosure,
+  type ConflictingAppointment,
+} from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -23,8 +27,10 @@ import {
   useCreateClosure,
   useDeleteClosure,
 } from "@web/modules/schedule/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { formatDate } from "@web/shared/lib/format";
+import { schemaErrors } from "@web/shared/lib/form-errors";
+import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 
 export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.Element {
   const { t } = useTranslation();
@@ -41,24 +47,32 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
   const [isAnnual, setIsAnnual] = useState(false);
   const [conflicts, setConflicts] = useState<ConflictingAppointment[] | null>(null);
 
+  const body = {
+    startsOn: range.from,
+    endsOn: range.to === "" ? range.from : range.to,
+    reason: reason.trim(),
+    isAnnual,
+  };
+
+  const form = useFormErrors(schemaErrors(createClinicClosureSchema, body));
+  const { errors } = form;
+
   const reset = (): void => {
     setRange({ from: "", to: "" });
     setReason("");
     setIsAnnual(false);
     setConflicts(null);
+    form.reset();
   };
 
-  const canSubmit = range.from !== "" && reason.trim().length >= 2;
-
   const save = async (choice?: { force: boolean; cancelAppointments: boolean }): Promise<void> => {
+    if (!choice && !form.check()) {
+      return;
+    }
+
     try {
       const result = await createClosure.mutateAsync({
-        body: {
-          startsOn: range.from,
-          endsOn: range.to === "" ? range.from : range.to,
-          reason: reason.trim(),
-          isAnnual,
-        },
+        body,
         ...(choice && { choice }),
       });
 
@@ -79,7 +93,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
         return;
       }
 
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -92,7 +106,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
           await deleteClosure.mutateAsync(closure.id);
           toast.success("schedule.closures.removed");
         } catch (error) {
-          toast.error(errorMessageKey(error));
+          toast.error(...errorToast(error));
           throw error;
         }
       },
@@ -195,7 +209,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
             <Button
               icon={<Icon name="check" />}
               data-testid="closure-add-save"
-              disabled={!canSubmit}
+              aria-disabled={!form.isValid || undefined}
               isLoading={createClosure.isPending}
               onClick={() => void save()}
             >
@@ -204,26 +218,43 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
           </>
         }
       >
-        <div className="flex flex-col gap-4">
-          <FormField label="schedule.closures.dates" htmlFor="closure-dates">
-            <DateRangePicker
-              id="closure-dates"
-              data-testid="closure-field-dates"
-              label={t("schedule.closures.dates")}
-              value={range}
-              onChange={setRange}
-            />
-          </FormField>
+        <div ref={form.formRef} className="flex flex-col gap-4">
+          <div
+            onBlur={(event) => {
+              form.leave("startsOn")(event);
+              form.leave("endsOn")(event);
+            }}
+          >
+            <FormField
+              label="schedule.closures.dates"
+              htmlFor="closure-dates"
+              error={errors["startsOn"] ?? errors["endsOn"]}
+            >
+              <DateRangePicker
+                id="closure-dates"
+                data-testid="closure-field-dates"
+                label={t("schedule.closures.dates")}
+                value={range}
+                onChange={setRange}
+              />
+            </FormField>
+          </div>
 
-          <FormField label="schedule.closures.reason" htmlFor="closure-reason">
-            <Input
-              id="closure-reason"
-              data-testid="closure-field-reason"
-              placeholder={t("schedule.closures.reasonPlaceholder")}
-              value={reason}
-              onChange={(event) => setReason(event.target.value)}
-            />
-          </FormField>
+          <div onBlur={form.leave("reason")}>
+            <FormField
+              label="schedule.closures.reason"
+              htmlFor="closure-reason"
+              error={errors["reason"]}
+            >
+              <Input
+                id="closure-reason"
+                data-testid="closure-field-reason"
+                placeholder={t("schedule.closures.reasonPlaceholder")}
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+              />
+            </FormField>
+          </div>
 
           <div>
             <Switch

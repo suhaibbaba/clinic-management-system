@@ -6,8 +6,10 @@ import {
   MAX_CLINIC_LOGO_BYTES,
   PHONE_COUNTRIES,
   USER_ROLE,
+  updateClinicSchema,
   type Currency,
   type PhoneCountry,
+  type UpdateClinicInput,
   type WeeklySchedule,
 } from "@clinic/shared";
 import { useEffect, useMemo, useRef, useState, type JSX } from "react";
@@ -49,7 +51,9 @@ import {
   useUploadClinicLogo,
 } from "@web/modules/clinic/queries";
 import { useClinic } from "@web/shared/queries/clinic";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
+import { schemaErrors } from "@web/shared/lib/form-errors";
+import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { CLINIC_APP_ICON_LABELS, CLINIC_LOGO_LABELS } from "@web/modules/clinic/constants";
@@ -133,24 +137,36 @@ export function ClinicPage(): JSX.Element {
     };
   }, [shortLink, location]);
 
+  const body: UpdateClinicInput = {
+    name: { ar: nameAr.trim(), en: nameEn.trim() },
+    phone: phone === "" ? null : phone,
+    email: email.trim() === "" ? null : email.trim(),
+    address: address.trim() === "" ? null : address.trim(),
+    latitude: pin?.latitude ?? null,
+    longitude: pin?.longitude ?? null,
+    currency,
+    country,
+    workingHours,
+    settings: { ...clinic.data?.settings, appointments: { autoNoShowDays } },
+  };
+
+  const form = useFormErrors({
+    ...schemaErrors(updateClinicSchema, body),
+    ...(unreadable && { location: { type: "custom" } }),
+  });
+  const { errors } = form;
+
   const save = async (): Promise<void> => {
+    if (!form.check()) {
+      return;
+    }
+
     try {
-      await updateClinic.mutateAsync({
-        name: { ar: nameAr, en: nameEn },
-        phone: phone === "" ? null : phone,
-        email: email === "" ? null : email,
-        address: address === "" ? null : address,
-        latitude: pin?.latitude ?? null,
-        longitude: pin?.longitude ?? null,
-        currency,
-        country,
-        workingHours,
-        settings: { ...clinic.data?.settings, appointments: { autoNoShowDays } },
-      });
+      await updateClinic.mutateAsync(body);
       void refreshProfile();
       toast.success("clinic.updated");
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -159,7 +175,7 @@ export function ClinicPage(): JSX.Element {
   }
 
   return (
-    <div data-testid="clinic-page" className="flex flex-col gap-5">
+    <div ref={form.formRef} data-testid="clinic-page" className="flex flex-col gap-5">
       <PageHeader
         data-testid="clinic-header"
         title="clinic.title"
@@ -170,6 +186,7 @@ export function ClinicPage(): JSX.Element {
               icon={<Icon name="check" />}
               data-testid="clinic-save"
               isLoading={updateClinic.isPending}
+              {...(!form.isValid && { "aria-disabled": true })}
               onClick={() => void save()}
             >
               {t("common.save")}
@@ -185,97 +202,126 @@ export function ClinicPage(): JSX.Element {
         >
           <div className="flex flex-col gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="clinic.nameAr" htmlFor="clinic-name-ar">
-                <Input
-                  placeholder={t("common.placeholders.fullNameAr")}
-                  id="clinic-name-ar"
-                  data-testid="clinic-field-name-ar"
-                  value={nameAr}
-                  disabled={!canEdit}
-                  onChange={(event) => setNameAr(event.target.value)}
-                />
-              </FormField>
+              <div onBlur={form.leave("name.ar")}>
+                <FormField error={errors["name.ar"]} label="clinic.nameAr" htmlFor="clinic-name-ar">
+                  <Input
+                    placeholder={t("common.placeholders.fullNameAr")}
+                    id="clinic-name-ar"
+                    data-testid="clinic-field-name-ar"
+                    value={nameAr}
+                    disabled={!canEdit}
+                    onChange={(event) => setNameAr(event.target.value)}
+                  />
+                </FormField>
+              </div>
 
-              <FormField label="clinic.nameEn" htmlFor="clinic-name-en">
-                <Input
-                  placeholder={t("common.placeholders.fullNameEn")}
-                  id="clinic-name-en"
-                  data-testid="clinic-field-name-en"
-                  dir="ltr"
-                  value={nameEn}
+              <div onBlur={form.leave("name.en")}>
+                <FormField error={errors["name.en"]} label="clinic.nameEn" htmlFor="clinic-name-en">
+                  <Input
+                    placeholder={t("common.placeholders.fullNameEn")}
+                    id="clinic-name-en"
+                    data-testid="clinic-field-name-en"
+                    dir="ltr"
+                    value={nameEn}
+                    disabled={!canEdit}
+                    onChange={(event) => setNameEn(event.target.value)}
+                  />
+                </FormField>
+              </div>
+            </div>
+
+            <div onBlur={form.leave("phone")}>
+              <FormField
+                error={errors["phone"]}
+                errorKey="errors.validation.invalidPhone"
+                label="clinic.phone"
+                htmlFor="clinic-phone"
+                optional
+              >
+                <PhoneInput
+                  placeholder={t("common.placeholders.phone")}
+                  id="clinic-phone"
+                  data-testid="clinic-field-phone"
+                  value={phone}
                   disabled={!canEdit}
-                  onChange={(event) => setNameEn(event.target.value)}
+                  onChange={(next) => setPhone(next ?? "")}
                 />
               </FormField>
             </div>
 
-            <FormField label="clinic.phone" htmlFor="clinic-phone" optional>
-              <PhoneInput
-                placeholder={t("common.placeholders.phone")}
-                id="clinic-phone"
-                data-testid="clinic-field-phone"
-                value={phone}
-                disabled={!canEdit}
-                onChange={(next) => setPhone(next ?? "")}
-              />
-            </FormField>
+            <div onBlur={form.leave("email")}>
+              <FormField
+                error={errors["email"]}
+                errorKey="errors.validation.invalidEmail"
+                label="clinic.email"
+                htmlFor="clinic-email"
+                optional
+              >
+                <Input
+                  placeholder={t("common.placeholders.email")}
+                  adornment="mail"
+                  id="clinic-email"
+                  data-testid="clinic-field-email"
+                  type="email"
+                  value={email}
+                  disabled={!canEdit}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </FormField>
+            </div>
 
-            <FormField label="clinic.email" htmlFor="clinic-email" optional>
-              <Input
-                placeholder={t("common.placeholders.email")}
-                adornment="mail"
-                id="clinic-email"
-                data-testid="clinic-field-email"
-                type="email"
-                value={email}
-                disabled={!canEdit}
-                onChange={(event) => setEmail(event.target.value)}
-              />
-            </FormField>
+            <div onBlur={form.leave("address")}>
+              <FormField
+                error={errors["address"]}
+                label="clinic.address"
+                htmlFor="clinic-address"
+                optional
+              >
+                <Input
+                  placeholder={t("common.placeholders.address")}
+                  id="clinic-address"
+                  data-testid="clinic-field-address"
+                  value={address}
+                  disabled={!canEdit}
+                  onChange={(event) => setAddress(event.target.value)}
+                />
+              </FormField>
+            </div>
 
-            <FormField label="clinic.address" htmlFor="clinic-address" optional>
-              <Input
-                placeholder={t("common.placeholders.address")}
-                id="clinic-address"
-                data-testid="clinic-field-address"
-                value={address}
-                disabled={!canEdit}
-                onChange={(event) => setAddress(event.target.value)}
-              />
-            </FormField>
-
-            <FormField
-              label="clinic.location"
-              htmlFor="clinic-location"
-              hint={
-                unreadable
-                  ? undefined
-                  : shortLink
-                    ? "clinic.locationResolving"
-                    : "clinic.locationHint"
-              }
-              errorKey={
-                unreadable
-                  ? resolveLocation.isError
-                    ? "clinic.locationShortLinkFailed"
-                    : "clinic.locationUnreadable"
-                  : undefined
-              }
-              error={unreadable ? { type: "custom" } : undefined}
-              optional
-            >
-              <Input
-                placeholder={t("common.placeholders.location")}
-                adornment="map-pin"
-                id="clinic-location"
-                data-testid="clinic-field-location"
-                dir="ltr"
-                value={location}
-                hasError={unreadable}
-                disabled={!canEdit}
-                onChange={(event) => setLocation(event.target.value)}
-              />
-            </FormField>
+            <div onBlur={form.leave("location")}>
+              <FormField
+                label="clinic.location"
+                htmlFor="clinic-location"
+                hint={
+                  unreadable
+                    ? undefined
+                    : shortLink
+                      ? "clinic.locationResolving"
+                      : "clinic.locationHint"
+                }
+                errorKey={
+                  unreadable
+                    ? resolveLocation.isError
+                      ? "clinic.locationShortLinkFailed"
+                      : "clinic.locationUnreadable"
+                    : undefined
+                }
+                error={unreadable ? { type: "custom" } : undefined}
+                optional
+              >
+                <Input
+                  placeholder={t("common.placeholders.location")}
+                  adornment="map-pin"
+                  id="clinic-location"
+                  data-testid="clinic-field-location"
+                  dir="ltr"
+                  value={location}
+                  hasError={unreadable}
+                  disabled={!canEdit}
+                  onChange={(event) => setLocation(event.target.value)}
+                />
+              </FormField>
+            </div>
 
             {pin && (
               <p
@@ -295,40 +341,54 @@ export function ClinicPage(): JSX.Element {
               </p>
             )}
 
-            <FormField label="clinic.currency" htmlFor="clinic-currency" hint="clinic.currencyHint">
-              <Select
-                id="clinic-currency"
-                data-testid="clinic-field-currency"
-                className="w-56"
-                value={currency}
-                disabled={!canEdit}
-                options={CURRENCIES.map((code) => ({
-                  value: code,
-                  label: `${t(`clinic.currencies.${code}`)} (${code})`,
-                }))}
-                onChange={(event) => setCurrency(event.target.value as Currency)}
-              />
-            </FormField>
+            <div onBlur={form.leave("currency")}>
+              <FormField
+                error={errors["currency"]}
+                label="clinic.currency"
+                htmlFor="clinic-currency"
+                hint="clinic.currencyHint"
+              >
+                <Select
+                  id="clinic-currency"
+                  data-testid="clinic-field-currency"
+                  className="w-56"
+                  value={currency}
+                  disabled={!canEdit}
+                  options={CURRENCIES.map((code) => ({
+                    value: code,
+                    label: `${t(`clinic.currencies.${code}`)} (${code})`,
+                  }))}
+                  onChange={(event) => setCurrency(event.target.value as Currency)}
+                />
+              </FormField>
+            </div>
 
-            <FormField label="clinic.country" htmlFor="clinic-country" hint="clinic.countryHint">
-              <Select
-                id="clinic-country"
-                data-testid="clinic-field-country"
-                className="w-56"
-                value={country}
-                disabled={!canEdit}
-                options={PHONE_COUNTRIES.map((entry) => ({
-                  value: entry.country,
-                  label: `${countryNames.of(entry.country) ?? entry.country} ${entry.dial}`,
-                  icon: <Flag country={entry.country} />,
-                }))}
-                onChange={(event) => {
-                  if (isPhoneCountry(event.target.value)) {
-                    setCountry(event.target.value);
-                  }
-                }}
-              />
-            </FormField>
+            <div onBlur={form.leave("country")}>
+              <FormField
+                error={errors["country"]}
+                label="clinic.country"
+                htmlFor="clinic-country"
+                hint="clinic.countryHint"
+              >
+                <Select
+                  id="clinic-country"
+                  data-testid="clinic-field-country"
+                  className="w-56"
+                  value={country}
+                  disabled={!canEdit}
+                  options={PHONE_COUNTRIES.map((entry) => ({
+                    value: entry.country,
+                    label: `${countryNames.of(entry.country) ?? entry.country} ${entry.dial}`,
+                    icon: <Flag country={entry.country} />,
+                  }))}
+                  onChange={(event) => {
+                    if (isPhoneCountry(event.target.value)) {
+                      setCountry(event.target.value);
+                    }
+                  }}
+                />
+              </FormField>
+            </div>
           </div>
 
           <div data-testid="clinic-logo-section" className="mt-6 border-t border-line pt-4">
@@ -363,32 +423,35 @@ export function ClinicPage(): JSX.Element {
             {t("clinic.appointmentsSection")}
           </h2>
           <div className="max-w-(--field-max)">
-            <FormField
-              label="clinic.autoNoShowDays"
-              htmlFor="clinic-auto-no-show"
-              hint="clinic.autoNoShowHint"
-            >
-              <Input
-                id="clinic-auto-no-show"
-                data-testid="clinic-field-auto-no-show"
-                type="number"
-                inputMode="numeric"
-                min={AUTO_NO_SHOW_DAYS.MIN}
-                max={AUTO_NO_SHOW_DAYS.MAX}
-                step={1}
-                value={autoNoShowDays}
-                disabled={!canEdit}
-                onChange={(event) => {
-                  const next = Number.parseInt(event.target.value, 10);
+            <div onBlur={form.leave("settings.appointments.autoNoShowDays")}>
+              <FormField
+                error={errors["settings.appointments.autoNoShowDays"]}
+                label="clinic.autoNoShowDays"
+                htmlFor="clinic-auto-no-show"
+                hint="clinic.autoNoShowHint"
+              >
+                <Input
+                  id="clinic-auto-no-show"
+                  data-testid="clinic-field-auto-no-show"
+                  type="number"
+                  inputMode="numeric"
+                  min={AUTO_NO_SHOW_DAYS.MIN}
+                  max={AUTO_NO_SHOW_DAYS.MAX}
+                  step={1}
+                  value={autoNoShowDays}
+                  disabled={!canEdit}
+                  onChange={(event) => {
+                    const next = Number.parseInt(event.target.value, 10);
 
-                  if (Number.isInteger(next)) {
-                    setAutoNoShowDays(
-                      Math.min(AUTO_NO_SHOW_DAYS.MAX, Math.max(AUTO_NO_SHOW_DAYS.MIN, next)),
-                    );
-                  }
-                }}
-              />
-            </FormField>
+                    if (Number.isInteger(next)) {
+                      setAutoNoShowDays(
+                        Math.min(AUTO_NO_SHOW_DAYS.MAX, Math.max(AUTO_NO_SHOW_DAYS.MIN, next)),
+                      );
+                    }
+                  }}
+                />
+              </FormField>
+            </div>
           </div>
         </section>
 
@@ -454,7 +517,7 @@ function BrandingImageField({
       await upload.mutateAsync(file);
       toast.success(labels.uploaded);
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -467,7 +530,7 @@ function BrandingImageField({
           await remove.mutateAsync();
           toast.success(labels.removed);
         } catch (error) {
-          toast.error(errorMessageKey(error));
+          toast.error(...errorToast(error));
           throw error;
         }
       },

@@ -1,5 +1,7 @@
 import {
   CHART_TYPE,
+  createPerformedProcedureSchema,
+  updatePerformedProcedureSchema,
   type CreatePerformedProcedureInput,
   type Doctor,
   type PerformedProcedure,
@@ -8,6 +10,8 @@ import {
   type UserRole,
 } from "@clinic/shared";
 import { useEffect, useId, useState, type FormEvent, type JSX } from "react";
+import { schemaErrors, type FieldErrors } from "@web/shared/lib/form-errors";
+import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -45,9 +49,11 @@ export interface TreatmentDefaults {
   readonly visitId?: string | undefined;
   readonly status?: PerformedProcedureStatus | undefined;
   readonly doctorId?: string | undefined;
+  readonly performedAt?: string | undefined;
 }
 
 export interface TreatmentFormProps {
+  readonly patientId: string;
   readonly role: UserRole;
   readonly catalog: readonly ProcedureCatalogItem[];
   readonly doctors: readonly Doctor[];
@@ -55,9 +61,11 @@ export interface TreatmentFormProps {
   readonly treatment?: PerformedProcedure | undefined;
   readonly formId: string;
   readonly onSubmit: (values: TreatmentFormValues) => void;
+  readonly onValidityChange?: ((valid: boolean) => void) | undefined;
 }
 
 export function TreatmentForm({
+  patientId,
   role,
   catalog,
   doctors,
@@ -65,6 +73,7 @@ export function TreatmentForm({
   treatment,
   formId,
   onSubmit,
+  onValidityChange,
 }: TreatmentFormProps): JSX.Element {
   const { t } = useTranslation();
   const { can } = useSession();
@@ -93,7 +102,6 @@ export function TreatmentForm({
   );
   const [discountReason, setDiscountReason] = useState(treatment?.discountReason ?? "");
   const [notes, setNotes] = useState(treatment?.notes ?? "");
-  const [error, setError] = useState<string | null>(null);
   const [addingVisitor, setAddingVisitor] = useState(false);
   const [added, setAdded] = useState<Doctor | null>(null);
 
@@ -121,40 +129,47 @@ export function TreatmentForm({
     }
   }, [added]);
 
+  const values: TreatmentFormValues = {
+    doctorId,
+    procedureId,
+    status,
+    discount: hasDiscount ? discount : "0.00",
+    notes: notes.trim() === "" ? null : notes.trim(),
+    ...(showPrices && price !== "" && { price }),
+    ...(hasDiscount && { discountReason: discountReason.trim() }),
+    ...(!isEdit && defaults.visitId !== undefined && { visitId: defaults.visitId }),
+    ...(!isEdit && defaults.performedAt !== undefined && { performedAt: defaults.performedAt }),
+    chartMarks: teeth.map((at) => ({
+      chartType: CHART_TYPE.TOOTH_FDI,
+      location: { tooth: at, surfaces: teeth.length === 1 ? surfaces : [] },
+    })),
+  };
+
+  const form = useFormErrors<HTMLFormElement>(
+    isEdit
+      ? schemaErrors(updatePerformedProcedureSchema, values)
+      : schemaErrors(createPerformedProcedureSchema, { ...values, patientId }),
+  );
+  const { errors } = form;
+
+  useEffect(() => {
+    onValidityChange?.(form.isValid);
+  }, [form.isValid, onValidityChange]);
+
   const handleSubmit = (event: FormEvent): void => {
     event.preventDefault();
 
-    if (!procedureId || !doctorId) {
-      setError("chart.panel.selectProcedure");
+    if (!form.check()) {
       return;
     }
 
-    if (hasDiscount && discountReason.trim() === "") {
-      setError("chart.panel.discountNeedsReason");
-      return;
-    }
-
-    setError(null);
-
-    onSubmit({
-      doctorId,
-      procedureId,
-      status,
-      discount: hasDiscount ? discount : "0.00",
-      notes: notes.trim() === "" ? null : notes.trim(),
-      ...(showPrices && price !== "" && { price }),
-      ...(hasDiscount && { discountReason: discountReason.trim() }),
-      ...(!isEdit && defaults.visitId !== undefined && { visitId: defaults.visitId }),
-      chartMarks: teeth.map((at) => ({
-        chartType: CHART_TYPE.TOOTH_FDI,
-        location: { tooth: at, surfaces: teeth.length === 1 ? surfaces : [] },
-      })),
-    });
+    onSubmit(values);
   };
 
   return (
     <>
       <form
+        ref={form.formRef}
         id={formId}
         data-testid="treatment-form"
         className="@container flex max-w-(--form-max) flex-col gap-4"
@@ -162,44 +177,62 @@ export function TreatmentForm({
         noValidate
       >
         <div className="grid gap-4 @lg:grid-cols-2">
-          <FormField label="chart.panel.procedure" htmlFor={`${fieldId}-procedure`}>
-            <Select
-              searchable
-              id={`${fieldId}-procedure`}
-              data-testid="treatment-field-procedure"
-              value={procedureId}
-              onChange={(event) => setProcedureId(event.target.value)}
-              placeholder={t("chart.panel.selectProcedure")}
-              options={catalog.map((item) => ({ value: item.id, label: item.name }))}
-            />
-          </FormField>
-
-          <FormField label="chart.panel.status" htmlFor={`${fieldId}-status`}>
-            <Select
-              id={`${fieldId}-status`}
-              data-testid="treatment-field-status"
-              value={status}
-              onChange={(event) => setStatus(event.target.value as PerformedProcedureStatus)}
-              options={statusChoices(treatment?.status).map((value) => ({
-                value,
-                label: t(`chart.procedureStatus.${value}`),
-              }))}
-            />
-          </FormField>
-
-          <div className="flex flex-col gap-2">
-            <FormField label="chart.panel.doctor" htmlFor={`${fieldId}-doctor`}>
+          <div onBlur={form.leave("procedureId")}>
+            <FormField
+              label="chart.panel.procedure"
+              htmlFor={`${fieldId}-procedure`}
+              error={errors["procedureId"]}
+            >
               <Select
-                id={`${fieldId}-doctor`}
-                data-testid="treatment-field-doctor"
-                value={doctorId}
-                onChange={(event) => setDoctorId(event.target.value)}
-                options={performers.map((doctor) => ({
-                  value: doctor.id,
-                  label: doctorOptionLabel(doctor, doctorName(doctor.user.name), t),
+                searchable
+                id={`${fieldId}-procedure`}
+                data-testid="treatment-field-procedure"
+                value={procedureId}
+                onChange={(event) => setProcedureId(event.target.value)}
+                placeholder={t("chart.panel.selectProcedure")}
+                options={catalog.map((item) => ({ value: item.id, label: item.name }))}
+              />
+            </FormField>
+          </div>
+
+          <div onBlur={form.leave("status")}>
+            <FormField
+              label="chart.panel.status"
+              htmlFor={`${fieldId}-status`}
+              error={errors["status"]}
+            >
+              <Select
+                id={`${fieldId}-status`}
+                data-testid="treatment-field-status"
+                value={status}
+                onChange={(event) => setStatus(event.target.value as PerformedProcedureStatus)}
+                options={statusChoices(treatment?.status).map((value) => ({
+                  value,
+                  label: t(`chart.procedureStatus.${value}`),
                 }))}
               />
             </FormField>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <div onBlur={form.leave("doctorId")}>
+              <FormField
+                label="chart.panel.doctor"
+                htmlFor={`${fieldId}-doctor`}
+                error={errors["doctorId"]}
+              >
+                <Select
+                  id={`${fieldId}-doctor`}
+                  data-testid="treatment-field-doctor"
+                  value={doctorId}
+                  onChange={(event) => setDoctorId(event.target.value)}
+                  options={performers.map((doctor) => ({
+                    value: doctor.id,
+                    label: doctorOptionLabel(doctor, doctorName(doctor.user.name), t),
+                  }))}
+                />
+              </FormField>
+            </div>
 
             {canAddVisitingDoctor(can) && (
               <Button
@@ -218,46 +251,73 @@ export function TreatmentForm({
 
         {showPrices && (
           <div className="grid gap-4 @lg:grid-cols-2">
-            <FormField label="chart.panel.price" htmlFor={`${fieldId}-price`}>
-              <MoneyInput
-                id={`${fieldId}-price`}
-                data-testid="treatment-field-price"
-                currency={currency}
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-              />
-            </FormField>
+            <div onBlur={form.leave("price")}>
+              <FormField
+                label="chart.panel.price"
+                htmlFor={`${fieldId}-price`}
+                error={errors["price"]}
+              >
+                <MoneyInput
+                  id={`${fieldId}-price`}
+                  data-testid="treatment-field-price"
+                  currency={currency}
+                  value={price}
+                  onChange={(event) => setPrice(event.target.value)}
+                />
+              </FormField>
+            </div>
 
-            <FormField label="chart.panel.discount" htmlFor={`${fieldId}-discount`} optional>
-              <MoneyInput
-                id={`${fieldId}-discount`}
-                data-testid="treatment-field-discount"
-                currency={currency}
-                value={discount}
-                onChange={(event) => setDiscount(event.target.value)}
-              />
-            </FormField>
+            <div onBlur={form.leave("discount")}>
+              <FormField
+                label="chart.panel.discount"
+                htmlFor={`${fieldId}-discount`}
+                error={errors["discount"]}
+                optional
+              >
+                <MoneyInput
+                  id={`${fieldId}-discount`}
+                  data-testid="treatment-field-discount"
+                  currency={currency}
+                  value={discount}
+                  onChange={(event) => setDiscount(event.target.value)}
+                />
+              </FormField>
+            </div>
           </div>
         )}
 
         {showPrices && hasDiscount && (
           <div className="max-w-(--field-max)">
-            <FormField label="chart.panel.discountReason" htmlFor={`${fieldId}-reason`}>
-              <Input
-                id={`${fieldId}-reason`}
-                data-testid="treatment-field-discount-reason"
-                value={discountReason}
-                onChange={(event) => setDiscountReason(event.target.value)}
-              />
-            </FormField>
+            <div onBlur={form.leave("discountReason")}>
+              <FormField
+                label="chart.panel.discountReason"
+                htmlFor={`${fieldId}-reason`}
+                error={errors["discountReason"]}
+                errorKey="chart.panel.discountNeedsReason"
+              >
+                <Input
+                  id={`${fieldId}-reason`}
+                  data-testid="treatment-field-discount-reason"
+                  value={discountReason}
+                  onChange={(event) => setDiscountReason(event.target.value)}
+                />
+              </FormField>
+            </div>
           </div>
         )}
 
         {fixedTooth === undefined && (
           <div className="max-w-(--field-max)">
-            <FormField label="visits.teeth" htmlFor={`${fieldId}-teeth`} optional>
-              <TeethField id={`${fieldId}-teeth`} value={teeth} onChange={setTeeth} />
-            </FormField>
+            <div onBlur={form.leave("chartMarks")}>
+              <FormField
+                label="visits.teeth"
+                htmlFor={`${fieldId}-teeth`}
+                error={fieldError(errors, "chartMarks")}
+                optional
+              >
+                <TeethField id={`${fieldId}-teeth`} value={teeth} onChange={setTeeth} />
+              </FormField>
+            </div>
           </div>
         )}
 
@@ -268,21 +328,22 @@ export function TreatmentForm({
           </div>
         )}
 
-        <FormField label="visits.notes" htmlFor={`${fieldId}-notes`} optional>
-          <Textarea
-            id={`${fieldId}-notes`}
-            data-testid="treatment-field-notes"
-            rows={2}
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-          />
-        </FormField>
-
-        {error && (
-          <p role="alert" data-testid="treatment-form-error" className="text-label text-danger-600">
-            {t(error)}
-          </p>
-        )}
+        <div onBlur={form.leave("notes")}>
+          <FormField
+            label="visits.notes"
+            htmlFor={`${fieldId}-notes`}
+            error={errors["notes"]}
+            optional
+          >
+            <Textarea
+              id={`${fieldId}-notes`}
+              data-testid="treatment-field-notes"
+              rows={2}
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+            />
+          </FormField>
+        </div>
       </form>
 
       <VisitingDoctorModal
@@ -296,10 +357,12 @@ export function TreatmentForm({
 
 export function TreatmentFormActions({
   submitting,
+  invalid,
   onCancel,
   formId,
 }: {
   readonly submitting: boolean;
+  readonly invalid: boolean;
   readonly onCancel: () => void;
   readonly formId: string;
 }): JSX.Element {
@@ -321,6 +384,7 @@ export function TreatmentFormActions({
         type="submit"
         form={formId}
         data-testid="treatment-form-save"
+        aria-disabled={invalid || undefined}
         isLoading={submitting}
       >
         {submitting ? ellipsis(t("common.saving")) : t("common.save")}
@@ -335,4 +399,8 @@ function selectable(surfaces: readonly string[]): SelectableSurface[] {
   return surfaces.filter((surface): surface is SelectableSurface =>
     (SELECTABLE_SURFACES as readonly string[]).includes(surface),
   );
+}
+
+function fieldError(errors: FieldErrors, field: string): FieldErrors[string] | undefined {
+  return Object.entries(errors).find(([key]) => key === field || key.startsWith(`${field}.`))?.[1];
 }

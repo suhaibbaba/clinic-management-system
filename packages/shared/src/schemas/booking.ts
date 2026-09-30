@@ -132,3 +132,6 @@ export type CreateUrgentRequestInput = z.infer<typeof createUrgentRequestSchema>
 
 export const urgentRequestReceiptSchema = z.object({ received: z.literal(true) });
 export type UrgentRequestReceipt = z.infer<typeof urgentRequestReceiptSchema>;
+
+export const rejectBookingSchema = z.object({ reason: z.string().trim().min(3).max(300) });
+export type RejectBookingInput = z.infer<typeof rejectBookingSchema>;

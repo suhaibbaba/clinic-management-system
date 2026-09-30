@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { forgotPasswordSchema, type ForgotPasswordInput } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useForm } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button, FormField, Icon, Input, PersonName } from "@clinic/ui";
@@ -21,13 +22,19 @@ export function ForgotPasswordPage(): JSX.Element {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<ForgotPasswordInput>({ resolver: zodResolver(forgotPasswordSchema) });
-
-  const onSubmit = handleSubmit(async (values) => {
-    await authApi.forgotPassword(values).catch(() => undefined);
-    setSent(true);
+    formState: { errors, isSubmitting, isValid },
+  } = useForm<ForgotPasswordInput>({
+    mode: "onTouched",
+    resolver: zodResolver(forgotPasswordSchema),
   });
+
+  const onSubmit = handleSubmit(
+    async (values) => {
+      await authApi.forgotPassword(values).catch(() => undefined);
+      setSent(true);
+    },
+    () => revealFirstError(),
+  );
 
   return (
     <main
@@ -97,6 +104,7 @@ export function ForgotPasswordPage(): JSX.Element {
               <Button
                 icon={<Icon name="mail" />}
                 type="submit"
+                aria-disabled={!isValid || isSubmitting || undefined}
                 data-testid="forgot-password-submit"
                 isLoading={isSubmitting}
                 className="mt-2 w-full"

@@ -11,6 +11,7 @@ import {
   addDays,
   APPOINTMENT_OPEN_STATUSES,
   APPOINTMENT_STATUS,
+  APPOINTMENT_ERROR,
   APPOINTMENT_TIMING_ERROR,
   APPOINTMENT_TYPE,
   appointmentTimingError,
@@ -279,7 +280,7 @@ export class AppointmentsService implements OnModuleInit {
     }
 
     if (!occupiesSlot(existing.status) || existing.status === APPOINTMENT_STATUS.COMPLETED) {
-      throw new BadRequestException("This appointment is closed and can no longer be moved");
+      throw new BadRequestException(APPOINTMENT_ERROR.CLOSED);
     }
 
     if (
@@ -324,11 +325,11 @@ export class AppointmentsService implements OnModuleInit {
     await this.access.requireOwnCalendar(actor, existing.doctorId);
 
     if (!canTransitionAppointment(existing.status, next)) {
-      throw new BadRequestException(`An appointment cannot go from ${existing.status} to ${next}`);
+      throw new BadRequestException(APPOINTMENT_ERROR.BAD_TRANSITION);
     }
 
     if (next === APPOINTMENT_STATUS.CANCELLED && !cancelledReason?.trim()) {
-      throw new BadRequestException("A cancellation must state a reason");
+      throw new BadRequestException(APPOINTMENT_ERROR.CANCEL_NEEDS_REASON);
     }
 
     const timingError = await this.timingError(actor.clinicId, existing.startsAt, next);
@@ -384,14 +385,14 @@ export class AppointmentsService implements OnModuleInit {
     await this.access.requireOwnCalendar(actor, existing.doctorId);
 
     if (existing.visitId) {
-      throw new BadRequestException("This appointment already has a visit");
+      throw new BadRequestException(APPOINTMENT_ERROR.HAS_VISIT);
     }
 
     if (
       existing.status !== APPOINTMENT_STATUS.ARRIVED &&
       existing.status !== APPOINTMENT_STATUS.IN_PROGRESS
     ) {
-      throw new BadRequestException("Mark the patient as arrived before opening a visit");
+      throw new BadRequestException(APPOINTMENT_ERROR.NOT_ARRIVED);
     }
 
     return this.db.transaction(async (tx) => {
@@ -444,7 +445,7 @@ export class AppointmentsService implements OnModuleInit {
       rows = await this.writeOnce(write);
     } catch (error) {
       if (hasSqlState(error, EXCLUSION_VIOLATION)) {
-        throw new ConflictException("That time is already booked for this doctor");
+        throw new ConflictException(APPOINTMENT_ERROR.SLOT_TAKEN);
       }
 
       throw error;

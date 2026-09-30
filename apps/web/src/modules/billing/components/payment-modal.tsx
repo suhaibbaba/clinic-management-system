@@ -8,6 +8,7 @@ import {
 } from "@clinic/shared";
 import { useEffect, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -23,7 +24,7 @@ import {
 import { openReceipt } from "@web/modules/billing/lib/documents";
 import { useLookupLabels, useLookupOptions } from "@web/shared/queries/lookups";
 import { useCreatePayment } from "@web/modules/billing/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { moneyText } from "@web/shared/lib/format";
 import { ellipsis } from "@web/i18n/ellipsis";
 
@@ -57,8 +58,11 @@ export function PaymentModal({
     reset,
     control,
     watch,
-    formState: { errors },
-  } = useForm<CreatePaymentInput>({ resolver: zodResolver(createPaymentSchema) });
+    formState: { errors, isValid },
+  } = useForm<CreatePaymentInput>({
+    mode: "onTouched",
+    resolver: zodResolver(createPaymentSchema),
+  });
 
   const amount = watch("amount") ?? "";
   const typed = /^\d+(\.\d{1,2})?$/.test(amount);
@@ -84,34 +88,37 @@ export function PaymentModal({
 
       await openReceipt(payment.id);
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
       throw error;
     }
   };
 
-  const onSubmit = handleSubmit((values) => {
-    if (exceeds) {
-      return;
-    }
+  const onSubmit = handleSubmit(
+    (values) => {
+      if (exceeds) {
+        return;
+      }
 
-    confirm({
-      title: "billing.confirmPayment.title",
-      titleValues: { amount: moneyText(values.amount, currency) },
-      tone: "primary",
-      confirmLabel: "billing.recordAndPrint",
-      consequences: [
-        t("billing.confirmPayment.method", { method: methodLabel(values.method) }),
-        t("billing.confirmPayment.remaining", {
-          amount: moneyText(
-            formatMinorUnits(toMinorUnits(balance) - toMinorUnits(values.amount)),
-            currency,
-          ),
-        }),
-        t("billing.confirmPayment.permanent"),
-      ],
-      onConfirm: () => record(values),
-    });
-  });
+      confirm({
+        title: "billing.confirmPayment.title",
+        titleValues: { amount: moneyText(values.amount, currency) },
+        tone: "primary",
+        confirmLabel: "billing.recordAndPrint",
+        consequences: [
+          t("billing.confirmPayment.method", { method: methodLabel(values.method) }),
+          t("billing.confirmPayment.remaining", {
+            amount: moneyText(
+              formatMinorUnits(toMinorUnits(balance) - toMinorUnits(values.amount)),
+              currency,
+            ),
+          }),
+          t("billing.confirmPayment.permanent"),
+        ],
+        onConfirm: () => record(values),
+      });
+    },
+    () => revealFirstError(),
+  );
 
   return (
     <>
@@ -137,6 +144,7 @@ export function PaymentModal({
               form="payment-form"
               data-testid={`${testId}-save`}
               disabled={exceeds}
+              aria-disabled={!isValid || exceeds || undefined}
             >
               {t("common.continue")}
             </Button>

@@ -9,6 +9,7 @@ import {
 } from "@clinic/shared";
 import { useEffect, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -22,9 +23,10 @@ import {
   useToast,
 } from "@clinic/ui";
 import { useCreatePatient, useUpdatePatient } from "@web/modules/patients/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { formatList } from "@web/shared/lib/format";
+import { todayIso } from "@web/shared/lib/dates";
 
 interface PatientFormModalProps {
   "data-testid"?: string | undefined;
@@ -51,10 +53,13 @@ export function PatientFormModal({
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
     control,
     watch,
-  } = useForm<CreatePatientInput>({ resolver: zodResolver(createPatientSchema) });
+  } = useForm<CreatePatientInput>({
+    mode: "onTouched",
+    resolver: zodResolver(createPatientSchema),
+  });
 
   const missing = editing
     ? missingProfileFields({ dateOfBirth: watch("dateOfBirth"), gender: watch("gender") })
@@ -85,23 +90,26 @@ export function PatientFormModal({
     );
   }, [open, patient, reset]);
 
-  const onSubmit = handleSubmit(async (values) => {
-    try {
-      if (editing) {
-        await updatePatient.mutateAsync(values);
-        toast.success("patients.updated");
-        onOpenChange(false);
-        return;
-      }
+  const onSubmit = handleSubmit(
+    async (values) => {
+      try {
+        if (editing) {
+          await updatePatient.mutateAsync(values);
+          toast.success("patients.updated");
+          onOpenChange(false);
+          return;
+        }
 
-      const created = await createPatient.mutateAsync(values);
-      toast.success("patients.created");
-      onOpenChange(false);
-      onCreated?.(created.id);
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
-  });
+        const created = await createPatient.mutateAsync(values);
+        toast.success("patients.created");
+        onOpenChange(false);
+        onCreated?.(created.id);
+      } catch (error) {
+        toast.error(...errorToast(error));
+      }
+    },
+    () => revealFirstError(),
+  );
 
   return (
     <Modal
@@ -122,6 +130,7 @@ export function PatientFormModal({
           <Button
             icon={<Icon name="check" />}
             type="submit"
+            aria-disabled={!isValid || isSubmitting || undefined}
             form="patient-form"
             data-testid={`${testId}-save`}
             isLoading={isSubmitting}
@@ -256,6 +265,7 @@ export function PatientFormModal({
                 data-testid="patient-field-dob"
                 label={t("patients.dateOfBirth")}
                 value={field.value ?? ""}
+                max={todayIso()}
                 hasError={errors.dateOfBirth !== undefined}
                 onChange={(value) => field.onChange(value === "" ? null : value)}
               />

@@ -4,7 +4,7 @@ import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Ltr, useToast } from "@clinic/ui";
 import { cn } from "@clinic/ui/lib/cn";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { formatDate } from "@web/shared/lib/format";
 import { availableSteps, LAB_ORDER_STAGE_TONES } from "@web/modules/labs/lib/status";
 import { useSession } from "@web/shared/providers/session";
@@ -143,7 +143,7 @@ export function NextStep({ order }: { readonly order: LabOrderRow }): JSX.Elemen
           await step.mutateAsync({ id: order.id, step: next.step });
           toast.success("labs.order.moved");
         } catch (error) {
-          toast.error(errorMessageKey(error));
+          toast.error(...errorToast(error));
         } finally {
           setMoving(false);
         }

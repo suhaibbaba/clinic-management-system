@@ -1,3 +1,4 @@
+import { isIsoDate } from "@web/shared/lib/dates";
 import { useCalendarMutation } from "@web/shared/queries/appointments";
 import { WAITING_LIST_KEY, CALENDAR_KEY, AVAILABILITY_KEY } from "@web/shared/constants/query-keys";
 import { useQueries, useQuery, type QueryClient, type UseQueryResult } from "@tanstack/react-query";
@@ -31,7 +32,7 @@ export function useAvailability(
   query: Partial<AvailabilityQuery>,
   enabled = true,
 ): UseQueryResult<Availability> {
-  const ready = Boolean(query.doctorId && query.date) && enabled;
+  const ready = Boolean(query.doctorId) && isIsoDate(query.date ?? "") && enabled;
 
   return useQuery({
     queryKey: [AVAILABILITY_KEY, query],

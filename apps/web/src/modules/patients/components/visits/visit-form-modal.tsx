@@ -1,6 +1,7 @@
 import { createVisitSchema, type CreateVisitInput, type Doctor, type Visit } from "@clinic/shared";
 import { useEffect, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -15,7 +16,8 @@ import {
   useToast,
 } from "@clinic/ui";
 import { useSaveVisit } from "@web/modules/patients/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
+import { payloadResolver } from "@web/shared/lib/payload-resolver";
 import { ellipsis } from "@web/i18n/ellipsis";
 
 interface VisitFormModalProps {
@@ -61,11 +63,21 @@ export function VisitFormModal({
     handleSubmit,
     reset,
     setValue,
-    setError,
     getValues,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
     control,
-  } = useForm<VisitFormValues>();
+  } = useForm<VisitFormValues>({
+    mode: "onTouched",
+    resolver: payloadResolver(createVisitSchema, (values: VisitFormValues) => toPayload(values)),
+  });
+
+  function toPayload(values: VisitFormValues) {
+    return {
+      ...values,
+      patientId,
+      ...(values.visitDate ? { visitDate: new Date(values.visitDate).toISOString() } : {}),
+    };
+  }
 
   useEffect(() => {
     if (!open) {
@@ -101,38 +113,24 @@ export function VisitFormModal({
     }
   }, [open, doctors, getValues, setValue]);
 
-  const onSubmit = handleSubmit(async (values) => {
-    const payload = {
-      ...values,
-      patientId,
-      ...(values.visitDate ? { visitDate: new Date(values.visitDate).toISOString() } : {}),
-    };
+  const onSubmit = handleSubmit(
+    async (values) => {
+      const parsed = createVisitSchema.parse(toPayload(values));
 
-    const parsed = createVisitSchema.safeParse(payload);
+      try {
+        await saveVisit.mutateAsync({
+          ...(visit ? { id: visit.id } : {}),
+          body: parsed,
+        });
 
-    if (!parsed.success) {
-      for (const issue of parsed.error.issues) {
-        const field = issue.path[0];
-
-        if (typeof field === "string") {
-          setError(field as keyof VisitFormValues, { type: issue.code, message: issue.message });
-        }
+        toast.success(visit ? "visits.updated" : "visits.created");
+        onOpenChange(false);
+      } catch (error) {
+        toast.error(...errorToast(error));
       }
-      return;
-    }
-
-    try {
-      await saveVisit.mutateAsync({
-        ...(visit ? { id: visit.id } : {}),
-        body: parsed.data,
-      });
-
-      toast.success(visit ? "visits.updated" : "visits.created");
-      onOpenChange(false);
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
-  });
+    },
+    () => revealFirstError(),
+  );
 
   return (
     <Modal
@@ -154,6 +152,7 @@ export function VisitFormModal({
           <Button
             icon={<Icon name="check" />}
             type="submit"
+            aria-disabled={!isValid || isSubmitting || undefined}
             form="visit-form"
             data-testid={`${testId}-save`}
             isLoading={isSubmitting}

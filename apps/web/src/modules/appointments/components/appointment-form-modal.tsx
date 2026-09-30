@@ -2,6 +2,9 @@ import {
   APPOINTMENT_TYPE,
   LOOKUP_LIST,
   WAITING_LIST_SOURCE,
+  createAppointmentSchema,
+  updateAppointmentSchema,
+  VALIDATION_CODE,
   type CalendarAppointment,
   type WaitingListEntry,
 } from "@clinic/shared";
@@ -28,15 +31,22 @@ import {
 } from "@web/modules/appointments/queries";
 import { PatientPicker } from "@web/shared/components/patient-picker";
 import {
-  isDraftComplete,
+  FORM_ROOT,
+  REQUIRED,
+  nestedErrors,
+  schemaErrors,
+  type FieldErrors,
+} from "@web/shared/lib/form-errors";
+import {
   patientPhoneClash,
   toPatientRef,
   type PatientChoice,
   type PickedPatient,
 } from "@web/shared/lib/patient-draft";
 import { SlotPicker } from "@web/modules/appointments/components/slot-picker";
-import { toIsoDate, todayIso } from "@web/shared/lib/dates";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { isIsoDate, toIsoDate, todayIso } from "@web/shared/lib/dates";
+import { useFormErrors } from "@web/shared/hooks/use-form-errors";
+import { errorToast } from "@web/shared/lib/api-error";
 
 export interface AppointmentFormModalProps {
   readonly "data-testid"?: string | undefined;
@@ -88,6 +98,7 @@ export function AppointmentFormModal({
     }
 
     setClash(null);
+    form.reset();
 
     if (appointment) {
       setPatient({
@@ -168,29 +179,41 @@ export function AppointmentFormModal({
 
   const ready = Boolean(doctorId && date);
   const movedIntoPast = date < todayIso() && startsAt !== appointment?.startsAt;
-  const canSubmit =
-    Boolean(startsAt) &&
-    Boolean(doctorId) &&
-    !movedIntoPast &&
-    (isDraftComplete(patient) || Boolean(appointment));
+  const body = {
+    doctorId,
+    startsAt: startsAt ?? undefined,
+    durationMinutes: Number(durationMinutes),
+    type,
+    reason: reason.trim() === "" ? null : reason.trim(),
+    notes: notes.trim() === "" ? null : notes.trim(),
+  };
+
+  const validate = (): FieldErrors => ({
+    ...(appointment || waitingEntry
+      ? schemaErrors(updateAppointmentSchema, body)
+      : schemaErrors(createAppointmentSchema, {
+          ...body,
+          ...(patient ? toPatientRef(patient) : {}),
+        })),
+    ...(!patient && { [FORM_ROOT]: REQUIRED }),
+    ...(!startsAt && { startsAt: REQUIRED }),
+    ...(!doctorId && { doctorId: REQUIRED }),
+    ...(!isIsoDate(date)
+      ? { date: date === "" ? REQUIRED : { type: "invalid_format" } }
+      : movedIntoPast && { date: { type: "custom", message: VALIDATION_CODE.DATE_IN_PAST } }),
+  });
+
+  const form = useFormErrors(validate());
+  const { errors } = form;
 
   const submit = async (): Promise<void> => {
-    if (!startsAt || !doctorId) {
+    if (!form.check() || !startsAt || movedIntoPast) {
       return;
     }
 
-    const body = {
-      doctorId,
-      startsAt,
-      durationMinutes: Number(durationMinutes),
-      type,
-      reason: reason.trim() === "" ? null : reason.trim(),
-      notes: notes.trim() === "" ? null : notes.trim(),
-    };
-
     try {
       if (appointment) {
-        await update.mutateAsync({ id: appointment.id, body });
+        await update.mutateAsync({ id: appointment.id, body: { ...body, startsAt } });
         toast.success("appointments.updated");
       } else if (waitingEntry) {
         await promote.mutateAsync({
@@ -209,7 +232,7 @@ export function AppointmentFormModal({
           return;
         }
 
-        await create.mutateAsync({ ...body, ...toPatientRef(patient) });
+        await create.mutateAsync({ ...body, startsAt, ...toPatientRef(patient) });
         toast.success("appointments.created");
       }
 
@@ -223,7 +246,7 @@ export function AppointmentFormModal({
         return;
       }
 
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -255,7 +278,7 @@ export function AppointmentFormModal({
           <Button
             isLoading={isPending}
             data-testid={`${testId}-save`}
-            disabled={!canSubmit}
+            aria-disabled={!form.isValid || movedIntoPast || undefined}
             onClick={() => void submit()}
           >
             {t("common.save")}
@@ -263,112 +286,149 @@ export function AppointmentFormModal({
         </>
       }
     >
-      <div data-testid={`${testId}-form`} className="flex flex-col gap-4">
-        <FormField label="appointments.patient" htmlFor="appointment-patient">
-          <PatientPicker
-            id="appointment-patient"
-            value={patient}
-            clash={clash}
-            allowNew={!waitingEntry && !appointment && !forPatient}
-            onChange={(next) => {
-              setPatient(next);
-              setClash(null);
-            }}
-          />
-        </FormField>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="appointments.doctor" htmlFor="appointment-doctor">
-            <Select
-              id="appointment-doctor"
-              data-testid="appointment-field-doctor"
-              value={doctorId}
-              placeholder={t("appointments.allDoctors")}
-              options={(doctors.data?.items ?? []).map((doctor) => ({
-                value: doctor.id,
-                label: doctorName(doctor.user.name),
-              }))}
-              onChange={(event) => {
-                setDoctorId(event.target.value);
-                setStartsAt(null);
-              }}
-            />
-          </FormField>
-
-          <FormField label="appointments.date" htmlFor="appointment-date">
-            <DatePicker
-              id="appointment-date"
-              data-testid="appointment-field-date"
-              label={t("appointments.date")}
-              value={date}
-              min={todayIso()}
+      <div ref={form.formRef} data-testid={`${testId}-form`} className="flex flex-col gap-4">
+        <div onBlur={form.leave(FORM_ROOT)}>
+          <FormField
+            label="appointments.patient"
+            htmlFor="appointment-patient"
+            error={patient?.kind === "new" ? undefined : (errors[FORM_ROOT] ?? errors["patientId"])}
+          >
+            <PatientPicker
+              id="appointment-patient"
+              value={patient}
+              clash={clash}
+              errors={nestedErrors(errors, "newPatient")}
+              onLeave={(field) => form.leave(`newPatient.${field}`)}
+              allowNew={!waitingEntry && !appointment && !forPatient}
               onChange={(next) => {
-                setDate(next);
-                setStartsAt(null);
-              }}
-            />
-          </FormField>
-
-          <FormField label="appointments.type" htmlFor="appointment-type">
-            <Select
-              id="appointment-type"
-              data-testid="appointment-field-type"
-              value={type}
-              options={typeOptions}
-              onChange={(event) => setType(event.target.value)}
-            />
-          </FormField>
-
-          <FormField label="appointments.duration" htmlFor="appointment-duration">
-            <Select
-              id="appointment-duration"
-              data-testid="appointment-field-duration"
-              value={durationMinutes}
-              options={durationChoices(durationMinutes).map((value) => ({
-                value,
-                label: t("appointments.durationMinutes", { count: Number(value) }),
-              }))}
-              onChange={(event) => {
-                setDurationMinutes(event.target.value);
-                setStartsAt(null);
+                setPatient(next);
+                setClash(null);
               }}
             />
           </FormField>
         </div>
 
-        <FormField
-          label="appointments.slots.label"
-          htmlFor="appointment-slot"
-          hint="appointments.slots.hint"
-        >
-          <SlotPicker
-            availability={availability.data}
-            isLoading={availability.isFetching}
-            ready={ready}
-            value={startsAt}
-            onChange={setStartsAt}
-          />
-        </FormField>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div onBlur={form.leave("doctorId")}>
+            <FormField
+              label="appointments.doctor"
+              htmlFor="appointment-doctor"
+              error={errors["doctorId"]}
+            >
+              <Select
+                id="appointment-doctor"
+                data-testid="appointment-field-doctor"
+                value={doctorId}
+                placeholder={t("appointments.allDoctors")}
+                options={(doctors.data?.items ?? []).map((doctor) => ({
+                  value: doctor.id,
+                  label: doctorName(doctor.user.name),
+                }))}
+                onChange={(event) => {
+                  setDoctorId(event.target.value);
+                  setStartsAt(null);
+                }}
+              />
+            </FormField>
+          </div>
 
-        <FormField label="appointments.reason" htmlFor="appointment-reason" optional>
-          <Input
-            id="appointment-reason"
-            data-testid="appointment-field-reason"
-            placeholder={t("appointments.reason")}
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-          />
-        </FormField>
+          <div onBlur={form.leave("date")}>
+            <FormField label="appointments.date" htmlFor="appointment-date" error={errors["date"]}>
+              <DatePicker
+                id="appointment-date"
+                data-testid="appointment-field-date"
+                label={t("appointments.date")}
+                value={date}
+                min={todayIso()}
+                onChange={(next) => {
+                  setDate(next);
+                  setStartsAt(null);
+                }}
+              />
+            </FormField>
+          </div>
 
-        <FormField label="appointments.notes" htmlFor="appointment-notes" optional>
-          <Textarea
-            id="appointment-notes"
-            data-testid="appointment-field-notes"
-            rows={2}
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-          />
-        </FormField>
+          <div onBlur={form.leave("type")}>
+            <FormField label="appointments.type" htmlFor="appointment-type">
+              <Select
+                id="appointment-type"
+                data-testid="appointment-field-type"
+                value={type}
+                options={typeOptions}
+                onChange={(event) => setType(event.target.value)}
+              />
+            </FormField>
+          </div>
+
+          <div onBlur={form.leave("durationMinutes")}>
+            <FormField label="appointments.duration" htmlFor="appointment-duration">
+              <Select
+                id="appointment-duration"
+                data-testid="appointment-field-duration"
+                value={durationMinutes}
+                options={durationChoices(durationMinutes).map((value) => ({
+                  value,
+                  label: t("appointments.durationMinutes", { count: Number(value) }),
+                }))}
+                onChange={(event) => {
+                  setDurationMinutes(event.target.value);
+                  setStartsAt(null);
+                }}
+              />
+            </FormField>
+          </div>
+        </div>
+
+        <div onBlur={form.leave("startsAt")}>
+          <FormField
+            label="appointments.slots.label"
+            htmlFor="appointment-slot"
+            error={errors["startsAt"]}
+            hint="appointments.slots.hint"
+          >
+            <SlotPicker
+              availability={availability.data}
+              isLoading={availability.isFetching}
+              ready={ready}
+              value={startsAt}
+              onChange={setStartsAt}
+            />
+          </FormField>
+        </div>
+
+        <div onBlur={form.leave("reason")}>
+          <FormField
+            label="appointments.reason"
+            htmlFor="appointment-reason"
+            error={errors["reason"]}
+            optional
+          >
+            <Input
+              id="appointment-reason"
+              data-testid="appointment-field-reason"
+              placeholder={t("appointments.reason")}
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+            />
+          </FormField>
+        </div>
+
+        <div onBlur={form.leave("notes")}>
+          <FormField
+            label="appointments.notes"
+            htmlFor="appointment-notes"
+            error={errors["notes"]}
+            optional
+          >
+            <Textarea
+              id="appointment-notes"
+              data-testid="appointment-field-notes"
+              rows={2}
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+            />
+          </FormField>
+        </div>
       </div>
     </Modal>
   );

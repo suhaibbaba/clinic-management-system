@@ -1,11 +1,16 @@
 import { z } from "zod";
-import { paginationQuerySchema, timeRangeSchema, uuidSchema } from "@shared/schemas/common";
+import {
+  calendarDateSchema,
+  paginationQuerySchema,
+  timeRangeSchema,
+  uuidSchema,
+} from "@shared/schemas/common";
 
 export const clinicClosureSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
-  startsOn: z.iso.date(),
-  endsOn: z.iso.date(),
+  startsOn: calendarDateSchema,
+  endsOn: calendarDateSchema,
   reason: z.string(),
   isAnnual: z.boolean(),
   createdAt: z.iso.datetime(),
@@ -14,8 +19,8 @@ export const clinicClosureSchema = z.object({
 export type ClinicClosure = z.infer<typeof clinicClosureSchema>;
 
 const closureWritableFields = {
-  startsOn: z.iso.date(),
-  endsOn: z.iso.date(),
+  startsOn: calendarDateSchema,
+  endsOn: calendarDateSchema,
   reason: z.string().trim().min(2).max(200),
   isAnnual: z.boolean(),
 };
@@ -41,8 +46,8 @@ export const updateClinicClosureSchema = z
 export type UpdateClinicClosureInput = z.infer<typeof updateClinicClosureSchema>;
 
 export const listClinicClosuresQuerySchema = paginationQuerySchema.extend({
-  from: z.iso.date().optional(),
-  to: z.iso.date().optional(),
+  from: calendarDateSchema.optional(),
+  to: calendarDateSchema.optional(),
 });
 export type ListClinicClosuresQuery = z.infer<typeof listClinicClosuresQuerySchema>;
 
@@ -138,7 +143,7 @@ export const doctorExtraHoursSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
   doctorId: uuidSchema,
-  date: z.iso.date(),
+  date: calendarDateSchema,
   ranges: z.array(timeRangeSchema),
   reason: z.string(),
   createdAt: z.iso.datetime(),
@@ -147,14 +152,14 @@ export const doctorExtraHoursSchema = z.object({
 export type DoctorExtraHours = z.infer<typeof doctorExtraHoursSchema>;
 
 export const createDoctorExtraHoursSchema = z.object({
-  date: z.iso.date(),
+  date: calendarDateSchema,
   ranges: z.array(timeRangeSchema).min(1).max(6),
   reason: z.string().trim().min(2).max(200),
 });
 export type CreateDoctorExtraHoursInput = z.infer<typeof createDoctorExtraHoursSchema>;
 
 export const listDoctorExtraHoursQuerySchema = paginationQuerySchema.extend({
-  from: z.iso.date().optional(),
-  to: z.iso.date().optional(),
+  from: calendarDateSchema.optional(),
+  to: calendarDateSchema.optional(),
 });
 export type ListDoctorExtraHoursQuery = z.infer<typeof listDoctorExtraHoursQuerySchema>;

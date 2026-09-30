@@ -1,4 +1,4 @@
-import type { CalendarAppointment } from "@clinic/shared";
+import { rejectBookingSchema, type CalendarAppointment } from "@clinic/shared";
 import { formatTime, formatDate, formatDateTime } from "@web/shared/lib/format";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
@@ -27,8 +27,10 @@ import { usePendingBookings } from "@web/shared/queries/booking";
 import { canConfirmBooking, canRejectBooking } from "@web/shared/permissions/booking";
 import { useSession } from "@web/shared/providers/session";
 import { useClinic } from "@web/shared/queries/clinic";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
+import { schemaErrors } from "@web/shared/lib/form-errors";
+import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 
 export function PendingBookingsPage(): JSX.Element {
   const { t } = useTranslation();
@@ -44,6 +46,7 @@ export function PendingBookingsPage(): JSX.Element {
   const pending = usePendingBookings({ page, limit: perPage });
   const confirm = useConfirmBooking();
   const reject = useRejectBooking();
+  const rejection = useFormErrors(schemaErrors(rejectBookingSchema, { reason: reason.trim() }));
 
   const rows = pending.data?.items ?? [];
   const today = formatDate(new Date().toISOString());
@@ -54,12 +57,12 @@ export function PendingBookingsPage(): JSX.Element {
       await confirm.mutateAsync(row.id);
       toast.success("booking.pending.confirmed");
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
   const onReject = async (): Promise<void> => {
-    if (!rejecting) {
+    if (!rejecting || !rejection.check()) {
       return;
     }
 
@@ -69,7 +72,7 @@ export function PendingBookingsPage(): JSX.Element {
       setReason("");
       toast.success("booking.pending.rejected");
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -142,6 +145,7 @@ export function PendingBookingsPage(): JSX.Element {
               onClick={() => {
                 setRejecting(row);
                 setReason("");
+                rejection.reset();
               }}
             >
               {t("booking.pending.reject")}
@@ -225,7 +229,7 @@ export function PendingBookingsPage(): JSX.Element {
               icon={<Icon name="x" />}
               data-testid="pending-booking-reject-confirm"
               isLoading={reject.isPending}
-              disabled={reason.trim().length < 3}
+              aria-disabled={!rejection.isValid || undefined}
               onClick={() => void onReject()}
             >
               {t("booking.pending.reject")}
@@ -233,15 +237,21 @@ export function PendingBookingsPage(): JSX.Element {
           </>
         }
       >
-        <FormField label="booking.pending.reasonLabel" htmlFor="reject-reason">
-          <Textarea
-            id="reject-reason"
-            data-testid="pending-booking-reject-reason"
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-            rows={3}
-          />
-        </FormField>
+        <div ref={rejection.formRef} onBlur={rejection.leave("reason")}>
+          <FormField
+            label="booking.pending.reasonLabel"
+            htmlFor="reject-reason"
+            error={rejection.errors["reason"]}
+          >
+            <Textarea
+              id="reject-reason"
+              data-testid="pending-booking-reject-reason"
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              rows={3}
+            />
+          </FormField>
+        </div>
       </Modal>
     </div>
   );

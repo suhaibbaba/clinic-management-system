@@ -225,6 +225,15 @@ export const APPOINTMENT_TIMING_ERROR = {
 export type AppointmentTimingError =
   (typeof APPOINTMENT_TIMING_ERROR)[keyof typeof APPOINTMENT_TIMING_ERROR];
 
+export const APPOINTMENT_ERROR = {
+  SLOT_TAKEN: "appointment_slot_taken",
+  CLOSED: "appointment_closed",
+  BAD_TRANSITION: "appointment_bad_transition",
+  CANCEL_NEEDS_REASON: "appointment_cancel_needs_reason",
+  HAS_VISIT: "appointment_has_visit",
+  NOT_ARRIVED: "appointment_not_arrived",
+} as const;
+
 export interface AppointmentTiming {
   readonly day: string;
   readonly today: string;

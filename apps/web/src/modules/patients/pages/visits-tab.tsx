@@ -37,7 +37,7 @@ import {
   usePatientVisits,
 } from "@web/modules/patients/queries";
 import { VisitFormModal } from "@web/modules/patients/components/visits/visit-form-modal";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 type Pending = { readonly visit: Visit; readonly procedures: number };
@@ -118,7 +118,7 @@ export function VisitsTab({
       <EmptyState
         icon="alert"
         data-testid="visits-error"
-        title="errors.generic"
+        title="errors.unknown"
         hint="visits.loadFailed"
       />
     );
@@ -135,7 +135,7 @@ export function VisitsTab({
       await deleteVisit.mutateAsync(pending.visit.id);
       toast.success("visits.deleted");
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
       throw error;
     }
   };
@@ -202,7 +202,11 @@ export function VisitsTab({
             data-testid="visit-treatments"
             patientId={patientId}
             treatments={byVisit.get(treating.visit.id) ?? []}
-            defaults={{ visitId: treating.visit.id, doctorId: treating.visit.doctorId }}
+            defaults={{
+              visitId: treating.visit.id,
+              doctorId: treating.visit.doctorId,
+              performedAt: treating.visit.visitDate,
+            }}
             emptyTitle="visits.noProcedures"
             startAdding={treating.adding}
           />

@@ -7,12 +7,13 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Modal, MoneyInput, Select, Textarea, useToast } from "@clinic/ui";
 import { Money } from "@web/shared/components/money";
 import { useLookupOptions } from "@web/shared/queries/lookups";
 import { usePayLab } from "@web/modules/labs/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 
 export function LabPaymentModal({
   open,
@@ -41,8 +42,9 @@ export function LabPaymentModal({
     control,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<CreateLabPaymentInput>({
+    mode: "onTouched",
     resolver: zodResolver(createLabPaymentSchema),
     defaultValues: { labId, amount: "", method: "cash", note: "" },
   });
@@ -53,15 +55,18 @@ export function LabPaymentModal({
     }
   }, [open, labId, reset]);
 
-  const submit = handleSubmit(async (values) => {
-    try {
-      await pay.mutateAsync(values);
-      toast.success("labs.payment.recorded");
-      onOpenChange(false);
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
-  });
+  const submit = handleSubmit(
+    async (values) => {
+      try {
+        await pay.mutateAsync(values);
+        toast.success("labs.payment.recorded");
+        onOpenChange(false);
+      } catch (error) {
+        toast.error(...errorToast(error));
+      }
+    },
+    () => revealFirstError(),
+  );
 
   return (
     <Modal
@@ -81,6 +86,7 @@ export function LabPaymentModal({
           </Button>
           <Button
             isLoading={isSubmitting}
+            aria-disabled={!isValid || isSubmitting || undefined}
             data-testid={`${testId}-save`}
             onClick={() => void submit()}
           >

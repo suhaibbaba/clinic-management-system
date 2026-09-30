@@ -3,6 +3,22 @@ import { INTERNATIONAL_PHONE_PATTERN, normalizePhone } from "@shared/constants/p
 
 export const uuidSchema = z.uuid();
 
+export const VALIDATION_CODE = {
+  YEAR_OUT_OF_RANGE: "year_out_of_range",
+  DATE_IN_FUTURE: "date_in_future",
+  DATE_IN_PAST: "date_in_past",
+} as const;
+
+export const EARLIEST_YEAR = 1900;
+
+export const LATEST_YEAR = 2100;
+
+export const calendarDateSchema = z.iso.date().refine((value) => {
+  const year = Number(value.slice(0, 4));
+
+  return year >= EARLIEST_YEAR && year <= LATEST_YEAR;
+}, VALIDATION_CODE.YEAR_OUT_OF_RANGE);
+
 export const idParamSchema = z.object({ id: uuidSchema });
 export type IdParam = z.infer<typeof idParamSchema>;
 

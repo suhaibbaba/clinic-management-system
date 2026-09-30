@@ -6,12 +6,13 @@ import {
 } from "@clinic/shared";
 import { useEffect, type JSX } from "react";
 import { Controller, useForm, type UseFormRegister } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Icon, Input, Modal, PhoneInput, useToast } from "@clinic/ui";
 import { useCreateVisitingDoctor } from "@web/modules/doctors/queries";
 import { StaffNameFields, type StaffNameValues } from "@web/shared/components/staff-name-fields";
 import { ellipsis } from "@web/i18n/ellipsis";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { EMPTY_VISITING_DOCTOR, VISITING_DOCTOR_FORM_ID } from "@web/modules/doctors/constants";
 
 interface VisitingDoctorModalProps {
@@ -34,8 +35,9 @@ export function VisitingDoctorModal({
     handleSubmit,
     reset,
     control,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<CreateVisitingDoctorInput>({
+    mode: "onTouched",
     resolver: zodResolver(createVisitingDoctorSchema),
     defaultValues: EMPTY_VISITING_DOCTOR,
   });
@@ -46,16 +48,19 @@ export function VisitingDoctorModal({
     }
   }, [open, reset]);
 
-  const onSubmit = handleSubmit(async (values) => {
-    try {
-      const doctor = await create.mutateAsync(values);
-      toast.success("doctors.visiting.created");
-      onCreated(doctor);
-      onOpenChange(false);
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
-  });
+  const onSubmit = handleSubmit(
+    async (values) => {
+      try {
+        const doctor = await create.mutateAsync(values);
+        toast.success("doctors.visiting.created");
+        onCreated(doctor);
+        onOpenChange(false);
+      } catch (error) {
+        toast.error(...errorToast(error));
+      }
+    },
+    () => revealFirstError(),
+  );
 
   return (
     <Modal
@@ -77,6 +82,7 @@ export function VisitingDoctorModal({
           <Button
             icon={<Icon name="check" />}
             type="submit"
+            aria-disabled={!isValid || isSubmitting || undefined}
             form={VISITING_DOCTOR_FORM_ID}
             data-testid="visiting-doctor-save"
             isLoading={isSubmitting}

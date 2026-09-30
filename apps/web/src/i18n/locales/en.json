@@ -439,7 +439,10 @@
       "invalidEmail": "Invalid email address",
       "invalidPhone": "Not a valid phone number",
       "passwordMin": "Password must be at least 8 characters",
-      "passwordSame": "The new password must differ from the current one"
+      "passwordSame": "The new password must differ from the current one",
+      "yearOutOfRange": "That year is not right — use a date between 1900 and 2100",
+      "dateInFuture": "This date cannot be in the future",
+      "dateInPast": "This date cannot be in the past"
     },
     "clinicalDelete": {
       "hasPayments": "Cannot delete — payments cover it. Reverse the payments first, or record a correction."
@@ -467,8 +470,15 @@
     "appointment": {
       "dayNotReached": "This appointment's day has not come yet",
       "notStarted": "A patient can be marked as not showing up only after the appointment time",
-      "dayPassed": "An appointment cannot be set on a day that has passed"
-    }
+      "dayPassed": "An appointment cannot be set on a day that has passed",
+      "slotTaken": "That time is already booked for this doctor — pick another",
+      "closed": "This appointment is closed and can no longer be changed",
+      "badTransition": "The appointment cannot move to that status",
+      "cancelNeedsReason": "Give a reason for the cancellation",
+      "hasVisit": "This appointment already has a visit",
+      "notArrived": "Mark the patient as arrived before opening a visit"
+    },
+    "invalidFields": "Check: {{fields}}"
   },
   "patients": {
     "incompleteMissing": "This file is incomplete. Missing: {{fields}}",
@@ -694,7 +704,8 @@
     "about": "Every treatment for this patient in one list: planned, in progress, done and cancelled. A treatment is charged once work on it starts, and the totals are worked out from the treatments themselves.",
     "completedAmount": "Done",
     "treatmentCount_one": "1 treatment",
-    "treatmentCount_other": "{{count}} treatments"
+    "treatmentCount_other": "{{count}} treatments",
+    "noneWithStatus": "No treatments with this status"
   },
   "treatments": {
     "menu": "Treatment actions",
@@ -721,7 +732,7 @@
       "charge": "Its charge is reversed with a correcting entry; no entry is erased",
       "chart": "Its marks leave the tooth chart"
     },
-    "fromPlanned": "Perform a planned treatment"
+    "fromPlanned": "From the treatment plan"
   },
   "imaging": {
     "uploadTitle": "Add an X-ray or a document",

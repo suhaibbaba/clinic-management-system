@@ -21,7 +21,7 @@ import { cn } from "@clinic/ui/lib/cn";
 import ar from "@web/i18n/locales/ar.json";
 import en from "@web/i18n/locales/en.json";
 import { useSaveTranslations, useTranslationOverrides } from "@web/modules/translations/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { useDebounced } from "@web/shared/hooks/use-debounced";
 
 interface Group {
@@ -248,7 +248,7 @@ export function TranslationsPage(): JSX.Element {
       setDrafts({});
       toast.success("translations.saved");
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 

@@ -110,7 +110,7 @@ export function TimelineTab({ patientId }: { readonly patientId: string }): JSX.
       <EmptyState
         icon="alert"
         data-testid="timeline-error"
-        title="errors.generic"
+        title="errors.unknown"
         hint="patients.timeline.loadFailed"
       />
     );

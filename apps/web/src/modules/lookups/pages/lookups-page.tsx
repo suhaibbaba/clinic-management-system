@@ -30,7 +30,7 @@ import {
   useReorderLookupOptions,
   useUpdateLookupOption,
 } from "@web/shared/queries/lookups";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { cn } from "@clinic/ui/lib/cn";
 
 export function LookupsPage(): JSX.Element {
@@ -115,7 +115,7 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
 
   const states = useToothStates();
 
-  const fail = (error: unknown): void => toast.error(errorMessageKey(error));
+  const fail = (error: unknown): void => toast.error(...errorToast(error));
 
   const saveOrder = async (ids: string[]): Promise<void> => {
     try {

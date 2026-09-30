@@ -1,4 +1,4 @@
-import { foldDigits } from "@clinic/shared";
+import { EARLIEST_YEAR, LATEST_YEAR, foldDigits } from "@clinic/shared";
 import { format, isValid, parse } from "date-fns";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,6 +13,8 @@ import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 
 const ISO = "yyyy-MM-dd";
 const TYPED = "dd/MM/yyyy";
+const FIRST_DAY = `${EARLIEST_YEAR}-01-01`;
+const LAST_DAY = `${LATEST_YEAR}-12-31`;
 
 export const toIsoDate = (date: Date): string => format(date, ISO);
 
@@ -38,6 +40,7 @@ export interface DatePickerProps extends TestIdProps {
   readonly label: string;
   readonly disabled?: boolean | undefined;
   readonly min?: string | undefined;
+  readonly max?: string | undefined;
   readonly hasError?: boolean | undefined;
   readonly className?: string | undefined;
 }
@@ -49,6 +52,7 @@ export function DatePicker({
   label,
   disabled = false,
   min,
+  max,
   hasError = false,
   className,
   "data-testid": testId,
@@ -58,36 +62,33 @@ export function DatePicker({
   const id_ = testId ?? id;
   const part = parts("date-picker", id_);
   const selected = fromIsoDate(value);
-  const earliest = fromIsoDate(min);
-  const [outOfRange, setOutOfRange] = useState(false);
-  const [typed, setTyped] = useState(() => (selected ? format(selected, TYPED) : ""));
+  const lowest = min !== undefined && min > FIRST_DAY ? min : FIRST_DAY;
+  const highest = max !== undefined && max < LAST_DAY ? max : LAST_DAY;
+  const earliest = fromIsoDate(lowest);
+  const latest = fromIsoDate(highest);
+  const [typed, setTyped] = useState(() => (selected ? format(selected, TYPED) : value));
 
-  const display = selected ? format(selected, TYPED) : "";
+  const valueOf = (text: string): string => {
+    const parsed = text.trim() === "" ? null : parseTypedDate(text);
+
+    return text.trim() === "" ? "" : parsed ? toIsoDate(parsed) : text;
+  };
+
   const [lastValue, setLastValue] = useState(value);
   if (value !== lastValue) {
     setLastValue(value);
-    setTyped(display);
-    setOutOfRange(false);
+
+    if (value !== valueOf(typed)) {
+      setTyped(selected ? format(selected, TYPED) : value);
+    }
   }
+
+  const committed = valueOf(typed);
+  const outOfRange = committed !== "" && (!selected || value < lowest || value > highest);
 
   const commit = (text: string): void => {
     setTyped(text);
-    setOutOfRange(false);
-
-    if (text.trim() === "") {
-      onChange("");
-      return;
-    }
-
-    const parsed = parseTypedDate(text);
-    if (parsed && min !== undefined && toIsoDate(parsed) < min) {
-      setOutOfRange(true);
-      return;
-    }
-
-    if (parsed) {
-      onChange(toIsoDate(parsed));
-    }
+    onChange(valueOf(text));
   };
 
   return (
@@ -138,7 +139,12 @@ export function DatePicker({
       <Calendar
         mode="single"
         {...(selected && { selected, defaultMonth: selected })}
-        {...(earliest && { disabled: { before: earliest }, startMonth: earliest })}
+        disabled={[
+          ...(earliest ? [{ before: earliest }] : []),
+          ...(latest ? [{ after: latest }] : []),
+        ]}
+        {...(earliest && { startMonth: earliest })}
+        {...(latest && { endMonth: latest })}
         onSelect={(date: Date | undefined) => {
           if (date) {
             onChange(toIsoDate(date));

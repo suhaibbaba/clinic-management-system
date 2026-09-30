@@ -1,6 +1,7 @@
 import {
   DEFAULT_LOOKUP_COLOUR,
   ENGLISH_ONLY_LOOKUP_LISTS,
+  createLookupOptionSchema,
   type LookupListKey,
   type LookupOption,
 } from "@clinic/shared";
@@ -8,7 +9,9 @@ import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, FormField, Input, Ltr, Modal, useToast } from "@clinic/ui";
 import { useCreateLookupOption, useUpdateLookupOption } from "@web/shared/queries/lookups";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
+import { schemaErrors } from "@web/shared/lib/form-errors";
+import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 
 export function LookupOptionModal({
   open,
@@ -36,6 +39,12 @@ export function LookupOptionModal({
   const [color, setColor] = useState(DEFAULT_LOOKUP_COLOUR);
   const englishOnly = ENGLISH_ONLY_LOOKUP_LISTS.includes(listKey);
   const arabic = englishOnly ? nameEn : nameAr;
+  const chosen = coloured && (color !== DEFAULT_LOOKUP_COLOUR || !option?.isSystem) ? color : null;
+  const body = { nameAr: arabic.trim(), nameEn: nameEn.trim(), color: chosen };
+
+  const form = useFormErrors(schemaErrors(createLookupOptionSchema, { listKey, ...body }));
+  const { reset } = form;
+  const isPending = create.isPending || update.isPending;
 
   useEffect(() => {
     if (!open) {
@@ -45,32 +54,26 @@ export function LookupOptionModal({
     setNameAr(option?.nameAr ?? "");
     setNameEn(option?.nameEn ?? "");
     setColor(option?.color ?? DEFAULT_LOOKUP_COLOUR);
-  }, [open, option]);
+    reset();
+  }, [open, option, reset]);
 
   const submit = async (): Promise<void> => {
-    const chosen =
-      coloured && (color !== DEFAULT_LOOKUP_COLOUR || !option?.isSystem) ? color : null;
+    if (!form.check()) {
+      return;
+    }
 
     try {
       if (option) {
-        await update.mutateAsync({
-          id: option.id,
-          body: { nameAr: arabic.trim(), nameEn: nameEn.trim(), color: chosen },
-        });
+        await update.mutateAsync({ id: option.id, body });
         toast.success("lookups.updated");
       } else {
-        await create.mutateAsync({
-          listKey,
-          nameAr: arabic.trim(),
-          nameEn: nameEn.trim(),
-          color: chosen,
-        });
+        await create.mutateAsync({ listKey, ...body });
         toast.success("lookups.created");
       }
 
       onClose();
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -91,8 +94,8 @@ export function LookupOptionModal({
           </Button>
           <Button
             data-testid={`${testId}-save`}
-            disabled={arabic.trim() === "" || nameEn.trim() === ""}
-            isLoading={create.isPending || update.isPending}
+            aria-disabled={!form.isValid || isPending || undefined}
+            isLoading={isPending}
             onClick={() => void submit()}
           >
             {t("common.save")}
@@ -100,7 +103,7 @@ export function LookupOptionModal({
         </>
       }
     >
-      <div data-testid={`${testId}-form`} className="flex flex-col gap-4">
+      <div ref={form.formRef} data-testid={`${testId}-form`} className="flex flex-col gap-4">
         {option?.isSystem && (
           <p
             data-testid={`${testId}-system-hint`}
@@ -113,42 +116,63 @@ export function LookupOptionModal({
 
         <div className={englishOnly ? "max-w-(--field-max)" : "grid gap-4 sm:grid-cols-2"}>
           {!englishOnly && (
-            <FormField label="lookups.nameAr" htmlFor="lookup-name-ar" required>
-              <Input
-                id="lookup-name-ar"
-                data-testid="lookup-field-name-ar"
-                dir="auto"
-                value={nameAr}
-                onChange={(event) => setNameAr(event.target.value)}
-              />
-            </FormField>
+            <div onBlur={form.leave("nameAr")}>
+              <FormField
+                error={form.errors["nameAr"]}
+                label="lookups.nameAr"
+                htmlFor="lookup-name-ar"
+                required
+              >
+                <Input
+                  id="lookup-name-ar"
+                  data-testid="lookup-field-name-ar"
+                  dir="auto"
+                  value={nameAr}
+                  onChange={(event) => setNameAr(event.target.value)}
+                />
+              </FormField>
+            </div>
           )}
 
-          <FormField label="lookups.nameEn" htmlFor="lookup-name-en" required>
-            <Input
-              id="lookup-name-en"
-              data-testid="lookup-field-name-en"
-              dir="ltr"
-              value={nameEn}
-              onChange={(event) => setNameEn(event.target.value)}
-            />
-          </FormField>
+          <div onBlur={form.leave("nameEn")}>
+            <FormField
+              error={form.errors["nameEn"]}
+              label="lookups.nameEn"
+              htmlFor="lookup-name-en"
+              required
+            >
+              <Input
+                id="lookup-name-en"
+                data-testid="lookup-field-name-en"
+                dir="ltr"
+                value={nameEn}
+                onChange={(event) => setNameEn(event.target.value)}
+              />
+            </FormField>
+          </div>
         </div>
 
         {coloured && (
-          <FormField label="lookups.color" htmlFor="lookup-color" hint={t("lookups.colorHint")}>
-            <span className="flex items-center gap-3">
-              <input
-                id="lookup-color"
-                data-testid="lookup-field-color"
-                type="color"
-                value={color}
-                onChange={(event) => setColor(event.target.value)}
-                className="size-(--control-h) cursor-pointer rounded-control border border-line bg-surface p-1 lg:size-(--control-h-sm)"
-              />
-              <Ltr className="font-mono text-label text-ink-muted">{color}</Ltr>
-            </span>
-          </FormField>
+          <div onBlur={form.leave("color")}>
+            <FormField
+              error={form.errors["color"]}
+              label="lookups.color"
+              htmlFor="lookup-color"
+              hint={t("lookups.colorHint")}
+            >
+              <span className="flex items-center gap-3">
+                <input
+                  id="lookup-color"
+                  data-testid="lookup-field-color"
+                  type="color"
+                  value={color}
+                  onChange={(event) => setColor(event.target.value)}
+                  className="size-(--control-h) cursor-pointer rounded-control border border-line bg-surface p-1 lg:size-(--control-h-sm)"
+                />
+                <Ltr className="font-mono text-label text-ink-muted">{color}</Ltr>
+              </span>
+            </FormField>
+          </div>
         )}
 
         {option && (

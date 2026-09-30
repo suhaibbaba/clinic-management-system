@@ -10,7 +10,7 @@ import {
   StatCard,
   useTabParam,
 } from "@clinic/ui";
-import { SkeletonCard, SkeletonStatus } from "@clinic/ui/components/skeleton";
+import { Skeleton, SkeletonKpi, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/shared/providers/session";
 import { useClinic } from "@web/shared/queries/clinic";
 import { canSeePrices } from "@web/shared/permissions/patients";
@@ -39,13 +39,10 @@ export function TreatmentPlansTab({
   const [filter, setFilter] = useTabParam<TreatmentFilter>("status", TREATMENT_FILTERS, "all");
   const [printing, setPrinting] = useState(false);
 
+  const showPrices = user ? canSeePrices(user.role) : false;
+
   if (showSkeleton) {
-    return (
-      <div data-testid="treatment-plan-loading" className="flex flex-col gap-3">
-        <SkeletonStatus />
-        <SkeletonCard count={2} />
-      </div>
-    );
+    return <TreatmentPlanSkeleton showPrices={showPrices} />;
   }
 
   if (treatments.isPending) {
@@ -57,7 +54,7 @@ export function TreatmentPlansTab({
       <EmptyState
         icon="alert"
         data-testid="treatment-plan-error"
-        title="errors.generic"
+        title="errors.unknown"
         hint="treatmentPlans.loadFailed"
       />
     );
@@ -71,7 +68,6 @@ export function TreatmentPlansTab({
       treatment.status === PERFORMED_PROCEDURE_STATUS.PLANNED ||
       treatment.status === PERFORMED_PROCEDURE_STATUS.IN_PROGRESS,
   );
-  const showPrices = user ? canSeePrices(user.role) : false;
   const currency = clinic.data?.currency ?? "";
 
   const print = (): void => {
@@ -147,8 +143,9 @@ export function TreatmentPlansTab({
         patientId={patientId}
         treatments={visible}
         defaults={{ status: PERFORMED_PROCEDURE_STATUS.PLANNED }}
-        emptyTitle="treatmentPlans.empty"
+        emptyTitle={filter === "all" ? "treatmentPlans.empty" : "treatmentPlans.noneWithStatus"}
         showTotal={false}
+        layout="grid"
       />
 
       {printing && (
@@ -162,6 +159,45 @@ export function TreatmentPlansTab({
           />
         </div>
       )}
+    </div>
+  );
+}
+
+function TreatmentPlanSkeleton({ showPrices }: { readonly showPrices: boolean }): JSX.Element {
+  return (
+    <div data-testid="treatment-plan-loading" className="flex flex-col gap-4">
+      <div aria-hidden="true" className="flex flex-col gap-2">
+        <Skeleton className="h-3.5 w-full" />
+        <Skeleton className="h-3.5 w-2/5" />
+      </div>
+
+      {showPrices ? <SkeletonKpi count={3} /> : <SkeletonStatus />}
+
+      <div aria-hidden="true" className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          {[0, 1, 2, 3, 4].map((pill) => (
+            <Skeleton key={pill} className="h-(--control-h-sm) w-20 rounded-pill" />
+          ))}
+        </div>
+        <Skeleton className="h-(--control-h) w-24 rounded-control" />
+      </div>
+
+      <ul aria-hidden="true" className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
+        {[0, 1, 2, 3, 4, 5].map((card) => (
+          <li
+            key={card}
+            className="flex flex-col gap-2 rounded-panel border border-line bg-surface p-3"
+          >
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-4 flex-1" />
+              <Skeleton className="h-(--control-h-sm) w-16 rounded-pill" />
+              <Skeleton className="size-(--control-h-sm) rounded-control" />
+            </div>
+            <Skeleton className="h-3 w-4/5" />
+            <Skeleton className="h-3 w-2/5" />
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

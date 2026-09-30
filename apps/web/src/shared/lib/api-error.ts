@@ -1,4 +1,5 @@
 import {
+  APPOINTMENT_ERROR,
   APPOINTMENT_TIMING_ERROR,
   AUTH_ERROR,
   CLINICAL_DELETE_ERROR,
@@ -6,6 +7,9 @@ import {
   PAYMENT_ERROR,
   STOCK_ERROR,
 } from "@clinic/shared";
+import i18n from "@web/i18n";
+import { FIELD_LABELS } from "@web/shared/constants/field-labels";
+import { formatList } from "@web/shared/lib/format";
 
 export class ApiError extends Error {
   constructor(
@@ -29,6 +33,12 @@ const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [APPOINTMENT_TIMING_ERROR.DAY_NOT_REACHED]: "errors.appointment.dayNotReached",
   [APPOINTMENT_TIMING_ERROR.NOT_STARTED]: "errors.appointment.notStarted",
   [APPOINTMENT_TIMING_ERROR.DAY_PASSED]: "errors.appointment.dayPassed",
+  [APPOINTMENT_ERROR.SLOT_TAKEN]: "errors.appointment.slotTaken",
+  [APPOINTMENT_ERROR.CLOSED]: "errors.appointment.closed",
+  [APPOINTMENT_ERROR.BAD_TRANSITION]: "errors.appointment.badTransition",
+  [APPOINTMENT_ERROR.CANCEL_NEEDS_REASON]: "errors.appointment.cancelNeedsReason",
+  [APPOINTMENT_ERROR.HAS_VISIT]: "errors.appointment.hasVisit",
+  [APPOINTMENT_ERROR.NOT_ARRIVED]: "errors.appointment.notArrived",
   [AUTH_ERROR.LOCKED]: "errors.auth.locked",
   [AUTH_ERROR.CODE_INVALID]: "errors.auth.codeInvalid",
   [CLINICAL_DELETE_ERROR.HAS_PAYMENTS]: "errors.clinicalDelete.hasPayments",
@@ -71,4 +81,37 @@ export function errorMessageKey(error: unknown): string {
   }
 
   return "errors.unknown";
+}
+
+export function invalidFieldLabels(error: unknown): string[] {
+  if (!(error instanceof ApiError) || error.statusCode !== 400) {
+    return [];
+  }
+
+  const issues = (error.payload as { errors?: unknown } | undefined)?.errors;
+
+  if (!Array.isArray(issues)) {
+    return [];
+  }
+
+  const labels = issues.flatMap((issue: { path?: unknown }) => {
+    const path = Array.isArray(issue.path) ? [...issue.path].reverse() : [];
+    const field = path.find(
+      (segment): segment is string => typeof segment === "string" && segment in FIELD_LABELS,
+    );
+
+    return field === undefined ? [] : [FIELD_LABELS[field] as string];
+  });
+
+  return [...new Set(labels)];
+}
+
+export function errorToast(error: unknown): [string, Record<string, string>?] {
+  const fields = invalidFieldLabels(error);
+
+  if (fields.length > 0) {
+    return ["errors.invalidFields", { fields: formatList(fields.map((key) => i18n.t(key))) }];
+  }
+
+  return [errorMessageKey(error)];
 }
