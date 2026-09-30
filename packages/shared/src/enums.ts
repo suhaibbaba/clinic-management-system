@@ -68,23 +68,11 @@ export const TREATMENT_PLAN_STATUSES = [
   TREATMENT_PLAN_STATUS.CANCELLED,
 ] as const;
 
-export const TREATMENT_PLAN_ITEM_STATUS = {
-  PLANNED: "planned",
-  CONVERTED: "converted",
-  CANCELLED: "cancelled",
-} as const satisfies Record<string, string>;
-export type TreatmentPlanItemStatus = EnumValue<typeof TREATMENT_PLAN_ITEM_STATUS>;
-
-export const TREATMENT_PLAN_ITEM_STATUSES = [
-  TREATMENT_PLAN_ITEM_STATUS.PLANNED,
-  TREATMENT_PLAN_ITEM_STATUS.CONVERTED,
-  TREATMENT_PLAN_ITEM_STATUS.CANCELLED,
-] as const;
-
 export const PERFORMED_PROCEDURE_STATUS = {
   PLANNED: "planned",
   IN_PROGRESS: "in_progress",
   DONE: "done",
+  CANCELLED: "cancelled",
 } as const satisfies Record<string, string>;
 export type PerformedProcedureStatus = EnumValue<typeof PERFORMED_PROCEDURE_STATUS>;
 
@@ -92,7 +80,32 @@ export const PERFORMED_PROCEDURE_STATUSES = [
   PERFORMED_PROCEDURE_STATUS.PLANNED,
   PERFORMED_PROCEDURE_STATUS.IN_PROGRESS,
   PERFORMED_PROCEDURE_STATUS.DONE,
+  PERFORMED_PROCEDURE_STATUS.CANCELLED,
 ] as const;
+
+export const PERFORMED_PROCEDURE_TRANSITIONS: Record<
+  PerformedProcedureStatus,
+  readonly PerformedProcedureStatus[]
+> = {
+  [PERFORMED_PROCEDURE_STATUS.PLANNED]: [
+    PERFORMED_PROCEDURE_STATUS.IN_PROGRESS,
+    PERFORMED_PROCEDURE_STATUS.DONE,
+    PERFORMED_PROCEDURE_STATUS.CANCELLED,
+  ],
+  [PERFORMED_PROCEDURE_STATUS.IN_PROGRESS]: [
+    PERFORMED_PROCEDURE_STATUS.DONE,
+    PERFORMED_PROCEDURE_STATUS.CANCELLED,
+  ],
+  [PERFORMED_PROCEDURE_STATUS.DONE]: [PERFORMED_PROCEDURE_STATUS.IN_PROGRESS],
+  [PERFORMED_PROCEDURE_STATUS.CANCELLED]: [PERFORMED_PROCEDURE_STATUS.PLANNED],
+};
+
+export function canMoveProcedure(
+  from: PerformedProcedureStatus,
+  to: PerformedProcedureStatus,
+): boolean {
+  return from === to || PERFORMED_PROCEDURE_TRANSITIONS[from].includes(to);
+}
 
 export const TOOTH_STATE = {
   HEALTHY: "healthy",

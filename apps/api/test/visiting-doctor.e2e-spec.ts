@@ -105,26 +105,34 @@ describe("Visiting doctor (e2e)", () => {
     expect(file.statusCode).toBe(404);
   });
 
-  describe("once a plan item names them as its performer", () => {
-    let itemId: string;
+  describe("once a planned treatment names them as its doctor", () => {
+    let treatmentId: string;
 
     beforeAll(async () => {
       const plan = await context.app.inject({
         method: "POST",
         url: "/treatment-plans",
         headers: as(USER_ROLE.DOCTOR),
-        payload: {
-          patientId: assigned,
-          doctorId: fixtures.doctorId,
-          title: "Implant",
-          items: [{ procedureId: fixtures.catalogId, performerDoctorId: visitorDoctorId }],
-        },
+        payload: { patientId: assigned, doctorId: fixtures.doctorId, title: "Implant" },
       });
 
       expect(plan.statusCode).toBe(201);
-      const body = plan.json() as TreatmentPlan;
-      expect(body.items?.[0]?.performerDoctorId).toBe(visitorDoctorId);
-      itemId = body.items![0]!.id;
+
+      const treatment = await context.app.inject({
+        method: "POST",
+        url: "/performed-procedures",
+        headers: as(USER_ROLE.DOCTOR),
+        payload: {
+          patientId: assigned,
+          doctorId: visitorDoctorId,
+          procedureId: fixtures.catalogId,
+          treatmentPlanId: (plan.json() as TreatmentPlan).id,
+          status: "planned",
+        },
+      });
+
+      expect(treatment.statusCode).toBe(201);
+      treatmentId = (treatment.json() as PerformedProcedure).id;
     });
 
     it("lists that patient and only that patient", async () => {
@@ -194,16 +202,16 @@ describe("Visiting doctor (e2e)", () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it("is the doctor on the procedure the item becomes", async () => {
-      const converted = await context.app.inject({
-        method: "POST",
-        url: `/plan-items/${itemId}/convert`,
+    it("stays the doctor once the treatment is done", async () => {
+      const done = await context.app.inject({
+        method: "PATCH",
+        url: `/performed-procedures/${treatmentId}`,
         headers: as(USER_ROLE.DOCTOR),
-        payload: {},
+        payload: { status: "done" },
       });
 
-      expect(converted.statusCode).toBe(201);
-      expect((converted.json() as PerformedProcedure).doctorId).toBe(visitorDoctorId);
+      expect(done.statusCode).toBe(200);
+      expect((done.json() as PerformedProcedure).doctorId).toBe(visitorDoctorId);
     });
 
     it("may not register or edit a patient", async () => {

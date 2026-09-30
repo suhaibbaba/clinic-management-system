@@ -198,6 +198,10 @@ export function procedureToothState(
     return TOOTH_STATE.IN_PROGRESS;
   }
 
+  if (procedure.status === PERFORMED_PROCEDURE_STATUS.CANCELLED) {
+    return null;
+  }
+
   return outcomes.get(procedure.procedureId) ?? null;
 }
 
@@ -209,6 +213,10 @@ export function deriveToothSummaries(
   const byTooth = new Map<number, { states: ToothState[]; surfaces: Set<string>; count: number }>();
 
   for (const procedure of procedures) {
+    if (procedure.status === PERFORMED_PROCEDURE_STATUS.CANCELLED) {
+      continue;
+    }
+
     const state = procedureToothState(procedure, outcomes);
 
     for (const mark of procedure.chartMarks ?? []) {

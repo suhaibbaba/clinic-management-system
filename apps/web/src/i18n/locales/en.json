@@ -582,14 +582,14 @@
     "procedureStatus": {
       "planned": "Planned",
       "in_progress": "In progress",
-      "done": "Done"
+      "done": "Done",
+      "cancelled": "Cancelled"
     },
     "panel": {
       "title": "Tooth",
       "description": "Details and procedures for the selected tooth.",
       "history": "Procedure history",
       "noProcedures": "Nothing recorded on this tooth",
-      "addProcedure": "Record a procedure",
       "procedure": "Procedure",
       "selectProcedure": "Select a procedure",
       "doctor": "Doctor",
@@ -601,7 +601,6 @@
       "discountNeedsReason": "A discount requires a reason",
       "date": "Date",
       "openFile": "Open file",
-      "recorded": "Procedure recorded",
       "procedureCount": "{{count}} procedures"
     }
   },
@@ -659,7 +658,6 @@
     "notes": "Notes",
     "procedures": "Procedures performed",
     "noProcedures": "Nothing recorded during this visit",
-    "procedureUpdated": "Procedure updated",
     "empty": "No visits recorded",
     "emptyHint": "Record this patient's first visit.",
     "loadFailed": "Could not load visits.",
@@ -668,7 +666,6 @@
     "addTreatment": "Add treatment",
     "menu": "Visit options",
     "deleted": "Visit deleted",
-    "procedureDeleted": "Treatment deleted",
     "confirmDelete": {
       "title": "Delete the visit of {{date}}?",
       "procedures_one": "Its {{count}} treatment goes with it, and its charge is reversed",
@@ -676,20 +673,9 @@
       "attachments": "Its images, attachments and tooth chart marks go with it",
       "audit": "All of it stays in the audit log"
     },
-    "confirmProcedure": {
-      "title": "Delete the treatment: {{name}}?",
-      "titleWithTooth": "Delete the treatment: {{name}} — tooth {{tooth}}?",
-      "charge": "Its charge is reversed with a correcting entry; no entry is erased",
-      "chart": "Its marks leave the tooth chart"
-    },
     "visit": "Visit",
     "teeth": "Teeth",
-    "procedureMenu": "Treatment options",
-    "addTreatmentTitle": "Add treatment — visit of {{date}}",
-    "editTreatmentTitle": "Edit: {{name}}",
-    "proceduresTitle": "Treatments at the visit of {{date}}",
-    "proceduresTotal": "Total",
-    "tooth": "Tooth"
+    "proceduresTitle": "Treatments at the visit of {{date}}"
   },
   "treatmentPlans": {
     "create": "New plan",
@@ -700,12 +686,6 @@
     "emptyHint": "Create a plan, add the proposed procedures, and print it for the patient to agree to.",
     "loadFailed": "Could not load treatment plans.",
     "noItems": "This plan has no items",
-    "addItem": "Add item",
-    "itemAdded": "Item added",
-    "itemCancelled": "Item cancelled",
-    "cancelItem": "Cancel",
-    "convert": "Convert to procedure",
-    "converted": "Item converted to a procedure",
     "needsDoctor": "No doctor is registered in this clinic",
     "status": "Status",
     "estimatedPrice": "Estimated price",
@@ -722,11 +702,6 @@
       "completed": "Completed",
       "cancelled": "Cancelled"
     },
-    "itemStatus": {
-      "planned": "Planned",
-      "converted": "Converted",
-      "cancelled": "Cancelled"
-    },
     "filterByStatus": "Filter by status",
     "noneInFilter": "No plans with this status",
     "noneInFilterHint": "Change the filter to see other plans.",
@@ -740,23 +715,44 @@
     "responsibleDoctor": "Responsible doctor",
     "notes": "Notes",
     "notesOf": "Notes on “{{title}}”",
-    "showAllItems": "Show all {{count}} items",
-    "itemsOf": "Items of “{{title}}”",
     "menu": "Plan options",
-    "itemMenu": "Item options",
     "confirmDelete": {
       "title": "Delete the plan “{{title}}”?",
       "consequence": "Its items go with it; procedures already carried out are kept."
     },
     "deleted": "Plan deleted",
-    "confirmDeleteItem": "Remove “{{name}}” from the plan?",
-    "itemDeleted": "Item removed",
-    "editItem": "Edit item",
-    "itemUpdated": "Item updated",
-    "performer": "Performed by",
-    "performerHint": "Leave empty for the plan's responsible doctor.",
-    "performerPlanDoctor": "The plan's doctor",
-    "performedBy": "By {{name}}"
+    "completedAmount": "Done",
+    "treatments": "Treatments",
+    "treatmentsOf": "Treatments in {{title}}"
+  },
+  "treatments": {
+    "plan": "Treatment plan",
+    "noPlan": "No plan",
+    "menu": "Treatment actions",
+    "moveTo": {
+      "planned": "Back to planned",
+      "in_progress": "Start",
+      "done": "Mark done",
+      "cancelled": "Cancel treatment"
+    },
+    "moved": {
+      "planned": "Treatment back to planned",
+      "in_progress": "Treatment started",
+      "done": "Treatment done",
+      "cancelled": "Treatment cancelled"
+    },
+    "recorded": "Treatment saved",
+    "updated": "Treatment updated",
+    "deleted": "Treatment deleted",
+    "add": "Add treatment",
+    "edit": "Edit treatment",
+    "total": "Total",
+    "fromPlan": "From the plan",
+    "confirmDelete": {
+      "title": "Delete the treatment: {{name}}?",
+      "charge": "Its charge is reversed with a correcting entry; no entry is erased",
+      "chart": "Its marks leave the tooth chart"
+    }
   },
   "imaging": {
     "uploadTitle": "Add an X-ray or a document",
@@ -1709,11 +1705,6 @@
         "list": "See the permissions",
         "update": "Edit role permissions"
       },
-      "plan-items": {
-        "convert": "Turn a plan item into a treatment",
-        "remove": "Delete a plan item",
-        "update": "Edit a plan item"
-      },
       "prescriptions": {
         "create": "Add a prescription",
         "findOne": "Open a prescription",
@@ -1748,7 +1739,6 @@
         "get": "See a tooth's history"
       },
       "treatment-plans": {
-        "addItem": "Add an item to a treatment plan",
         "create": "Create a treatment plan",
         "findOne": "Open a treatment plan",
         "list": "See the treatment plans",
@@ -1842,7 +1832,6 @@
       "payments": "Billing and payments",
       "performed-procedures": "Treatments",
       "permissions": "Permissions",
-      "plan-items": "Treatment plans",
       "prescriptions": "Prescriptions",
       "procedure-catalog": "Price list",
       "suppliers": "Suppliers",

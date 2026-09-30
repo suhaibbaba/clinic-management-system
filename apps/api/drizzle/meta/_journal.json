@@ -351,6 +351,20 @@
       "when": 1790631944824,
       "tag": "0049_login_codes",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1790794726606,
+      "tag": "0050_treatments_single_source",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1790801204556,
+      "tag": "0051_drop_treatment_plan_items",
+      "breakpoints": true
     }
   ]
 }

@@ -1,20 +1,14 @@
 import { isDeciduousTooth, type PatientClinicalView } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { EmptyState, SegmentedControl, useToast } from "@clinic/ui";
-import { useDoctors } from "@web/shared/queries/doctors";
+import { EmptyState, SegmentedControl } from "@clinic/ui";
 import type { Dentition } from "@web/modules/patients/lib/chart/fdi-layout";
-import type { NewProcedureInput } from "@web/modules/patients/components/chart/add-procedure-form";
 import { ToothChart, ToothChartSkeleton } from "@web/modules/patients/components/chart/tooth-chart";
 import { ToothLegend } from "@web/modules/patients/components/chart/tooth-legend";
 import { ToothPanel } from "@web/modules/patients/components/chart/tooth-panel";
 import { deriveToothSummaries, healthyTooth } from "@web/shared/lib/tooth-state";
 import { useToothStates } from "@web/shared/hooks/use-tooth-states";
-import {
-  useCreateProcedure,
-  useProcedureCatalog,
-  usePatientProcedures,
-} from "@web/modules/patients/queries";
+import { useProcedureCatalog, usePatientProcedures } from "@web/modules/patients/queries";
 import { useSession } from "@web/shared/providers/session";
 import {
   OrderFormModal,
@@ -22,7 +16,6 @@ import {
 } from "@web/modules/labs/components/order-form-modal";
 import { canCreateLabOrder } from "@web/shared/permissions/labs";
 import { ageInYears } from "@web/modules/patients/lib/age";
-import { errorMessageKey } from "@web/shared/lib/api-error";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { PERMANENT_DENTITION_AGE } from "@web/modules/patients/constants";
 
@@ -37,7 +30,6 @@ export function ChartTab({
 }): JSX.Element {
   const { t } = useTranslation();
   const { user, can } = useSession();
-  const toast = useToast();
 
   const [dentition, setDentition] = useState<Dentition>("permanent");
   const [selectedTooth, setSelectedTooth] = useState<number | null>(null);
@@ -46,8 +38,6 @@ export function ChartTab({
   const procedures = usePatientProcedures(patientId);
   const catalog = useProcedureCatalog();
   const showSkeleton = useDelayedLoading(procedures.isPending || catalog.isPending);
-  const doctors = useDoctors({ limit: 100 });
-  const createProcedure = useCreateProcedure(patientId);
 
   const outcomes = useMemo(
     () => new Map((catalog.data ?? []).map((item) => [item.id, item.chartOutcome])),
@@ -88,16 +78,6 @@ export function ChartTab({
 
   const role = user?.role;
   const hasHistory = summaries.size > 0;
-
-  const handleRecord = (input: NewProcedureInput): void => {
-    createProcedure.mutate(
-      { ...input, patientId },
-      {
-        onSuccess: () => toast.success("chart.panel.recorded"),
-        onError: (error) => toast.error(errorMessageKey(error)),
-      },
-    );
-  };
 
   return (
     <div data-testid="chart-tab" className="flex flex-col gap-5">
@@ -152,12 +132,7 @@ export function ChartTab({
               ? null
               : (summaries.get(selectedTooth) ?? healthyTooth(selectedTooth))
           }
-          role={role}
-          catalog={catalog.data ?? []}
-          doctors={doctors.data?.items ?? []}
-          submitting={createProcedure.isPending}
           onClose={() => setSelectedTooth(null)}
-          onRecord={handleRecord}
           {...(canCreateLabOrder(can) && {
             onSendToLab: (input: { teeth: number[]; performedProcedureId?: string }) =>
               setLabOrder({

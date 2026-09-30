@@ -42,14 +42,6 @@ export const canEditPlan = (can: Can): boolean => can("treatment-plans.update");
 
 export const canDeletePlan = (can: Can): boolean => can("treatment-plans.remove");
 
-export const canAddPlanItem = (can: Can): boolean => can("treatment-plans.addItem");
-
-export const canEditPlanItem = (can: Can): boolean => can("plan-items.update");
-
-export const canDeletePlanItem = (can: Can): boolean => can("plan-items.remove");
-
-export const canConvertPlanItem = (can: Can): boolean => can("plan-items.convert");
-
 export const canDeleteVisit = (can: Can): boolean => can("visits.remove");
 
 export const canDeleteProcedure = (can: Can): boolean => can("procedures.remove");

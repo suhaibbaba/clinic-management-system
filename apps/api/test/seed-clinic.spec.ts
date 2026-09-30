@@ -110,7 +110,7 @@ describe("the seeded clinic", () => {
       "waitingList",
       "notifications",
       "treatmentPlans",
-      "treatmentPlanItems",
+      "plannedTreatments",
       "clinicClosures",
       "doctorTimeOff",
     ]) {
