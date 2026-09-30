@@ -3,7 +3,6 @@ import {
   type Doctor,
   type Paginated,
   type PerformedProcedure,
-  type TreatmentPlan,
   type UserRole,
   type Visit,
 } from "@clinic/shared";
@@ -109,15 +108,6 @@ describe("Visiting doctor (e2e)", () => {
     let treatmentId: string;
 
     beforeAll(async () => {
-      const plan = await context.app.inject({
-        method: "POST",
-        url: "/treatment-plans",
-        headers: as(USER_ROLE.DOCTOR),
-        payload: { patientId: assigned, doctorId: fixtures.doctorId, title: "Implant" },
-      });
-
-      expect(plan.statusCode).toBe(201);
-
       const treatment = await context.app.inject({
         method: "POST",
         url: "/performed-procedures",
@@ -126,7 +116,6 @@ describe("Visiting doctor (e2e)", () => {
           patientId: assigned,
           doctorId: visitorDoctorId,
           procedureId: fixtures.catalogId,
-          treatmentPlanId: (plan.json() as TreatmentPlan).id,
           status: "planned",
         },
       });
@@ -161,7 +150,7 @@ describe("Visiting doctor (e2e)", () => {
       for (const url of [
         `/patients/${other}`,
         `/visits?patientId=${other}`,
-        `/treatment-plans?patientId=${other}`,
+        `/performed-procedures?patientId=${other}`,
         `/patients/${other}/timeline`,
       ]) {
         const response = await context.app.inject({

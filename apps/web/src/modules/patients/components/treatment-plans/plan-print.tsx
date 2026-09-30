@@ -1,9 +1,4 @@
-import type {
-  Clinic,
-  PerformedProcedure,
-  ProcedureCatalogItem,
-  TreatmentPlan,
-} from "@clinic/shared";
+import type { Clinic, PerformedProcedure, ProcedureCatalogItem } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { PrintLetterhead } from "@web/shared/components/brand/print-letterhead";
@@ -11,26 +6,23 @@ import {
   netPrice,
   newestTreatmentsFirst,
   treatmentTeeth,
+  treatmentsTotal,
 } from "@web/modules/patients/lib/treatments/treatments";
 
 interface PlanPrintProps {
-  readonly plan: TreatmentPlan;
   readonly treatments: readonly PerformedProcedure[];
   readonly clinic: Clinic | undefined;
   readonly patientName: string;
   readonly fileNumber: string;
   readonly catalog: readonly ProcedureCatalogItem[];
-  readonly doctorName: string;
 }
 
 export function PlanPrint({
-  plan,
   treatments,
   clinic,
   patientName,
   fileNumber,
   catalog,
-  doctorName,
 }: PlanPrintProps): JSX.Element {
   const { t } = useTranslation();
   const items = newestTreatmentsFirst(treatments);
@@ -55,14 +47,6 @@ export function PlanPrint({
         <div>
           <dt>{t("patients.fileNumber")}</dt>
           <dd dir="ltr">{fileNumber}</dd>
-        </div>
-        <div>
-          <dt>{t("treatmentPlans.plan")}</dt>
-          <dd>{plan.title}</dd>
-        </div>
-        <div>
-          <dt>{t("visits.doctor")}</dt>
-          <dd>{doctorName}</dd>
         </div>
       </dl>
 
@@ -98,25 +82,11 @@ export function PlanPrint({
               {t("treatmentPlans.total")}
             </th>
             <td dir="ltr">
-              {plan.summary.total} {currency}
-            </td>
-          </tr>
-          <tr>
-            <th scope="row" colSpan={3}>
-              {t("treatmentPlans.remaining")}
-            </th>
-            <td dir="ltr">
-              {plan.summary.remaining} {currency}
+              {treatmentsTotal(items)} {currency}
             </td>
           </tr>
         </tfoot>
       </table>
-
-      {plan.notes && (
-        <p data-testid="plan-print-notes" className="print-notes">
-          {plan.notes}
-        </p>
-      )}
 
       <p className="print-disclaimer">{t("treatmentPlans.printDisclaimer")}</p>
 

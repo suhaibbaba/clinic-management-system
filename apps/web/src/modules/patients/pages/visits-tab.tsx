@@ -205,7 +205,6 @@ export function VisitsTab({
             defaults={{ visitId: treating.visit.id, doctorId: treating.visit.doctorId }}
             emptyTitle="visits.noProcedures"
             startAdding={treating.adding}
-            showPlan
           />
         )}
       </Modal>

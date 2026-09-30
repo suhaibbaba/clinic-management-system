@@ -8,13 +8,7 @@ import {
 } from "@api/common/database/clinic-scope.service";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
-import {
-  appointments,
-  doctors,
-  patients,
-  performedProcedures,
-  treatmentPlans,
-} from "@api/database/schema";
+import { appointments, doctors, patients, performedProcedures } from "@api/database/schema";
 import { PatientRow } from "@api/modules/patients/lib/patient-access";
 
 @Injectable()
@@ -109,19 +103,6 @@ export class PatientAccessService {
               actor.clinicId,
               eq(appointments.patientId, patientIdColumn),
               eq(appointments.doctorId, own.id),
-            ),
-          ),
-      ),
-      exists(
-        this.db
-          .select({ present: sql`1` })
-          .from(treatmentPlans)
-          .where(
-            this.scope.where(
-              treatmentPlans,
-              actor.clinicId,
-              eq(treatmentPlans.patientId, patientIdColumn),
-              eq(treatmentPlans.doctorId, own.id),
             ),
           ),
       ),

@@ -109,7 +109,6 @@ describe("the seeded clinic", () => {
       "suppliers",
       "waitingList",
       "notifications",
-      "treatmentPlans",
       "plannedTreatments",
       "clinicClosures",
       "doctorTimeOff",
@@ -180,7 +179,7 @@ describe("the seeded clinic", () => {
     expect(clashes).toEqual([]);
   });
 
-  it("bills the work that was done and nothing that is only planned", async () => {
+  it("bills the work that was started or done and nothing planned or cancelled", async () => {
     const rows = await db
       .select({ status: performedProcedures.status, chargeId: charges.id })
       .from(performedProcedures)
@@ -198,12 +197,11 @@ describe("the seeded clinic", () => {
 
     expect(rows.length).toBeGreaterThan(0);
 
-    const unbilled = rows.filter(
-      (row) => row.status !== PERFORMED_PROCEDURE_STATUS.PLANNED && row.chargeId === null,
-    );
-    const wronglyBilled = rows.filter(
-      (row) => row.status === PERFORMED_PROCEDURE_STATUS.PLANNED && row.chargeId !== null,
-    );
+    const billable = (status: string): boolean =>
+      status === PERFORMED_PROCEDURE_STATUS.IN_PROGRESS ||
+      status === PERFORMED_PROCEDURE_STATUS.DONE;
+    const unbilled = rows.filter((row) => billable(row.status) && row.chargeId === null);
+    const wronglyBilled = rows.filter((row) => !billable(row.status) && row.chargeId !== null);
 
     expect(unbilled).toEqual([]);
     expect(wronglyBilled).toEqual([]);

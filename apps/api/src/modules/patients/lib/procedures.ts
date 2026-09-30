@@ -29,7 +29,6 @@ export function toProcedure(row: ProcedureRow, marks: ChartMark[] = []): Perform
     discount: row.discount,
     discountReason: row.discountReason,
     status: row.status,
-    treatmentPlanId: row.treatmentPlanId,
     performedAt: row.performedAt.toISOString(),
     notes: row.notes,
     createdAt: row.createdAt.toISOString(),

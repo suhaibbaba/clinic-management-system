@@ -5,7 +5,6 @@ import {
   type PerformedProcedure,
   type PerformedProcedureStatus,
   type ProcedureCatalogItem,
-  type TreatmentPlan,
   type UserRole,
 } from "@clinic/shared";
 import { useEffect, useId, useState, type FormEvent, type JSX } from "react";
@@ -31,7 +30,7 @@ import {
   treatmentSurfaces,
   treatmentTeeth,
 } from "@web/modules/patients/lib/treatments/treatments";
-import { NO_PLAN_VALUE, SELECTABLE_SURFACES } from "@web/modules/patients/constants";
+import { SELECTABLE_SURFACES } from "@web/modules/patients/constants";
 import { canAddVisitingDoctor } from "@web/shared/permissions/doctors";
 import { canSeePrices } from "@web/shared/permissions/patients";
 import { doctorOptionLabel } from "@web/shared/lib/doctor-label";
@@ -44,7 +43,6 @@ export type TreatmentFormValues = Omit<CreatePerformedProcedureInput, "patientId
 export interface TreatmentDefaults {
   readonly tooth?: number | undefined;
   readonly visitId?: string | undefined;
-  readonly treatmentPlanId?: string | undefined;
   readonly status?: PerformedProcedureStatus | undefined;
   readonly doctorId?: string | undefined;
 }
@@ -53,7 +51,6 @@ export interface TreatmentFormProps {
   readonly role: UserRole;
   readonly catalog: readonly ProcedureCatalogItem[];
   readonly doctors: readonly Doctor[];
-  readonly plans: readonly TreatmentPlan[];
   readonly defaults: TreatmentDefaults;
   readonly treatment?: PerformedProcedure | undefined;
   readonly formId: string;
@@ -64,7 +61,6 @@ export function TreatmentForm({
   role,
   catalog,
   doctors,
-  plans,
   defaults,
   treatment,
   formId,
@@ -84,9 +80,6 @@ export function TreatmentForm({
   );
   const [status, setStatus] = useState<PerformedProcedureStatus>(
     treatment?.status ?? defaults.status ?? "done",
-  );
-  const [planId, setPlanId] = useState(
-    treatment?.treatmentPlanId ?? defaults.treatmentPlanId ?? NO_PLAN_VALUE,
   );
   const [teeth, setTeeth] = useState<number[]>(
     fixedTooth !== undefined ? [fixedTooth] : treatment ? treatmentTeeth(treatment) : [],
@@ -147,7 +140,6 @@ export function TreatmentForm({
       doctorId,
       procedureId,
       status,
-      treatmentPlanId: planId === NO_PLAN_VALUE ? null : planId,
       discount: hasDiscount ? discount : "0.00",
       notes: notes.trim() === "" ? null : notes.trim(),
       ...(showPrices && price !== "" && { price }),
@@ -222,19 +214,6 @@ export function TreatmentForm({
               </Button>
             )}
           </div>
-
-          <FormField label="treatments.plan" htmlFor={`${fieldId}-plan`} optional>
-            <Select
-              id={`${fieldId}-plan`}
-              data-testid="treatment-field-plan"
-              value={planId}
-              onChange={(event) => setPlanId(event.target.value)}
-              options={[
-                { value: NO_PLAN_VALUE, label: t("treatments.noPlan") },
-                ...plans.map((plan) => ({ value: plan.id, label: plan.title })),
-              ]}
-            />
-          </FormField>
         </div>
 
         {showPrices && (

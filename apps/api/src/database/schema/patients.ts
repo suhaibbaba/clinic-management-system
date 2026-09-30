@@ -1,7 +1,6 @@
 import {
   GENDERS,
   PERFORMED_PROCEDURE_STATUSES,
-  TREATMENT_PLAN_STATUSES,
   type AttachmentMime,
   type BodyRegionLocation,
   type PrescriptionItem,
@@ -26,7 +25,6 @@ import { chartTypeEnum, clinics, doctors, specialties } from "@api/database/sche
 import { normalizedName } from "@api/database/schema/normalized-name";
 
 export const genderEnum = pgEnum("gender", GENDERS);
-export const treatmentPlanStatusEnum = pgEnum("treatment_plan_status", TREATMENT_PLAN_STATUSES);
 export const performedProcedureStatusEnum = pgEnum(
   "performed_procedure_status",
   PERFORMED_PROCEDURE_STATUSES,
@@ -156,31 +154,6 @@ export const visits = pgTable(
   ],
 );
 
-export const treatmentPlans = pgTable(
-  "treatment_plans",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    clinicId: uuid("clinic_id")
-      .notNull()
-      .references(() => clinics.id),
-    patientId: uuid("patient_id")
-      .notNull()
-      .references(() => patients.id),
-    doctorId: uuid("doctor_id")
-      .notNull()
-      .references(() => doctors.id),
-    title: text("title").notNull(),
-    status: treatmentPlanStatusEnum("status").notNull().default("draft"),
-    notes: text("notes"),
-    ...auditColumns,
-    ...softDeleteColumn,
-  },
-  (table) => [
-    index("treatment_plans_clinic_idx").on(table.clinicId),
-    index("treatment_plans_patient_idx").on(table.clinicId, table.patientId),
-  ],
-);
-
 export const performedProcedures = pgTable(
   "performed_procedures",
   {
@@ -202,7 +175,6 @@ export const performedProcedures = pgTable(
     discount: money("discount").notNull().default("0.00"),
     discountReason: text("discount_reason"),
     status: performedProcedureStatusEnum("status").notNull().default("done"),
-    treatmentPlanId: uuid("treatment_plan_id").references(() => treatmentPlans.id),
     performedAt: timestamp("performed_at", { withTimezone: true }).notNull().defaultNow(),
     notes: text("notes"),
     ...auditColumns,
@@ -216,7 +188,6 @@ export const performedProcedures = pgTable(
       table.performedAt,
     ),
     index("performed_procedures_visit_idx").on(table.visitId),
-    index("performed_procedures_plan_idx").on(table.treatmentPlanId),
   ],
 );
 

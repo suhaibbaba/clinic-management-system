@@ -15,7 +15,6 @@ export const performedProcedureSchema = z.object({
   discount: moneySchema,
   discountReason: z.string().nullable(),
   status: z.enum(PERFORMED_PROCEDURE_STATUSES),
-  treatmentPlanId: z.uuid().nullable(),
   performedAt: z.iso.datetime(),
   notes: z.string().nullable(),
   createdAt: z.iso.datetime(),
@@ -26,7 +25,6 @@ export type PerformedProcedure = z.infer<typeof performedProcedureSchema>;
 
 const procedureWritableFields = {
   visitId: z.uuid().nullish(),
-  treatmentPlanId: z.uuid().nullish(),
   doctorId: z.uuid(),
   procedureId: z.uuid(),
   price: wholeMoneySchema,
@@ -71,7 +69,6 @@ export type UpdatePerformedProcedureInput = z.infer<typeof updatePerformedProced
 export const listPerformedProceduresQuerySchema = paginationQuerySchema.extend({
   patientId: z.uuid().optional(),
   visitId: z.uuid().optional(),
-  treatmentPlanId: z.uuid().optional(),
   status: z.enum(PERFORMED_PROCEDURE_STATUSES).optional(),
 });
 export type ListPerformedProceduresQuery = z.infer<typeof listPerformedProceduresQuerySchema>;

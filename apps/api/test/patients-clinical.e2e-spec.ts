@@ -299,27 +299,8 @@ describe("Patient clinical records (e2e)", () => {
     });
   });
 
-  describe("treatment plans", () => {
-    let planId: string;
-
-    const plan = async () =>
-      (
-        await context.app.inject({
-          method: "GET",
-          url: `/treatment-plans/${planId}`,
-          headers: asDoctor(),
-        })
-      ).json() as {
-        summary: {
-          total: string;
-          done: string;
-          remaining: string;
-          treatments: number;
-          completed: number;
-        };
-      };
-
-    const plannedTreatment = async (tooth: number, extra: Record<string, unknown> = {}) => {
+  describe("a treatment's lifecycle", () => {
+    const plannedTreatment = async (tooth: number) => {
       const response = await context.app.inject({
         method: "POST",
         url: "/performed-procedures",
@@ -331,14 +312,12 @@ describe("Patient clinical records (e2e)", () => {
             procedureId: fixtures.catalogId,
             tooth,
           }),
-          treatmentPlanId: planId,
           status: "planned",
-          ...extra,
         },
       });
 
       expect(response.statusCode).toBe(201);
-      return response.json() as { id: string; treatmentPlanId: string; status: string };
+      return response.json() as { id: string; status: string };
     };
 
     const move = (id: string, payload: Record<string, unknown>) =>
@@ -349,57 +328,18 @@ describe("Patient clinical records (e2e)", () => {
         payload,
       });
 
-    beforeEach(async () => {
-      const created = await context.app.inject({
-        method: "POST",
-        url: "/treatment-plans",
-        headers: asDoctor(),
-        payload: { patientId, doctorId: fixtures.doctorId, title: "خطة معالجة" },
-      });
-
-      expect(created.statusCode).toBe(201);
-      planId = (created.json() as { id: string }).id;
-    });
-
-    it("starts empty, with nothing to pay", async () => {
-      expect((await plan()).summary).toEqual({
-        total: "0.00",
-        done: "0.00",
-        remaining: "0.00",
-        treatments: 0,
-        completed: 0,
-      });
-    });
-
-    it("totals its treatments from the treatments themselves", async () => {
-      const first = await plannedTreatment(16);
-      await plannedTreatment(17, { price: "100", discount: "10", discountReason: "خصم" });
-      const dropped = await plannedTreatment(18);
-
-      expect((await move(first.id, { status: "done" })).statusCode).toBe(200);
-      expect((await move(dropped.id, { status: "cancelled" })).statusCode).toBe(200);
-
-      expect((await plan()).summary).toEqual({
-        total: "150.00",
-        done: "60.00",
-        remaining: "90.00",
-        treatments: 2,
-        completed: 1,
-      });
-    });
-
-    it("bills a planned treatment only once work on it starts", async () => {
-      const balance = async () =>
+    const balance = async () =>
+      (
         (
-          (
-            await context.app.inject({
-              method: "GET",
-              url: `/patients/${patientId}/balance`,
-              headers: auth(tokens[USER_ROLE.ADMIN]),
-            })
-          ).json() as { balance: string }
-        ).balance;
+          await context.app.inject({
+            method: "GET",
+            url: `/patients/${patientId}/balance`,
+            headers: auth(tokens[USER_ROLE.ADMIN]),
+          })
+        ).json() as { balance: string }
+      ).balance;
 
+    it("bills a planned treatment only once work on it starts, and unbills a cancelled one", async () => {
       const before = await balance();
       const treatment = await plannedTreatment(26);
       expect(await balance()).toBe(before);
@@ -411,12 +351,16 @@ describe("Patient clinical records (e2e)", () => {
       expect(await balance()).toBe(before);
     });
 
-    it("refuses a move the treatment's state does not allow", async () => {
+    it("refuses any move out of done", async () => {
       const treatment = await plannedTreatment(27);
-      await move(treatment.id, { status: "done" });
+      expect((await move(treatment.id, { status: "done" })).statusCode).toBe(200);
 
-      expect((await move(treatment.id, { status: "planned" })).statusCode).toBe(409);
-      expect((await move(treatment.id, { status: "cancelled" })).statusCode).toBe(409);
+      for (const status of ["planned", "in_progress", "cancelled"]) {
+        expect({ status, code: (await move(treatment.id, { status })).statusCode }).toEqual({
+          status,
+          code: 409,
+        });
+      }
     });
 
     it("keeps the teeth of a planned treatment when it is done", async () => {
@@ -427,65 +371,12 @@ describe("Patient clinical records (e2e)", () => {
       expect(body.chartMarks.map((mark) => mark.location.tooth)).toEqual([36]);
     });
 
-    it("refuses a plan that belongs to another patient", async () => {
-      const otherId = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
-        firstName: "سلمى",
-        lastName: "عودة",
-        phone: uniquePhone(),
-      });
+    it("brings a cancelled treatment back to planned", async () => {
+      const treatment = await plannedTreatment(37);
+      await move(treatment.id, { status: "cancelled" });
 
-      const response = await context.app.inject({
-        method: "POST",
-        url: "/performed-procedures",
-        headers: asDoctor(),
-        payload: {
-          ...procedurePayload({
-            patientId: otherId,
-            doctorId: fixtures.doctorId,
-            procedureId: fixtures.catalogId,
-            tooth: 11,
-          }),
-          treatmentPlanId: planId,
-          status: "planned",
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it("removes the unstarted treatments with the plan and keeps the billed ones", async () => {
-      const planned = await plannedTreatment(46);
-      const started = await plannedTreatment(47);
-      await move(started.id, { status: "done" });
-
-      const removed = await context.app.inject({
-        method: "DELETE",
-        url: `/treatment-plans/${planId}`,
-        headers: auth(tokens[USER_ROLE.ADMIN]),
-      });
-      expect(removed.statusCode).toBe(204);
-
-      const read = (id: string) =>
-        context.app.inject({
-          method: "GET",
-          url: `/performed-procedures/${id}`,
-          headers: asDoctor(),
-        });
-
-      expect((await read(planned.id)).statusCode).toBe(404);
-      expect((await read(started.id)).statusCode).toBe(200);
-    });
-
-    it("refuses a receptionist and a technician", async () => {
-      for (const role of [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN]) {
-        const response = await context.app.inject({
-          method: "GET",
-          url: `/treatment-plans?patientId=${patientId}`,
-          headers: auth(tokens[role]),
-        });
-
-        expect(response.statusCode).toBe(403);
-      }
+      const restored = await move(treatment.id, { status: "planned" });
+      expect((restored.json() as { status: string }).status).toBe("planned");
     });
   });
 

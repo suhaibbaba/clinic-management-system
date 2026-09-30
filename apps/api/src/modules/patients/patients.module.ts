@@ -22,8 +22,6 @@ import { TimelineController } from "@api/modules/patients/controllers/timeline.c
 import { TimelineService } from "@api/modules/patients/services/timeline.service";
 import { ToothHistoryController } from "@api/modules/patients/controllers/tooth-history.controller";
 import { ToothHistoryService } from "@api/modules/patients/services/tooth-history.service";
-import { TreatmentPlansController } from "@api/modules/patients/controllers/treatment-plans.controller";
-import { TreatmentPlansService } from "@api/modules/patients/services/treatment-plans.service";
 import { VisitsController } from "@api/modules/patients/controllers/visits.controller";
 import { VisitsService } from "@api/modules/patients/services/visits.service";
 
@@ -34,7 +32,6 @@ import { VisitsService } from "@api/modules/patients/services/visits.service";
     MedicalHistoriesController,
     VisitsController,
     ProceduresController,
-    TreatmentPlansController,
     PatientAttachmentsController,
     AttachmentsController,
     ToothHistoryController,
@@ -50,7 +47,6 @@ import { VisitsService } from "@api/modules/patients/services/visits.service";
     MedicalHistoriesService,
     VisitsService,
     ProceduresService,
-    TreatmentPlansService,
     AttachmentsService,
     ToothHistoryService,
     TimelineService,

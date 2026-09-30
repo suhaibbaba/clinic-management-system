@@ -30,7 +30,6 @@ import {
   doctors,
   performedProcedures,
   specialties,
-  treatmentPlans,
   visits,
 } from "@api/database/schema";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
@@ -79,9 +78,6 @@ export class ProceduresService implements OnModuleInit {
     }
     if (query.visitId) {
       filters.push(eq(performedProcedures.visitId, query.visitId));
-    }
-    if (query.treatmentPlanId) {
-      filters.push(eq(performedProcedures.treatmentPlanId, query.treatmentPlanId));
     }
     if (query.status) {
       filters.push(eq(performedProcedures.status, query.status));
@@ -133,9 +129,6 @@ export class ProceduresService implements OnModuleInit {
     if (input.visitId) {
       await this.requireVisitOf(actor.clinicId, input.patientId, input.visitId);
     }
-    if (input.treatmentPlanId) {
-      await this.requirePlanOf(actor.clinicId, input.patientId, input.treatmentPlanId);
-    }
 
     const catalogItem = await this.catalog.requirePriced(actor.clinicId, input.procedureId);
     const price = input.price ?? catalogItem.defaultPrice;
@@ -149,7 +142,6 @@ export class ProceduresService implements OnModuleInit {
           clinicId: actor.clinicId,
           patientId: input.patientId,
           visitId: input.visitId ?? null,
-          treatmentPlanId: input.treatmentPlanId ?? null,
           doctorId: input.doctorId,
           procedureId: input.procedureId,
           price,
@@ -198,9 +190,6 @@ export class ProceduresService implements OnModuleInit {
     if (input.visitId) {
       await this.requireVisitOf(actor.clinicId, existing.patientId, input.visitId);
     }
-    if (input.treatmentPlanId) {
-      await this.requirePlanOf(actor.clinicId, existing.patientId, input.treatmentPlanId);
-    }
     if (input.status !== undefined && !canMoveProcedure(existing.status, input.status)) {
       throw new ConflictException(`A ${existing.status} treatment cannot become ${input.status}`);
     }
@@ -230,9 +219,6 @@ export class ProceduresService implements OnModuleInit {
         .update(performedProcedures)
         .set({
           ...(input.visitId !== undefined && { visitId: input.visitId ?? null }),
-          ...(input.treatmentPlanId !== undefined && {
-            treatmentPlanId: input.treatmentPlanId ?? null,
-          }),
           ...(input.doctorId !== undefined && { doctorId: input.doctorId }),
           ...(input.procedureId !== undefined && { procedureId: input.procedureId }),
           ...(input.price !== undefined && { price: input.price }),
@@ -384,25 +370,6 @@ export class ProceduresService implements OnModuleInit {
     }
 
     return grouped;
-  }
-
-  private async requirePlanOf(clinicId: string, patientId: string, planId: string): Promise<void> {
-    const [plan] = await this.db
-      .select({ id: treatmentPlans.id })
-      .from(treatmentPlans)
-      .where(
-        this.scope.where(
-          treatmentPlans,
-          clinicId,
-          eq(treatmentPlans.id, planId),
-          eq(treatmentPlans.patientId, patientId),
-        ),
-      )
-      .limit(1);
-
-    if (!plan) {
-      throw new BadRequestException("That treatment plan belongs to another patient");
-    }
   }
 
   private async assertMarksMatchSpecialty(

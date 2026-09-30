@@ -4,7 +4,6 @@ import {
   FDI_PERMANENT_TEETH,
   PERFORMED_PROCEDURE_STATUS,
   TOOTH_SURFACES,
-  TREATMENT_PLAN_STATUS,
   type PerformedProcedureStatus,
   type PrescriptionItem,
   type ToothLocation,
@@ -58,35 +57,15 @@ export function procedureStatus(rng: Rng, isPast: boolean): PerformedProcedureSt
   return rng.bool(0.05) ? PERFORMED_PROCEDURE_STATUS.IN_PROGRESS : PERFORMED_PROCEDURE_STATUS.DONE;
 }
 
-const PLAN_TITLES: readonly string[] = [
-  "Comprehensive treatment plan",
-  "Upper jaw rehabilitation",
-  "Root canal and crown",
-  "Cosmetic plan",
-  "Periodontal therapy, then prosthetics",
-];
-
-export const PLAN_STATUSES = [
-  TREATMENT_PLAN_STATUS.DRAFT,
-  TREATMENT_PLAN_STATUS.ACTIVE,
-  TREATMENT_PLAN_STATUS.ACTIVE,
-  TREATMENT_PLAN_STATUS.COMPLETED,
-  TREATMENT_PLAN_STATUS.CANCELLED,
-] as const;
-
-export function planTitle(rng: Rng): string {
-  return rng.pick(PLAN_TITLES);
-}
-
-const PLAN_NOTES: readonly string[] = [
+const TREATMENT_NOTES: readonly string[] = [
   "Patient prefers morning appointments.",
   "Start with the lower molars.\nCrown the upper right premolar once the gum has healed.\nReview the X-ray before the final step.",
   "Staged over three months to spread the cost; agreed with the patient.",
   "Extraction first, then an implant consultation after four weeks of healing. The patient asked for a written estimate to take to their insurer before committing to the implant stage.",
 ];
 
-export function planNotes(rng: Rng): string | null {
-  return rng.bool(0.5) ? rng.pick(PLAN_NOTES) : null;
+export function treatmentNotes(rng: Rng): string | null {
+  return rng.bool(0.3) ? rng.pick(TREATMENT_NOTES) : null;
 }
 
 const DRUGS: readonly PrescriptionItem[] = [

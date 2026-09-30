@@ -121,12 +121,6 @@ describe("Patients permission boundaries (e2e)", () => {
       roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
     },
     {
-      name: "treatment plans",
-      method: "GET",
-      url: () => `/treatment-plans?patientId=${patientId}`,
-      roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
-    },
-    {
       name: "tooth history",
       method: "GET",
       url: () => `/patients/${patientId}/teeth/46`,

@@ -10,7 +10,6 @@ import {
   PAYMENT_METHOD,
   PERFORMED_PROCEDURE_STATUS,
   SPECIALTY_CODE,
-  TREATMENT_PLAN_STATUS,
   USER_ROLE,
   WAITING_LIST_PRIORITY,
   WAITING_LIST_SOURCE,
@@ -23,7 +22,7 @@ import {
   occupiesSlot,
   type LabOrderStatus,
 } from "@clinic/shared";
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import type { BusyInterval } from "@api/modules/appointments/lib/slots";
 import { ChargesService } from "@api/modules/billing/services/charges.service";
 import { nextReceiptNumber } from "@api/modules/billing/lib/payments";
@@ -51,7 +50,6 @@ import {
   specialties,
   stockMovements,
   suppliers,
-  treatmentPlans,
   visits,
   waitingList,
 } from "@api/database/schema";
@@ -71,14 +69,12 @@ import {
 } from "@api/database/seed/clinic";
 import {
   CHART_MARK_TYPE,
-  PLAN_STATUSES,
   discountFor,
   medicalHistory,
-  planNotes,
-  planTitle,
   prescriptionItems,
   procedureStatus,
   teethFor,
+  treatmentNotes,
   toothLocation,
 } from "@api/database/seed/clinical";
 import { planAppointments, type PlannedAppointment } from "@api/database/seed/calendar";
@@ -486,7 +482,7 @@ async function writeClinicalHistory(
 
   await insertInChunks(marks, (rows) => db.insert(chartMarks).values(rows));
 
-  const plans = await writePlans(db, ctx, procedures);
+  const plans = await writePlannedTreatments(db, ctx);
   const scripts = await writePrescriptions(db, ctx, visitValues);
 
   return {
@@ -501,75 +497,32 @@ async function writeClinicalHistory(
   };
 }
 
-async function writePlans(
-  db: Database,
-  ctx: WriteContext,
-  procedures: readonly ProcedureRecord[],
-): Promise<SeedCounts> {
+async function writePlannedTreatments(db: Database, ctx: WriteContext): Promise<SeedCounts> {
   const chosen = ctx.rng.sample(ctx.patients, 15);
-  const planValues = chosen.map((patient, index) => ({
-    id: randomUUID(),
-    clinicId: ctx.clinicId,
-    patientId: patient.id,
-    doctorId: ctx.doctorIds[index % ctx.doctorIds.length] as string,
-    title: planTitle(ctx.rng),
-    notes: planNotes(ctx.rng),
-    status: PLAN_STATUSES[index % PLAN_STATUSES.length] as (typeof PLAN_STATUSES)[number],
-    createdAt: earlier(ctx.now, ctx.rng.int(10, 300)),
-    ...ctx.audit,
-  }));
-
-  if (planValues.length === 0) {
-    return { treatmentPlans: 0, plannedTreatments: 0 };
-  }
-
-  await db.insert(treatmentPlans).values(planValues);
-
   const planned: (typeof performedProcedures.$inferInsert)[] = [];
   const marks: (typeof chartMarks.$inferInsert)[] = [];
 
-  for (const [index, plan] of planValues.entries()) {
-    const patient = chosen[index];
-
-    if (!patient) {
-      continue;
-    }
-
-    const done = procedures
-      .filter((procedure) => procedure.patientId === plan.patientId)
-      .slice(0, plan.status === TREATMENT_PLAN_STATUS.DRAFT ? 0 : 2)
-      .map((procedure) => procedure.id);
-
-    if (done.length > 0) {
-      await db
-        .update(performedProcedures)
-        .set({ treatmentPlanId: plan.id })
-        .where(inArray(performedProcedures.id, done));
-    }
-
-    if (plan.status === TREATMENT_PLAN_STATUS.COMPLETED) {
-      continue;
-    }
-
+  for (const [index, patient] of chosen.entries()) {
     const teeth = teethFor(patient.ageYears);
+    const doctorId = ctx.doctorIds[index % ctx.doctorIds.length] as string;
+    const plannedAt = earlier(ctx.now, ctx.rng.int(5, 120));
 
     for (const [position, entry] of ctx.rng.sample(CATALOG.slice(1), ctx.rng.int(2, 4)).entries()) {
       const id = randomUUID();
-      const createdAt = new Date(plan.createdAt.getTime() + position * 2 * 86_400_000);
-      const status =
-        plan.status === TREATMENT_PLAN_STATUS.CANCELLED || (index + position) % 5 === 4
-          ? PERFORMED_PROCEDURE_STATUS.CANCELLED
-          : PERFORMED_PROCEDURE_STATUS.PLANNED;
+      const createdAt = new Date(plannedAt.getTime() + position * 60_000);
 
       planned.push({
         id,
         clinicId: ctx.clinicId,
-        patientId: plan.patientId,
-        treatmentPlanId: plan.id,
-        doctorId: plan.doctorId,
+        patientId: patient.id,
+        doctorId,
         procedureId: ctx.catalogIdByCode.get(entry.code) as string,
         price: entry.defaultPrice,
-        status,
+        status:
+          (index + position) % 6 === 5
+            ? PERFORMED_PROCEDURE_STATUS.CANCELLED
+            : PERFORMED_PROCEDURE_STATUS.PLANNED,
+        notes: treatmentNotes(ctx.rng),
         performedAt: createdAt,
         createdAt,
         ...ctx.audit,
@@ -594,7 +547,7 @@ async function writePlans(
   await insertInChunks(planned, (rows) => db.insert(performedProcedures).values(rows));
   await insertInChunks(marks, (rows) => db.insert(chartMarks).values(rows));
 
-  return { treatmentPlans: planValues.length, plannedTreatments: planned.length };
+  return { plannedTreatments: planned.length };
 }
 
 async function writePrescriptions(
