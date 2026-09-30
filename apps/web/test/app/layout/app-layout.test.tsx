@@ -63,6 +63,7 @@ describe("Sidebar navigation", () => {
       ar.nav.inventory,
       ar.nav.clinic,
       ar.nav.users,
+      ar.nav.payroll,
       ar.nav.lists,
       ar.nav.settingsPage,
     ]);
@@ -191,6 +192,10 @@ describe("Route guards", () => {
     [USER_ROLE.VISITING_DOCTOR, `/inventory/items/${ITEM_ID}`],
     [USER_ROLE.VISITING_DOCTOR, "/users"],
     [USER_ROLE.VISITING_DOCTOR, "/settings"],
+    [USER_ROLE.DOCTOR, "/payroll"],
+    [USER_ROLE.VISITING_DOCTOR, "/payroll"],
+    [USER_ROLE.RECEPTIONIST, "/payroll"],
+    [USER_ROLE.TECHNICIAN, "/payroll"],
   ])("redirects %s away from %s and onto the dashboard", async (role, route) => {
     await renderAs(role, route);
 

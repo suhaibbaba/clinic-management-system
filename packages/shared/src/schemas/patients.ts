@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { GENDERS } from "@shared/enums";
 import {
-  VALIDATION_CODE,
   calendarDateSchema,
+  pastDateSchema,
   paginationQuerySchema,
   uuidSchema,
 } from "@shared/schemas/common";
@@ -65,9 +65,6 @@ export type PatientPublicView = z.infer<typeof patientPublicViewSchema>;
 export const patientViewSchema = z.union([patientClinicalViewSchema, patientPublicViewSchema]);
 export type PatientView = PatientClinicalView | PatientPublicView;
 
-const latestBirthDate = (): string =>
-  new Date(Date.now() + 14 * 60 * 60 * 1000).toISOString().slice(0, 10);
-
 const nameParts = {
   firstName: z.string().trim().min(1).max(60),
   middleName: z.string().trim().max(80).nullish(),
@@ -78,9 +75,7 @@ const patientWritableFields = {
   ...nameParts,
   phone: phoneSchema,
   whatsapp: phoneSchema.nullish(),
-  dateOfBirth: dateOnlySchema
-    .refine((value) => value <= latestBirthDate(), VALIDATION_CODE.DATE_IN_FUTURE)
-    .nullish(),
+  dateOfBirth: pastDateSchema.nullish(),
   gender: z.enum(GENDERS).nullish(),
   address: z.string().trim().max(500).nullish(),
   nationalId: z.string().trim().max(64).nullish(),

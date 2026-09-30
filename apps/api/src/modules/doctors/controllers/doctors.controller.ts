@@ -57,7 +57,7 @@ export class DoctorsController {
   }
 
   @Post("visiting")
-  @Roles(USER_ROLE.DOCTOR)
+  @Roles(USER_ROLE.ADMIN)
   @Audit(DOCTORS_ENTITY, AUDIT_ACTION.CREATE)
   createVisiting(
     @CurrentUser() actor: AuthenticatedUser,

@@ -19,6 +19,7 @@ import {
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
 import { DoctorFormModal } from "@web/modules/doctors/components/doctor-form-modal";
+import { VisitingDoctorModal } from "@web/modules/doctors/components/visiting-doctor-modal";
 import { useDoctors } from "@web/shared/queries/doctors";
 import { formatList } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
@@ -33,6 +34,7 @@ export function DoctorsPage(): JSX.Element {
   const [search, setSearch] = useState("");
   const [formDoctor, setFormDoctor] = useState<Doctor | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [visitingOpen, setVisitingOpen] = useState(false);
 
   const query = useDoctors({ page, limit: perPage, ...(search !== "" && { search }) });
 
@@ -155,6 +157,18 @@ export function DoctorsPage(): JSX.Element {
             </Button>
           ) : undefined
         }
+        actions={
+          isAdmin ? (
+            <Button
+              variant="secondary"
+              icon={<Icon name="user-plus" />}
+              data-testid="doctors-create-visiting"
+              onClick={() => setVisitingOpen(true)}
+            >
+              {t("doctors.visiting.create")}
+            </Button>
+          ) : undefined
+        }
       />
 
       <div className="flex flex-wrap items-center gap-3">
@@ -212,6 +226,12 @@ export function DoctorsPage(): JSX.Element {
         open={formOpen}
         onOpenChange={setFormOpen}
         doctor={formDoctor}
+      />
+
+      <VisitingDoctorModal
+        open={visitingOpen}
+        onOpenChange={setVisitingOpen}
+        onCreated={(doctor) => navigate(`/doctors/${doctor.id}`)}
       />
     </div>
   );

@@ -44,6 +44,12 @@ const dateText = (iso: string): string => {
 
 const timeText = (iso: string): string => formatMinute(minutesOf(iso));
 
+export function formatMonth(month: string): string {
+  const { month: name, year } = dayMonthYear(`${month}-01`);
+
+  return isolate(`${name} ${year}`);
+}
+
 export function formatDate(iso: string): string {
   return isolate(dateText(iso));
 }

@@ -175,6 +175,8 @@ export const performedProcedures = pgTable(
     discount: money("discount").notNull().default("0.00"),
     discountReason: text("discount_reason"),
     status: performedProcedureStatusEnum("status").notNull().default("done"),
+    materialCost: money("material_cost"),
+    clinicSharePercent: numeric("clinic_share_percent", { precision: 5, scale: 2 }),
     performedAt: timestamp("performed_at", { withTimezone: true }).notNull().defaultNow(),
     notes: text("notes"),
     ...auditColumns,

@@ -7,6 +7,7 @@ import {
   instantFromLocal,
   localWeekday,
   minutesFromLocalMidnight,
+  USER_ROLE,
   type Availability,
   type AvailabilityQuery,
   type ClinicClosure,
@@ -23,6 +24,7 @@ import {
   doctorExtraHours,
   doctors,
   doctorTimeOff,
+  users,
 } from "@api/database/schema";
 import {
   computeDaySlots,
@@ -80,8 +82,10 @@ export class AvailabilityService {
       .select({
         weeklySchedule: doctors.weeklySchedule,
         defaultDuration: doctors.defaultAppointmentDurationMinutes,
+        role: users.role,
       })
       .from(doctors)
+      .innerJoin(users, eq(users.id, doctors.userId))
       .where(this.scope.where(doctors, clinicId, eq(doctors.id, query.doctorId)))
       .limit(1);
 
@@ -109,10 +113,16 @@ export class AvailabilityService {
       this.extraHoursOn(clinicId, query.doctorId, query.date),
     ]);
 
+    const clinicRanges = rangesFor(clinic.workingHours, weekday);
+    const onCall = doctor.role === USER_ROLE.VISITING_DOCTOR && doctor.weeklySchedule.length === 0;
+
     return {
       timeZone,
-      clinicRanges: rangesFor(clinic.workingHours, weekday),
-      doctorRanges: mergeRanges([...rangesFor(doctor.weeklySchedule, weekday), ...extra]),
+      clinicRanges,
+      doctorRanges: mergeRanges([
+        ...(onCall ? clinicRanges : rangesFor(doctor.weeklySchedule, weekday)),
+        ...extra,
+      ]),
       closure,
       timeOff: absences.map((row) => ({
         startMinute: minutesFromLocalMidnight(row.startsAt, query.date, timeZone),

@@ -24,7 +24,6 @@ import {
   usePersonName,
 } from "@clinic/ui";
 import { TeethField } from "@web/modules/labs/components/teeth-field";
-import { VisitingDoctorModal } from "@web/modules/doctors/components/visiting-doctor-modal";
 import {
   SurfaceSelector,
   type SelectableSurface,
@@ -35,10 +34,8 @@ import {
   treatmentTeeth,
 } from "@web/modules/patients/lib/treatments/treatments";
 import { SELECTABLE_SURFACES } from "@web/modules/patients/constants";
-import { canAddVisitingDoctor } from "@web/shared/permissions/doctors";
 import { canSeePrices } from "@web/shared/permissions/patients";
 import { doctorOptionLabel } from "@web/shared/lib/doctor-label";
-import { useSession } from "@web/shared/providers/session";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { ellipsis } from "@web/i18n/ellipsis";
 
@@ -76,7 +73,6 @@ export function TreatmentForm({
   onValidityChange,
 }: TreatmentFormProps): JSX.Element {
   const { t } = useTranslation();
-  const { can } = useSession();
   const currency = useCurrency();
   const doctorName = usePersonName();
   const fieldId = useId();
@@ -102,13 +98,9 @@ export function TreatmentForm({
   );
   const [discountReason, setDiscountReason] = useState(treatment?.discountReason ?? "");
   const [notes, setNotes] = useState(treatment?.notes ?? "");
-  const [addingVisitor, setAddingVisitor] = useState(false);
-  const [added, setAdded] = useState<Doctor | null>(null);
 
   const showPrices = canSeePrices(role);
   const selected = catalog.find((item) => item.id === procedureId);
-  const performers =
-    added && !doctors.some((doctor) => doctor.id === added.id) ? [...doctors, added] : doctors;
   const hasDiscount = discount !== "" && discount !== "0" && discount !== "0.00";
 
   useEffect(() => {
@@ -122,12 +114,6 @@ export function TreatmentForm({
       setDoctorId(doctors[0].id);
     }
   }, [doctors, doctorId]);
-
-  useEffect(() => {
-    if (added) {
-      setDoctorId(added.id);
-    }
-  }, [added]);
 
   const values: TreatmentFormValues = {
     doctorId,
@@ -226,26 +212,13 @@ export function TreatmentForm({
                   data-testid="treatment-field-doctor"
                   value={doctorId}
                   onChange={(event) => setDoctorId(event.target.value)}
-                  options={performers.map((doctor) => ({
+                  options={doctors.map((doctor) => ({
                     value: doctor.id,
                     label: doctorOptionLabel(doctor, doctorName(doctor.user.name), t),
                   }))}
                 />
               </FormField>
             </div>
-
-            {canAddVisitingDoctor(can) && (
-              <Button
-                icon={<Icon name="user-plus" />}
-                variant="quiet"
-                size="sm"
-                className="self-start"
-                data-testid="treatment-add-visitor"
-                onClick={() => setAddingVisitor(true)}
-              >
-                {t("doctors.visiting.create")}
-              </Button>
-            )}
           </div>
         </div>
 
@@ -345,12 +318,6 @@ export function TreatmentForm({
           </FormField>
         </div>
       </form>
-
-      <VisitingDoctorModal
-        open={addingVisitor}
-        onOpenChange={setAddingVisitor}
-        onCreated={setAdded}
-      />
     </>
   );
 }

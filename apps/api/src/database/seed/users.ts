@@ -3,6 +3,8 @@ import { joinPersonName, type PersonName, type UserRole } from "@clinic/shared";
 import type { Database } from "@api/database/database.module";
 import { users } from "@api/database/schema";
 
+const SEED_JOINED_ON = "2023-03-01";
+
 type Db = Database;
 
 export interface SeedAccount {
@@ -106,6 +108,7 @@ export async function upsertUser(
       email: account.email,
       passwordHash,
       role: account.role,
+      joinedOn: SEED_JOINED_ON,
     })
     .returning({ id: users.id });
 

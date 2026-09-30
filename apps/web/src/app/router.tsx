@@ -34,6 +34,9 @@ const AssistantPage = lazyPage(async () => ({
   default: (await import("@web/modules/assistant/pages/assistant-page")).AssistantPage,
 }));
 
+const PayrollPage = lazyPage(async () => ({
+  default: (await import("@web/modules/payroll/pages/payroll-page")).PayrollPage,
+}));
 const LookupsPage = lazyPage(async () => ({
   default: (await import("@web/modules/lookups/pages/lookups-page")).LookupsPage,
 }));
@@ -231,6 +234,16 @@ export function AppRoutes(): JSX.Element {
           element={
             <RequireRole roles={DOCTOR_PAGE} redirectTo={HOME}>
               <DoctorPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/payroll"
+          element={
+            <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
+              <RouteChunk>
+                <PayrollPage />
+              </RouteChunk>
             </RequireRole>
           }
         />

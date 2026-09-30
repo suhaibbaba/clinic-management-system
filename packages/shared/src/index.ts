@@ -18,6 +18,8 @@ export * from "@shared/schemas/closures";
 export * from "@shared/schemas/common";
 export * from "@shared/schemas/dashboard";
 export * from "@shared/schemas/doctors";
+export * from "@shared/schemas/doctor-settlements";
+export * from "@shared/schemas/payroll";
 export * from "@shared/schemas/health";
 export * from "@shared/schemas/inventory";
 export * from "@shared/schemas/inventory-batches";

@@ -10,5 +10,6 @@ export function staffName(ar: string, en: string) {
   return {
     firstName: { ar: arabic.first, en: english.first },
     lastName: { ar: arabic.last, en: english.last },
+    joinedOn: "2024-01-01",
   };
 }

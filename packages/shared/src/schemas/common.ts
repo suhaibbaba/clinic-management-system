@@ -19,6 +19,14 @@ export const calendarDateSchema = z.iso.date().refine((value) => {
   return year >= EARLIEST_YEAR && year <= LATEST_YEAR;
 }, VALIDATION_CODE.YEAR_OUT_OF_RANGE);
 
+const latestLocalDate = (): string =>
+  new Date(Date.now() + 14 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+export const pastDateSchema = calendarDateSchema.refine(
+  (value) => value <= latestLocalDate(),
+  VALIDATION_CODE.DATE_IN_FUTURE,
+);
+
 export const idParamSchema = z.object({ id: uuidSchema });
 export type IdParam = z.infer<typeof idParamSchema>;
 

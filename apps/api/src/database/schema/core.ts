@@ -2,6 +2,7 @@ import { AUDIT_ACTIONS, CHART_TYPES, USER_ROLES, type WeeklySchedule } from "@cl
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  date,
   index,
   integer,
   jsonb,
@@ -99,6 +100,7 @@ export const users = pgTable(
     passwordTokenExpiresAt: timestamp("password_token_expires_at", { withTimezone: true }),
     role: userRoleEnum("role").notNull(),
     isActive: boolean("is_active").notNull().default(true),
+    joinedOn: date("joined_on"),
     photoKey: text("photo_key"),
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
     ...auditColumns,
@@ -147,6 +149,7 @@ export const doctors = pgTable(
     defaultAppointmentDurationMinutes: integer("default_appointment_duration_minutes")
       .notNull()
       .default(30),
+    clinicSharePercent: numeric("clinic_share_percent", { precision: 5, scale: 2 }),
     ...auditColumns,
     ...softDeleteColumn,
   },

@@ -20,6 +20,7 @@ import { AppConfigModule } from "@api/config/config.module";
 import { DashboardModule } from "@api/modules/dashboard/dashboard.module";
 import { DatabaseModule } from "@api/database/database.module";
 import { DoctorsModule } from "@api/modules/doctors/doctors.module";
+import { PayrollModule } from "@api/modules/payroll/payroll.module";
 import { HealthModule } from "@api/modules/health/health.module";
 import { InventoryModule } from "@api/modules/inventory/inventory.module";
 import { LabsModule } from "@api/modules/labs/labs.module";
@@ -55,6 +56,7 @@ import { UsersModule } from "@api/modules/users/users.module";
     HealthModule,
     UsersModule,
     DoctorsModule,
+    PayrollModule,
     ClinicsModule,
     SpecialtiesModule,
     StorageModule,

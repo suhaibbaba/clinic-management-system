@@ -1,7 +1,12 @@
 import { z } from "zod";
 import { USER_ROLES } from "@shared/enums";
 import { passwordSchema } from "@shared/schemas/auth";
-import { paginationQuerySchema, phoneSchema } from "@shared/schemas/common";
+import {
+  calendarDateSchema,
+  paginationQuerySchema,
+  pastDateSchema,
+  phoneSchema,
+} from "@shared/schemas/common";
 import { personNameSchema, staffNameInputFields } from "@shared/schemas/person-name";
 
 export const userSchema = z.object({
@@ -15,6 +20,7 @@ export const userSchema = z.object({
   activated: z.boolean(),
   role: z.enum(USER_ROLES),
   isActive: z.boolean(),
+  joinedOn: calendarDateSchema.nullable(),
   photoUrl: z.url().nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
@@ -27,6 +33,7 @@ const userWritableFields = {
   email: z.email().max(255).nullish(),
   role: z.enum(USER_ROLES),
   isActive: z.boolean(),
+  joinedOn: pastDateSchema,
 };
 
 export const createUserSchema = z
