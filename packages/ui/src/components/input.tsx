@@ -1,3 +1,4 @@
+import { cleanTypedNumber } from "@clinic/shared";
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
 import {
   FIELD_TEXT,
@@ -31,6 +32,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     suffix,
     "data-part": part = "input",
     "data-testid": testId,
+    onChange,
     ...props
   },
   ref,
@@ -70,6 +72,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
             "[&::-webkit-calendar-picker-indicator]:hover:opacity-100",
           )}
           {...props}
+          onChange={(event) => {
+            const cleaned = cleanTypedNumber(event.target.value, props.inputMode);
+
+            if (cleaned !== event.target.value) {
+              event.target.value = cleaned;
+            }
+
+            onChange?.(event);
+          }}
         />
       </FieldText>
 

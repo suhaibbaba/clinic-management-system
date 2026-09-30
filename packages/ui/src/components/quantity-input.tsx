@@ -1,19 +1,14 @@
 import { forwardRef, type InputHTMLAttributes } from "react";
 import { Input } from "@ui/components/input";
 import { cn } from "@ui/lib/cn";
-import { foldDigits } from "@ui/lib/digits";
 
 export type QuantityInputProps = Omit<
   InputHTMLAttributes<HTMLInputElement>,
   "type" | "inputMode" | "dir"
 >;
 
-export function cleanQuantity(value: string): string {
-  return foldDigits(value).replace(/\D/gu, "");
-}
-
 export const QuantityInput = forwardRef<HTMLInputElement, QuantityInputProps>(
-  function QuantityInput({ className, onChange, ...props }, ref) {
+  function QuantityInput({ className, ...props }, ref) {
     return (
       <Input
         ref={ref}
@@ -22,15 +17,6 @@ export const QuantityInput = forwardRef<HTMLInputElement, QuantityInputProps>(
         inputMode="numeric"
         autoComplete="off"
         className={cn("tabular-nums", className)}
-        onChange={(event) => {
-          const cleaned = cleanQuantity(event.target.value);
-
-          if (cleaned !== event.target.value) {
-            event.target.value = cleaned;
-          }
-
-          onChange?.(event);
-        }}
         {...props}
       />
     );

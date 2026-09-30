@@ -1,5 +1,6 @@
 import {
   DEFAULT_PHONE_COUNTRY,
+  foldDigits,
   PHONE_COUNTRIES,
   joinPhone,
   splitPhone,
@@ -37,7 +38,6 @@ import { useTranslation } from "react-i18next";
 import { Input, type InputProps } from "@ui/components/input";
 import { Select } from "@ui/components/select";
 import { cn } from "@ui/lib/cn";
-import { foldDigits } from "@ui/lib/digits";
 import type { TestIdProps } from "@ui/lib/testid";
 
 const FLAGS: Record<PhoneCountry, typeof PS> = {

@@ -20,3 +20,15 @@ export function foldDigits(value: string): string {
 
   return out;
 }
+
+export function cleanTypedNumber(value: string, inputMode: string | undefined): string {
+  if (inputMode === "numeric") {
+    return foldDigits(value).replace(/\D/g, "");
+  }
+
+  if (inputMode === "decimal" || inputMode === "tel") {
+    return foldDigits(value);
+  }
+
+  return value;
+}

@@ -1,3 +1,4 @@
+import { cleanTypedNumber } from "@clinic/shared";
 import {
   useEffect,
   useState,
@@ -224,6 +225,7 @@ export function Field({
   id,
   className,
   "data-testid": testId,
+  onChange,
   ...rest
 }: FieldProps): JSX.Element {
   const fieldId = id ?? `field-${rest.name ?? label}`;
@@ -251,6 +253,15 @@ export function Field({
       {...(describedBy && { "aria-describedby": describedBy })}
       {...(error && { "aria-invalid": true })}
       {...rest}
+      onChange={(event) => {
+        const cleaned = cleanTypedNumber(event.target.value, rest.inputMode);
+
+        if (cleaned !== event.target.value) {
+          event.target.value = cleaned;
+        }
+
+        onChange?.(event);
+      }}
     />
   );
 
