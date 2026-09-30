@@ -268,7 +268,6 @@ export function makeProcedure(
     discount: "0.00",
     discountReason: null,
     status: PERFORMED_PROCEDURE_STATUS.DONE,
-    treatmentPlanId: null,
     performedAt: "2026-02-01T09:00:00.000Z",
     notes: null,
     createdAt: "2026-02-01T09:00:00.000Z",

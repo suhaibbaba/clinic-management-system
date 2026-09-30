@@ -93,13 +93,13 @@ describe("Patient timeline (e2e)", () => {
 
     await context.app.inject({
       method: "POST",
-      url: "/treatment-plans",
+      url: "/performed-procedures",
       headers: asDoctor,
       payload: {
         patientId,
         doctorId: fixtures.doctorId,
-        title: "خطة معالجة",
-        items: [{ procedureId: fixtures.catalogId }],
+        procedureId: fixtures.catalogId,
+        status: "planned",
       },
     });
   });
@@ -127,7 +127,7 @@ describe("Patient timeline (e2e)", () => {
       [
         TIMELINE_ENTRY_TYPE.PRESCRIPTION,
         TIMELINE_ENTRY_TYPE.PROCEDURE,
-        TIMELINE_ENTRY_TYPE.TREATMENT_PLAN,
+        TIMELINE_ENTRY_TYPE.PROCEDURE,
         TIMELINE_ENTRY_TYPE.VISIT,
       ].sort(),
     );

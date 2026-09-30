@@ -134,7 +134,7 @@ describe("Patient page", () => {
       await renderPatientPage(USER_ROLE.VISITING_DOCTOR);
 
       expect(await screen.findByRole("tab", { name: ar.patients.tabs.chart })).toBeVisible();
-      expect(screen.getByRole("tab", { name: ar.patients.tabs.treatmentPlans })).toBeVisible();
+      expect(screen.getByRole("tab", { name: ar.patients.tabs.treatmentPlan })).toBeVisible();
       expect(screen.queryByRole("tab", { name: ar.patients.tabs.billing })).not.toBeInTheDocument();
       expect(screen.queryByRole("button", { name: ar.patients.rowMenu })).not.toBeInTheDocument();
     });

@@ -365,6 +365,13 @@
       "when": 1790801204556,
       "tag": "0051_drop_treatment_plan_items",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1790803441196,
+      "tag": "0052_drop_treatment_plans",
+      "breakpoints": true
     }
   ]
 }

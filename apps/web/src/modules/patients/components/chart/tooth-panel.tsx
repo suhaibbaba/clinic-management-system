@@ -1,4 +1,4 @@
-import type { PerformedProcedure } from "@clinic/shared";
+import { PERFORMED_PROCEDURE_STATUS, type PerformedProcedure } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Drawer, Icon, Ltr } from "@clinic/ui";
@@ -121,9 +121,8 @@ export function ToothPanel({
               data-testid="tooth-panel-treatments"
               patientId={patientId}
               treatments={data.procedures}
-              defaults={{ tooth }}
+              defaults={{ tooth, status: PERFORMED_PROCEDURE_STATUS.PLANNED }}
               emptyTitle="chart.panel.noProcedures"
-              showPlan
               {...(onSendToLab && {
                 onSendToLab: (treatment: PerformedProcedure) =>
                   onSendToLab({ teeth: [tooth], performedProcedureId: treatment.id }),

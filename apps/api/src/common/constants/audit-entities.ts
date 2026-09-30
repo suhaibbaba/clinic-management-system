@@ -8,8 +8,6 @@ export const PROCEDURE_CATALOG_ENTITY = "procedure_catalog";
 
 export const PERFORMED_PROCEDURES_ENTITY = "performed_procedures";
 
-export const TREATMENT_PLANS_ENTITY = "treatment_plans";
-
 export const VISITS_ENTITY = "visits";
 
 export const PATIENTS_ENTITY = "patients";

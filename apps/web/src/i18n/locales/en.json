@@ -507,11 +507,11 @@
       "label": "Tabs",
       "chart": "Tooth chart",
       "visits": "Visits",
-      "treatmentPlans": "Treatment plans",
       "attachments": "X-rays & files",
       "prescriptions": "Prescriptions",
       "timeline": "Timeline",
-      "billing": "Billing"
+      "billing": "Billing",
+      "treatmentPlan": "Treatment plan"
     },
     "timeline": {
       "empty": "Nothing on the file yet",
@@ -533,7 +533,6 @@
         "procedure": "Treatment",
         "attachment": "Image",
         "prescription": "Prescription",
-        "treatment_plan": "Treatment plan",
         "lab_order": "Lab work",
         "appointment": "Appointment",
         "payment": "Payment",
@@ -588,7 +587,7 @@
     "panel": {
       "title": "Tooth",
       "description": "Details and procedures for the selected tooth.",
-      "history": "Procedure history",
+      "history": "Treatments on this tooth",
       "noProcedures": "Nothing recorded on this tooth",
       "procedure": "Procedure",
       "selectProcedure": "Select a procedure",
@@ -601,7 +600,8 @@
       "discountNeedsReason": "A discount requires a reason",
       "date": "Date",
       "openFile": "Open file",
-      "procedureCount": "{{count}} procedures"
+      "procedureCount_one": "1 treatment",
+      "procedureCount_other": "{{count}} treatments"
     }
   },
   "prescriptions": {
@@ -678,15 +678,8 @@
     "proceduresTitle": "Treatments at the visit of {{date}}"
   },
   "treatmentPlans": {
-    "create": "New plan",
-    "created": "Plan created",
-    "defaultTitle": "Treatment plan",
-    "plan": "Plan",
-    "empty": "No treatment plans",
-    "emptyHint": "Create a plan, add the proposed procedures, and print it for the patient to agree to.",
+    "empty": "No treatments yet",
     "loadFailed": "Could not load treatment plans.",
-    "noItems": "This plan has no items",
-    "needsDoctor": "No doctor is registered in this clinic",
     "status": "Status",
     "estimatedPrice": "Estimated price",
     "total": "Estimated total",
@@ -696,38 +689,14 @@
     "printDisclaimer": "Prices are estimates and may change as treatment requires.",
     "signatureDoctor": "Doctor's signature",
     "signaturePatient": "Patient's signature",
-    "planStatus": {
-      "draft": "Draft",
-      "active": "Active",
-      "completed": "Completed",
-      "cancelled": "Cancelled"
-    },
     "filterByStatus": "Filter by status",
-    "noneInFilter": "No plans with this status",
-    "noneInFilterHint": "Change the filter to see other plans.",
-    "progressLabel": "Plan progress",
     "progressCaption": "{{done}} of {{total}} carried out",
-    "about": "A treatment plan is the proposed work and its estimated cost, to agree with the patient before treatment. Each item becomes a recorded procedure, with its charge, once it is carried out.",
-    "edit": "Edit plan",
-    "updated": "Plan updated",
-    "title": "Plan name",
-    "titleHint": "For example: Upper jaw restoration",
-    "responsibleDoctor": "Responsible doctor",
-    "notes": "Notes",
-    "notesOf": "Notes on “{{title}}”",
-    "menu": "Plan options",
-    "confirmDelete": {
-      "title": "Delete the plan “{{title}}”?",
-      "consequence": "Its items go with it; procedures already carried out are kept."
-    },
-    "deleted": "Plan deleted",
+    "about": "Every treatment for this patient in one list: planned, in progress, done and cancelled. A treatment is charged once work on it starts, and the totals are worked out from the treatments themselves.",
     "completedAmount": "Done",
-    "treatments": "Treatments",
-    "treatmentsOf": "Treatments in {{title}}"
+    "treatmentCount_one": "1 treatment",
+    "treatmentCount_other": "{{count}} treatments"
   },
   "treatments": {
-    "plan": "Treatment plan",
-    "noPlan": "No plan",
     "menu": "Treatment actions",
     "moveTo": {
       "planned": "Back to planned",
@@ -747,12 +716,12 @@
     "add": "Add treatment",
     "edit": "Edit treatment",
     "total": "Total",
-    "fromPlan": "From the plan",
     "confirmDelete": {
       "title": "Delete the treatment: {{name}}?",
       "charge": "Its charge is reversed with a correcting entry; no entry is erased",
       "chart": "Its marks leave the tooth chart"
-    }
+    },
+    "fromPlanned": "Perform a planned treatment"
   },
   "imaging": {
     "uploadTitle": "Add an X-ray or a document",
@@ -1738,13 +1707,6 @@
       "tooth-history": {
         "get": "See a tooth's history"
       },
-      "treatment-plans": {
-        "create": "Create a treatment plan",
-        "findOne": "Open a treatment plan",
-        "list": "See the treatment plans",
-        "remove": "Delete a treatment plan",
-        "update": "Edit a treatment plan"
-      },
       "users": {
         "create": "Add a user",
         "findOne": "Open a user",
@@ -1835,7 +1797,6 @@
       "prescriptions": "Prescriptions",
       "procedure-catalog": "Price list",
       "suppliers": "Suppliers",
-      "treatment-plans": "Treatment plans",
       "users": "Users",
       "visits": "Visits",
       "waiting-list": "Waiting list",

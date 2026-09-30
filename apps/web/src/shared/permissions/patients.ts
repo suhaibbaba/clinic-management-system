@@ -36,12 +36,6 @@ export const PATIENT_FILE_ROLES = [
 export const canOpenPatientFile = (role: UserRole | undefined): boolean =>
   role !== undefined && (PATIENT_FILE_ROLES as readonly UserRole[]).includes(role);
 
-export const canCreatePlan = (can: Can): boolean => can("treatment-plans.create");
-
-export const canEditPlan = (can: Can): boolean => can("treatment-plans.update");
-
-export const canDeletePlan = (can: Can): boolean => can("treatment-plans.remove");
-
 export const canDeleteVisit = (can: Can): boolean => can("visits.remove");
 
 export const canDeleteProcedure = (can: Can): boolean => can("procedures.remove");

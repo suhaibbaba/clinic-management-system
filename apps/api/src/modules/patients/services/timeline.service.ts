@@ -129,20 +129,6 @@ export class TimelineService {
           left join visits v on v.id = pr.visit_id and v.deleted_at is null
           where pr.clinic_id = ${clinicId} and pr.patient_id = ${patientId} and pr.deleted_at is null`;
 
-      case TIMELINE_ENTRY_TYPE.TREATMENT_PLAN:
-        return sql`
-          select tp.id,
-                 ${TIMELINE_ENTRY_TYPE.TREATMENT_PLAN}::text as type,
-                 tp.created_at as occurred_at,
-                 tp.title as title,
-                 jsonb_build_object(
-                   'treatmentPlanId', tp.id,
-                   'doctorId', tp.doctor_id,
-                   'status', tp.status
-                 ) as detail
-          from treatment_plans tp
-          where tp.clinic_id = ${clinicId} and tp.patient_id = ${patientId} and tp.deleted_at is null`;
-
       case TIMELINE_ENTRY_TYPE.LAB_ORDER:
         return sql`
           select lo.id,

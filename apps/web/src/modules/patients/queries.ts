@@ -12,7 +12,6 @@ import type {
   CreatePatientInput,
   CreatePerformedProcedureInput,
   CreatePrescriptionInput,
-  CreateTreatmentPlanInput,
   CreateVisitInput,
   ListAttachmentsQuery,
   ListTimelineQuery,
@@ -24,10 +23,8 @@ import type {
   ProcedureCatalogItem,
   TimelineEntry,
   ToothHistory,
-  TreatmentPlan,
   UpdatePatientInput,
   UpdatePerformedProcedureInput,
-  UpdateTreatmentPlanInput,
   UpdateVisitInput,
   Visit,
 } from "@clinic/shared";
@@ -41,7 +38,6 @@ export const CATALOG_KEY = "procedure-catalog";
 
 export const PATIENT_VISITS_KEY = "patient-visits";
 export const PATIENT_PRESCRIPTIONS_KEY = "patient-prescriptions";
-export const PATIENT_PLANS_KEY = "patient-treatment-plans";
 export const PATIENT_ATTACHMENTS_KEY = "patient-attachments";
 export const PATIENT_TIMELINE_KEY = "patient-timeline";
 
@@ -170,7 +166,6 @@ function optimisticProcedure(
     discount: body.discount,
     discountReason: body.discountReason ?? null,
     status: body.status,
-    treatmentPlanId: body.treatmentPlanId ?? null,
     performedAt: body.performedAt ?? now,
     notes: body.notes ?? null,
     createdAt: now,
@@ -268,7 +263,6 @@ function invalidateClinical(queryClient: ReturnType<typeof useQueryClient>, pati
     PATIENT_TIMELINE_KEY,
     BALANCE_KEY,
     STATEMENT_KEY,
-    PATIENT_PLANS_KEY,
   ]) {
     void queryClient.invalidateQueries({ queryKey: [key, patientId] });
   }
@@ -289,41 +283,6 @@ export function useDeleteVisit(patientId: string) {
   return useMutation({
     mutationFn: (id: string) => patientsApi.removeVisit(id),
     onSuccess: () => invalidateClinical(queryClient, patientId),
-  });
-}
-
-export function useTreatmentPlans(patientId: string): UseQueryResult<TreatmentPlan[]> {
-  return useQuery({
-    queryKey: [PATIENT_PLANS_KEY, patientId],
-    queryFn: () => patientsApi.treatmentPlans(patientId),
-  });
-}
-
-export function useCreateTreatmentPlan(patientId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (body: CreateTreatmentPlanInput) => patientsApi.createTreatmentPlan(body),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [PATIENT_PLANS_KEY, patientId] }),
-  });
-}
-
-export function useUpdateTreatmentPlan(patientId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, body }: { id: string; body: UpdateTreatmentPlanInput }) =>
-      patientsApi.updateTreatmentPlan(id, body),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [PATIENT_PLANS_KEY, patientId] }),
-  });
-}
-
-export function useDeleteTreatmentPlan(patientId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => patientsApi.removeTreatmentPlan(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [PATIENT_PLANS_KEY, patientId] }),
   });
 }
 

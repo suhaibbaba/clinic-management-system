@@ -21,7 +21,7 @@ Users belong to one clinic and have exactly one role (v1). `admin` implicitly pa
 2. **Doctor ownership:** doctors see full medical records of patients they have treated or who have an appointment with them. Admin sees all. (v1 simplification: any doctor in the clinic may open any patient's medical record — flag `STRICT_DOCTOR_SCOPE` exists to tighten later.)
 3. **Field-level security:** role determines not just access to an endpoint but **which fields are serialized**. Separate response schemas per sensitivity level (see below).
 4. **Financial mutations** (charges, payments, lab payments, stock adjustments) always write to the audit log with old/new values.
-5. **Assigned patients only, for a visiting doctor:** a patient with an appointment, a treatment plan or a treatment (planned or performed) assigned to their `doctors` row. Any other patient — and every record hanging off one, by path, by query or by its own id — is a 404, the same answer as another clinic's.
+5. **Assigned patients only, for a visiting doctor:** a patient with an appointment or a treatment (planned or performed) assigned to their `doctors` row. Any other patient — and every record hanging off one, by path, by query or by its own id — is a 404, the same answer as another clinic's.
 6. **Nothing is hard-deleted** by any role. "Delete" = soft delete; only `admin` can soft-delete financial records, and only `admin` can view/restore soft-deleted rows.
 
 ## Permission matrix
@@ -47,7 +47,6 @@ Legend: **C** create · **R** read · **U** update · **D** soft-delete · — n
 | Medical history & allergies | CRUD | CRU | R (allergy flags only) | — |
 | Visits (complaint, exam, diagnosis) | CRUD (D blocked while payments cover its charges) | CRU | — | — |
 | Treatments (planned, in progress, done, cancelled) & chart marks | CRUD | CRUD (D blocked while payments cover its charge) | R (lab-linked only) | — |
-| Treatment plans (a named group of treatments; totals computed) | CRUD | CRU | — | — |
 | Attachments / X-rays | CRUD | CRU | R (lab-linked only) | — |
 | Prescriptions | CRUD | CRUD | — | — |
 | Patient timeline (full) | R | R | — | R (financial + appointment entries only) |
@@ -105,7 +104,7 @@ Everything a `doctor` may do on a patient's clinical record, scoped by global ru
 | Resource | visiting_doctor |
 |---|---|
 | Patient basic info | R (assigned) |
-| Medical history & allergies, visits, performed procedures & chart marks, treatment plans, attachments, prescriptions | as `doctor`, on assigned patients |
+| Medical history & allergies, visits, treatments & chart marks, attachments, prescriptions | as `doctor`, on assigned patients |
 | Patient timeline | R (assigned; clinical entries and appointments, no payments, charges, lab or supply entries) |
 | Appointments & calendar | R (own) |
 | Doctors list | R |

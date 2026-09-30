@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   nextStatuses,
   statusChoices,
+  summarizeTreatments,
   treatmentTeeth,
   treatmentsTotal,
 } from "@web/modules/patients/lib/treatments/treatments";
-import { isOpenPlan } from "@web/modules/patients/lib/treatments/plans";
 import { makeProcedure } from "@test/helpers/fixtures";
 
 describe("treatments", () => {
@@ -15,7 +15,8 @@ describe("treatments", () => {
 
   it("offers only the moves the state machine allows for an existing one", () => {
     expect(statusChoices("planned")).toEqual(["planned", "in_progress", "done", "cancelled"]);
-    expect(statusChoices("done")).toEqual(["done", "in_progress"]);
+    expect(statusChoices("done")).toEqual(["done"]);
+    expect(nextStatuses("done")).toEqual([]);
     expect(nextStatuses("cancelled")).toEqual(["planned"]);
   });
 
@@ -35,10 +36,20 @@ describe("treatments", () => {
     expect(treatmentTeeth(makeProcedure(46, { chartMarks: [] }))).toEqual([]);
   });
 
-  it("treats draft and active plans as open", () => {
-    expect(isOpenPlan({ status: "draft" })).toBe(true);
-    expect(isOpenPlan({ status: "active" })).toBe(true);
-    expect(isOpenPlan({ status: "completed" })).toBe(false);
-    expect(isOpenPlan({ status: "cancelled" })).toBe(false);
+  it("summarises what the patient's treatment plan costs, has cost and still costs", () => {
+    const summary = summarizeTreatments([
+      makeProcedure(16, { price: "100.00", discount: "10.00", status: "done" }),
+      makeProcedure(17, { price: "60.00", discount: "0.00", status: "in_progress" }),
+      makeProcedure(18, { price: "40.00", discount: "0.00", status: "planned" }),
+      makeProcedure(19, { price: "999.00", discount: "0.00", status: "cancelled" }),
+    ]);
+
+    expect(summary).toEqual({
+      total: "190.00",
+      done: "90.00",
+      remaining: "100.00",
+      count: 3,
+      completed: 1,
+    });
   });
 });

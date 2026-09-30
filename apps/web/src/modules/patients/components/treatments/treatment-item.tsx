@@ -22,7 +22,6 @@ export interface TreatmentItemProps {
   readonly treatment: PerformedProcedure;
   readonly name: string;
   readonly doctor: Doctor | undefined;
-  readonly planTitle?: string | undefined;
   readonly currency: string | undefined;
   readonly showPrice: boolean;
   readonly mayChange: boolean;
@@ -37,7 +36,6 @@ export function TreatmentItem({
   treatment,
   name,
   doctor,
-  planTitle,
   currency,
   showPrice,
   mayChange,
@@ -69,11 +67,6 @@ export function TreatmentItem({
           >
             {name}
           </p>
-          {planTitle && (
-            <p data-testid="treatment-plan" className="truncate text-meta text-ink-muted">
-              {planTitle}
-            </p>
-          )}
         </div>
 
         <Badge

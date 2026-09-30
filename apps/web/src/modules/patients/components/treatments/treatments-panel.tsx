@@ -35,11 +35,9 @@ import {
   useDeleteProcedure,
   usePatientProcedures,
   useProcedureCatalog,
-  useTreatmentPlans,
   useUpdateProcedure,
 } from "@web/modules/patients/queries";
 import { TREATMENT_FORM_ID } from "@web/modules/patients/constants";
-import { isOpenPlan } from "@web/modules/patients/lib/treatments/plans";
 import {
   canDeleteProcedure,
   canRecordProcedure,
@@ -55,8 +53,8 @@ export interface TreatmentsPanelProps {
   readonly treatments: readonly PerformedProcedure[];
   readonly defaults: TreatmentDefaults;
   readonly emptyTitle: string;
-  readonly showPlan?: boolean | undefined;
   readonly startAdding?: boolean | undefined;
+  readonly showTotal?: boolean | undefined;
   readonly onSendToLab?: ((treatment: PerformedProcedure) => void) | undefined;
   readonly "data-testid": string;
 }
@@ -68,8 +66,8 @@ export function TreatmentsPanel({
   treatments,
   defaults,
   emptyTitle,
-  showPlan = false,
   startAdding = false,
+  showTotal = true,
   onSendToLab,
   "data-testid": testId,
 }: TreatmentsPanelProps): JSX.Element {
@@ -80,7 +78,6 @@ export function TreatmentsPanel({
 
   const catalog = useProcedureCatalog();
   const doctors = useDoctors({ limit: 100 });
-  const plans = useTreatmentPlans(patientId);
   const everything = usePatientProcedures(patientId);
   const create = useCreateProcedure(patientId);
   const update = useUpdateProcedure(patientId);
@@ -94,13 +91,10 @@ export function TreatmentsPanel({
   const mayDelete = canDeleteProcedure(can);
   const showPrices = role ? canSeePrices(role) : false;
   const doctorList = doctors.data?.items ?? [];
-  const planList = plans.data ?? [];
   const ordered = newestTreatmentsFirst(treatments);
 
   const nameOf = (procedureId: string): string =>
     catalog.data?.find((item) => item.id === procedureId)?.name ?? t("chart.panel.procedure");
-  const planTitleOf = (planId: string | null): string | undefined =>
-    planId === null ? undefined : planList.find((plan) => plan.id === planId)?.title;
 
   const waiting =
     defaults.visitId === undefined
@@ -152,14 +146,10 @@ export function TreatmentsPanel({
     }
   };
 
-  const formPlans = planList.filter(
-    (plan) => isOpenPlan(plan) || plan.id === editing?.treatment?.treatmentPlanId,
-  );
-
   return (
     <section data-testid={testId} className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        {showPrices && ordered.length > 0 ? (
+        {showTotal && showPrices && ordered.length > 0 ? (
           <p data-testid={`${testId}-total`} className="text-meta text-ink-muted">
             {t("treatments.total")}:{" "}
             <Money amount={treatmentsTotal(ordered)} currency={currency} className="text-ink" />
@@ -177,12 +167,12 @@ export function TreatmentsPanel({
                     size="sm"
                     variant="secondary"
                     icon={<Icon name="clipboard" />}
-                    data-testid={`${testId}-from-plan`}
+                    data-testid={`${testId}-from-planned`}
                   >
-                    {t("treatments.fromPlan")}
+                    {t("treatments.fromPlanned")}
                   </Button>
                 </MenuTrigger>
-                <MenuContent data-testid={`${testId}-from-plan-menu`}>
+                <MenuContent data-testid={`${testId}-from-planned-menu`}>
                   {waiting.map((treatment) => (
                     <MenuItem
                       key={treatment.id}
@@ -222,7 +212,6 @@ export function TreatmentsPanel({
               treatment={treatment}
               name={nameOf(treatment.procedureId)}
               doctor={doctorList.find((doctor) => doctor.id === treatment.doctorId)}
-              planTitle={showPlan ? planTitleOf(treatment.treatmentPlanId) : undefined}
               currency={currency}
               showPrice={showPrices}
               mayChange={mayChange}
@@ -258,7 +247,6 @@ export function TreatmentsPanel({
               role={role}
               catalog={catalog.data ?? []}
               doctors={doctorList}
-              plans={formPlans}
               defaults={defaults}
               {...(editing.treatment && { treatment: editing.treatment })}
               onSubmit={(values) => void save(values)}

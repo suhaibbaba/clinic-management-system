@@ -74,3 +74,30 @@ export function newestTreatmentsFirst<
     (a, b) => b.performedAt.localeCompare(a.performedAt) || b.createdAt.localeCompare(a.createdAt),
   );
 }
+
+export interface TreatmentSummary {
+  readonly total: Money;
+  readonly done: Money;
+  readonly remaining: Money;
+  readonly count: number;
+  readonly completed: number;
+}
+
+export function summarizeTreatments(
+  procedures: readonly Pick<PerformedProcedure, "price" | "discount" | "status">[],
+): TreatmentSummary {
+  const live = procedures.filter(
+    (procedure) => procedure.status !== PERFORMED_PROCEDURE_STATUS.CANCELLED,
+  );
+  const done = live.filter((procedure) => procedure.status === PERFORMED_PROCEDURE_STATUS.DONE);
+
+  return {
+    total: treatmentsTotal(live),
+    done: treatmentsTotal(done),
+    remaining: treatmentsTotal(
+      live.filter((procedure) => procedure.status !== PERFORMED_PROCEDURE_STATUS.DONE),
+    ),
+    count: live.length,
+    completed: done.length,
+  };
+}

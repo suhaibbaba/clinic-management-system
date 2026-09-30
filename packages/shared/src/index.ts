@@ -41,6 +41,5 @@ export * from "@shared/schemas/translations";
 export * from "@shared/schemas/specialties";
 export * from "@shared/schemas/timeline";
 export * from "@shared/schemas/tooth-history";
-export * from "@shared/schemas/treatment-plans";
 export * from "@shared/schemas/users";
 export * from "@shared/schemas/visits";

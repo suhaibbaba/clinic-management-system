@@ -519,11 +519,11 @@
       "label": "التبويبات",
       "chart": "مخطط الأسنان",
       "visits": "الزيارات",
-      "treatmentPlans": "الخطط العلاجية",
       "attachments": "الأشعة والمرفقات",
       "prescriptions": "الوصفات",
       "timeline": "الخط الزمني",
-      "billing": "الحساب المالي"
+      "billing": "الحساب المالي",
+      "treatmentPlan": "خطة العلاج"
     },
     "timeline": {
       "empty": "لا توجد أحداث بعد",
@@ -545,7 +545,6 @@
         "procedure": "معالجة",
         "attachment": "صورة",
         "prescription": "وصفة",
-        "treatment_plan": "خطة علاجية",
         "lab_order": "عمل مخبري",
         "appointment": "موعد",
         "payment": "دفعة",
@@ -600,7 +599,7 @@
     "panel": {
       "title": "السن",
       "description": "تفاصيل السن المحدّد ومعالجاته.",
-      "history": "سجلّ المعالجات",
+      "history": "معالجات السن",
       "noProcedures": "لا توجد معالجات على هذا السن",
       "procedure": "المعالجة",
       "selectProcedure": "اختر المعالجة",
@@ -613,7 +612,12 @@
       "discountNeedsReason": "الخصم يتطلّب ذكر السبب",
       "date": "التاريخ",
       "openFile": "فتح الملف",
-      "procedureCount": "{{count}} معالجة"
+      "procedureCount_zero": "لا معالجات",
+      "procedureCount_one": "معالجة واحدة",
+      "procedureCount_two": "معالجتان",
+      "procedureCount_few": "{{count}} معالجات",
+      "procedureCount_many": "{{count}} معالجة",
+      "procedureCount_other": "{{count}} معالجة"
     }
   },
   "prescriptions": {
@@ -694,15 +698,8 @@
     "proceduresTitle": "معالجات زيارة {{date}}"
   },
   "treatmentPlans": {
-    "create": "خطة جديدة",
-    "created": "تم إنشاء الخطة",
-    "defaultTitle": "خطة علاجية",
-    "plan": "الخطة",
-    "empty": "لا توجد خطط علاجية",
-    "emptyHint": "أنشئ خطة، وأضف إليها المعالجات المقترحة، واطبعها ليوافق عليها المريض.",
+    "empty": "لا توجد معالجات بعد",
     "loadFailed": "تعذّر تحميل الخطط العلاجية.",
-    "noItems": "لا توجد بنود في هذه الخطة",
-    "needsDoctor": "لا يوجد طبيب مسجّل في العيادة",
     "status": "الحالة",
     "estimatedPrice": "السعر التقديري",
     "total": "الإجمالي التقديري",
@@ -712,38 +709,18 @@
     "printDisclaimer": "الأسعار تقديرية وقابلة للتعديل حسب ما تستدعيه الحالة أثناء المعالجة.",
     "signatureDoctor": "توقيع الطبيب",
     "signaturePatient": "توقيع المريض",
-    "planStatus": {
-      "draft": "مسوّدة",
-      "active": "فعّالة",
-      "completed": "مكتملة",
-      "cancelled": "ملغاة"
-    },
     "filterByStatus": "الحالة",
-    "noneInFilter": "لا توجد خطط بهذه الحالة",
-    "noneInFilterHint": "غيّر الحالة لعرض خطط أخرى.",
-    "progressLabel": "تقدّم الخطة",
     "progressCaption": "نُفّذ {{done}} من {{total}}",
-    "about": "الخطة العلاجية هي المعالجات المقترحة وتكلفتها التقديرية، يُتّفق عليها مع المريض قبل البدء. يتحوّل كل بند عند تنفيذه إلى معالجة مسجّلة مع رسومها.",
-    "edit": "تعديل الخطة",
-    "updated": "تم تعديل الخطة",
-    "title": "اسم الخطة",
-    "titleHint": "مثال: ترميم الفك العلوي",
-    "responsibleDoctor": "الطبيب المسؤول",
-    "notes": "ملاحظات",
-    "notesOf": "ملاحظات «{{title}}»",
-    "menu": "خيارات الخطة",
-    "confirmDelete": {
-      "title": "حذف الخطة «{{title}}»؟",
-      "consequence": "تُحذف بنودها معها، وتبقى المعالجات المنفّذة محفوظة."
-    },
-    "deleted": "تم حذف الخطة",
+    "about": "كل معالجات المريض في قائمة واحدة: المخطّطة وقيد التنفيذ والمنجزة والملغاة. تُحتسب الرسوم عند بدء المعالجة، والإجماليات محسوبة من المعالجات نفسها.",
     "completedAmount": "المنجَز",
-    "treatments": "المعالجات",
-    "treatmentsOf": "معالجات {{title}}"
+    "treatmentCount_zero": "لا معالجات",
+    "treatmentCount_one": "معالجة واحدة",
+    "treatmentCount_two": "معالجتان",
+    "treatmentCount_few": "{{count}} معالجات",
+    "treatmentCount_many": "{{count}} معالجة",
+    "treatmentCount_other": "{{count}} معالجة"
   },
   "treatments": {
-    "plan": "خطة العلاج",
-    "noPlan": "بدون خطة",
     "menu": "إجراءات المعالجة",
     "moveTo": {
       "planned": "إعادة إلى المخطّط",
@@ -763,12 +740,12 @@
     "add": "إضافة معالجة",
     "edit": "تعديل المعالجة",
     "total": "الإجمالي",
-    "fromPlan": "من الخطة",
     "confirmDelete": {
       "title": "حذف معالجة: {{name}}؟",
       "charge": "تُعكس رسومها في الحساب بقيد عكسي، ولا يُمحى أيّ قيد",
       "chart": "تُزال علاماتها من مخطط الأسنان"
-    }
+    },
+    "fromPlanned": "تنفيذ معالجة مخطّطة"
   },
   "imaging": {
     "uploadTitle": "أضف صورة أشعة أو مستنداً",
@@ -1774,13 +1751,6 @@
       "tooth-history": {
         "get": "عرض تاريخ السن"
       },
-      "treatment-plans": {
-        "create": "إنشاء خطة علاجية",
-        "findOne": "فتح خطة علاجية",
-        "list": "عرض الخطط العلاجية",
-        "remove": "حذف خطة علاجية",
-        "update": "تعديل خطة علاجية"
-      },
       "users": {
         "create": "إضافة مستخدم",
         "findOne": "فتح مستخدم",
@@ -1871,7 +1841,6 @@
       "prescriptions": "الوصفات الطبية",
       "procedure-catalog": "قائمة الأسعار",
       "suppliers": "الموردون",
-      "treatment-plans": "الخطط العلاجية",
       "users": "المستخدمون",
       "visits": "الزيارات",
       "waiting-list": "قائمة الانتظار",
