@@ -123,7 +123,8 @@
     "settingsPage": "Settings",
     "skipToContent": "Skip to content",
     "sidebar": "Sidebar",
-    "back": "Back to {{to}}"
+    "back": "Back to {{to}}",
+    "payroll": "Payroll"
   },
   "roles": {
     "admin": "Admin",
@@ -214,7 +215,8 @@
     "lastNameAr": "Last name in Arabic",
     "firstNameEn": "First name in English",
     "lastNameEn": "Last name in English",
-    "confirmRemovePhoto": "Remove the photo?"
+    "confirmRemovePhoto": "Remove the photo?",
+    "joinedOn": "Joined the clinic"
   },
   "doctors": {
     "title": "Doctors",
@@ -250,7 +252,47 @@
       "about": "An external doctor who treats some of this clinic's patients. They see only the patients assigned to them.",
       "emailHint": "To send them an invitation to sign in later, from the users screen.",
       "created": "Visiting doctor added",
-      "optionLabel": "{{name}} · visiting"
+      "optionLabel": "{{name}} · visiting",
+      "clinicShare": "Clinic share %",
+      "clinicShareHint": "The percentage the clinic keeps from each treatment's net",
+      "scheduleHint": "Optional. Leave it empty to book them any time the clinic is open."
+    },
+    "settlement": {
+      "title": "Settlement",
+      "about": "The doctor's done treatments in the period: price after discount minus materials, then the clinic takes its share and the rest is the doctor's.",
+      "period": "Period",
+      "amount": "Amount",
+      "materials": "Materials",
+      "clinicPercent": "Clinic %",
+      "clinicShare": "Clinic share",
+      "doctorShare": "Doctor share",
+      "adjusted": "Adjusted",
+      "revenue": "Revenue",
+      "materialsTotal": "Materials: {{amount}}",
+      "balance": "Owed to the doctor",
+      "balanceCaption": "Everything earned minus everything paid",
+      "noTreatments": "No done treatments in this period",
+      "payouts": "Payments to the doctor",
+      "noPayouts": "No payments in this period",
+      "recordPayout": "Pay the doctor",
+      "payoutRecorded": "Payment recorded",
+      "payoutMenu": "Payment actions",
+      "reverse": "Reverse payment",
+      "reversed": "Reversed",
+      "reverseTitle": "Reverse this payment?",
+      "reverseConsequence": "A reversing entry is recorded and the original stays on file",
+      "reverseReason": "Reason for reversing",
+      "payoutReversed": "Payment reversed",
+      "editTreatment": "Settlement: {{name}}",
+      "materialHint": "Leave empty for the suggested cost ({{suggested}}), or 0 for none",
+      "percentHint": "Leave empty for the doctor's share ({{percent}}%), or 0 for none",
+      "treatmentUpdated": "Settlement updated",
+      "shareSaved": "Clinic share saved",
+      "print": "Print statement",
+      "printTitle": "Visiting doctor settlement",
+      "total": "Total",
+      "signatureClinic": "Clinic signature",
+      "signatureDoctor": "Doctor signature"
     }
   },
   "schedule": {
@@ -478,7 +520,13 @@
       "hasVisit": "This appointment already has a visit",
       "notArrived": "Mark the patient as arrived before opening a visit"
     },
-    "invalidFields": "Check: {{fields}}"
+    "invalidFields": "Check: {{fields}}",
+    "payroll": {
+      "monthClosed": "This month is closed; its pay can no longer change",
+      "alreadyClosed": "This month is already closed",
+      "notEmployee": "A visiting doctor is not an employee; settle them from their page",
+      "futureMonth": "A month that has not started cannot be closed"
+    }
   },
   "patients": {
     "incompleteMissing": "This file is incomplete. Missing: {{fields}}",
@@ -1578,7 +1626,8 @@
         "create": "Add a doctor",
         "remove": "Delete a doctor",
         "update": "Edit a doctor",
-        "updateSchedule": "Edit a doctor’s weekly hours"
+        "updateSchedule": "Edit a doctor’s weekly hours",
+        "createVisiting": "Add a visiting doctor"
       },
       "inventory": {
         "adjust": "Correct an item's quantity",
@@ -1759,6 +1808,28 @@
       "ai-secrets.update": "Change the provider keys",
       "reports": {
         "list": "The assistant's free questions over the clinic's data"
+      },
+      "doctor-settlements": {
+        "settlement": "View a visiting doctor's settlement",
+        "terms": "Set a visiting doctor's clinic share",
+        "payout": "Pay a visiting doctor"
+      },
+      "settlement-treatments": {
+        "update": "Adjust a treatment's materials and share"
+      },
+      "payroll": {
+        "salaries": "View an employee's salary history",
+        "setSalary": "Set an employee's salary",
+        "month": "View a month's payroll",
+        "adjust": "Add to or cut from pay",
+        "pay": "Pay a salary",
+        "close": "Close a payroll month"
+      },
+      "payroll-adjustments": {
+        "reverse": "Reverse an extra or cut"
+      },
+      "staff-payments": {
+        "reverse": "Reverse a payment to staff"
       }
     },
     "hints": {
@@ -1812,7 +1883,12 @@
       "visits": "Visits",
       "waiting-list": "Waiting list",
       "ai": "Assistant",
-      "reports": "Reports"
+      "reports": "Reports",
+      "doctor-settlements": "Visiting doctor settlements",
+      "settlement-treatments": "Treatment settlement",
+      "payroll": "Payroll",
+      "payroll-adjustments": "Payroll extras and cuts",
+      "staff-payments": "Staff payments"
     },
     "role": "Role",
     "subtitle": "What each role is able to do",
@@ -2256,5 +2332,66 @@
     "hours_one": "{{count}} hour",
     "hours_other": "{{count}} hours",
     "hoursAndMinutes": "{{hours}} and {{minutes}}"
+  },
+  "payroll": {
+    "title": "Payroll",
+    "subtitle": "Staff pay for each month: salary, extras, cuts, what was paid and what is left.",
+    "employee": "Employee",
+    "monthlySalary": "Monthly salary",
+    "extras": "Extras",
+    "cuts": "Cuts",
+    "due": "Due",
+    "paidAmount": "Paid",
+    "remaining": "Remaining",
+    "noSalary": "No salary set",
+    "joined": "Joined {{date}}",
+    "menu": "Employee actions",
+    "pay": "Pay salary",
+    "addExtra": "Add to pay",
+    "addCut": "Cut from pay",
+    "setSalary": "Set salary",
+    "setSalaryHint": "The salary applies from the chosen month on; earlier months stay as they were.",
+    "effectiveFrom": "From",
+    "salaryHistory": "Salary history",
+    "salarySaved": "Salary saved",
+    "extraSaved": "Extra added",
+    "cutSaved": "Cut recorded",
+    "paid": "Payment recorded",
+    "amount": "Amount",
+    "reason": "Reason",
+    "entries": "Entries",
+    "noEntries": "No entries this month",
+    "payment": "Payment",
+    "kind": {
+      "extra": "Extra",
+      "cut": "Cut"
+    },
+    "reversed": "Reversed",
+    "reverse": "Reverse",
+    "reverseTitle": "Reverse this entry?",
+    "reverseConsequence": "A reversing entry is recorded and the original stays on file",
+    "reverseReason": "Reason for reversing",
+    "reversedDone": "Reversed",
+    "print": "Print payroll",
+    "printTitle": "Payroll",
+    "total": "Total",
+    "signature": "Management signature",
+    "close": "Close the month",
+    "closeTitle": "Close payroll for {{month}}?",
+    "closeLocks": "After closing, this month's salaries, extras and cuts can no longer change",
+    "closeStillPay": "What is left can still be paid, and payments reversed",
+    "closedDone": "Month closed",
+    "closedOn": "Closed on {{date}}",
+    "open": "Open",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "thisMonth": "This month",
+    "employees_one": "1 employee",
+    "employees_other": "{{count}} employees",
+    "remainingCaption": "Remaining: {{amount}}",
+    "visitingShares": "Visiting doctor shares",
+    "staffCost": "Staff cost",
+    "staffCostCaption": "Salaries due plus visiting doctor shares",
+    "empty": "No employees this month"
   }
 }

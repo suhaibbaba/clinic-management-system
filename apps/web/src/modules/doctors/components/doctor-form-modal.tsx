@@ -7,10 +7,12 @@ import {
   type UpdateDoctorInput,
   type WeeklySchedule,
 } from "@clinic/shared";
+import { todayIso } from "@web/shared/lib/dates";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Button,
+  DatePicker,
   FormField,
   Icon,
   Input,
@@ -50,6 +52,7 @@ interface NewUserFields {
   phone: string;
   email: string;
   password: string;
+  joinedOn: string;
 }
 
 const EMPTY_USER: NewUserFields = {
@@ -60,6 +63,7 @@ const EMPTY_USER: NewUserFields = {
   phone: "",
   email: "",
   password: "",
+  joinedOn: "",
 };
 
 export function DoctorFormModal({
@@ -125,6 +129,7 @@ export function DoctorFormModal({
             lastName: { ar: newUser.lastNameAr.trim(), en: newUser.lastNameEn.trim() },
             phone: newUser.phone.trim(),
             password: newUser.password,
+            joinedOn: newUser.joinedOn,
             ...(newUser.email.trim() !== "" && { email: newUser.email.trim() }),
           },
         }
@@ -249,6 +254,24 @@ export function DoctorFormModal({
                       placeholder={t("common.placeholders.phone")}
                       value={newUser.phone}
                       onChange={(next) => setNewUser({ ...newUser, phone: next ?? "" })}
+                    />
+                  </FormField>
+                </div>
+
+                <div onBlur={form.leave("newUser.joinedOn")}>
+                  <FormField
+                    label="users.joinedOn"
+                    htmlFor="doctor-joined-on"
+                    error={errors["newUser.joinedOn"]}
+                    required
+                  >
+                    <DatePicker
+                      id="doctor-joined-on"
+                      data-testid="doctor-field-joined-on"
+                      label={t("users.joinedOn")}
+                      value={newUser.joinedOn}
+                      max={todayIso()}
+                      onChange={(next) => setNewUser({ ...newUser, joinedOn: next })}
                     />
                   </FormField>
                 </div>

@@ -1,4 +1,4 @@
-import { USER_ROLE, type WeeklySchedule } from "@clinic/shared";
+import { USER_ROLE, personName, type WeeklySchedule } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useParams } from "react-router-dom";
@@ -10,12 +10,13 @@ import { useSession } from "@web/shared/providers/session";
 import { useClinic } from "@web/shared/queries/clinic";
 import { useDoctor, useUpdateDoctorSchedule } from "@web/modules/doctors/queries";
 import { TimeOffPanel } from "@web/modules/schedule/components/time-off-panel";
+import { SettlementSection } from "@web/modules/doctors/components/settlement-section";
 import { errorToast } from "@web/shared/lib/api-error";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 export function DoctorPage(): JSX.Element {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const toast = useToast();
   const { id } = useParams<{ id: string }>();
   const { user, hasRole } = useSession();
@@ -129,6 +130,15 @@ export function DoctorPage(): JSX.Element {
           <TimeOffPanel doctorId={id} canEdit={canEdit} />
         </section>
       </div>
+
+      {doctor.data.isVisiting && hasRole(USER_ROLE.ADMIN) && (
+        <div className="border border-line rounded-card bg-surface shadow-card p-4">
+          <SettlementSection
+            doctorId={id}
+            doctorName={personName(doctor.data.user.name, i18n.language)}
+          />
+        </div>
+      )}
     </div>
   );
 }

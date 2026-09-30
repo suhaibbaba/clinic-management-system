@@ -115,7 +115,7 @@ export class UsersService implements OnModuleInit {
   async insertUser(
     executor: DatabaseExecutor,
     actor: AuthenticatedUser,
-    input: CreateUserInput,
+    input: Omit<CreateUserInput, "joinedOn"> & { readonly joinedOn?: string | null },
   ): Promise<SafeUserRow> {
     await this.assertIdentifiersAreFree(input.phone, input.email ?? null, undefined, executor);
 
@@ -131,6 +131,7 @@ export class UsersService implements OnModuleInit {
         passwordHash,
         role: input.role,
         isActive: input.isActive,
+        joinedOn: input.joinedOn ?? null,
         createdBy: actor.id,
         updatedBy: actor.id,
       })
@@ -179,6 +180,7 @@ export class UsersService implements OnModuleInit {
         ...(input.email !== undefined && { email: input.email ?? null }),
         ...(input.role !== undefined && { role: input.role }),
         ...(input.isActive !== undefined && { isActive: input.isActive }),
+        ...(input.joinedOn !== undefined && { joinedOn: input.joinedOn }),
         updatedAt: new Date(),
         updatedBy: actor.id,
       })

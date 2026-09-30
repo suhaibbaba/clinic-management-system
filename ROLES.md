@@ -110,7 +110,11 @@ Everything a `doctor` may do on a patient's clinical record, scoped by global ru
 | Doctors list | R |
 | Billing, labs, inventory, waiting list, reports, assistant | — |
 
-A visiting doctor is created from the treatment form (`POST /doctors/visiting`, admin and doctor): the account and its `doctors` row together, without a password. The users screen may not create or assign the role. The admin activates the account later by invitation or by setting a password.
+A visiting doctor is a contractor, not staff. Only `admin` creates one, from the Doctors page (`POST /doctors/visiting`): the account and its `doctors` row together, with a specialty, a default appointment length, optional working days and the clinic's share, and without a password. Without working days they are bookable any time the clinic is open. They are never offered on the public booking page. The users screen may not create or assign the role. The admin activates the account later by invitation or by setting a password.
+
+**Settlement.** Only `admin` sees and changes a visiting doctor's settlement (`/doctors/:id/settlement`, `/settlement-treatments/:id`, `/doctors/:id/payouts`, `/doctor-payouts/:id/reverse`): per done treatment, price after discount − materials = net; the clinic takes its percentage of the net (the doctor's default, or a per-treatment override, down to 0) and the rest is the doctor's. Materials default to linked lab work plus stock used, and can be overridden (0 included). Payments to the doctor are an append-only ledger corrected by reversal. The clinic's share is never serialized on the doctor record.
+
+**Payroll.** Only `admin` sees or changes pay (`/payroll/*`, `/payroll-adjustments/:id/reverse`, `/staff-payments/:id/reverse`). Every staff member except a visiting doctor has a monthly salary that applies from a month onward (a raise is a new row; earlier months keep theirs) and a joining date, never in the future; they appear from the month they joined. Per month: salary + extras − cuts = due; due − paid = remaining. Extras, cuts and payments are append-only and corrected by reversal. Closing a month freezes its salaries, extras and cuts; payments and their reversals still go through. One `staff_payments` ledger holds both salaries and visiting-doctor settlements, and the month's staff cost is salaries due plus visiting-doctor shares.
 
 The defaults above, like every other role's, are what the permissions screen starts from; `admin` may widen or narrow them per clinic.
 

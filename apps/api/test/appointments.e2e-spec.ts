@@ -19,6 +19,7 @@ import {
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 import { moveIntoPast } from "@test/helpers/appointment-time";
+import { staffName } from "@test/helpers/staff-name";
 
 const TIME_ZONE = "Asia/Damascus";
 
@@ -113,6 +114,33 @@ describe("Appointments (e2e)", () => {
       };
 
       expect(body.closedReason).toBeNull();
+      expect(body.slots[0]?.start).toBe("09:00");
+      expect(body.slots.at(-1)?.start).toBe("16:30");
+    });
+
+    it("books a visiting doctor with no working days any time the clinic is open", async () => {
+      const created = await context.app.inject({
+        method: "POST",
+        url: "/doctors/visiting",
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+        payload: {
+          ...staffName("جراح", "Surgeon"),
+          phone: uniquePhone(),
+          specialtyId: clinic.specialtyId,
+          defaultAppointmentDurationMinutes: 30,
+          weeklySchedule: [],
+          clinicSharePercent: 40,
+        },
+      });
+      expect(created.statusCode).toBe(201);
+
+      const response = await context.app.inject({
+        method: "GET",
+        url: `/appointments/availability?doctorId=${(created.json() as { id: string }).id}&date=${monday}`,
+        headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
+      });
+
+      const body = response.json() as { slots: { start: string }[] };
       expect(body.slots[0]?.start).toBe("09:00");
       expect(body.slots.at(-1)?.start).toBe("16:30");
     });

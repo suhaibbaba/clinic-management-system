@@ -18,4 +18,8 @@ export const EMPTY_VISITING_DOCTOR: CreateVisitingDoctorInput = {
   lastName: { ar: "", en: "" },
   phone: "",
   email: null,
+  specialtyId: "",
+  defaultAppointmentDurationMinutes: DEFAULT_APPOINTMENT_DURATION,
+  weeklySchedule: [],
+  clinicSharePercent: 0,
 };

@@ -6,11 +6,10 @@ import {
   Injectable,
   type OnModuleInit,
 } from "@nestjs/common";
-import { and, asc, count, desc, eq, ilike, isNull, or, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, ilike, isNull, or, type SQL } from "drizzle-orm";
 import {
   DOCTOR_USER_REF_MESSAGE,
   USER_ROLE,
-  DEFAULT_APPOINTMENT_DURATION_MINUTES,
   type CreateDoctorInput,
   type CreateVisitingDoctorInput,
   type Doctor,
@@ -111,15 +110,7 @@ export class DoctorsService implements OnModuleInit {
   }
 
   async create(actor: AuthenticatedUser, input: CreateDoctorInput): Promise<Doctor> {
-    const [specialty] = await this.db
-      .select({ id: specialties.id })
-      .from(specialties)
-      .where(this.scope.where(specialties, actor.clinicId, eq(specialties.id, input.specialtyId)))
-      .limit(1);
-
-    if (!specialty) {
-      throw new BadRequestException("Specialty not found in this clinic");
-    }
+    await this.requireSpecialty(actor, input.specialtyId);
 
     const created = await this.db.transaction(async (tx) => {
       const userId = input.newUser
@@ -159,7 +150,7 @@ export class DoctorsService implements OnModuleInit {
     actor: AuthenticatedUser,
     input: CreateVisitingDoctorInput,
   ): Promise<Doctor> {
-    const specialtyId = input.specialtyId ?? (await this.defaultSpecialtyId(actor));
+    await this.requireSpecialty(actor, input.specialtyId);
 
     const created = await this.db.transaction(async (tx) => {
       const user = await this.users.insertUser(tx, actor, {
@@ -176,9 +167,10 @@ export class DoctorsService implements OnModuleInit {
         .values({
           clinicId: actor.clinicId,
           userId: user.id,
-          specialtyId,
-          weeklySchedule: [],
-          defaultAppointmentDurationMinutes: DEFAULT_APPOINTMENT_DURATION_MINUTES,
+          specialtyId: input.specialtyId,
+          weeklySchedule: input.weeklySchedule,
+          defaultAppointmentDurationMinutes: input.defaultAppointmentDurationMinutes,
+          clinicSharePercent: String(input.clinicSharePercent),
           createdBy: actor.id,
           updatedBy: actor.id,
         })
@@ -192,31 +184,6 @@ export class DoctorsService implements OnModuleInit {
     });
 
     return this.present(await this.findJoinedOrFail(actor.clinicId, created.id));
-  }
-
-  private async defaultSpecialtyId(actor: AuthenticatedUser): Promise<string> {
-    const [own] = await this.db
-      .select({ specialtyId: doctors.specialtyId })
-      .from(doctors)
-      .where(this.scope.where(doctors, actor.clinicId, eq(doctors.userId, actor.id)))
-      .limit(1);
-
-    if (own) {
-      return own.specialtyId;
-    }
-
-    const [first] = await this.db
-      .select({ id: specialties.id })
-      .from(specialties)
-      .where(this.scope.where(specialties, actor.clinicId))
-      .orderBy(asc(specialties.createdAt))
-      .limit(1);
-
-    if (!first) {
-      throw new BadRequestException("This clinic has no specialty to add a doctor under");
-    }
-
-    return first.id;
   }
 
   private async promoteToDoctor(
@@ -363,5 +330,17 @@ export class DoctorsService implements OnModuleInit {
     }
 
     return row;
+  }
+
+  private async requireSpecialty(actor: AuthenticatedUser, specialtyId: string): Promise<void> {
+    const [specialty] = await this.db
+      .select({ id: specialties.id })
+      .from(specialties)
+      .where(this.scope.where(specialties, actor.clinicId, eq(specialties.id, specialtyId)))
+      .limit(1);
+
+    if (!specialty) {
+      throw new BadRequestException("Specialty not found in this clinic");
+    }
   }
 }

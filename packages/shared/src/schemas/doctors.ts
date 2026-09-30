@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { paginationQuerySchema, weeklyScheduleSchema } from "@shared/schemas/common";
+import { paginationQuerySchema, pastDateSchema, weeklyScheduleSchema } from "@shared/schemas/common";
 import { specialtySummarySchema } from "@shared/schemas/specialties";
 import { passwordSchema } from "@shared/schemas/auth";
 import { staffNameInputFields } from "@shared/schemas/person-name";
@@ -43,6 +43,7 @@ export const newDoctorUserSchema = z.object({
   phone: phoneSchema,
   email: z.email().max(255).nullish(),
   password: passwordSchema,
+  joinedOn: pastDateSchema,
 });
 export type NewDoctorUserInput = z.infer<typeof newDoctorUserSchema>;
 
@@ -72,11 +73,16 @@ export const updateDoctorSchema = z
   .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateDoctorInput = z.infer<typeof updateDoctorSchema>;
 
+export const clinicSharePercentSchema = z.number().min(0).max(100);
+
 export const createVisitingDoctorSchema = z.object({
   ...staffNameInputFields,
   phone: phoneSchema,
   email: z.email().max(255).nullish(),
-  specialtyId: z.uuid().optional(),
+  specialtyId: z.uuid(),
+  defaultAppointmentDurationMinutes: appointmentDurationSchema,
+  weeklySchedule: weeklyScheduleSchema,
+  clinicSharePercent: clinicSharePercentSchema,
 });
 export type CreateVisitingDoctorInput = z.infer<typeof createVisitingDoctorSchema>;
 

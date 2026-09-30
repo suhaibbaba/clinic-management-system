@@ -23,6 +23,7 @@ describe("the back button's target", () => {
       "/inventory",
       "/users",
       "/clinic/lists",
+      "/payroll",
     ]) {
       expect(backTarget(path, USER_ROLE.ADMIN)).toBeUndefined();
     }

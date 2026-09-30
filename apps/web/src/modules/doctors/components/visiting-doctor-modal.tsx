@@ -8,8 +8,19 @@ import { useEffect, type JSX } from "react";
 import { Controller, useForm, type UseFormRegister } from "react-hook-form";
 import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
-import { Button, FormField, Icon, Input, Modal, PhoneInput, useToast } from "@clinic/ui";
-import { useCreateVisitingDoctor } from "@web/modules/doctors/queries";
+import {
+  Button,
+  FormField,
+  Icon,
+  Input,
+  Modal,
+  PhoneInput,
+  QuantityInput,
+  Select,
+  useToast,
+} from "@clinic/ui";
+import { WorkingHours } from "@web/shared/components/working-hours";
+import { useCreateVisitingDoctor, useSpecialties } from "@web/modules/doctors/queries";
 import { StaffNameFields, type StaffNameValues } from "@web/shared/components/staff-name-fields";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { errorToast } from "@web/shared/lib/api-error";
@@ -29,6 +40,7 @@ export function VisitingDoctorModal({
   const { t } = useTranslation();
   const toast = useToast();
   const create = useCreateVisitingDoctor();
+  const specialties = useSpecialties();
 
   const {
     register,
@@ -145,6 +157,101 @@ export function VisitingDoctorModal({
             {...register("email", { setValueAs: (value: string) => (value === "" ? null : value) })}
           />
         </FormField>
+
+        <Controller
+          name="specialtyId"
+          control={control}
+          render={({ field }) => (
+            <div onBlur={field.onBlur}>
+              <FormField
+                label="doctors.specialty"
+                htmlFor="visiting-doctor-specialty"
+                error={errors.specialtyId}
+                required
+              >
+                <Select
+                  id="visiting-doctor-specialty"
+                  data-testid="visiting-doctor-field-specialty"
+                  placeholder={t("doctors.selectSpecialty")}
+                  value={field.value}
+                  onChange={(event) => field.onChange(event.target.value)}
+                  options={(specialties.data?.items ?? []).map((specialty) => ({
+                    value: specialty.id,
+                    label: specialty.name,
+                  }))}
+                />
+              </FormField>
+            </div>
+          )}
+        />
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            label="doctors.duration"
+            htmlFor="visiting-doctor-duration"
+            hint="doctors.durationUnit"
+            error={errors.defaultAppointmentDurationMinutes}
+          >
+            <Controller
+              name="defaultAppointmentDurationMinutes"
+              control={control}
+              render={({ field }) => (
+                <QuantityInput
+                  id="visiting-doctor-duration"
+                  data-testid="visiting-doctor-field-duration"
+                  value={Number.isNaN(field.value) ? "" : String(field.value)}
+                  onChange={(event) =>
+                    field.onChange(
+                      event.target.value === "" ? Number.NaN : Number(event.target.value),
+                    )
+                  }
+                  onBlur={field.onBlur}
+                />
+              )}
+            />
+          </FormField>
+
+          <FormField
+            label="doctors.visiting.clinicShare"
+            htmlFor="visiting-doctor-share"
+            hint="doctors.visiting.clinicShareHint"
+            error={errors.clinicSharePercent}
+          >
+            <Controller
+              name="clinicSharePercent"
+              control={control}
+              render={({ field }) => (
+                <QuantityInput
+                  id="visiting-doctor-share"
+                  data-testid="visiting-doctor-field-share"
+                  value={Number.isNaN(field.value) ? "" : String(field.value)}
+                  onChange={(event) =>
+                    field.onChange(
+                      event.target.value === "" ? Number.NaN : Number(event.target.value),
+                    )
+                  }
+                  onBlur={field.onBlur}
+                />
+              )}
+            />
+          </FormField>
+        </div>
+
+        <div>
+          <p className="text-value font-medium text-ink">{t("doctors.schedule")}</p>
+          <p className="mb-2 text-label text-ink-muted">{t("doctors.visiting.scheduleHint")}</p>
+          <Controller
+            name="weeklySchedule"
+            control={control}
+            render={({ field }) => (
+              <WorkingHours
+                value={field.value}
+                onChange={field.onChange}
+                idPrefix="visiting-doctor-hours"
+              />
+            )}
+          />
+        </div>
       </form>
     </Modal>
   );

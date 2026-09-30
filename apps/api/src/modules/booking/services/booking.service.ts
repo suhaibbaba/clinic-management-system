@@ -19,6 +19,7 @@ import {
   joinPatientName,
   localDate,
   NOTIFICATION_TEMPLATE,
+  USER_ROLE,
   occupiesSlot,
   type BookingReceipt,
   type CreateBookingInput,
@@ -31,7 +32,7 @@ import {
   type UrgentRequestReceipt,
   BOOKING_ERROR,
 } from "@clinic/shared";
-import { and, asc, count, eq, gt, gte, inArray, isNull, lt, sql } from "drizzle-orm";
+import { and, asc, count, eq, gt, gte, inArray, isNull, lt, ne, sql } from "drizzle-orm";
 import { randomInt } from "node:crypto";
 import { AvailabilityService } from "@api/modules/appointments/services/availability.service";
 import { WaitingListService } from "@api/modules/appointments/services/waiting-list.service";
@@ -110,6 +111,7 @@ export class BookingService {
           eq(doctors.clinicId, clinic.id),
           isNull(doctors.deletedAt),
           eq(users.isActive, true),
+          ne(users.role, USER_ROLE.VISITING_DOCTOR),
           isNull(users.deletedAt),
         ),
       )
@@ -125,6 +127,7 @@ export class BookingService {
   async slots(slug: string, query: PublicSlotsQuery): Promise<PublicSlots> {
     const clinic = await this.requireBookingEnabled(slug);
     this.requireWithinWindow(clinic, `${query.date}T00:00:00.000Z`, { dateOnly: true });
+    await this.requireOnlineDoctor(clinic.id, query.doctorId);
 
     const availability = await this.availability.forDay(clinic.id, {
       doctorId: query.doctorId,
@@ -527,6 +530,26 @@ export class BookingService {
     }
   }
 
+  private async requireOnlineDoctor(clinicId: string, doctorId: string): Promise<void> {
+    const [row] = await this.db
+      .select({ id: doctors.id })
+      .from(doctors)
+      .innerJoin(users, eq(users.id, doctors.userId))
+      .where(
+        and(
+          eq(doctors.id, doctorId),
+          eq(doctors.clinicId, clinicId),
+          isNull(doctors.deletedAt),
+          ne(users.role, USER_ROLE.VISITING_DOCTOR),
+        ),
+      )
+      .limit(1);
+
+    if (!row) {
+      throw new NotFoundException("Resource not found");
+    }
+  }
+
   private async durationFor(clinicId: string, doctorId: string): Promise<number> {
     const [row] = await this.db
       .select({ duration: doctors.defaultAppointmentDurationMinutes })
@@ -636,6 +659,7 @@ export class BookingService {
     excludeAppointmentId?: string,
   ): Promise<void> {
     const at = new Date(startsAt);
+    await this.requireOnlineDoctor(clinic.id, doctorId);
 
     const availability = await this.availability.forDay(clinic.id, {
       doctorId,

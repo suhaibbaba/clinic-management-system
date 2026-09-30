@@ -1022,3 +1022,29 @@ export const STOCK_ERROR = {
   INSUFFICIENT: "insufficient_stock",
   BELOW_ONE: "stock_take_below_one",
 } as const satisfies Record<string, string>;
+
+export const PAYROLL_ADJUSTMENT_KIND = {
+  EXTRA: "extra",
+  CUT: "cut",
+} as const satisfies Record<string, string>;
+export type PayrollAdjustmentKind = EnumValue<typeof PAYROLL_ADJUSTMENT_KIND>;
+
+export const PAYROLL_ADJUSTMENT_KINDS = [
+  PAYROLL_ADJUSTMENT_KIND.EXTRA,
+  PAYROLL_ADJUSTMENT_KIND.CUT,
+] as const;
+
+export const STAFF_PAYMENT_KIND = {
+  SALARY: "salary",
+  SETTLEMENT: "settlement",
+} as const satisfies Record<string, string>;
+export type StaffPaymentKind = EnumValue<typeof STAFF_PAYMENT_KIND>;
+
+export const STAFF_PAYMENT_KINDS = [STAFF_PAYMENT_KIND.SALARY, STAFF_PAYMENT_KIND.SETTLEMENT] as const;
+
+export const PAYROLL_ERROR = {
+  MONTH_CLOSED: "payroll_month_closed",
+  ALREADY_CLOSED: "payroll_already_closed",
+  NOT_EMPLOYEE: "payroll_not_employee",
+  FUTURE_MONTH: "payroll_future_month",
+} as const;

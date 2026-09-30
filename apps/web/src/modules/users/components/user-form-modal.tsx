@@ -11,9 +11,11 @@ import {
 import { useEffect, type JSX } from "react";
 import { Controller, useForm, type UseFormRegister } from "react-hook-form";
 import { revealFirstError } from "@web/shared/lib/form-errors";
+import { todayIso } from "@web/shared/lib/dates";
 import { useTranslation } from "react-i18next";
 import {
   Button,
+  DatePicker,
   FormField,
   Icon,
   Input,
@@ -75,6 +77,7 @@ export function UserFormModal({
             email: user.email,
             role: user.role,
             isActive: user.isActive,
+            joinedOn: user.joinedOn ?? "",
           }
         : {
             firstName: { ar: "", en: "" },
@@ -82,6 +85,7 @@ export function UserFormModal({
             phone: "",
             email: null,
             isActive: true,
+            joinedOn: todayIso(),
           },
     );
   }, [open, user, reset]);
@@ -102,6 +106,7 @@ export function UserFormModal({
             phone: values.phone,
             email: values.email ?? null,
             role: values.role,
+            joinedOn: values.joinedOn,
           };
           await updateUser.mutateAsync({ id: user.id, body });
           toast.success("users.updated");
@@ -201,6 +206,26 @@ export function UserFormModal({
             type="email"
             hasError={errors.email !== undefined}
             {...register("email", { setValueAs: (value: string) => (value === "" ? null : value) })}
+          />
+        </FormField>
+
+        <FormField label="users.joinedOn" htmlFor="user-joined-on" error={errors.joinedOn} required>
+          <Controller
+            name="joinedOn"
+            control={control}
+            render={({ field }) => (
+              <div onBlur={field.onBlur}>
+                <DatePicker
+                  id="user-joined-on"
+                  data-testid="user-field-joined-on"
+                  label={t("users.joinedOn")}
+                  value={field.value ?? ""}
+                  max={todayIso()}
+                  hasError={errors.joinedOn !== undefined}
+                  onChange={field.onChange}
+                />
+              </div>
+            )}
           />
         </FormField>
 

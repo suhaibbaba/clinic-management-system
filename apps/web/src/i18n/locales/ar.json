@@ -123,7 +123,8 @@
     "settingsPage": "الإعدادات",
     "skipToContent": "تخطَّ إلى المحتوى",
     "sidebar": "الشريط الجانبي",
-    "back": "رجوع إلى {{to}}"
+    "back": "رجوع إلى {{to}}",
+    "payroll": "الرواتب"
   },
   "roles": {
     "admin": "مدير",
@@ -214,7 +215,8 @@
     "lastNameAr": "اسم العائلة بالعربية",
     "firstNameEn": "الاسم الأول بالإنجليزية",
     "lastNameEn": "اسم العائلة بالإنجليزية",
-    "confirmRemovePhoto": "إزالة الصورة؟"
+    "confirmRemovePhoto": "إزالة الصورة؟",
+    "joinedOn": "تاريخ الانضمام"
   },
   "doctors": {
     "title": "الأطباء",
@@ -250,7 +252,47 @@
       "about": "طبيب من خارج العيادة يعالج بعض مرضاها، ولا يرى إلا المرضى المُسندين إليه.",
       "emailHint": "لإرسال دعوة الدخول إليه لاحقاً من شاشة المستخدمين.",
       "created": "تمت إضافة الطبيب الزائر",
-      "optionLabel": "{{name}} · زائر"
+      "optionLabel": "{{name}} · زائر",
+      "clinicShare": "نسبة العيادة %",
+      "clinicShareHint": "النسبة التي تحتفظ بها العيادة من صافي كل معالجة",
+      "scheduleHint": "اختياري. إن تركتها فارغة يمكن حجز مواعيده في أي وقت تكون العيادة مفتوحة."
+    },
+    "settlement": {
+      "title": "التسوية",
+      "about": "معالجات الطبيب المنجزة في الفترة: المبلغ بعد الخصم ناقص المواد، ثم تأخذ العيادة نسبتها والباقي للطبيب.",
+      "period": "الفترة",
+      "amount": "المبلغ",
+      "materials": "المواد",
+      "clinicPercent": "نسبة العيادة",
+      "clinicShare": "حصة العيادة",
+      "doctorShare": "حصة الطبيب",
+      "adjusted": "معدّل",
+      "revenue": "الإيرادات",
+      "materialsTotal": "المواد: {{amount}}",
+      "balance": "المتبقي للطبيب",
+      "balanceCaption": "كل ما استحقه ناقص ما دُفع له",
+      "noTreatments": "لا معالجات منجزة في هذه الفترة",
+      "payouts": "الدفعات للطبيب",
+      "noPayouts": "لا دفعات في هذه الفترة",
+      "recordPayout": "تسجيل دفعة للطبيب",
+      "payoutRecorded": "تم تسجيل الدفعة",
+      "payoutMenu": "إجراءات الدفعة",
+      "reverse": "عكس الدفعة",
+      "reversed": "معكوسة",
+      "reverseTitle": "عكس هذه الدفعة؟",
+      "reverseConsequence": "تُسجّل دفعة معاكسة ويبقى الأصل في السجل",
+      "reverseReason": "سبب العكس",
+      "payoutReversed": "تم عكس الدفعة",
+      "editTreatment": "تسوية: {{name}}",
+      "materialHint": "اتركه فارغًا لاستخدام المقترح ({{suggested}})، أو 0 بلا مواد",
+      "percentHint": "اتركه فارغًا لاستخدام نسبة الطبيب ({{percent}}%)، أو 0 بلا نسبة",
+      "treatmentUpdated": "تم تحديث التسوية",
+      "shareSaved": "تم حفظ نسبة العيادة",
+      "print": "طباعة الكشف",
+      "printTitle": "كشف تسوية طبيب زائر",
+      "total": "الإجمالي",
+      "signatureClinic": "توقيع العيادة",
+      "signatureDoctor": "توقيع الطبيب"
     }
   },
   "schedule": {
@@ -490,7 +532,13 @@
       "hasVisit": "لهذا الموعد زيارة مسجّلة",
       "notArrived": "سجّل وصول المريض قبل فتح الزيارة"
     },
-    "invalidFields": "تحقّق من: {{fields}}"
+    "invalidFields": "تحقّق من: {{fields}}",
+    "payroll": {
+      "monthClosed": "هذا الشهر مغلق، لا يمكن تعديل رواتبه",
+      "alreadyClosed": "هذا الشهر مغلق مسبقًا",
+      "notEmployee": "الطبيب الزائر ليس موظفًا؛ يُسوّى من صفحته",
+      "futureMonth": "لا يمكن إغلاق شهر لم يبدأ بعد"
+    }
   },
   "patients": {
     "incompleteMissing": "الملف غير مكتمل، ينقصه: {{fields}}",
@@ -1622,7 +1670,8 @@
         "create": "إضافة طبيب",
         "remove": "حذف طبيب",
         "update": "تعديل بيانات طبيب",
-        "updateSchedule": "تعديل دوام طبيب الأسبوعي"
+        "updateSchedule": "تعديل دوام طبيب الأسبوعي",
+        "createVisiting": "إضافة طبيب زائر"
       },
       "inventory": {
         "adjust": "تصحيح كمية مادة",
@@ -1803,6 +1852,28 @@
       "ai-secrets.update": "تعديل مفاتيح الربط",
       "reports": {
         "list": "أسئلة حرّة للمساعد عن بيانات العيادة"
+      },
+      "doctor-settlements": {
+        "settlement": "عرض تسوية طبيب زائر",
+        "terms": "تعديل نسبة العيادة لطبيب زائر",
+        "payout": "تسجيل دفعة لطبيب زائر"
+      },
+      "settlement-treatments": {
+        "update": "تعديل مواد ونسبة معالجة في التسوية"
+      },
+      "payroll": {
+        "salaries": "عرض سجل راتب موظف",
+        "setSalary": "تحديد راتب موظف",
+        "month": "عرض رواتب الشهر",
+        "adjust": "إضافة أو خصم من راتب",
+        "pay": "صرف راتب",
+        "close": "إغلاق شهر الرواتب"
+      },
+      "payroll-adjustments": {
+        "reverse": "عكس إضافة أو خصم"
+      },
+      "staff-payments": {
+        "reverse": "عكس دفعة لموظف أو طبيب"
       }
     },
     "hints": {
@@ -1856,7 +1927,12 @@
       "visits": "الزيارات",
       "waiting-list": "قائمة الانتظار",
       "ai": "المساعد",
-      "reports": "التقارير"
+      "reports": "التقارير",
+      "doctor-settlements": "تسويات الأطباء الزائرين",
+      "settlement-treatments": "تسوية المعالجات",
+      "payroll": "الرواتب",
+      "payroll-adjustments": "إضافات وخصومات الرواتب",
+      "staff-payments": "دفعات الكادر"
     },
     "role": "الدور",
     "subtitle": "ما الذي يستطيع كل دور فعله",
@@ -2320,5 +2396,70 @@
     "hours_many": "{{count}} ساعة",
     "hours_other": "{{count}} ساعة",
     "hoursAndMinutes": "{{hours}} و{{minutes}}"
+  },
+  "payroll": {
+    "title": "الرواتب",
+    "subtitle": "رواتب الموظفين لكل شهر: الراتب، والإضافات، والخصومات، وما دُفع وما بقي.",
+    "employee": "الموظف",
+    "monthlySalary": "الراتب الشهري",
+    "extras": "الإضافات",
+    "cuts": "الخصومات",
+    "due": "المستحق",
+    "paidAmount": "المدفوع",
+    "remaining": "المتبقي",
+    "noSalary": "لا راتب محدّد",
+    "joined": "انضم {{date}}",
+    "menu": "إجراءات الموظف",
+    "pay": "صرف راتب",
+    "addExtra": "إضافة للراتب",
+    "addCut": "خصم من الراتب",
+    "setSalary": "تحديد الراتب",
+    "setSalaryHint": "يسري الراتب من الشهر المختار فما بعده؛ الأشهر السابقة تبقى كما هي.",
+    "effectiveFrom": "يسري من",
+    "salaryHistory": "سجل الراتب",
+    "salarySaved": "تم حفظ الراتب",
+    "extraSaved": "تمت الإضافة",
+    "cutSaved": "تم الخصم",
+    "paid": "تم تسجيل الدفعة",
+    "amount": "المبلغ",
+    "reason": "السبب",
+    "entries": "الحركات",
+    "noEntries": "لا حركات لهذا الشهر",
+    "payment": "دفعة",
+    "kind": {
+      "extra": "إضافة",
+      "cut": "خصم"
+    },
+    "reversed": "معكوسة",
+    "reverse": "عكس",
+    "reverseTitle": "عكس هذه الحركة؟",
+    "reverseConsequence": "تُسجّل حركة معاكسة ويبقى الأصل في السجل",
+    "reverseReason": "سبب العكس",
+    "reversedDone": "تم العكس",
+    "print": "طباعة كشف الرواتب",
+    "printTitle": "كشف الرواتب",
+    "total": "الإجمالي",
+    "signature": "توقيع الإدارة",
+    "close": "إغلاق الشهر",
+    "closeTitle": "إغلاق رواتب {{month}}؟",
+    "closeLocks": "لا يمكن بعد الإغلاق تعديل رواتب هذا الشهر أو إضافاته أو خصوماته",
+    "closeStillPay": "يبقى بالإمكان صرف ما تبقّى وعكس الدفعات",
+    "closedDone": "تم إغلاق الشهر",
+    "closedOn": "مغلق في {{date}}",
+    "open": "مفتوح",
+    "previousMonth": "الشهر السابق",
+    "nextMonth": "الشهر التالي",
+    "thisMonth": "هذا الشهر",
+    "employees_zero": "لا موظفين",
+    "employees_one": "موظف واحد",
+    "employees_two": "موظفان",
+    "employees_few": "{{count}} موظفين",
+    "employees_many": "{{count}} موظفًا",
+    "employees_other": "{{count}} موظف",
+    "remainingCaption": "المتبقي: {{amount}}",
+    "visitingShares": "حصص الأطباء الزائرين",
+    "staffCost": "تكلفة الكادر",
+    "staffCostCaption": "الرواتب المستحقة وحصص الأطباء الزائرين",
+    "empty": "لا موظفين في هذا الشهر"
   }
 }

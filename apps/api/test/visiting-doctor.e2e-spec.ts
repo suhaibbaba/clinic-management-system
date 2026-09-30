@@ -1,4 +1,6 @@
 import {
+  type StaffPayment,
+  type DoctorSettlement,
   USER_ROLE,
   type Doctor,
   type Paginated,
@@ -226,13 +228,17 @@ describe("Visiting doctor (e2e)", () => {
     const visitor = () => ({
       ...staffName("زائر", "Visitor"),
       phone: uniquePhone(),
+      specialtyId: clinic.specialtyId,
+      defaultAppointmentDurationMinutes: 45,
+      weeklySchedule: [{ weekday: 1, ranges: [{ start: "09:00", end: "13:00" }] }],
+      clinicSharePercent: 40,
     });
 
-    it("lets a doctor add a visiting doctor, account and profile together", async () => {
+    it("lets the admin add a visiting doctor with their specialty and working days", async () => {
       const response = await context.app.inject({
         method: "POST",
         url: "/doctors/visiting",
-        headers: as(USER_ROLE.DOCTOR),
+        headers: as(USER_ROLE.ADMIN),
         payload: visitor(),
       });
 
@@ -240,17 +246,22 @@ describe("Visiting doctor (e2e)", () => {
       const doctor = response.json() as Doctor;
       expect(doctor.isVisiting).toBe(true);
       expect(doctor.specialtyId).toBe(clinic.specialtyId);
+      expect(doctor.defaultAppointmentDurationMinutes).toBe(45);
+      expect(doctor.weeklySchedule).toHaveLength(1);
+      expect(doctor).not.toHaveProperty("clinicSharePercent");
     });
 
-    it("refuses a receptionist", async () => {
-      const response = await context.app.inject({
-        method: "POST",
-        url: "/doctors/visiting",
-        headers: as(USER_ROLE.RECEPTIONIST),
-        payload: visitor(),
-      });
+    it("refuses a doctor and a receptionist", async () => {
+      for (const role of [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST]) {
+        const response = await context.app.inject({
+          method: "POST",
+          url: "/doctors/visiting",
+          headers: as(role),
+          payload: visitor(),
+        });
 
-      expect(response.statusCode).toBe(403);
+        expect({ role, status: response.statusCode }).toEqual({ role, status: 403 });
+      }
     });
 
     it("refuses the role on the users screen, which would leave it without a profile", async () => {
@@ -262,6 +273,140 @@ describe("Visiting doctor (e2e)", () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe("settling with a visiting doctor", () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const around = `from=2000-01-01&to=2099-12-31`;
+    let first: string;
+    let second: string;
+
+    const treat = async (payload: Record<string, unknown>) => {
+      const response = await context.app.inject({
+        method: "POST",
+        url: "/performed-procedures",
+        headers: as(USER_ROLE.DOCTOR),
+        payload: {
+          patientId: assigned,
+          doctorId: visitorDoctorId,
+          procedureId: fixtures.catalogId,
+          status: "done",
+          ...payload,
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      return (response.json() as PerformedProcedure).id;
+    };
+
+    const settlement = async () => {
+      const response = await context.app.inject({
+        method: "GET",
+        url: `/doctors/${visitorDoctorId}/settlement?${around}`,
+        headers: as(USER_ROLE.ADMIN),
+      });
+
+      expect(response.statusCode).toBe(200);
+      return response.json() as DoctorSettlement;
+    };
+
+    const row = (report: DoctorSettlement, id: string) =>
+      report.treatments.find((treatment) => treatment.id === id);
+
+    beforeAll(async () => {
+      const terms = await context.app.inject({
+        method: "PUT",
+        url: `/doctors/${visitorDoctorId}/settlement-terms`,
+        headers: as(USER_ROLE.ADMIN),
+        payload: { clinicSharePercent: 40 },
+      });
+      expect(terms.statusCode).toBe(204);
+
+      first = await treat({ price: "1000" });
+      second = await treat({ price: "500", discount: "100", discountReason: "خصم" });
+    });
+
+    it("takes the clinic's percentage of the price after discount and materials", async () => {
+      const report = await settlement();
+
+      expect(report.clinicSharePercent).toBe(40);
+      expect(row(report, first)).toMatchObject({
+        net: "1000.00",
+        clinicShare: "400.00",
+        doctorShare: "600.00",
+      });
+      expect(row(report, second)).toMatchObject({
+        net: "400.00",
+        clinicShare: "160.00",
+        doctorShare: "240.00",
+      });
+    });
+
+    it("lets the admin set materials and the clinic's share per treatment, down to nothing", async () => {
+      const set = (id: string, payload: Record<string, unknown>) =>
+        context.app.inject({
+          method: "PATCH",
+          url: `/settlement-treatments/${id}`,
+          headers: as(USER_ROLE.ADMIN),
+          payload,
+        });
+
+      expect((await set(first, { materialCost: "200" })).statusCode).toBe(204);
+      expect((await set(second, { clinicSharePercent: 0 })).statusCode).toBe(204);
+
+      const report = await settlement();
+
+      expect(row(report, first)).toMatchObject({
+        materialCost: "200.00",
+        materialCostSet: true,
+        net: "800.00",
+        clinicShare: "320.00",
+        doctorShare: "480.00",
+      });
+      expect(row(report, second)).toMatchObject({
+        clinicSharePercent: 0,
+        clinicSharePercentSet: true,
+        clinicShare: "0.00",
+        doctorShare: "400.00",
+      });
+    });
+
+    it("keeps what was paid to the doctor, and a reversal takes it back", async () => {
+      const before = await settlement();
+
+      const paid = await context.app.inject({
+        method: "POST",
+        url: `/doctors/${visitorDoctorId}/payouts`,
+        headers: as(USER_ROLE.ADMIN),
+        payload: { amount: "500", method: "cash" },
+      });
+      expect(paid.statusCode).toBe(201);
+
+      const after = await settlement();
+      expect(Number(after.paid) - Number(before.paid)).toBe(500);
+      expect(Number(after.balance)).toBe(Number(after.earned) - Number(after.paid));
+
+      const reversed = await context.app.inject({
+        method: "POST",
+        url: `/staff-payments/${(paid.json() as StaffPayment).id}/reverse`,
+        headers: as(USER_ROLE.ADMIN),
+        payload: { reason: "دفعة مكررة" },
+      });
+      expect(reversed.statusCode).toBe(201);
+      expect((await settlement()).paid).toBe(before.paid);
+    });
+
+    it("keeps the settlement to the admin", async () => {
+      for (const role of [USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.RECEPTIONIST]) {
+        const response = await context.app.inject({
+          method: "GET",
+          url: `/doctors/${visitorDoctorId}/settlement?from=${today}&to=${today}`,
+          headers: as(role),
+        });
+
+        expect({ role, status: response.statusCode }).toEqual({ role, status: 403 });
+      }
     });
   });
 });

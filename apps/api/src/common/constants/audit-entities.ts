@@ -16,6 +16,14 @@ export const LAB_ORDERS_ENTITY = "lab_orders";
 
 export const LAB_PAYMENTS_ENTITY = "lab_payments";
 
+export const STAFF_PAYMENTS_ENTITY = "staff_payments";
+
+export const SALARY_TERMS_ENTITY = "salary_terms";
+
+export const PAYROLL_ADJUSTMENTS_ENTITY = "payroll_adjustments";
+
+export const PAYROLL_MONTHS_ENTITY = "payroll_months";
+
 export const LAB_WORK_TYPES_ENTITY = "lab_work_types";
 
 export const LABS_ENTITY = "labs";

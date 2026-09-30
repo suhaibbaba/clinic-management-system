@@ -20,6 +20,8 @@ import {
   localDate,
   localWeekday,
   occupiesSlot,
+  PAYROLL_ADJUSTMENT_KIND,
+  STAFF_PAYMENT_KIND,
   type LabOrderStatus,
 } from "@clinic/shared";
 import { and, eq, isNull, sql } from "drizzle-orm";
@@ -44,12 +46,16 @@ import {
   notificationsLog,
   patients,
   payments,
+  payrollAdjustments,
   performedProcedures,
   prescriptions,
   procedureCatalog,
+  salaryTerms,
   specialties,
+  staffPayments,
   stockMovements,
   suppliers,
+  users,
   visits,
   waitingList,
 } from "@api/database/schema";
@@ -331,11 +337,13 @@ async function writeEverything(db: Database, ctx: WriteContext): Promise<SeedCou
   const queue = await writeWaitingList(db, ctx);
   const messages = await writeNotifications(db, ctx, appointmentRows);
   const absences = await writeAbsences(db, ctx);
+  const payroll = await writePayroll(db, ctx);
 
   return {
     appointments: appointmentRows.length,
     ...clinical.counts,
     ...money,
+    ...payroll,
     ...lab,
     ...store,
     ...queue,
@@ -580,6 +588,67 @@ async function writePrescriptions(
   );
 
   return { prescriptions: chosen.length };
+}
+
+const SEED_SALARIES: Readonly<Record<string, string>> = {
+  [USER_ROLE.ADMIN]: "6000.00",
+  [USER_ROLE.DOCTOR]: "8000.00",
+  [USER_ROLE.TECHNICIAN]: "3500.00",
+  [USER_ROLE.RECEPTIONIST]: "3000.00",
+};
+
+async function writePayroll(db: Database, ctx: WriteContext): Promise<SeedCounts> {
+  const staff = await db
+    .select({ id: users.id, role: users.role })
+    .from(users)
+    .where(and(eq(users.clinicId, ctx.clinicId), isNull(users.deletedAt)));
+  const employees = staff.filter((person) => SEED_SALARIES[person.role] !== undefined);
+
+  if (employees.length === 0) {
+    return { salaryTerms: 0, staffPayments: 0 };
+  }
+
+  const thisMonth = `${ctx.today.slice(0, 7)}-01`;
+  const lastMonth = new Date(`${thisMonth}T00:00:00Z`);
+  lastMonth.setUTCMonth(lastMonth.getUTCMonth() - 1);
+  const previous = lastMonth.toISOString().slice(0, 10);
+
+  await db.insert(salaryTerms).values(
+    employees.map((person) => ({
+      clinicId: ctx.clinicId,
+      userId: person.id,
+      monthlyAmount: SEED_SALARIES[person.role] as string,
+      effectiveMonth: "2024-01-01",
+      createdBy: ctx.actorId,
+    })),
+  );
+
+  const [first] = employees;
+  if (first) {
+    await db.insert(payrollAdjustments).values({
+      clinicId: ctx.clinicId,
+      userId: first.id,
+      month: thisMonth,
+      kind: PAYROLL_ADJUSTMENT_KIND.EXTRA,
+      amount: "250.00",
+      reason: "Weekend shift",
+      ...ctx.audit,
+    });
+  }
+
+  await db.insert(staffPayments).values(
+    employees.map((person) => ({
+      clinicId: ctx.clinicId,
+      userId: person.id,
+      kind: STAFF_PAYMENT_KIND.SALARY,
+      month: previous,
+      amount: SEED_SALARIES[person.role] as string,
+      method: "cash",
+      ...ctx.audit,
+    })),
+  );
+
+  return { salaryTerms: employees.length, staffPayments: employees.length };
 }
 
 async function writeMoney(

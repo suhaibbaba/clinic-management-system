@@ -74,6 +74,7 @@ export const NAV_SETTINGS: NavGroup = {
       icon: "users",
       also: ["/doctors"],
     },
+    { to: "/payroll", label: "nav.payroll", roles: [USER_ROLE.ADMIN], icon: "money" },
     { to: "/clinic/lists", label: "nav.lists", roles: [USER_ROLE.ADMIN], icon: "list" },
     { to: "/settings", label: "nav.settingsPage", roles: [USER_ROLE.ADMIN], icon: "gear" },
   ],
