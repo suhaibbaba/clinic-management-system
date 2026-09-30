@@ -143,7 +143,7 @@ export function PrescriptionsTab({ patientId }: { readonly patientId: string }):
       <EmptyState
         icon="alert"
         data-testid="prescriptions-error"
-        title="errors.generic"
+        title="errors.unknown"
         hint="prescriptions.loadFailed"
       />
     );

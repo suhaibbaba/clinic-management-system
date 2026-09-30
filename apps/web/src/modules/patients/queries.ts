@@ -22,7 +22,6 @@ import type {
   PresignAttachmentUploadInput,
   ProcedureCatalogItem,
   TimelineEntry,
-  ToothHistory,
   UpdatePatientInput,
   UpdatePerformedProcedureInput,
   UpdateVisitInput,
@@ -33,7 +32,6 @@ import { uploadToStorage } from "@web/shared/lib/upload";
 
 export const PATIENT_PROCEDURES_KEY = "patient-procedures";
 export const PATIENT_ALLERGIES_KEY = "patient-allergies";
-export const TOOTH_HISTORY_KEY = "tooth-history";
 export const CATALOG_KEY = "procedure-catalog";
 
 export const PATIENT_VISITS_KEY = "patient-visits";
@@ -96,17 +94,6 @@ export function usePatientProcedures(id: string): UseQueryResult<PerformedProced
 
 export function useProcedureCatalog(): UseQueryResult<ProcedureCatalogItem[]> {
   return useQuery({ queryKey: [CATALOG_KEY], queryFn: () => patientsApi.catalog() });
-}
-
-export function useToothHistory(
-  patientId: string,
-  fdi: number | null,
-): UseQueryResult<ToothHistory> {
-  return useQuery({
-    queryKey: [TOOTH_HISTORY_KEY, patientId, fdi],
-    queryFn: () => patientsApi.toothHistory(patientId, fdi as number),
-    enabled: fdi !== null,
-  });
 }
 
 export function useAttachment(id: string, enabled: boolean): UseQueryResult<Attachment> {
@@ -258,7 +245,6 @@ function invalidateClinical(queryClient: ReturnType<typeof useQueryClient>, pati
   for (const key of [
     PATIENT_VISITS_KEY,
     PATIENT_PROCEDURES_KEY,
-    TOOTH_HISTORY_KEY,
     PATIENT_ATTACHMENTS_KEY,
     PATIENT_TIMELINE_KEY,
     BALANCE_KEY,

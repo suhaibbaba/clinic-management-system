@@ -118,7 +118,7 @@ export function VisitsTab({
       <EmptyState
         icon="alert"
         data-testid="visits-error"
-        title="errors.generic"
+        title="errors.unknown"
         hint="visits.loadFailed"
       />
     );
@@ -202,7 +202,11 @@ export function VisitsTab({
             data-testid="visit-treatments"
             patientId={patientId}
             treatments={byVisit.get(treating.visit.id) ?? []}
-            defaults={{ visitId: treating.visit.id, doctorId: treating.visit.doctorId }}
+            defaults={{
+              visitId: treating.visit.id,
+              doctorId: treating.visit.doctorId,
+              performedAt: treating.visit.visitDate,
+            }}
             emptyTitle="visits.noProcedures"
             startAdding={treating.adding}
           />

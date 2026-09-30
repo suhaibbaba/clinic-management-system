@@ -70,7 +70,7 @@ export function ChartTab({
       <EmptyState
         icon="alert"
         data-testid="chart-error"
-        title="errors.generic"
+        title="errors.unknown"
         hint="chart.loadFailed"
       />
     );

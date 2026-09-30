@@ -53,7 +53,7 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
         <EmptyState
           icon="alert"
           data-testid="imaging-error"
-          title="errors.generic"
+          title="errors.unknown"
           hint="imaging.loadFailed"
         />
       )}

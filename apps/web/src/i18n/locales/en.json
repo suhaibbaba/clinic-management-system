@@ -694,7 +694,8 @@
     "about": "Every treatment for this patient in one list: planned, in progress, done and cancelled. A treatment is charged once work on it starts, and the totals are worked out from the treatments themselves.",
     "completedAmount": "Done",
     "treatmentCount_one": "1 treatment",
-    "treatmentCount_other": "{{count}} treatments"
+    "treatmentCount_other": "{{count}} treatments",
+    "noneWithStatus": "No treatments with this status"
   },
   "treatments": {
     "menu": "Treatment actions",
@@ -721,7 +722,7 @@
       "charge": "Its charge is reversed with a correcting entry; no entry is erased",
       "chart": "Its marks leave the tooth chart"
     },
-    "fromPlanned": "Perform a planned treatment"
+    "fromPlanned": "From the treatment plan"
   },
   "imaging": {
     "uploadTitle": "Add an X-ray or a document",

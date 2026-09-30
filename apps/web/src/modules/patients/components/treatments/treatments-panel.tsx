@@ -55,6 +55,7 @@ export interface TreatmentsPanelProps {
   readonly emptyTitle: string;
   readonly startAdding?: boolean | undefined;
   readonly showTotal?: boolean | undefined;
+  readonly layout?: "list" | "grid" | undefined;
   readonly onSendToLab?: ((treatment: PerformedProcedure) => void) | undefined;
   readonly "data-testid": string;
 }
@@ -68,6 +69,7 @@ export function TreatmentsPanel({
   emptyTitle,
   startAdding = false,
   showTotal = true,
+  layout = "list",
   onSendToLab,
   "data-testid": testId,
 }: TreatmentsPanelProps): JSX.Element {
@@ -101,7 +103,9 @@ export function TreatmentsPanel({
       ? []
       : (everything.data ?? []).filter(
           (treatment) =>
-            treatment.status === PERFORMED_PROCEDURE_STATUS.PLANNED && treatment.visitId === null,
+            treatment.visitId === null &&
+            (treatment.status === PERFORMED_PROCEDURE_STATUS.PLANNED ||
+              treatment.status === PERFORMED_PROCEDURE_STATUS.IN_PROGRESS),
         );
 
   const run = async (action: () => Promise<unknown>, success: string): Promise<void> => {
@@ -124,7 +128,11 @@ export function TreatmentsPanel({
       () =>
         update.mutateAsync({
           id: treatment.id,
-          body: { status: PERFORMED_PROCEDURE_STATUS.DONE, visitId: defaults.visitId ?? null },
+          body: {
+            status: PERFORMED_PROCEDURE_STATUS.DONE,
+            visitId: defaults.visitId ?? null,
+            ...(defaults.performedAt !== undefined && { performedAt: defaults.performedAt }),
+          },
         }),
       "treatments.moved.done",
     );
@@ -205,7 +213,12 @@ export function TreatmentsPanel({
       {ordered.length === 0 ? (
         <EmptyState icon="tooth" data-testid={`${testId}-empty`} title={emptyTitle} />
       ) : (
-        <ol data-testid={`${testId}-list`} className="flex flex-col gap-2">
+        <ol
+          data-testid={`${testId}-list`}
+          className={
+            layout === "grid" ? "grid gap-2.5 md:grid-cols-2 xl:grid-cols-3" : "flex flex-col gap-2"
+          }
+        >
           {ordered.map((treatment) => (
             <TreatmentItem
               key={treatment.id}

@@ -441,7 +441,7 @@ export function AppointmentsPage(): JSX.Element {
           <EmptyState
             icon="alert"
             data-testid="appointments-error"
-            title="errors.generic"
+            title="errors.unknown"
             hint="appointments.loadFailed"
           />
         )}

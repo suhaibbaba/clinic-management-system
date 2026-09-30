@@ -45,6 +45,7 @@ export interface TreatmentDefaults {
   readonly visitId?: string | undefined;
   readonly status?: PerformedProcedureStatus | undefined;
   readonly doctorId?: string | undefined;
+  readonly performedAt?: string | undefined;
 }
 
 export interface TreatmentFormProps {
@@ -145,6 +146,7 @@ export function TreatmentForm({
       ...(showPrices && price !== "" && { price }),
       ...(hasDiscount && { discountReason: discountReason.trim() }),
       ...(!isEdit && defaults.visitId !== undefined && { visitId: defaults.visitId }),
+      ...(!isEdit && defaults.performedAt !== undefined && { performedAt: defaults.performedAt }),
       chartMarks: teeth.map((at) => ({
         chartType: CHART_TYPE.TOOTH_FDI,
         location: { tooth: at, surfaces: teeth.length === 1 ? surfaces : [] },

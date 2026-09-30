@@ -718,7 +718,8 @@
     "treatmentCount_two": "معالجتان",
     "treatmentCount_few": "{{count}} معالجات",
     "treatmentCount_many": "{{count}} معالجة",
-    "treatmentCount_other": "{{count}} معالجة"
+    "treatmentCount_other": "{{count}} معالجة",
+    "noneWithStatus": "لا معالجات بهذه الحالة"
   },
   "treatments": {
     "menu": "إجراءات المعالجة",
@@ -745,7 +746,7 @@
       "charge": "تُعكس رسومها في الحساب بقيد عكسي، ولا يُمحى أيّ قيد",
       "chart": "تُزال علاماتها من مخطط الأسنان"
     },
-    "fromPlanned": "تنفيذ معالجة مخطّطة"
+    "fromPlanned": "من خطة العلاج"
   },
   "imaging": {
     "uploadTitle": "أضف صورة أشعة أو مستنداً",
