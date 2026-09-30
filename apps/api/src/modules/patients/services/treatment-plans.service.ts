@@ -1,42 +1,32 @@
+import { BadRequestException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import {
-  BadRequestException,
-  ConflictException,
-  Inject,
-  Injectable,
-  type OnModuleInit,
-} from "@nestjs/common";
-import {
-  TREATMENT_PLAN_ITEM_STATUS,
-  type ConvertPlanItemInput,
+  AUDIT_ACTION,
+  PERFORMED_PROCEDURE_STATUS,
   type CreateTreatmentPlanInput,
-  type CreateTreatmentPlanItemInput,
   type ListTreatmentPlansQuery,
   type Paginated,
-  type PerformedProcedure,
   type TreatmentPlan,
-  type TreatmentPlanItem,
   type UpdateTreatmentPlanInput,
-  type UpdateTreatmentPlanItemInput,
 } from "@clinic/shared";
-import { asc, desc, eq, inArray, sql, type SQL } from "drizzle-orm";
+import { desc, eq, inArray, sql, type SQL } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
+import { AuditService } from "@api/modules/audit/services/audit.service";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { doctors, treatmentPlanItems, treatmentPlans } from "@api/database/schema";
+import { doctors, performedProcedures, treatmentPlans } from "@api/database/schema";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
-import { ProcedureCatalogService } from "@api/modules/patients/services/procedure-catalog.service";
-import { ProceduresService } from "@api/modules/patients/services/procedures.service";
 import {
+  PERFORMED_PROCEDURES_ENTITY,
   TREATMENT_PLANS_ENTITY,
-  TREATMENT_PLAN_ITEMS_ENTITY,
 } from "@api/common/constants/audit-entities";
 import {
+  EMPTY_PLAN_SUMMARY,
+  planSummaryColumns,
   toPlan,
-  toPlanItem,
-  PlanRow,
-  PlanItemRow,
+  type PlanRow,
+  type PlanSummaryRow,
 } from "@api/modules/patients/lib/treatment-plans";
 
 @Injectable()
@@ -45,9 +35,8 @@ export class TreatmentPlansService implements OnModuleInit {
     @Inject(DATABASE) private readonly db: Database,
     private readonly scope: ClinicScopeService,
     private readonly patientAccess: PatientAccessService,
-    private readonly catalog: ProcedureCatalogService,
-    private readonly procedures: ProceduresService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly audit: AuditService,
   ) {}
 
   onModuleInit(): void {
@@ -58,17 +47,7 @@ export class TreatmentPlansService implements OnModuleInit {
         .where(this.scope.where(treatmentPlans, clinicId, eq(treatmentPlans.id, id)))
         .limit(1);
 
-      return row ? { ...toPlan(row) } : null;
-    });
-
-    this.auditSnapshots.register(TREATMENT_PLAN_ITEMS_ENTITY, async (id, clinicId) => {
-      const [row] = await this.db
-        .select()
-        .from(treatmentPlanItems)
-        .where(this.scope.where(treatmentPlanItems, clinicId, eq(treatmentPlanItems.id, id)))
-        .limit(1);
-
-      return row ? { ...toPlanItem(row) } : null;
+      return row ? { ...toPlan(row, EMPTY_PLAN_SUMMARY) } : null;
     });
   }
 
@@ -105,13 +84,13 @@ export class TreatmentPlansService implements OnModuleInit {
         .where(where),
     ]);
 
-    const items = await this.itemsFor(
+    const summaries = await this.summariesFor(
       actor.clinicId,
       rows.map((row) => row.id),
     );
 
     return toPaginated(
-      rows.map((row) => toPlan(row, items.get(row.id) ?? [])),
+      rows.map((row) => toPlan(row, summaries.get(row.id) ?? EMPTY_PLAN_SUMMARY)),
       totals?.value ?? 0,
       query,
     );
@@ -119,9 +98,8 @@ export class TreatmentPlansService implements OnModuleInit {
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<TreatmentPlan> {
     const row = await this.patientAccess.requireRow<PlanRow>(actor, treatmentPlans, id);
-    const items = await this.itemsFor(actor.clinicId, [row.id]);
 
-    return toPlan(row, items.get(row.id) ?? []);
+    return this.withSummary(actor.clinicId, row);
   }
 
   async create(actor: AuthenticatedUser, input: CreateTreatmentPlanInput): Promise<TreatmentPlan> {
@@ -146,12 +124,7 @@ export class TreatmentPlansService implements OnModuleInit {
       throw new Error("Failed to create treatment plan");
     }
 
-    const items: TreatmentPlanItem[] = [];
-    for (const item of input.items) {
-      items.push(await this.insertItem(actor, row.id, item));
-    }
-
-    return toPlan(row, items);
+    return toPlan(row, EMPTY_PLAN_SUMMARY);
   }
 
   async update(
@@ -182,220 +155,92 @@ export class TreatmentPlansService implements OnModuleInit {
       throw new Error("Failed to update treatment plan");
     }
 
-    const items = await this.itemsFor(actor.clinicId, [row.id]);
-    return toPlan(row, items.get(row.id) ?? []);
+    return this.withSummary(actor.clinicId, row);
   }
 
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.patientAccess.requireRow<PlanRow>(actor, treatmentPlans, id);
-    const now = new Date();
 
-    await this.db
-      .update(treatmentPlans)
-      .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
-      .where(this.scope.where(treatmentPlans, actor.clinicId, eq(treatmentPlans.id, id)));
-
-    await this.db
-      .update(treatmentPlanItems)
-      .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
-      .where(
-        this.scope.where(
-          treatmentPlanItems,
-          actor.clinicId,
-          eq(treatmentPlanItems.treatmentPlanId, id),
-        ),
-      );
-  }
-
-  async addItem(
-    actor: AuthenticatedUser,
-    planId: string,
-    input: CreateTreatmentPlanItemInput,
-  ): Promise<TreatmentPlanItem> {
-    await this.patientAccess.requireRow<PlanRow>(actor, treatmentPlans, planId);
-
-    return this.insertItem(actor, planId, input);
-  }
-
-  async updateItem(
-    actor: AuthenticatedUser,
-    itemId: string,
-    input: UpdateTreatmentPlanItemInput,
-  ): Promise<TreatmentPlanItem> {
-    const existing = await this.requireItem(actor, itemId);
-
-    if (existing.status === TREATMENT_PLAN_ITEM_STATUS.CONVERTED) {
-      throw new ConflictException("A converted plan item can no longer be edited");
-    }
-    if (input.procedureId) {
-      await this.catalog.requirePriced(actor.clinicId, input.procedureId);
-    }
-    if (input.performerDoctorId) {
-      await this.requireDoctor(actor, input.performerDoctorId);
-    }
-
-    const [row] = await this.db
-      .update(treatmentPlanItems)
-      .set({
-        ...(input.procedureId !== undefined && { procedureId: input.procedureId }),
-        ...(input.performerDoctorId !== undefined && {
-          performerDoctorId: input.performerDoctorId ?? null,
-        }),
-        ...(input.estimatedPrice !== undefined && { estimatedPrice: input.estimatedPrice }),
-        ...(input.sortOrder !== undefined && { sortOrder: input.sortOrder }),
-        ...(input.status !== undefined && { status: input.status }),
-        ...(input.notes !== undefined && { notes: input.notes ?? null }),
-        updatedAt: new Date(),
-        updatedBy: actor.id,
-      })
-      .where(
-        this.scope.where(treatmentPlanItems, actor.clinicId, eq(treatmentPlanItems.id, itemId)),
-      )
-      .returning();
-
-    if (!row) {
-      throw new Error("Failed to update treatment plan item");
-    }
-
-    return toPlanItem(row);
-  }
-
-  async softDeleteItem(actor: AuthenticatedUser, itemId: string): Promise<void> {
-    const existing = await this.requireItem(actor, itemId);
-
-    if (existing.status === TREATMENT_PLAN_ITEM_STATUS.CONVERTED) {
-      throw new ConflictException("A converted plan item can no longer be removed");
-    }
-
-    const now = new Date();
-    await this.db
-      .update(treatmentPlanItems)
-      .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
-      .where(
-        this.scope.where(treatmentPlanItems, actor.clinicId, eq(treatmentPlanItems.id, itemId)),
-      );
-  }
-
-  async convertItem(
-    actor: AuthenticatedUser,
-    itemId: string,
-    input: ConvertPlanItemInput,
-  ): Promise<PerformedProcedure> {
-    const item = await this.requireItem(actor, itemId);
-
-    if (item.status !== TREATMENT_PLAN_ITEM_STATUS.PLANNED) {
-      throw new ConflictException(`A ${item.status} plan item cannot be converted`);
-    }
-
-    const plan = await this.patientAccess.requireRow<PlanRow>(
-      actor,
-      treatmentPlans,
-      item.treatmentPlanId,
-    );
-
-    const procedure = await this.procedures.create(
-      actor,
-      {
-        patientId: plan.patientId,
-        visitId: input.visitId ?? null,
-        doctorId: input.doctorId ?? item.performerDoctorId ?? plan.doctorId,
-        procedureId: item.procedureId,
-        price: input.price ?? item.estimatedPrice,
-        discount: "0.00",
-        status: "done",
-        ...(input.performedAt !== undefined && { performedAt: input.performedAt }),
-        chartMarks: [],
-      },
-      { planItemId: item.id },
-    );
-
-    await this.db
-      .update(treatmentPlanItems)
-      .set({
-        status: TREATMENT_PLAN_ITEM_STATUS.CONVERTED,
-        updatedAt: new Date(),
-        updatedBy: actor.id,
-      })
-      .where(
-        this.scope.where(treatmentPlanItems, actor.clinicId, eq(treatmentPlanItems.id, item.id)),
-      );
-
-    return procedure;
-  }
-
-  private async insertItem(
-    actor: AuthenticatedUser,
-    planId: string,
-    input: CreateTreatmentPlanItemInput,
-  ): Promise<TreatmentPlanItem> {
-    const catalogItem = await this.catalog.requirePriced(actor.clinicId, input.procedureId);
-
-    if (input.performerDoctorId) {
-      await this.requireDoctor(actor, input.performerDoctorId);
-    }
-
-    const [row] = await this.db
-      .insert(treatmentPlanItems)
-      .values({
-        clinicId: actor.clinicId,
-        treatmentPlanId: planId,
-        procedureId: input.procedureId,
-        performerDoctorId: input.performerDoctorId ?? null,
-        estimatedPrice: input.estimatedPrice ?? catalogItem.defaultPrice,
-        sortOrder: input.sortOrder,
-        notes: input.notes ?? null,
-        createdBy: actor.id,
-        updatedBy: actor.id,
-      })
-      .returning();
-
-    if (!row) {
-      throw new Error("Failed to create treatment plan item");
-    }
-
-    return toPlanItem(row);
-  }
-
-  private async requireItem(actor: AuthenticatedUser, itemId: string): Promise<PlanItemRow> {
-    const item = await this.scope.findOneOrFail<PlanItemRow>(
-      treatmentPlanItems,
+    const unstarted = this.scope.where(
+      performedProcedures,
       actor.clinicId,
-      itemId,
+      eq(performedProcedures.treatmentPlanId, id),
+      inArray(performedProcedures.status, [
+        PERFORMED_PROCEDURE_STATUS.PLANNED,
+        PERFORMED_PROCEDURE_STATUS.CANCELLED,
+      ]),
+    );
+    const treatmentIds = (
+      await this.db
+        .select({ id: performedProcedures.id })
+        .from(performedProcedures)
+        .where(unstarted)
+    ).map((row) => row.id);
+    const snapshot = this.auditSnapshots.get(PERFORMED_PROCEDURES_ENTITY);
+    const before = await Promise.all(
+      treatmentIds.map((entityId) => snapshot?.(entityId, actor.clinicId)),
     );
 
-    await this.patientAccess.requireRow<PlanRow>(actor, treatmentPlans, item.treatmentPlanId);
+    await this.db.transaction(async (tx) => {
+      const now = new Date();
 
-    return item;
+      await tx
+        .update(performedProcedures)
+        .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
+        .where(unstarted);
+      await tx
+        .update(treatmentPlans)
+        .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
+        .where(this.scope.where(treatmentPlans, actor.clinicId, eq(treatmentPlans.id, id)));
+
+      for (const [index, entityId] of treatmentIds.entries()) {
+        await this.audit.record(
+          {
+            clinicId: actor.clinicId,
+            userId: actor.id,
+            action: AUDIT_ACTION.DELETE,
+            entity: PERFORMED_PROCEDURES_ENTITY,
+            entityId,
+            oldValue: before[index] ?? null,
+            newValue: null,
+          },
+          tx,
+        );
+      }
+    });
   }
 
-  private async itemsFor(
+  private async withSummary(clinicId: string, row: PlanRow): Promise<TreatmentPlan> {
+    const summaries = await this.summariesFor(clinicId, [row.id]);
+
+    return toPlan(row, summaries.get(row.id) ?? EMPTY_PLAN_SUMMARY);
+  }
+
+  private async summariesFor(
     clinicId: string,
     planIds: readonly string[],
-  ): Promise<Map<string, TreatmentPlanItem[]>> {
+  ): Promise<Map<string, PlanSummaryRow>> {
     if (planIds.length === 0) {
       return new Map();
     }
 
     const rows = await this.db
-      .select()
-      .from(treatmentPlanItems)
+      .select({ planId: performedProcedures.treatmentPlanId, ...planSummaryColumns })
+      .from(performedProcedures)
       .where(
         this.scope.where(
-          treatmentPlanItems,
+          performedProcedures,
           clinicId,
-          inArray(treatmentPlanItems.treatmentPlanId, [...planIds]),
+          inArray(performedProcedures.treatmentPlanId, [...planIds]),
         ),
       )
-      .orderBy(asc(treatmentPlanItems.sortOrder));
+      .groupBy(performedProcedures.treatmentPlanId);
 
-    const grouped = new Map<string, TreatmentPlanItem[]>();
-    for (const row of rows) {
-      const list = grouped.get(row.treatmentPlanId) ?? [];
-      list.push(toPlanItem(row));
-      grouped.set(row.treatmentPlanId, list);
-    }
-
-    return grouped;
+    return new Map(
+      rows.flatMap(({ planId, ...summary }) =>
+        planId === null ? [] : [[planId, summary] as const],
+      ),
+    );
   }
 
   private async requireDoctor(actor: AuthenticatedUser, doctorId: string): Promise<void> {

@@ -1,3 +1,4 @@
+import { foldDigits } from "@clinic/shared";
 import {
   useEffect,
   useRef,
@@ -12,7 +13,7 @@ import { Alert, Button, cx } from "@web/booking/ui";
 const LENGTH = 6;
 const RESEND_SECONDS = 60;
 
-const digitsOnly = (value: string): string => value.replace(/\D/g, "");
+const digitsOnly = (value: string): string => foldDigits(value).replace(/\D/g, "");
 
 export function OtpStep({
   phone,

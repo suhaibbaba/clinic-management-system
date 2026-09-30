@@ -134,6 +134,16 @@ export function LoginPage(): JSX.Element {
             {isSubmitting ? ellipsis(t("auth.submitting")) : t("auth.submit")}
           </Button>
 
+          <Button
+            variant="secondary"
+            icon={<Icon name="mail" />}
+            data-testid="login-code-link"
+            className="w-full"
+            onClick={() => void navigate("/login/code", { state: location.state })}
+          >
+            {t("auth.codeLink")}
+          </Button>
+
           <Link
             to="/forgot-password"
             data-testid="login-forgot-link"

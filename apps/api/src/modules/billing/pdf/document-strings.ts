@@ -26,7 +26,7 @@ const AR = {
     period: "الفترة",
     periodUntil: "الفترة حتى",
     openingBalance: "رصيد أول المدة",
-    closingBalance: "الرصيد المستحق",
+    closingBalance: "الرصيد المتبقي",
     totalCharges: "مجموع المدين",
     totalPayments: "مجموع الدائن",
     printedAt: "تاريخ الطباعة",
@@ -65,7 +65,7 @@ const AR = {
     period: "الفترة",
     periodUntil: "الفترة حتى",
     openingBalance: "رصيد أول المدة",
-    closingBalance: "الرصيد المستحق للمخبر",
+    closingBalance: "الرصيد المتبقي للمخبر",
     printedAt: "تاريخ الطباعة",
     columns: {
       date: "التاريخ",

@@ -31,7 +31,7 @@ export {
 } from "@ui/components/confirm-dialog";
 export { Money } from "@ui/components/money";
 export { MoneyInput } from "@ui/components/money-input";
-export { QuantityInput, cleanQuantity } from "@ui/components/quantity-input";
+export { QuantityInput } from "@ui/components/quantity-input";
 export { PageAction } from "@ui/components/page-action";
 export { PageHeader } from "@ui/components/page-header";
 export { PasswordInput } from "@ui/components/password-input";

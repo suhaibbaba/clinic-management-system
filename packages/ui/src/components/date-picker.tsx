@@ -1,3 +1,4 @@
+import { foldDigits } from "@clinic/shared";
 import { format, isValid, parse } from "date-fns";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
@@ -112,7 +113,7 @@ export function DatePicker({
             aria-invalid={hasError || outOfRange || undefined}
             placeholder={t("common.placeholders.date")}
             value={typed}
-            onChange={(event) => commit(event.target.value)}
+            onChange={(event) => commit(foldDigits(event.target.value).replace(/[^\d/]/g, ""))}
             {...picker.opens(false)}
             onKeyDown={openOnArrowDown(picker.show)}
             className={cn(FIELD_TEXT, "page-rtl:text-right page-ltr:text-left", "tabular-nums")}

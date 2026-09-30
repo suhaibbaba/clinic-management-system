@@ -186,6 +186,25 @@ export const loginThrottles = pgTable("login_throttles", {
   lockedUntil: timestamp("locked_until", { withTimezone: true }),
 });
 
+export const loginCodes = pgTable(
+  "login_codes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    codeHash: text("code_hash").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    attempts: integer("attempts").notNull().default(0),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("login_codes_user_created_idx").on(table.userId, table.createdAt)],
+);
+
 export const auditLog = pgTable(
   "audit_log",
   {

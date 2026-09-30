@@ -1,0 +1,1 @@
+export const LOGIN_CODE_RESEND_SECONDS = 60;

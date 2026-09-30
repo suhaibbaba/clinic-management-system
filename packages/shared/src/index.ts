@@ -3,6 +3,7 @@ export * from "@shared/constants/dental";
 export * from "@shared/enums";
 export * from "@shared/geo/coordinates";
 export * from "@shared/text/arabic";
+export * from "@shared/text/digits";
 export * from "@shared/time/zone";
 export * from "@shared/schemas/ai";
 export * from "@shared/schemas/appointments";

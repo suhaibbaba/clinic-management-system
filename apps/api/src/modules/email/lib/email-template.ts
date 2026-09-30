@@ -3,7 +3,8 @@ export interface EmailLayout {
   readonly logoContentId?: string | undefined;
   readonly heading: string;
   readonly body: readonly string[];
-  readonly action: { readonly label: string; readonly url: string };
+  readonly action?: { readonly label: string; readonly url: string };
+  readonly code?: string;
   readonly footer: string;
 }
 
@@ -33,6 +34,21 @@ export function renderEmail(layout: EmailLayout): { html: string; text: string }
     )
     .join("");
 
+  const code = layout.code
+    ? `<tr><td style="padding:8px 24px 24px" align="center">
+    <div dir="ltr" style="display:inline-block;padding:14px 24px;border-radius:12px;background:${CANVAS};border:1px solid ${LINE};font:600 32px/1 'Courier New',monospace;letter-spacing:8px;color:${INK}">${escape(layout.code)}</div>
+  </td></tr>`
+    : "";
+
+  const action = layout.action
+    ? `<tr><td style="padding:8px 24px 24px" align="right">
+    <a href="${escape(layout.action.url)}" style="display:inline-block;padding:12px 22px;border-radius:10px;background:${PRIMARY};color:#ffffff;font:500 15px/1 Tahoma,Arial,sans-serif;text-decoration:none">${escape(layout.action.label)}</a>
+  </td></tr>
+  <tr><td style="padding:0 24px 24px" align="right">
+    <p style="margin:0;font:400 12px/1.6 Tahoma,Arial,sans-serif;color:${MUTED};word-break:break-all">${escape(layout.action.url)}</p>
+  </td></tr>`
+    : "";
+
   const html = `<!doctype html>
 <html dir="rtl" lang="ar"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><title>${escape(layout.heading)}</title></head>
 <body style="margin:0;padding:24px 12px;background:${CANVAS}">
@@ -43,12 +59,7 @@ export function renderEmail(layout: EmailLayout): { html: string; text: string }
     <h1 style="margin:0;font:600 20px/1.5 Tahoma,Arial,sans-serif;color:${INK}">${escape(layout.heading)}</h1>
   </td></tr>
   <tr><td style="padding:12px 24px 0" align="right">${paragraphs}</td></tr>
-  <tr><td style="padding:8px 24px 24px" align="right">
-    <a href="${escape(layout.action.url)}" style="display:inline-block;padding:12px 22px;border-radius:10px;background:${PRIMARY};color:#ffffff;font:500 15px/1 Tahoma,Arial,sans-serif;text-decoration:none">${escape(layout.action.label)}</a>
-  </td></tr>
-  <tr><td style="padding:0 24px 24px" align="right">
-    <p style="margin:0;font:400 12px/1.6 Tahoma,Arial,sans-serif;color:${MUTED};word-break:break-all">${escape(layout.action.url)}</p>
-  </td></tr>
+  ${code}${action}
   <tr><td style="padding:16px 24px;border-top:1px solid ${LINE}" align="right">
     <p style="margin:0;font:400 12px/1.6 Tahoma,Arial,sans-serif;color:${MUTED}">${escape(layout.footer)}</p>
   </td></tr>
@@ -63,8 +74,8 @@ export function renderEmail(layout: EmailLayout): { html: string; text: string }
     "",
     ...layout.body,
     "",
-    `${layout.action.label}: ${layout.action.url}`,
-    "",
+    ...(layout.code ? [layout.code, ""] : []),
+    ...(layout.action ? [`${layout.action.label}: ${layout.action.url}`, ""] : []),
     layout.footer,
   ].join("\n");
 

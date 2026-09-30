@@ -1,11 +1,21 @@
-import type { Clinic, ProcedureCatalogItem, TreatmentPlan } from "@clinic/shared";
+import type {
+  Clinic,
+  PerformedProcedure,
+  ProcedureCatalogItem,
+  TreatmentPlan,
+} from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { PrintLetterhead } from "@web/shared/components/brand/print-letterhead";
-import { planRemaining, planTotal } from "@web/modules/patients/lib/treatment-plans/plan-total";
+import {
+  netPrice,
+  newestTreatmentsFirst,
+  treatmentTeeth,
+} from "@web/modules/patients/lib/treatments/treatments";
 
 interface PlanPrintProps {
   readonly plan: TreatmentPlan;
+  readonly treatments: readonly PerformedProcedure[];
   readonly clinic: Clinic | undefined;
   readonly patientName: string;
   readonly fileNumber: string;
@@ -15,6 +25,7 @@ interface PlanPrintProps {
 
 export function PlanPrint({
   plan,
+  treatments,
   clinic,
   patientName,
   fileNumber,
@@ -22,7 +33,7 @@ export function PlanPrint({
   doctorName,
 }: PlanPrintProps): JSX.Element {
   const { t } = useTranslation();
-  const items = plan.items ?? [];
+  const items = newestTreatmentsFirst(treatments);
   const currency = clinic?.currency ?? "";
 
   const nameOf = (procedureId: string): string =>
@@ -68,10 +79,15 @@ export function PlanPrint({
           {items.map((item, index) => (
             <tr key={item.id} data-testid={`plan-print-item-${item.id}`}>
               <td dir="ltr">{index + 1}</td>
-              <td>{nameOf(item.procedureId)}</td>
-              <td>{t(`treatmentPlans.itemStatus.${item.status}`)}</td>
+              <td>
+                {nameOf(item.procedureId)}
+                {treatmentTeeth(item).length > 0 && (
+                  <span dir="ltr"> · {treatmentTeeth(item).join(", ")}</span>
+                )}
+              </td>
+              <td>{t(`chart.procedureStatus.${item.status}`)}</td>
               <td dir="ltr">
-                {item.estimatedPrice} {currency}
+                {netPrice(item)} {currency}
               </td>
             </tr>
           ))}
@@ -82,7 +98,7 @@ export function PlanPrint({
               {t("treatmentPlans.total")}
             </th>
             <td dir="ltr">
-              {planTotal(items)} {currency}
+              {plan.summary.total} {currency}
             </td>
           </tr>
           <tr>
@@ -90,7 +106,7 @@ export function PlanPrint({
               {t("treatmentPlans.remaining")}
             </th>
             <td dir="ltr">
-              {planRemaining(items)} {currency}
+              {plan.summary.remaining} {currency}
             </td>
           </tr>
         </tfoot>

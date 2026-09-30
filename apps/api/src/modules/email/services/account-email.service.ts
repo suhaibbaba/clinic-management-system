@@ -3,7 +3,12 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { personName } from "@clinic/shared";
 import { type Env } from "@api/config/env.schema";
-import { EMAIL_PROVIDER, COPY, LOGO_CONTENT_ID } from "@api/modules/email/constants";
+import {
+  EMAIL_PROVIDER,
+  COPY,
+  LOGIN_CODE_COPY,
+  LOGO_CONTENT_ID,
+} from "@api/modules/email/constants";
 import { type EmailProvider } from "@api/modules/email/lib/email-provider";
 import { renderEmail } from "@api/modules/email/lib/email-template";
 import { StorageService } from "@api/modules/storage/services/storage.service";
@@ -63,6 +68,36 @@ export class AccountEmailService {
       fromName: clinicName,
       ...(clinic.email ? { replyTo: clinic.email } : {}),
       subject: copy.subject(clinicName),
+      html,
+      text,
+      ...(logo ? { attachments: [logo] } : {}),
+    });
+  }
+
+  async sendLoginCode(
+    recipient: AccountEmailRecipient,
+    clinic: ClinicLetterhead,
+    code: string,
+    minutes: number,
+  ): Promise<void> {
+    const clinicName = personName(clinic.name, "ar");
+    const who = personName(recipient.name, "ar");
+    const logo = await this.logo(clinic.logoKey);
+
+    const { html, text } = renderEmail({
+      clinicName,
+      ...(logo ? { logoContentId: LOGO_CONTENT_ID } : {}),
+      heading: LOGIN_CODE_COPY.heading,
+      body: LOGIN_CODE_COPY.body(who, clinicName, minutes),
+      code,
+      footer: LOGIN_CODE_COPY.footer,
+    });
+
+    await this.provider.send({
+      to: recipient.email,
+      fromName: clinicName,
+      ...(clinic.email ? { replyTo: clinic.email } : {}),
+      subject: LOGIN_CODE_COPY.subject(clinicName),
       html,
       text,
       ...(logo ? { attachments: [logo] } : {}),

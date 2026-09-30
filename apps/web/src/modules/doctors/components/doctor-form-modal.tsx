@@ -1,6 +1,5 @@
 import { personName, type Doctor, type WeeklySchedule } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
-import { foldDigits } from "@clinic/ui/lib/digits";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -285,7 +284,7 @@ export function DoctorFormModal({
             inputMode="numeric"
             dir="ltr"
             value={duration}
-            onChange={(event) => setDuration(foldDigits(event.target.value).replace(/\D/g, ""))}
+            onChange={(event) => setDuration(event.target.value)}
           />
         </FormField>
 

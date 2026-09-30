@@ -214,10 +214,6 @@ data of any kind (ROLES.md field rules).
 | `POST`   | `/treatment-plans`                                | admin, doctor                        |
 | `PATCH`  | `/treatment-plans/:id`                            | admin, doctor                        |
 | `DELETE` | `/treatment-plans/:id`                            | admin (soft delete)                  |
-| `POST`   | `/treatment-plans/:id/items`                      | admin, doctor                        |
-| `PATCH`  | `/plan-items/:id`                                 | admin, doctor                        |
-| `DELETE` | `/plan-items/:id`                                 | admin (soft delete)                  |
-| `POST`   | `/plan-items/:id/convert`                         | admin, doctor                        |
 | `GET`    | `/prescriptions`, `/prescriptions/:id`            | admin, doctor                        |
 | `POST`   | `/prescriptions`                                  | admin, doctor                        |
 | `PATCH`  | `/prescriptions/:id`                              | admin, doctor                        |
@@ -354,7 +350,7 @@ page would put the wrong side of the mouth on the wrong side of the screen.
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Tooth chart                      | The interactive FDI chart described above.                                                                                                             |
 | Visits                           | One card per encounter — complaint, examination, diagnosis — with the procedures carried out during it listed inside and editable there.               |
-| Treatment plans                  | Ordered items with a quoted total, per-item statuses, one-way conversion into a performed procedure, and a printable quote on the clinic's letterhead. |
+| Treatment plans                  | A named group of the patient's treatments; each treatment moves planned → in progress → done (or cancelled) and bills once work starts. Totals, done and remaining are computed from the treatments, with a printable quote on the clinic's letterhead. |
 | Imaging                          | Grid of X-rays and documents. Uploads go presign → straight to storage → confirm; each thumbnail asks for its own short-lived signed URL.              |
 | Prescriptions, timeline, billing | Placeholders until their modules land.                                                                                                                 |
 

@@ -91,7 +91,7 @@ export function PlanFormModal({
         await update.mutateAsync({ id: plan.id, body });
         toast.success("treatmentPlans.updated");
       } else {
-        await create.mutateAsync({ ...body, patientId, items: [] });
+        await create.mutateAsync({ ...body, patientId });
         toast.success("treatmentPlans.created");
       }
       onOpenChange(false);

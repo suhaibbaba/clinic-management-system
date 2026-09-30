@@ -151,7 +151,19 @@
     "forgotSubtitle": "أدخل بريدك الإلكتروني أو رقم هاتفك وسنرسل لك رابطاً.",
     "forgotSubmit": "أرسل الرابط",
     "forgotSent": "إذا كان لهذا الحساب بريد مسجّل فقد أُرسل الرابط إليه.",
-    "forgotLink": "نسيت كلمة المرور؟"
+    "forgotLink": "نسيت كلمة المرور؟",
+    "codeLink": "الدخول برمز عبر البريد الإلكتروني",
+    "codeTitle": "الدخول برمز",
+    "codeSubtitle": "أدخل بريدك الإلكتروني وسنرسل لك رمزاً من ٦ أرقام.",
+    "codeEmail": "البريد الإلكتروني",
+    "codeSend": "أرسل الرمز",
+    "codeSentTo": "إن كان هذا البريد مسجّلاً لدينا فقد أرسلنا إليه رمزاً: ",
+    "code": "رمز الدخول",
+    "codeVerify": "دخول",
+    "codeResend": "أرسل رمزاً جديداً",
+    "codeResendIn": "يمكنك طلب رمز جديد بعد {{seconds}} ثانية",
+    "codeChangeEmail": "تغيير البريد الإلكتروني",
+    "withPassword": "الدخول بكلمة المرور"
   },
   "users": {
     "activate": "تفعيل",
@@ -445,7 +457,7 @@
       "hasPayments": "لا يمكن الحذف — يوجد دفعات مرتبطة؛ ألغِ الدفعات أولاً أو استخدم تصحيحاً"
     },
     "payment": {
-      "exceedsBalance": "المبلغ أكبر من الرصيد المستحق على المريض",
+      "exceedsBalance": "المبلغ أكبر من الرصيد المتبقي على المريض",
       "reversed": "لا يمكن حذف دفعة ملغاة أو قيد إلغاء؛ الرصيد يعتمد على الاثنين معاً"
     },
     "stock": {
@@ -461,7 +473,8 @@
     },
     "tooMany": "طلبات كثيرة في وقت قصير، انتظر قليلًا ثم حاول مجددًا",
     "auth": {
-      "locked": "محاولات دخول خاطئة كثيرة. حاول مجددًا بعد ربع ساعة."
+      "locked": "محاولات دخول خاطئة كثيرة. حاول مجددًا بعد ربع ساعة.",
+      "codeInvalid": "الرمز غير صحيح أو انتهت صلاحيته. اطلب رمزاً جديداً إن لزم."
     },
     "appointment": {
       "dayNotReached": "لم يحن يوم هذا الموعد بعد",
@@ -581,14 +594,14 @@
     "procedureStatus": {
       "planned": "مخطّط",
       "in_progress": "قيد التنفيذ",
-      "done": "منجز"
+      "done": "منجز",
+      "cancelled": "ملغاة"
     },
     "panel": {
       "title": "السن",
       "description": "تفاصيل السن المحدّد ومعالجاته.",
       "history": "سجلّ المعالجات",
       "noProcedures": "لا توجد معالجات على هذا السن",
-      "addProcedure": "تسجيل معالجة",
       "procedure": "المعالجة",
       "selectProcedure": "اختر المعالجة",
       "doctor": "الطبيب",
@@ -600,7 +613,6 @@
       "discountNeedsReason": "الخصم يتطلّب ذكر السبب",
       "date": "التاريخ",
       "openFile": "فتح الملف",
-      "recorded": "تم تسجيل المعالجة",
       "procedureCount": "{{count}} معالجة"
     }
   },
@@ -658,7 +670,6 @@
     "notes": "ملاحظات",
     "procedures": "المعالجات المنفّذة",
     "noProcedures": "لا توجد معالجات مسجّلة في هذه الزيارة",
-    "procedureUpdated": "تم تحديث المعالجة",
     "empty": "لا توجد زيارات مسجّلة",
     "emptyHint": "سجّل أول زيارة لهذا المريض.",
     "loadFailed": "تعذّر تحميل الزيارات.",
@@ -667,7 +678,6 @@
     "addTreatment": "إضافة علاج",
     "menu": "خيارات الزيارة",
     "deleted": "تم حذف الزيارة",
-    "procedureDeleted": "تم حذف المعالجة",
     "confirmDelete": {
       "title": "حذف زيارة {{date}}؟",
       "procedures_zero": "لا معالجات مسجّلة فيها",
@@ -679,20 +689,9 @@
       "attachments": "تُحذف معها صورها ومرفقاتها وعلامات مخطط الأسنان",
       "audit": "يبقى كل ذلك في سجل التدقيق"
     },
-    "confirmProcedure": {
-      "title": "حذف معالجة: {{name}}؟",
-      "titleWithTooth": "حذف معالجة: {{name}} — سن {{tooth}}؟",
-      "charge": "تُعكس رسومها في الحساب بقيد عكسي، ولا يُمحى أيّ قيد",
-      "chart": "تُزال علاماتها من مخطط الأسنان"
-    },
     "visit": "زيارة",
     "teeth": "الأسنان",
-    "procedureMenu": "خيارات المعالجة",
-    "addTreatmentTitle": "إضافة علاج — زيارة {{date}}",
-    "editTreatmentTitle": "تعديل: {{name}}",
-    "proceduresTitle": "معالجات زيارة {{date}}",
-    "proceduresTotal": "الإجمالي",
-    "tooth": "السن"
+    "proceduresTitle": "معالجات زيارة {{date}}"
   },
   "treatmentPlans": {
     "create": "خطة جديدة",
@@ -703,12 +702,6 @@
     "emptyHint": "أنشئ خطة، وأضف إليها المعالجات المقترحة، واطبعها ليوافق عليها المريض.",
     "loadFailed": "تعذّر تحميل الخطط العلاجية.",
     "noItems": "لا توجد بنود في هذه الخطة",
-    "addItem": "إضافة بند",
-    "itemAdded": "تمت إضافة البند",
-    "itemCancelled": "تم إلغاء البند",
-    "cancelItem": "إلغاء",
-    "convert": "تحويل إلى معالجة",
-    "converted": "تم تحويل البند إلى معالجة",
     "needsDoctor": "لا يوجد طبيب مسجّل في العيادة",
     "status": "الحالة",
     "estimatedPrice": "السعر التقديري",
@@ -725,11 +718,6 @@
       "completed": "مكتملة",
       "cancelled": "ملغاة"
     },
-    "itemStatus": {
-      "planned": "مخطّط",
-      "converted": "منفّذ",
-      "cancelled": "ملغى"
-    },
     "filterByStatus": "الحالة",
     "noneInFilter": "لا توجد خطط بهذه الحالة",
     "noneInFilterHint": "غيّر الحالة لعرض خطط أخرى.",
@@ -743,23 +731,44 @@
     "responsibleDoctor": "الطبيب المسؤول",
     "notes": "ملاحظات",
     "notesOf": "ملاحظات «{{title}}»",
-    "showAllItems": "عرض كل البنود ({{count}})",
-    "itemsOf": "بنود «{{title}}»",
     "menu": "خيارات الخطة",
-    "itemMenu": "خيارات البند",
     "confirmDelete": {
       "title": "حذف الخطة «{{title}}»؟",
       "consequence": "تُحذف بنودها معها، وتبقى المعالجات المنفّذة محفوظة."
     },
     "deleted": "تم حذف الخطة",
-    "confirmDeleteItem": "إزالة «{{name}}» من الخطة؟",
-    "itemDeleted": "تمت إزالة البند",
-    "editItem": "تعديل البند",
-    "itemUpdated": "تم تعديل البند",
-    "performer": "المنفِّذ",
-    "performerHint": "اتركه فارغاً ليكون الطبيب المسؤول عن الخطة.",
-    "performerPlanDoctor": "طبيب الخطة",
-    "performedBy": "بواسطة {{name}}"
+    "completedAmount": "المنجَز",
+    "treatments": "المعالجات",
+    "treatmentsOf": "معالجات {{title}}"
+  },
+  "treatments": {
+    "plan": "خطة العلاج",
+    "noPlan": "بدون خطة",
+    "menu": "إجراءات المعالجة",
+    "moveTo": {
+      "planned": "إعادة إلى المخطّط",
+      "in_progress": "بدء المعالجة",
+      "done": "تحديد كمنجزة",
+      "cancelled": "إلغاء المعالجة"
+    },
+    "moved": {
+      "planned": "أُعيدت المعالجة إلى المخطّط",
+      "in_progress": "بدأت المعالجة",
+      "done": "أُنجزت المعالجة",
+      "cancelled": "أُلغيت المعالجة"
+    },
+    "recorded": "تم حفظ المعالجة",
+    "updated": "تم تحديث المعالجة",
+    "deleted": "تم حذف المعالجة",
+    "add": "إضافة معالجة",
+    "edit": "تعديل المعالجة",
+    "total": "الإجمالي",
+    "fromPlan": "من الخطة",
+    "confirmDelete": {
+      "title": "حذف معالجة: {{name}}؟",
+      "charge": "تُعكس رسومها في الحساب بقيد عكسي، ولا يُمحى أيّ قيد",
+      "chart": "تُزال علاماتها من مخطط الأسنان"
+    }
   },
   "imaging": {
     "uploadTitle": "أضف صورة أشعة أو مستنداً",
@@ -780,7 +789,7 @@
     }
   },
   "billing": {
-    "outstanding": "الرصيد المستحق",
+    "outstanding": "الرصيد المتبقي",
     "dueToday": "مستحق اليوم",
     "lastPayment": "آخر دفعة",
     "recordPayment": "تسجيل دفعة",
@@ -1050,7 +1059,7 @@
       "owedCaption": "ما تدين به العيادة لكل المختبرات",
       "open": "أعمال جارية",
       "openCaption": "أعمال ما زالت لدى المختبر",
-      "balance": "الرصيد المستحق",
+      "balance": "الرصيد المتبقي",
       "balanceCaption": "قيمة الأعمال المرسلة ناقص المدفوع",
       "owedTotal": "قيمة الأعمال",
       "owedTotalCaption": "تُحتسب من لحظة الإرسال؛ لا يخرجها إلا الإلغاء",
@@ -1732,11 +1741,6 @@
         "list": "عرض الصلاحيات",
         "update": "تعديل صلاحيات الأدوار"
       },
-      "plan-items": {
-        "convert": "تحويل بند خطة إلى معالجة",
-        "remove": "حذف بند من خطة",
-        "update": "تعديل بند في خطة"
-      },
       "prescriptions": {
         "create": "إضافة وصفة",
         "findOne": "فتح وصفة",
@@ -1771,7 +1775,6 @@
         "get": "عرض تاريخ السن"
       },
       "treatment-plans": {
-        "addItem": "إضافة بند إلى خطة علاجية",
         "create": "إنشاء خطة علاجية",
         "findOne": "فتح خطة علاجية",
         "list": "عرض الخطط العلاجية",
@@ -1865,7 +1868,6 @@
       "payments": "الفواتير والدفعات",
       "performed-procedures": "المعالجات",
       "permissions": "الصلاحيات",
-      "plan-items": "الخطط العلاجية",
       "prescriptions": "الوصفات الطبية",
       "procedure-catalog": "قائمة الأسعار",
       "suppliers": "الموردون",

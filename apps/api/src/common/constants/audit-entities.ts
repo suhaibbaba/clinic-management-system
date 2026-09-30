@@ -10,8 +10,6 @@ export const PERFORMED_PROCEDURES_ENTITY = "performed_procedures";
 
 export const TREATMENT_PLANS_ENTITY = "treatment_plans";
 
-export const TREATMENT_PLAN_ITEMS_ENTITY = "treatment_plan_items";
-
 export const VISITS_ENTITY = "visits";
 
 export const PATIENTS_ENTITY = "patients";

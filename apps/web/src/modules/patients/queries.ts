@@ -13,7 +13,6 @@ import type {
   CreatePerformedProcedureInput,
   CreatePrescriptionInput,
   CreateTreatmentPlanInput,
-  CreateTreatmentPlanItemInput,
   CreateVisitInput,
   ListAttachmentsQuery,
   ListTimelineQuery,
@@ -29,7 +28,6 @@ import type {
   UpdatePatientInput,
   UpdatePerformedProcedureInput,
   UpdateTreatmentPlanInput,
-  UpdateTreatmentPlanItemInput,
   UpdateVisitInput,
   Visit,
 } from "@clinic/shared";
@@ -147,11 +145,7 @@ export function useCreateProcedure(patientId: string) {
       queryClient.setQueryData(key, context?.previous);
     },
 
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: key });
-      void queryClient.invalidateQueries({ queryKey: [TOOTH_HISTORY_KEY, patientId] });
-      void queryClient.invalidateQueries({ queryKey: [BALANCE_KEY, patientId] });
-    },
+    onSettled: () => invalidateClinical(queryClient, patientId),
   });
 }
 
@@ -176,7 +170,7 @@ function optimisticProcedure(
     discount: body.discount,
     discountReason: body.discountReason ?? null,
     status: body.status,
-    planItemId: null,
+    treatmentPlanId: body.treatmentPlanId ?? null,
     performedAt: body.performedAt ?? now,
     notes: body.notes ?? null,
     createdAt: now,
@@ -260,8 +254,7 @@ export function useUpdateProcedure(patientId: string) {
         [PATIENT_PROCEDURES_KEY, patientId],
         (current = []) => current.map((row) => (row.id === updated.id ? updated : row)),
       );
-      void queryClient.invalidateQueries({ queryKey: [TOOTH_HISTORY_KEY, patientId] });
-      void queryClient.invalidateQueries({ queryKey: [BALANCE_KEY, patientId] });
+      invalidateClinical(queryClient, patientId);
     },
   });
 }
@@ -275,6 +268,7 @@ function invalidateClinical(queryClient: ReturnType<typeof useQueryClient>, pati
     PATIENT_TIMELINE_KEY,
     BALANCE_KEY,
     STATEMENT_KEY,
+    PATIENT_PLANS_KEY,
   ]) {
     void queryClient.invalidateQueries({ queryKey: [key, patientId] });
   }
@@ -330,48 +324,6 @@ export function useDeleteTreatmentPlan(patientId: string) {
   return useMutation({
     mutationFn: (id: string) => patientsApi.removeTreatmentPlan(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [PATIENT_PLANS_KEY, patientId] }),
-  });
-}
-
-export function useDeletePlanItem(patientId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (itemId: string) => patientsApi.removePlanItem(itemId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [PATIENT_PLANS_KEY, patientId] }),
-  });
-}
-
-export function useAddPlanItem(patientId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ planId, body }: { planId: string; body: CreateTreatmentPlanItemInput }) =>
-      patientsApi.addPlanItem(planId, body),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [PATIENT_PLANS_KEY, patientId] }),
-  });
-}
-
-export function useUpdatePlanItem(patientId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ itemId, body }: { itemId: string; body: UpdateTreatmentPlanItemInput }) =>
-      patientsApi.updatePlanItem(itemId, body),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [PATIENT_PLANS_KEY, patientId] }),
-  });
-}
-
-export function useConvertPlanItem(patientId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (itemId: string) => patientsApi.convertPlanItem(itemId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: [PATIENT_PLANS_KEY, patientId] });
-      void queryClient.invalidateQueries({ queryKey: [PATIENT_PROCEDURES_KEY, patientId] });
-      void queryClient.invalidateQueries({ queryKey: [TOOTH_HISTORY_KEY, patientId] });
-    },
   });
 }
 

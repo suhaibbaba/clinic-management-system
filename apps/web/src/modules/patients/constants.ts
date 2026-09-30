@@ -45,8 +45,6 @@ export const PLAN_FULL_LIST_UP_TO = 4;
 
 export const PLAN_PREVIEW_ITEMS = 3;
 
-export const VISIT_PROCEDURE_FORM_ID = "visit-procedure-form";
-
 export const SELECTABLE_SURFACES = ["B", "M", "O", "D", "L"] as const;
 
 export const SURFACE_BOX = 120;
@@ -55,6 +53,6 @@ export const SURFACE_INSET = 34;
 
 export const TREATMENT_PLAN_FORM_ID = "treatment-plan-form";
 
-export const TREATMENT_PLAN_ITEM_FORM_ID = "treatment-plan-item-form";
+export const TREATMENT_FORM_ID = "treatment-form";
 
-export const PLAN_DOCTOR_VALUE = "";
+export const NO_PLAN_VALUE = "";

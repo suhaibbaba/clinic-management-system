@@ -252,6 +252,26 @@ describe("tooth state derivation", () => {
       });
     });
 
+    it("leaves a tooth untouched by a cancelled treatment", () => {
+      const summaries = deriveToothSummaries(
+        [makeProcedure(46, { procedureId: CATALOG.crown, status: "cancelled" })],
+        OUTCOMES,
+        STATES,
+      );
+
+      expect(summaries.has(46)).toBe(false);
+    });
+
+    it("shows a planned treatment as planned on its tooth", () => {
+      const summaries = deriveToothSummaries(
+        [makeProcedure(16, { procedureId: CATALOG.filling, status: "planned" })],
+        OUTCOMES,
+        STATES,
+      );
+
+      expect(summaries.get(16)?.state).toBe(TOOTH_STATE.PLANNED);
+    });
+
     it("ignores a procedure with no chart mark at all", () => {
       const wholeMouth = makeProcedure(46, { chartMarks: [] });
 

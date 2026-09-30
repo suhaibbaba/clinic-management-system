@@ -368,11 +368,11 @@ describe("Patient page", () => {
       await findChart();
       await userEvent.click(toothButton(16));
       await screen.findByRole("dialog");
-      await userEvent.click(screen.getByRole("button", { name: ar.chart.panel.addProcedure }));
+      await userEvent.click(screen.getByRole("button", { name: ar.treatments.add }));
     }
 
     async function submitProcedure() {
-      const dialog = screen.getByRole("dialog");
+      const dialog = (await screen.findAllByRole("dialog")).at(-1) as HTMLElement;
       await choose(within(dialog).getByLabelText(ar.chart.panel.procedure), CATALOG.name);
       await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
     }

@@ -1,3 +1,4 @@
+import { foldDigits } from "@clinic/shared";
 import { useEffect, useState, type JSX, type KeyboardEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon, type IconName } from "@ui/components/icon";
@@ -11,7 +12,6 @@ import {
 } from "@ui/components/skeleton";
 import { FIELD_TEXT, fieldShell } from "@ui/components/field";
 import { cn } from "@ui/lib/cn";
-import { foldDigits } from "@ui/lib/digits";
 import { useDelayedLoading } from "@ui/lib/use-delayed-loading";
 import { useIsMobile } from "@ui/lib/use-media-query";
 import { testid, type TestIdProps } from "@ui/lib/testid";

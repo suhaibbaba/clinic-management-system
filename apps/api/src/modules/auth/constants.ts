@@ -15,3 +15,11 @@ export const ARGON2_OPTIONS = {
 } as const;
 
 export const REFRESH_TOKEN_BYTES = 32;
+
+export const LOGIN_CODE_TTL_MINUTES = 10;
+
+export const LOGIN_CODE_MAX_ATTEMPTS = 5;
+
+export const LOGIN_CODE_RESEND_SECONDS = 60;
+
+export const LOGIN_CODE_SENDS_PER_HOUR = 5;

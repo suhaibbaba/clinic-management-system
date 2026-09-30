@@ -7,7 +7,6 @@ import type {
   CreatePerformedProcedureInput,
   CreatePrescriptionInput,
   CreateTreatmentPlanInput,
-  CreateTreatmentPlanItemInput,
   CreateVisitInput,
   ListAttachmentsQuery,
   ListTimelineQuery,
@@ -21,12 +20,10 @@ import type {
   TimelineEntry,
   ToothHistory,
   TreatmentPlan,
-  TreatmentPlanItem,
   UpdatePatientInput,
   UpdatePerformedProcedureInput,
   UpdatePrescriptionInput,
   UpdateTreatmentPlanInput,
-  UpdateTreatmentPlanItemInput,
   UpdateVisitInput,
   Visit,
 } from "@clinic/shared";
@@ -138,20 +135,6 @@ export const patientsApi = {
 
   removeTreatmentPlan: (id: string): Promise<void> =>
     apiRequest(`/treatment-plans/${id}`, { method: "DELETE" }),
-
-  addPlanItem: (planId: string, body: CreateTreatmentPlanItemInput): Promise<TreatmentPlanItem> =>
-    apiRequest(`/treatment-plans/${planId}/items`, { method: "POST", body }),
-
-  updatePlanItem: (
-    itemId: string,
-    body: UpdateTreatmentPlanItemInput,
-  ): Promise<TreatmentPlanItem> => apiRequest(`/plan-items/${itemId}`, { method: "PATCH", body }),
-
-  removePlanItem: (itemId: string): Promise<void> =>
-    apiRequest(`/plan-items/${itemId}`, { method: "DELETE" }),
-
-  convertPlanItem: (itemId: string): Promise<PerformedProcedure> =>
-    apiRequest(`/plan-items/${itemId}/convert`, { method: "POST", body: {} }),
 
   attachments: (
     patientId: string,

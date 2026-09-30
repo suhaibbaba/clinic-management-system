@@ -1,7 +1,6 @@
 import {
   GENDERS,
   PERFORMED_PROCEDURE_STATUSES,
-  TREATMENT_PLAN_ITEM_STATUSES,
   TREATMENT_PLAN_STATUSES,
   type AttachmentMime,
   type BodyRegionLocation,
@@ -28,10 +27,6 @@ import { normalizedName } from "@api/database/schema/normalized-name";
 
 export const genderEnum = pgEnum("gender", GENDERS);
 export const treatmentPlanStatusEnum = pgEnum("treatment_plan_status", TREATMENT_PLAN_STATUSES);
-export const treatmentPlanItemStatusEnum = pgEnum(
-  "treatment_plan_item_status",
-  TREATMENT_PLAN_ITEM_STATUSES,
-);
 export const performedProcedureStatusEnum = pgEnum(
   "performed_procedure_status",
   PERFORMED_PROCEDURE_STATUSES,
@@ -186,33 +181,6 @@ export const treatmentPlans = pgTable(
   ],
 );
 
-export const treatmentPlanItems = pgTable(
-  "treatment_plan_items",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    clinicId: uuid("clinic_id")
-      .notNull()
-      .references(() => clinics.id),
-    treatmentPlanId: uuid("treatment_plan_id")
-      .notNull()
-      .references(() => treatmentPlans.id),
-    procedureId: uuid("procedure_id")
-      .notNull()
-      .references(() => procedureCatalog.id),
-    performerDoctorId: uuid("performer_doctor_id").references(() => doctors.id),
-    estimatedPrice: money("estimated_price").notNull(),
-    sortOrder: integer("sort_order").notNull().default(0),
-    status: treatmentPlanItemStatusEnum("status").notNull().default("planned"),
-    notes: text("notes"),
-    ...auditColumns,
-    ...softDeleteColumn,
-  },
-  (table) => [
-    index("treatment_plan_items_clinic_idx").on(table.clinicId),
-    index("treatment_plan_items_plan_idx").on(table.treatmentPlanId, table.sortOrder),
-  ],
-);
-
 export const performedProcedures = pgTable(
   "performed_procedures",
   {
@@ -234,7 +202,7 @@ export const performedProcedures = pgTable(
     discount: money("discount").notNull().default("0.00"),
     discountReason: text("discount_reason"),
     status: performedProcedureStatusEnum("status").notNull().default("done"),
-    planItemId: uuid("plan_item_id").references(() => treatmentPlanItems.id),
+    treatmentPlanId: uuid("treatment_plan_id").references(() => treatmentPlans.id),
     performedAt: timestamp("performed_at", { withTimezone: true }).notNull().defaultNow(),
     notes: text("notes"),
     ...auditColumns,
@@ -248,7 +216,7 @@ export const performedProcedures = pgTable(
       table.performedAt,
     ),
     index("performed_procedures_visit_idx").on(table.visitId),
-    uniqueIndex("performed_procedures_plan_item_uniq").on(table.planItemId).where(liveRows),
+    index("performed_procedures_plan_idx").on(table.treatmentPlanId),
   ],
 );
 

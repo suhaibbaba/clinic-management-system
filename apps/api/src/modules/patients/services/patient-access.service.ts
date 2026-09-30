@@ -1,6 +1,6 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { USER_ROLE, type UserRole } from "@clinic/shared";
-import { and, eq, exists, isNull, or, sql, type SQL } from "drizzle-orm";
+import { eq, exists, or, sql, type SQL } from "drizzle-orm";
 import { type PgColumn } from "drizzle-orm/pg-core";
 import {
   ClinicScopeService,
@@ -12,7 +12,7 @@ import {
   appointments,
   doctors,
   patients,
-  treatmentPlanItems,
+  performedProcedures,
   treatmentPlans,
 } from "@api/database/schema";
 import { PatientRow } from "@api/modules/patients/lib/patient-access";
@@ -116,22 +116,25 @@ export class PatientAccessService {
         this.db
           .select({ present: sql`1` })
           .from(treatmentPlans)
-          .leftJoin(
-            treatmentPlanItems,
-            and(
-              eq(treatmentPlanItems.treatmentPlanId, treatmentPlans.id),
-              isNull(treatmentPlanItems.deletedAt),
-            ),
-          )
           .where(
             this.scope.where(
               treatmentPlans,
               actor.clinicId,
               eq(treatmentPlans.patientId, patientIdColumn),
-              or(
-                eq(treatmentPlans.doctorId, own.id),
-                eq(treatmentPlanItems.performerDoctorId, own.id),
-              ),
+              eq(treatmentPlans.doctorId, own.id),
+            ),
+          ),
+      ),
+      exists(
+        this.db
+          .select({ present: sql`1` })
+          .from(performedProcedures)
+          .where(
+            this.scope.where(
+              performedProcedures,
+              actor.clinicId,
+              eq(performedProcedures.patientId, patientIdColumn),
+              eq(performedProcedures.doctorId, own.id),
             ),
           ),
       ),

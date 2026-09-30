@@ -6,6 +6,7 @@ import { ASSISTANT_ROLES } from "@web/shared/lib/navigation";
 import { AppLayout } from "@web/app/layout/app-layout";
 import { RequireAuth, RequireRole } from "@web/modules/auth/components/guards";
 import { ForgotPasswordPage } from "@web/modules/auth/pages/forgot-password-page";
+import { LoginCodePage } from "@web/modules/auth/pages/login-code-page";
 import { LoginPage } from "@web/modules/auth/pages/login-page";
 import { SetPasswordPage } from "@web/modules/auth/pages/set-password-page";
 import { ClinicPage } from "@web/modules/clinic/pages/clinic-page";
@@ -90,6 +91,7 @@ export function AppRoutes(): JSX.Element {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/login/code" element={<LoginCodePage />} />
       <Route path="/activate/:token" element={<SetPasswordPage purpose="activate" />} />
       <Route path="/reset/:token" element={<SetPasswordPage purpose="reset" />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />

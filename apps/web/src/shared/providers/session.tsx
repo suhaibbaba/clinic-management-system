@@ -1,4 +1,10 @@
-import type { AuthenticatedUserProfile, LoginInput, UserRole } from "@clinic/shared";
+import type {
+  AuthenticatedUserProfile,
+  LoginInput,
+  LoginResponse,
+  UserRole,
+  VerifyLoginCodeInput,
+} from "@clinic/shared";
 import {
   createContext,
   useCallback,
@@ -21,6 +27,7 @@ interface SessionValue {
   readonly status: SessionStatus;
   readonly user: AuthenticatedUserProfile | null;
   readonly login: (input: LoginInput) => Promise<void>;
+  readonly loginWithCode: (input: VerifyLoginCodeInput) => Promise<void>;
   readonly logout: () => Promise<void>;
   readonly refreshProfile: () => Promise<void>;
   readonly hasRole: (...roles: UserRole[]) => boolean;
@@ -83,12 +90,21 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
     [],
   );
 
-  const login = useCallback(async (input: LoginInput) => {
-    const response = await authApi.login(input);
+  const begin = useCallback((response: LoginResponse) => {
     authTokens.set(response.accessToken);
     setUser(response.user);
     setStatus("authenticated");
   }, []);
+
+  const login = useCallback(
+    async (input: LoginInput) => begin(await authApi.login(input)),
+    [begin],
+  );
+
+  const loginWithCode = useCallback(
+    async (input: VerifyLoginCodeInput) => begin(await authApi.verifyLoginCode(input)),
+    [begin],
+  );
 
   const refreshProfile = useCallback(async () => {
     try {
@@ -113,12 +129,13 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
       status,
       user,
       login,
+      loginWithCode,
       logout,
       refreshProfile,
       hasRole: (...roles: UserRole[]) => (user ? roles.includes(user.role) : false),
       can: (capability: string) => granted.has(capability),
     }),
-    [status, user, login, logout, refreshProfile, granted],
+    [status, user, login, loginWithCode, logout, refreshProfile, granted],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

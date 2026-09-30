@@ -39,7 +39,7 @@ export class ProceduresController {
   @AiTool({
     group: "patients",
     description:
-      "Treatments performed, filtered by patient, visit or status. Clinical. Returns a page with prices.",
+      "A patient's treatments — planned, in progress, done or cancelled — filtered by patient, visit, treatment plan or status. Clinical. Returns a page with prices.",
   })
   @Get()
   list(
@@ -51,7 +51,7 @@ export class ProceduresController {
 
   @AiTool({
     group: "patients",
-    description: "One performed treatment in full. Clinical.",
+    description: "One treatment in full. Clinical.",
   })
   @Get(":id")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
@@ -65,7 +65,7 @@ export class ProceduresController {
   @AiTool({
     group: "patients",
     description:
-      "Record a treatment performed on a patient, from the procedure catalogue; it adds its charge to the patient's balance. Waits on a typed confirmation.",
+      "Record or plan a treatment for a patient, from the procedure catalogue, optionally inside a treatment plan; once it is in progress or done it adds its charge to the patient's balance. Waits on a typed confirmation.",
     risk: AI_RISK_TIER.TYPED,
   })
   @Post()
@@ -81,7 +81,7 @@ export class ProceduresController {
   @AiTool({
     group: "patients",
     description:
-      "Change a performed treatment — its status, price or notes; the charge follows. Waits on a typed confirmation.",
+      "Change a treatment — start, complete or cancel it, or its price, plan or notes; the charge follows. Waits on a typed confirmation.",
     risk: AI_RISK_TIER.TYPED,
   })
   @Patch(":id")
