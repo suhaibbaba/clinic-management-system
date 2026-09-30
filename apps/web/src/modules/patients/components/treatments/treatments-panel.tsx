@@ -43,7 +43,7 @@ import {
   canRecordProcedure,
   canSeePrices,
 } from "@web/shared/permissions/patients";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { useSession } from "@web/shared/providers/session";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { useDoctors } from "@web/shared/queries/doctors";
@@ -87,6 +87,7 @@ export function TreatmentsPanel({
 
   const [editing, setEditing] = useState<Editing | null>(startAdding ? { treatment: null } : null);
   const [deleting, setDeleting] = useState<PerformedProcedure | null>(null);
+  const [formValid, setFormValid] = useState(false);
 
   const role = user?.role;
   const mayChange = canRecordProcedure(can);
@@ -113,7 +114,7 @@ export function TreatmentsPanel({
       await action();
       toast.success(success);
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -150,7 +151,7 @@ export function TreatmentsPanel({
       }
       setEditing(null);
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -249,6 +250,7 @@ export function TreatmentsPanel({
             <TreatmentFormActions
               formId={TREATMENT_FORM_ID}
               submitting={create.isPending || update.isPending}
+              invalid={!formValid}
               onCancel={() => setEditing(null)}
             />
           }
@@ -257,6 +259,8 @@ export function TreatmentsPanel({
             <TreatmentForm
               key={editing.treatment?.id ?? "new"}
               formId={TREATMENT_FORM_ID}
+              patientId={patientId}
+              onValidityChange={setFormValid}
               role={role}
               catalog={catalog.data ?? []}
               doctors={doctorList}
@@ -284,7 +288,7 @@ export function TreatmentsPanel({
             await remove.mutateAsync(deleting.id);
             toast.success("treatments.deleted");
           } catch (error) {
-            toast.error(errorMessageKey(error));
+            toast.error(...errorToast(error));
             throw error;
           }
         }}

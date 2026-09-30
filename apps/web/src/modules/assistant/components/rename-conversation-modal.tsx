@@ -1,9 +1,15 @@
-import { AI_TITLE_MAX_LENGTH, type AiConversation } from "@clinic/shared";
+import {
+  AI_TITLE_MAX_LENGTH,
+  renameAiConversationSchema,
+  type AiConversation,
+} from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Input, Modal, useToast } from "@clinic/ui";
 import { useRenameConversation } from "@web/modules/assistant/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
+import { schemaErrors } from "@web/shared/lib/form-errors";
+import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 
 export function RenameConversationModal({
   conversation,
@@ -16,23 +22,27 @@ export function RenameConversationModal({
   const toast = useToast();
   const rename = useRenameConversation();
   const [title, setTitle] = useState("");
+  const body = { title: title.trim() };
+  const form = useFormErrors(schemaErrors(renameAiConversationSchema, body));
+  const { reset } = form;
 
   useEffect(() => {
     if (conversation) {
       setTitle(conversation.title);
+      reset();
     }
-  }, [conversation]);
+  }, [conversation, reset]);
 
   const submit = async (): Promise<void> => {
-    if (!conversation || title.trim().length === 0) {
+    if (!form.check() || !conversation) {
       return;
     }
 
     try {
-      await rename.mutateAsync({ id: conversation.id, title: title.trim() });
+      await rename.mutateAsync({ id: conversation.id, ...body });
       onClose();
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -47,20 +57,30 @@ export function RenameConversationModal({
           <Button variant="ghost" onClick={onClose}>
             {t("common.cancel")}
           </Button>
-          <Button onClick={() => void submit()} isLoading={rename.isPending}>
+          <Button
+            {...(!form.isValid && { "aria-disabled": true })}
+            onClick={() => void submit()}
+            isLoading={rename.isPending}
+          >
             {t("common.save")}
           </Button>
         </>
       }
     >
-      <FormField htmlFor="assistant-title" label={t("assistant.title")}>
-        <Input
-          id="assistant-title"
-          value={title}
-          maxLength={AI_TITLE_MAX_LENGTH}
-          onChange={(event) => setTitle(event.target.value)}
-        />
-      </FormField>
+      <div ref={form.formRef} onBlur={form.leave("title")}>
+        <FormField
+          htmlFor="assistant-title"
+          label={t("assistant.title")}
+          error={form.errors["title"]}
+        >
+          <Input
+            id="assistant-title"
+            value={title}
+            maxLength={AI_TITLE_MAX_LENGTH}
+            onChange={(event) => setTitle(event.target.value)}
+          />
+        </FormField>
+      </div>
     </Modal>
   );
 }

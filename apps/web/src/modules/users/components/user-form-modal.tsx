@@ -10,6 +10,7 @@ import {
 } from "@clinic/shared";
 import { useEffect, type JSX } from "react";
 import { Controller, useForm, type UseFormRegister } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -24,7 +25,7 @@ import {
 import { useCreateUser, useUpdateUser } from "@web/modules/users/queries";
 import { StaffNameFields, type StaffNameValues } from "@web/shared/components/staff-name-fields";
 import { UserPhotoField } from "@web/modules/users/components/user-photo-field";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { Modal } from "@clinic/ui/components/modal";
 
 interface UserFormModalProps {
@@ -54,8 +55,9 @@ export function UserFormModal({
     handleSubmit,
     reset,
     control,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<FormValues>({
+    mode: "onTouched",
     resolver: zodResolver(isEdit ? updateUserSchema : createUserSchema) as never,
   });
 
@@ -90,28 +92,31 @@ export function UserFormModal({
 
   const email = watch("email")?.trim() ?? "";
 
-  const onSubmit = handleSubmit(async (values) => {
-    try {
-      if (user) {
-        const body: UpdateUserInput = {
-          firstName: values.firstName,
-          lastName: values.lastName,
-          phone: values.phone,
-          email: values.email ?? null,
-          role: values.role,
-        };
-        await updateUser.mutateAsync({ id: user.id, body });
-        toast.success("users.updated");
-      } else {
-        await createUser.mutateAsync(values as CreateUserInput);
-        toast.success("users.created");
-      }
+  const onSubmit = handleSubmit(
+    async (values) => {
+      try {
+        if (user) {
+          const body: UpdateUserInput = {
+            firstName: values.firstName,
+            lastName: values.lastName,
+            phone: values.phone,
+            email: values.email ?? null,
+            role: values.role,
+          };
+          await updateUser.mutateAsync({ id: user.id, body });
+          toast.success("users.updated");
+        } else {
+          await createUser.mutateAsync(values as CreateUserInput);
+          toast.success("users.created");
+        }
 
-      onOpenChange(false);
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
-  });
+        onOpenChange(false);
+      } catch (error) {
+        toast.error(...errorToast(error));
+      }
+    },
+    () => revealFirstError(),
+  );
 
   return (
     <Modal
@@ -135,6 +140,7 @@ export function UserFormModal({
             data-testid={`${testId}-save`}
             form="user-form"
             type="submit"
+            aria-disabled={!isValid || isSubmitting || undefined}
             isLoading={isSubmitting}
           >
             {t("common.save")}

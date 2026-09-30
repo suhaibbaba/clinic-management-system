@@ -1,4 +1,8 @@
-import { type ClinicSecretKind, type UpdateClinicSecretsInput } from "@clinic/shared";
+import {
+  updateClinicSecretsSchema,
+  type ClinicSecretKind,
+  type UpdateClinicSecretsInput,
+} from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Card, FormField, Icon, PasswordInput, useConfirm, useToast } from "@clinic/ui";
@@ -7,6 +11,8 @@ import { outboundErrorKey } from "@web/modules/assistant/lib/messages";
 import { useClinicSecrets, useSaveClinicSecrets } from "@web/modules/assistant/queries";
 import { formatDateTime } from "@web/shared/lib/format";
 import { PROVIDER_KEY_GROUPS } from "@web/modules/assistant/constants";
+import { schemaErrors } from "@web/shared/lib/form-errors";
+import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 
 export function ProviderKeysPanel(): JSX.Element {
   const { t } = useTranslation();
@@ -15,6 +21,15 @@ export function ProviderKeysPanel(): JSX.Element {
   const save = useSaveClinicSecrets();
   const [typed, setTyped] = useState<Partial<Record<ClinicSecretKind, string>>>({});
   const { confirm, dialog } = useConfirm("assistant-keys-confirm-clear");
+  const allEntered = Object.fromEntries(
+    Object.entries(typed).flatMap(([kind, value]) => {
+      const trimmed = value?.trim();
+
+      return trimmed ? [[kind, trimmed]] : [];
+    }),
+  );
+  const keyErrors = schemaErrors(updateClinicSecretsSchema, allEntered);
+  const form = useFormErrors(keyErrors);
 
   if (!secrets.data) {
     return <Skeleton aria-hidden="true" className="h-96 w-full rounded-card" />;
@@ -26,6 +41,7 @@ export function ProviderKeysPanel(): JSX.Element {
     save.mutate(body, {
       onSuccess: () => {
         setTyped({});
+        form.reset();
         toast.success("assistantSettings.keys.saved");
       },
       onError: (error) => toast.error(outboundErrorKey(error)),
@@ -33,7 +49,7 @@ export function ProviderKeysPanel(): JSX.Element {
   };
 
   return (
-    <div data-testid="assistant-keys" className="flex flex-col gap-4">
+    <div ref={form.formRef} data-testid="assistant-keys" className="flex flex-col gap-4">
       {dialog}
       {!encryptionAvailable && (
         <p
@@ -55,6 +71,7 @@ export function ProviderKeysPanel(): JSX.Element {
           }),
         ) as UpdateClinicSecretsInput;
         const anySet = group.kinds.some((kind) => secrets.data.secrets[kind]?.set);
+        const groupValid = group.kinds.every((kind) => !(kind in keyErrors));
 
         return (
           <Card
@@ -75,33 +92,35 @@ export function ProviderKeysPanel(): JSX.Element {
               const status = secrets.data.secrets[kind];
 
               return (
-                <FormField
-                  key={kind}
-                  label={`assistantSettings.keys.kinds.${kind}`}
-                  htmlFor={`secret-${kind}`}
-                  hint={
-                    status?.set && status.updatedAt
-                      ? t("assistantSettings.keys.current", {
-                          hint: status.hint ?? "",
-                          date: formatDateTime(status.updatedAt),
-                        })
-                      : t("assistantSettings.keys.notSet")
-                  }
-                >
-                  <PasswordInput
-                    id={`secret-${kind}`}
-                    data-testid={`secret-${kind}`}
-                    autoComplete="new-password"
-                    spellCheck={false}
-                    dir="ltr"
-                    disabled={!encryptionAvailable}
-                    placeholder={status?.set ? `…${status.hint ?? ""}` : ""}
-                    value={typed[kind] ?? ""}
-                    onChange={(event) =>
-                      setTyped((current) => ({ ...current, [kind]: event.target.value }))
+                <div key={kind} onBlur={form.leave(kind)}>
+                  <FormField
+                    label={`assistantSettings.keys.kinds.${kind}`}
+                    htmlFor={`secret-${kind}`}
+                    error={form.errors[kind]}
+                    hint={
+                      status?.set && status.updatedAt
+                        ? t("assistantSettings.keys.current", {
+                            hint: status.hint ?? "",
+                            date: formatDateTime(status.updatedAt),
+                          })
+                        : t("assistantSettings.keys.notSet")
                     }
-                  />
-                </FormField>
+                  >
+                    <PasswordInput
+                      id={`secret-${kind}`}
+                      data-testid={`secret-${kind}`}
+                      autoComplete="new-password"
+                      spellCheck={false}
+                      dir="ltr"
+                      disabled={!encryptionAvailable}
+                      placeholder={status?.set ? `…${status.hint ?? ""}` : ""}
+                      value={typed[kind] ?? ""}
+                      onChange={(event) =>
+                        setTyped((current) => ({ ...current, [kind]: event.target.value }))
+                      }
+                    />
+                  </FormField>
+                </div>
               );
             })}
 
@@ -143,7 +162,15 @@ export function ProviderKeysPanel(): JSX.Element {
                 disabled={
                   !encryptionAvailable || save.isPending || Object.keys(entered).length === 0
                 }
-                onClick={() => submit(entered)}
+                {...(!groupValid && { "aria-disabled": true })}
+                onClick={() => {
+                  if (!groupValid) {
+                    form.check();
+                    return;
+                  }
+
+                  submit(entered);
+                }}
               >
                 {t("common.save")}
               </Button>

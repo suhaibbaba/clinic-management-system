@@ -40,6 +40,7 @@ export function Button({
   type = "button",
   onClick,
   "data-testid": testId,
+  "aria-disabled": unavailable,
   ...props
 }: ButtonProps): JSX.Element {
   const part = parts("button", testId);
@@ -61,7 +62,7 @@ export function Button({
         SIZES[size],
         className,
       )}
-      aria-disabled={inert || undefined}
+      aria-disabled={inert || unavailable === true || unavailable === "true" || undefined}
       aria-busy={isLoading || undefined}
       {...props}
       onClick={(event) => {

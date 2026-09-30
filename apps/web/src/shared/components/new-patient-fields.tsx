@@ -1,8 +1,10 @@
 import { GENDERS } from "@clinic/shared";
-import type { JSX } from "react";
+import type { FocusEvent, JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, DatePicker, FormField, Icon, Input, Select } from "@clinic/ui";
+import { Button, DatePicker, FormField, Icon, Input, PhoneInput, Select } from "@clinic/ui";
+import { todayIso } from "@web/shared/lib/dates";
 import type { PatientDraft, PickedPatient } from "@web/shared/lib/patient-draft";
+import type { FieldErrors } from "@web/shared/lib/form-errors";
 
 export function NewPatientFields({
   id,
@@ -11,6 +13,8 @@ export function NewPatientFields({
   onCancel,
   clash,
   onUseExisting,
+  errors = {},
+  onLeave,
 }: {
   readonly id: string;
   readonly draft: PatientDraft;
@@ -18,6 +22,8 @@ export function NewPatientFields({
   readonly onCancel: () => void;
   readonly clash?: PickedPatient;
   readonly onUseExisting: (patient: PickedPatient) => void;
+  readonly errors?: FieldErrors | undefined;
+  readonly onLeave?: ((field: string) => (event: FocusEvent<HTMLElement>) => void) | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
 
@@ -59,35 +65,55 @@ export function NewPatientFields({
       )}
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <FormField label="patients.firstName" htmlFor={`${id}-first-name`} required>
-          <Input
-            id={`${id}-first-name`}
-            data-testid="new-patient-first-name"
-            value={draft.firstName}
-            onChange={(event) => onChange({ ...draft, firstName: event.target.value })}
-          />
-        </FormField>
+        <div onBlur={onLeave?.("firstName")}>
+          <FormField
+            label="patients.firstName"
+            htmlFor={`${id}-first-name`}
+            error={errors["firstName"]}
+            required
+          >
+            <Input
+              id={`${id}-first-name`}
+              data-testid="new-patient-first-name"
+              value={draft.firstName}
+              onChange={(event) => onChange({ ...draft, firstName: event.target.value })}
+            />
+          </FormField>
+        </div>
 
-        <FormField label="patients.lastName" htmlFor={`${id}-last-name`} required>
-          <Input
-            id={`${id}-last-name`}
-            data-testid="new-patient-last-name"
-            value={draft.lastName}
-            onChange={(event) => onChange({ ...draft, lastName: event.target.value })}
+        <div onBlur={onLeave?.("lastName")}>
+          <FormField
+            label="patients.lastName"
+            htmlFor={`${id}-last-name`}
+            error={errors["lastName"]}
+            required
+          >
+            <Input
+              id={`${id}-last-name`}
+              data-testid="new-patient-last-name"
+              value={draft.lastName}
+              onChange={(event) => onChange({ ...draft, lastName: event.target.value })}
+            />
+          </FormField>
+        </div>
+      </div>
+
+      <div onBlur={onLeave?.("phone")}>
+        <FormField
+          label="patients.phone"
+          htmlFor={`${id}-phone`}
+          error={errors["phone"]}
+          errorKey="errors.validation.invalidPhone"
+          required
+        >
+          <PhoneInput
+            id={`${id}-phone`}
+            data-testid="new-patient-phone"
+            value={draft.phone}
+            onChange={(phone) => onChange({ ...draft, phone: phone ?? "" })}
           />
         </FormField>
       </div>
-
-      <FormField label="patients.phone" htmlFor={`${id}-phone`} required>
-        <Input
-          id={`${id}-phone`}
-          data-testid="new-patient-phone"
-          type="tel"
-          dir="ltr"
-          value={draft.phone}
-          onChange={(event) => onChange({ ...draft, phone: event.target.value })}
-        />
-      </FormField>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <FormField label="patients.gender" htmlFor={`${id}-gender`} optional>
@@ -104,15 +130,23 @@ export function NewPatientFields({
           />
         </FormField>
 
-        <FormField label="patients.dateOfBirth" htmlFor={`${id}-dob`} optional>
-          <DatePicker
-            id={`${id}-dob`}
-            data-testid="new-patient-dob"
-            label={t("patients.dateOfBirth")}
-            value={draft.dateOfBirth ?? ""}
-            onChange={(next) => onChange({ ...draft, dateOfBirth: next })}
-          />
-        </FormField>
+        <div onBlur={onLeave?.("dateOfBirth")}>
+          <FormField
+            label="patients.dateOfBirth"
+            htmlFor={`${id}-dob`}
+            error={errors["dateOfBirth"]}
+            optional
+          >
+            <DatePicker
+              id={`${id}-dob`}
+              data-testid="new-patient-dob"
+              label={t("patients.dateOfBirth")}
+              value={draft.dateOfBirth ?? ""}
+              max={todayIso()}
+              onChange={(next) => onChange({ ...draft, dateOfBirth: next })}
+            />
+          </FormField>
+        </div>
       </div>
 
       <p className="text-label text-ink-muted">{t("patients.createInlineHint")}</p>

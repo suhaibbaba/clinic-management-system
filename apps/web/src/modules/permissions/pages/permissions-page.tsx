@@ -13,7 +13,7 @@ import {
 } from "@clinic/ui";
 import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { usePermissions, useUpdateRolePermission } from "@web/modules/permissions/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { ellipsis } from "@web/i18n/ellipsis";
 import {
   EDITABLE_ROLES,
@@ -80,7 +80,7 @@ export function PermissionsPage(): JSX.Element {
         await update.mutateAsync({ role, capability, allowed });
       }
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 

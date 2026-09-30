@@ -3,9 +3,11 @@ import {
   WAITING_LIST_PRIORITY,
   WAITING_LIST_SOURCE,
   WAITING_LIST_STATUS,
+  createWaitingListEntrySchema,
+  declineWaitingListEntrySchema,
   type WaitingListEntry,
 } from "@clinic/shared";
-import { useState, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Badge,
@@ -30,14 +32,15 @@ import {
   useWaitingList,
 } from "@web/modules/appointments/queries";
 import { PatientPicker } from "@web/shared/components/patient-picker";
+import { FORM_ROOT, REQUIRED, nestedErrors, schemaErrors } from "@web/shared/lib/form-errors";
+import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import {
-  isDraftComplete,
   patientPhoneClash,
   toPatientRef,
   type PatientChoice,
   type PickedPatient,
 } from "@web/shared/lib/patient-draft";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { formatDateTime } from "@web/shared/lib/format";
 import { WAITING_LIST_PRIORITY_TONES } from "@web/modules/appointments/constants";
 
@@ -68,7 +71,7 @@ export function WaitingListPanel({
       await contact.mutateAsync(id);
       toast.success("appointments.waiting.contacted");
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -211,18 +214,32 @@ function AddWalkInModal({
   const [priority, setPriority] = useState<string>(WAITING_LIST_PRIORITY.NORMAL);
   const [reason, setReason] = useState("");
 
+  const body = {
+    ...(patient ? toPatientRef(patient) : {}),
+    doctorId: doctorId === "" ? null : doctorId,
+    reason: reason.trim() === "" ? null : reason.trim(),
+    priority: priority as (typeof WAITING_LIST_PRIORITIES)[number],
+  };
+
+  const form = useFormErrors({
+    ...schemaErrors(createWaitingListEntrySchema, body),
+    ...(!patient && { [FORM_ROOT]: REQUIRED }),
+  });
+  const { errors, reset } = form;
+
+  useEffect(() => {
+    if (open) {
+      reset();
+    }
+  }, [open, reset]);
+
   const submit = async (): Promise<void> => {
-    if (!patient) {
+    if (!form.check() || !patient) {
       return;
     }
 
     try {
-      await add.mutateAsync({
-        ...toPatientRef(patient),
-        doctorId: doctorId === "" ? null : doctorId,
-        reason: reason.trim() === "" ? null : reason.trim(),
-        priority: priority as (typeof WAITING_LIST_PRIORITIES)[number],
-      });
+      await add.mutateAsync({ ...body, ...toPatientRef(patient) });
 
       toast.success("appointments.waiting.added");
       setPatient(null);
@@ -236,7 +253,7 @@ function AddWalkInModal({
         return;
       }
 
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -258,7 +275,7 @@ function AddWalkInModal({
           <Button
             isLoading={add.isPending}
             data-testid="waiting-add-save"
-            disabled={!isDraftComplete(patient)}
+            aria-disabled={!form.isValid || undefined}
             onClick={() => void submit()}
           >
             {t("common.save")}
@@ -266,54 +283,82 @@ function AddWalkInModal({
         </>
       }
     >
-      <div className="flex flex-col gap-4">
-        <FormField label="appointments.patient" htmlFor="waiting-patient">
-          <PatientPicker
-            id="waiting-patient"
-            value={patient}
-            clash={clash}
-            onChange={(next) => {
-              setPatient(next);
-              setClash(null);
-            }}
-          />
-        </FormField>
+      <div ref={form.formRef} className="flex flex-col gap-4">
+        <div onBlur={form.leave(FORM_ROOT)}>
+          <FormField
+            label="appointments.patient"
+            htmlFor="waiting-patient"
+            error={patient?.kind === "new" ? undefined : (errors[FORM_ROOT] ?? errors["patientId"])}
+          >
+            <PatientPicker
+              id="waiting-patient"
+              value={patient}
+              clash={clash}
+              errors={nestedErrors(errors, "newPatient")}
+              onLeave={(field) => form.leave(`newPatient.${field}`)}
+              onChange={(next) => {
+                setPatient(next);
+                setClash(null);
+              }}
+            />
+          </FormField>
+        </div>
 
-        <FormField label="appointments.doctor" htmlFor="waiting-doctor" optional>
-          <Select
-            id="waiting-doctor"
-            data-testid="waiting-field-doctor"
-            value={doctorId}
-            placeholder={t("appointments.waiting.anyDoctor")}
-            options={(doctors.data?.items ?? []).map((doctor) => ({
-              value: doctor.id,
-              label: doctorName(doctor.user.name),
-            }))}
-            onChange={(event) => setDoctorId(event.target.value)}
-          />
-        </FormField>
+        <div onBlur={form.leave("doctorId")}>
+          <FormField
+            label="appointments.doctor"
+            htmlFor="waiting-doctor"
+            error={errors["doctorId"]}
+            optional
+          >
+            <Select
+              id="waiting-doctor"
+              data-testid="waiting-field-doctor"
+              value={doctorId}
+              placeholder={t("appointments.waiting.anyDoctor")}
+              options={(doctors.data?.items ?? []).map((doctor) => ({
+                value: doctor.id,
+                label: doctorName(doctor.user.name),
+              }))}
+              onChange={(event) => setDoctorId(event.target.value)}
+            />
+          </FormField>
+        </div>
 
-        <FormField label="appointments.waiting.priority" htmlFor="waiting-priority">
-          <Select
-            id="waiting-priority"
-            data-testid="waiting-field-priority"
-            value={priority}
-            options={WAITING_LIST_PRIORITIES.map((value) => ({
-              value,
-              label: t(`appointments.waiting.priorities.${value}`),
-            }))}
-            onChange={(event) => setPriority(event.target.value)}
-          />
-        </FormField>
+        <div onBlur={form.leave("priority")}>
+          <FormField
+            label="appointments.waiting.priority"
+            htmlFor="waiting-priority"
+            error={errors["priority"]}
+          >
+            <Select
+              id="waiting-priority"
+              data-testid="waiting-field-priority"
+              value={priority}
+              options={WAITING_LIST_PRIORITIES.map((value) => ({
+                value,
+                label: t(`appointments.waiting.priorities.${value}`),
+              }))}
+              onChange={(event) => setPriority(event.target.value)}
+            />
+          </FormField>
+        </div>
 
-        <FormField label="appointments.reason" htmlFor="waiting-reason" optional>
-          <Input
-            id="waiting-reason"
-            data-testid="waiting-field-reason"
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-          />
-        </FormField>
+        <div onBlur={form.leave("reason")}>
+          <FormField
+            label="appointments.reason"
+            htmlFor="waiting-reason"
+            error={errors["reason"]}
+            optional
+          >
+            <Input
+              id="waiting-reason"
+              data-testid="waiting-field-reason"
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+            />
+          </FormField>
+        </div>
       </div>
     </Modal>
   );
@@ -332,14 +377,20 @@ function DeclineModal({
 
   const [reason, setReason] = useState("");
   const notify = entry.source === WAITING_LIST_SOURCE.ONLINE;
+  const body = { reason: reason.trim(), notify };
+  const form = useFormErrors(schemaErrors(declineWaitingListEntrySchema, body));
 
   const submit = async (): Promise<void> => {
+    if (!form.check()) {
+      return;
+    }
+
     try {
-      await decline.mutateAsync({ id: entry.id, body: { reason: reason.trim(), notify } });
+      await decline.mutateAsync({ id: entry.id, body });
       toast.success("appointments.waiting.declined");
       onClose();
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -357,7 +408,7 @@ function DeclineModal({
           <Button
             isLoading={decline.isPending}
             data-testid="waiting-decline-confirm"
-            disabled={reason.trim().length < 3}
+            aria-disabled={!form.isValid || undefined}
             onClick={() => void submit()}
           >
             {t("common.save")}
@@ -365,23 +416,26 @@ function DeclineModal({
         </>
       }
     >
-      <div className="flex flex-col gap-4">
+      <div ref={form.formRef} className="flex flex-col gap-4">
         <p className="text-value text-ink">{entry.patientName}</p>
 
-        <FormField
-          label="appointments.waiting.declineReason"
-          htmlFor="decline-reason"
-          hint={notify ? "appointments.waiting.declineNotifies" : undefined}
-          required
-        >
-          <Textarea
-            id="decline-reason"
-            data-testid="waiting-decline-reason"
-            rows={3}
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-          />
-        </FormField>
+        <div onBlur={form.leave("reason")}>
+          <FormField
+            label="appointments.waiting.declineReason"
+            htmlFor="decline-reason"
+            error={form.errors["reason"]}
+            hint={notify ? "appointments.waiting.declineNotifies" : undefined}
+            required
+          >
+            <Textarea
+              id="decline-reason"
+              data-testid="waiting-decline-reason"
+              rows={3}
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+            />
+          </FormField>
+        </div>
       </div>
     </Modal>
   );

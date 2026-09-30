@@ -34,7 +34,7 @@ import {
 import { useUsers } from "@web/shared/queries/users";
 import { ResetPasswordModal } from "@web/modules/users/components/reset-password-modal";
 import { UserFormModal } from "@web/modules/users/components/user-form-modal";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { formatDate } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
@@ -55,7 +55,7 @@ export function UsersPage(): JSX.Element {
       await run;
       toast.success(successKey);
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -89,7 +89,7 @@ export function UsersPage(): JSX.Element {
       await removeUser.mutateAsync(deleting.id);
       toast.success("users.deleted");
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
       throw error;
     }
   };
@@ -99,7 +99,7 @@ export function UsersPage(): JSX.Element {
       await updateUser.mutateAsync({ id: row.id, body: { isActive: !row.isActive } });
       toast.success("users.updated");
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 

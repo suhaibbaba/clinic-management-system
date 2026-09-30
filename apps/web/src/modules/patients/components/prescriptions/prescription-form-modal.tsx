@@ -1,10 +1,12 @@
 import { createPrescriptionSchema, type Prescription, type Visit } from "@clinic/shared";
 import { useEffect, type JSX } from "react";
-import { Controller, useFieldArray, useForm, type FieldPath } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Icon, Input, Modal, Select, Textarea, useToast } from "@clinic/ui";
 import { useSavePrescription } from "@web/modules/patients/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
+import { payloadResolver } from "@web/shared/lib/payload-resolver";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { formatDateTime } from "@web/shared/lib/format";
 
@@ -51,10 +53,30 @@ export function PrescriptionFormModal({
     register,
     handleSubmit,
     reset,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>();
+    formState: { errors, isSubmitting, isValid },
+  } = useForm<FormValues>({
+    mode: "onTouched",
+    resolver: payloadResolver(createPrescriptionSchema, (values: FormValues) => toPayload(values)),
+  });
   const items = useFieldArray({ control, name: "items" });
+
+  function toPayload(values: FormValues) {
+    const visit = visits.find((entry) => entry.id === values.visitId);
+    const payload = {
+      patientId,
+      visitId: values.visitId === "" ? undefined : values.visitId,
+      doctorId: visit?.doctorId ?? prescription?.doctorId ?? "",
+      items: values.items.map((item) => ({
+        drug: item.drug,
+        dose: orNull(item.dose),
+        frequency: orNull(item.frequency),
+        duration: item.duration,
+      })),
+      notes: orNull(values.notes),
+    };
+
+    return payload;
+  }
 
   useEffect(() => {
     if (!open) {
@@ -77,45 +99,24 @@ export function PrescriptionFormModal({
     );
   }, [open, prescription, visits, reset]);
 
-  const onSubmit = handleSubmit(async (values) => {
-    const visit = visits.find((entry) => entry.id === values.visitId);
-    const payload = {
-      patientId,
-      visitId: values.visitId === "" ? undefined : values.visitId,
-      doctorId: visit?.doctorId ?? prescription?.doctorId ?? "",
-      items: values.items.map((item) => ({
-        drug: item.drug,
-        dose: orNull(item.dose),
-        frequency: orNull(item.frequency),
-        duration: item.duration,
-      })),
-      notes: orNull(values.notes),
-    };
+  const onSubmit = handleSubmit(
+    async (values) => {
+      const parsed = createPrescriptionSchema.parse(toPayload(values));
 
-    const parsed = createPrescriptionSchema.safeParse(payload);
-
-    if (!parsed.success) {
-      for (const issue of parsed.error.issues) {
-        setError(issue.path.join(".") as FieldPath<FormValues>, {
-          type: issue.code,
-          message: issue.message,
+      try {
+        await save.mutateAsync({
+          ...(prescription ? { id: prescription.id } : {}),
+          body: parsed,
         });
+
+        toast.success(prescription ? "prescriptions.updated" : "prescriptions.created");
+        onOpenChange(false);
+      } catch (error) {
+        toast.error(...errorToast(error));
       }
-      return;
-    }
-
-    try {
-      await save.mutateAsync({
-        ...(prescription ? { id: prescription.id } : {}),
-        body: parsed.data,
-      });
-
-      toast.success(prescription ? "prescriptions.updated" : "prescriptions.created");
-      onOpenChange(false);
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
-  });
+    },
+    () => revealFirstError(),
+  );
 
   return (
     <Modal
@@ -137,6 +138,7 @@ export function PrescriptionFormModal({
           <Button
             icon={<Icon name="check" />}
             type="submit"
+            aria-disabled={!isValid || isSubmitting || undefined}
             form="prescription-form"
             data-testid={`${testId}-save`}
             isLoading={isSubmitting}

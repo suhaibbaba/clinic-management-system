@@ -1,4 +1,4 @@
-import { LOOKUP_LIST, type InventoryItemRow } from "@clinic/shared";
+import { LOOKUP_LIST, createInventoryItemSchema, type InventoryItemRow } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -14,7 +14,9 @@ import {
 } from "@clinic/ui";
 import { useLookupLabels, useLookupOptions } from "@web/shared/queries/lookups";
 import { useCreateItem, useSuppliers, useUpdateItem } from "@web/modules/inventory/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
+import { schemaErrors } from "@web/shared/lib/form-errors";
+import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 
 export function ItemFormModal({
   open,
@@ -45,6 +47,19 @@ export function ItemFormModal({
   const [notes, setNotes] = useState("");
   const [isActive, setIsActive] = useState(true);
 
+  const shared = {
+    name: name.trim(),
+    category,
+    minQuantity: minQuantity.trim() === "" ? "0" : minQuantity.trim(),
+    defaultSupplierId: supplierId === "" ? null : supplierId,
+    notes: notes.trim() === "" ? null : notes.trim(),
+    isActive,
+  };
+
+  const form = useFormErrors(schemaErrors(createInventoryItemSchema, { ...shared, unit }));
+  const { reset } = form;
+  const isPending = create.isPending || update.isPending;
+
   useEffect(() => {
     if (!open) {
       return;
@@ -57,19 +72,15 @@ export function ItemFormModal({
     setSupplierId(item?.defaultSupplierId ?? "");
     setNotes(item?.notes ?? "");
     setIsActive(item?.isActive ?? true);
-  }, [open, item, categoryOptions, unitOptions]);
+    reset();
+  }, [open, item, categoryOptions, unitOptions, reset]);
 
   const submit = async (): Promise<void> => {
-    try {
-      const shared = {
-        name: name.trim(),
-        category,
-        minQuantity: minQuantity.trim() === "" ? "0" : minQuantity.trim(),
-        defaultSupplierId: supplierId === "" ? null : supplierId,
-        notes: notes.trim() === "" ? null : notes.trim(),
-        isActive,
-      };
+    if (!form.check()) {
+      return;
+    }
 
+    try {
       if (item) {
         await update.mutateAsync({ id: item.id, body: shared });
       } else {
@@ -79,7 +90,7 @@ export function ItemFormModal({
       toast.success(item ? "inventory.item.updated" : "inventory.item.created");
       onOpenChange(false);
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -100,8 +111,8 @@ export function ItemFormModal({
           </Button>
           <Button
             data-testid={`${testId}-save`}
-            disabled={name.trim().length < 2}
-            isLoading={create.isPending || update.isPending}
+            aria-disabled={!form.isValid || isPending || undefined}
+            isLoading={isPending}
             onClick={() => void submit()}
           >
             {t("common.save")}
@@ -109,85 +120,115 @@ export function ItemFormModal({
         </>
       }
     >
-      <div data-testid={`${testId}-form`} className="flex flex-col gap-4">
-        <FormField
-          label="inventory.item.name"
-          htmlFor="item-name"
-          hint="inventory.item.nameHint"
-          required
-        >
-          <Input
-            id="item-name"
-            data-testid="item-field-name"
-            dir="ltr"
-            placeholder="Composite A2"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-          />
-        </FormField>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="inventory.item.category" htmlFor="item-category" required>
-            <Select
-              id="item-category"
-              data-testid="item-field-category"
-              value={category}
-              onChange={(event) => setCategory(event.target.value)}
-              options={categoryOptions}
-            />
-          </FormField>
+      <div ref={form.formRef} data-testid={`${testId}-form`} className="flex flex-col gap-4">
+        <div onBlur={form.leave("name")}>
           <FormField
-            label="inventory.item.unit"
-            htmlFor="item-unit"
-            {...(item ? { hint: t("inventory.item.unitLocked") } : { required: true })}
+            error={form.errors["name"]}
+            label="inventory.item.name"
+            htmlFor="item-name"
+            hint="inventory.item.nameHint"
+            required
           >
-            <Select
-              id="item-unit"
-              data-testid="item-field-unit"
-              value={unit}
-              disabled={Boolean(item)}
-              onChange={(event) => setUnit(event.target.value)}
-              options={unitOptions}
+            <Input
+              id="item-name"
+              data-testid="item-field-name"
+              dir="ltr"
+              placeholder="Composite A2"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
             />
           </FormField>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
+          <div onBlur={form.leave("category")}>
+            <FormField
+              error={form.errors["category"]}
+              label="inventory.item.category"
+              htmlFor="item-category"
+              required
+            >
+              <Select
+                id="item-category"
+                data-testid="item-field-category"
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+                options={categoryOptions}
+              />
+            </FormField>
+          </div>
+          <div onBlur={form.leave("unit")}>
+            <FormField
+              error={form.errors["unit"]}
+              label="inventory.item.unit"
+              htmlFor="item-unit"
+              {...(item ? { hint: t("inventory.item.unitLocked") } : { required: true })}
+            >
+              <Select
+                id="item-unit"
+                data-testid="item-field-unit"
+                value={unit}
+                disabled={Boolean(item)}
+                onChange={(event) => setUnit(event.target.value)}
+                options={unitOptions}
+              />
+            </FormField>
+          </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div onBlur={form.leave("minQuantity")}>
+            <FormField
+              error={form.errors["minQuantity"]}
+              label="inventory.item.minQuantity"
+              htmlFor="item-min"
+              hint={t("inventory.item.minHint")}
+            >
+              <QuantityInput
+                id="item-min"
+                data-testid="item-field-min"
+                placeholder="0"
+                value={minQuantity}
+                {...(unit && { suffix: unitLabel(unit) })}
+                onChange={(event) => setMinQuantity(event.target.value)}
+              />
+            </FormField>
+          </div>
+          <div onBlur={form.leave("defaultSupplierId")}>
+            <FormField
+              error={form.errors["defaultSupplierId"]}
+              label="inventory.item.supplier"
+              htmlFor="item-supplier"
+              optional
+            >
+              <Select
+                id="item-supplier"
+                data-testid="item-field-supplier"
+                value={supplierId}
+                placeholder={t("inventory.movement.selectSupplier")}
+                onChange={(event) => setSupplierId(event.target.value)}
+                options={(suppliers.data?.items ?? []).map((supplier) => ({
+                  value: supplier.id,
+                  label: supplier.name,
+                }))}
+              />
+            </FormField>
+          </div>
+        </div>
+        <div onBlur={form.leave("notes")}>
           <FormField
-            label="inventory.item.minQuantity"
-            htmlFor="item-min"
-            hint={t("inventory.item.minHint")}
+            error={form.errors["notes"]}
+            label="inventory.notes"
+            htmlFor="item-notes"
+            optional
           >
-            <QuantityInput
-              id="item-min"
-              data-testid="item-field-min"
-              placeholder="0"
-              value={minQuantity}
-              {...(unit && { suffix: unitLabel(unit) })}
-              onChange={(event) => setMinQuantity(event.target.value)}
-            />
-          </FormField>
-          <FormField label="inventory.item.supplier" htmlFor="item-supplier" optional>
-            <Select
-              id="item-supplier"
-              data-testid="item-field-supplier"
-              value={supplierId}
-              placeholder={t("inventory.movement.selectSupplier")}
-              onChange={(event) => setSupplierId(event.target.value)}
-              options={(suppliers.data?.items ?? []).map((supplier) => ({
-                value: supplier.id,
-                label: supplier.name,
-              }))}
+            <Textarea
+              id="item-notes"
+              data-testid="item-field-notes"
+              rows={2}
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
             />
           </FormField>
         </div>
-        <FormField label="inventory.notes" htmlFor="item-notes" optional>
-          <Textarea
-            id="item-notes"
-            data-testid="item-field-notes"
-            rows={2}
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-          />
-        </FormField>
         <Switch
           data-testid="item-field-active"
           checked={isActive}

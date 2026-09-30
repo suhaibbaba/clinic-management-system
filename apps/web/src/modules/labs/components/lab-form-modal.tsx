@@ -2,10 +2,11 @@ import { createLabSchema, type Lab, type CreateLabInput } from "@clinic/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Input, Modal, PhoneInput, Textarea, useToast } from "@clinic/ui";
 import { useCreateLab, useUpdateLab } from "@web/modules/labs/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 
 export function LabFormModal({
   open,
@@ -28,8 +29,9 @@ export function LabFormModal({
     handleSubmit,
     reset,
     control,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<CreateLabInput>({
+    mode: "onTouched",
     resolver: zodResolver(createLabSchema),
     defaultValues: { name: "", phone: null, address: "", contactPerson: "", notes: "" },
   });
@@ -46,20 +48,23 @@ export function LabFormModal({
     }
   }, [open, lab, reset]);
 
-  const submit = handleSubmit(async (values) => {
-    try {
-      if (lab) {
-        await update.mutateAsync({ id: lab.id, body: values });
-      } else {
-        await create.mutateAsync(values);
-      }
+  const submit = handleSubmit(
+    async (values) => {
+      try {
+        if (lab) {
+          await update.mutateAsync({ id: lab.id, body: values });
+        } else {
+          await create.mutateAsync(values);
+        }
 
-      toast.success(lab ? "labs.updated" : "labs.created");
-      onOpenChange(false);
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
-  });
+        toast.success(lab ? "labs.updated" : "labs.created");
+        onOpenChange(false);
+      } catch (error) {
+        toast.error(...errorToast(error));
+      }
+    },
+    () => revealFirstError(),
+  );
 
   return (
     <Modal
@@ -78,6 +83,7 @@ export function LabFormModal({
           </Button>
           <Button
             isLoading={isSubmitting}
+            aria-disabled={!isValid || isSubmitting || undefined}
             data-testid={`${testId}-save`}
             onClick={() => void submit()}
           >

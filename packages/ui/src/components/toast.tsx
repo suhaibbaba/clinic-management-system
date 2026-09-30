@@ -37,6 +37,7 @@ const TONES: Record<ToastTone, { chip: string; tint: string; line: string; icon:
 };
 
 const TOAST_MS = 2500;
+const TOAST_ERROR_MS = 6000;
 
 const TOAST_WITH_ACTION_MS = 6000;
 
@@ -138,7 +139,13 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
             data-testid="toast"
             data-tone={message.tone}
             open
-            duration={message.action ? TOAST_WITH_ACTION_MS : TOAST_MS}
+            duration={
+              message.action
+                ? TOAST_WITH_ACTION_MS
+                : message.tone === "error"
+                  ? TOAST_ERROR_MS
+                  : TOAST_MS
+            }
             onOpenChange={(open) => {
               if (!open) {
                 dismiss(message.id);

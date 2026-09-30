@@ -26,7 +26,7 @@ import {
   usePatientPrescriptions,
   usePatientVisits,
 } from "@web/modules/patients/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { formatDate, formatDateTime } from "@web/shared/lib/format";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
@@ -52,7 +52,7 @@ export function PrescriptionsTab({ patientId }: { readonly patientId: string }):
           await remove.mutateAsync(prescription.id);
           toast.success("prescriptions.deleted");
         } catch (error) {
-          toast.error(errorMessageKey(error));
+          toast.error(...errorToast(error));
           throw error;
         }
       },

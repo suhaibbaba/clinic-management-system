@@ -2,7 +2,7 @@ import type { StockMovementRow } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Icon, Modal, Textarea, useToast } from "@clinic/ui";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { useReverseMovement } from "@web/modules/inventory/queries";
 
 export function ReverseMovementModal({
@@ -32,7 +32,7 @@ export function ReverseMovementModal({
       toast.success("inventory.movement.reversed");
       close();
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 

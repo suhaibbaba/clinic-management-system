@@ -2,10 +2,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { resetUserPasswordSchema, type ResetUserPasswordInput, type User } from "@clinic/shared";
 import { useEffect, type JSX } from "react";
 import { useForm } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Icon, Modal, PasswordInput, usePersonName, useToast } from "@clinic/ui";
 import { useResetUserPassword } from "@web/modules/users/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 
 interface ResetPasswordModalProps {
   "data-testid"?: string | undefined;
@@ -29,8 +30,9 @@ export function ResetPasswordModal({
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<ResetUserPasswordInput>({
+    mode: "onTouched",
     resolver: zodResolver(resetUserPasswordSchema),
     defaultValues: { newPassword: "" },
   });
@@ -41,19 +43,22 @@ export function ResetPasswordModal({
     }
   }, [open, reset]);
 
-  const onSubmit = handleSubmit(async (values) => {
-    if (!user) {
-      return;
-    }
+  const onSubmit = handleSubmit(
+    async (values) => {
+      if (!user) {
+        return;
+      }
 
-    try {
-      await resetPassword.mutateAsync({ id: user.id, newPassword: values.newPassword });
-      toast.success("users.resetPasswordDone");
-      onOpenChange(false);
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
-  });
+      try {
+        await resetPassword.mutateAsync({ id: user.id, newPassword: values.newPassword });
+        toast.success("users.resetPasswordDone");
+        onOpenChange(false);
+      } catch (error) {
+        toast.error(...errorToast(error));
+      }
+    },
+    () => revealFirstError(),
+  );
 
   return (
     <Modal
@@ -77,6 +82,7 @@ export function ResetPasswordModal({
             data-testid={`${testId}-save`}
             form="reset-password-form"
             type="submit"
+            aria-disabled={!isValid || isSubmitting || undefined}
             isLoading={isSubmitting}
           >
             {t("common.save")}

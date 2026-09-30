@@ -12,6 +12,9 @@ export const toIsoDate = (at: Date): string => localDate(at, clinicTimeZone());
 
 export const todayIso = (): string => toIsoDate(new Date());
 
+export const isIsoDate = (value: string): boolean =>
+  /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
+
 export function addDays(isoDate: string, days: number): string {
   const [year = 0, month = 1, day = 1] = isoDate.split("-").map(Number);
 

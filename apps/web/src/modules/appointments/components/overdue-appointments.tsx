@@ -21,7 +21,7 @@ import {
   type Column,
 } from "@clinic/ui";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { toIsoDate } from "@web/shared/lib/dates";
 import { useAppointments } from "@web/modules/appointments/queries";
 import { AppointmentDrawer } from "@web/modules/appointments/components/appointment-drawer";
@@ -62,7 +62,7 @@ export function OverdueAppointments(): JSX.Element {
       }
       toast.success("appointments.updated");
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     } finally {
       setBusyId(null);
     }

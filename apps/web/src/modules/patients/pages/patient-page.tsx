@@ -34,7 +34,7 @@ import { TimelineTab } from "@web/modules/patients/pages/timeline-tab";
 import { TreatmentPlansTab } from "@web/modules/patients/pages/treatment-plans-tab";
 import { VisitsTab } from "@web/modules/patients/pages/visits-tab";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { whatsAppNumber } from "@web/shared/lib/whatsapp";
 import { PATIENT_TABS, PATIENT_TAB_PARAMS } from "@web/modules/patients/constants";
 
@@ -94,7 +94,7 @@ export function PatientPage(): JSX.Element {
           toast.success("patients.deleted");
           navigate("/patients", { replace: true });
         } catch (error) {
-          toast.error(errorMessageKey(error));
+          toast.error(...errorToast(error));
           throw error;
         }
       },

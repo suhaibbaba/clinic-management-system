@@ -1,16 +1,18 @@
 import { z } from "zod";
 import { GENDERS } from "@shared/enums";
-import { paginationQuerySchema, uuidSchema } from "@shared/schemas/common";
+import {
+  VALIDATION_CODE,
+  calendarDateSchema,
+  paginationQuerySchema,
+  uuidSchema,
+} from "@shared/schemas/common";
 import { signedMoneySchema } from "@shared/schemas/money";
 import { phoneSchema } from "@shared/schemas/common";
 
 export const patientIdParamSchema = z.object({ patientId: uuidSchema });
 export type PatientIdParam = z.infer<typeof patientIdParamSchema>;
 
-export const dateOnlySchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected a YYYY-MM-DD date")
-  .refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00Z`)), "Not a valid date");
+export const dateOnlySchema = calendarDateSchema;
 
 export const PROFILE_COMPLETION_FIELDS = ["dateOfBirth", "gender"] as const;
 export type ProfileCompletionField = (typeof PROFILE_COMPLETION_FIELDS)[number];
@@ -63,6 +65,9 @@ export type PatientPublicView = z.infer<typeof patientPublicViewSchema>;
 export const patientViewSchema = z.union([patientClinicalViewSchema, patientPublicViewSchema]);
 export type PatientView = PatientClinicalView | PatientPublicView;
 
+const latestBirthDate = (): string =>
+  new Date(Date.now() + 14 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
 const nameParts = {
   firstName: z.string().trim().min(1).max(60),
   middleName: z.string().trim().max(80).nullish(),
@@ -73,7 +78,9 @@ const patientWritableFields = {
   ...nameParts,
   phone: phoneSchema,
   whatsapp: phoneSchema.nullish(),
-  dateOfBirth: dateOnlySchema.nullish(),
+  dateOfBirth: dateOnlySchema
+    .refine((value) => value <= latestBirthDate(), VALIDATION_CODE.DATE_IN_FUTURE)
+    .nullish(),
   gender: z.enum(GENDERS).nullish(),
   address: z.string().trim().max(500).nullish(),
   nationalId: z.string().trim().max(64).nullish(),
@@ -129,7 +136,7 @@ export const listPatientsQuerySchema = paginationQuerySchema.extend({
   search: z.string().trim().min(1).max(120).optional(),
   gender: z.enum(GENDERS).optional(),
   hasBalance: z.stringbool().optional(),
-  visitedSince: z.iso.date().optional(),
+  visitedSince: calendarDateSchema.optional(),
   sort: z.enum(PATIENT_SORTS).optional(),
   dir: z.enum(SORT_DIRECTIONS).optional(),
 });

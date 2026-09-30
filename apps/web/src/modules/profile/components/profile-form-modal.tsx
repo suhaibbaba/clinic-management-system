@@ -6,12 +6,13 @@ import {
 } from "@clinic/shared";
 import { useEffect, type JSX } from "react";
 import { Controller, useForm, type UseFormRegister } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Icon, Input, Modal, PhoneInput, useToast } from "@clinic/ui";
 import { authApi } from "@web/shared/api/auth";
 import { useSession } from "@web/shared/providers/session";
 import { StaffNameFields, type StaffNameValues } from "@web/shared/components/staff-name-fields";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 
 interface ProfileFormModalProps {
   readonly "data-testid"?: string | undefined;
@@ -35,8 +36,9 @@ export function ProfileFormModal({
     handleSubmit,
     reset,
     control,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<UpdateOwnProfileInput>({
+    mode: "onTouched",
     resolver: zodResolver(updateOwnProfileSchema),
   });
 
@@ -51,16 +53,19 @@ export function ProfileFormModal({
     }
   }, [open, user, reset]);
 
-  const onSubmit = handleSubmit(async (values) => {
-    try {
-      await authApi.updateProfile(values);
-      await refreshProfile();
-      toast.success("profile.updated");
-      onOpenChange(false);
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
-  });
+  const onSubmit = handleSubmit(
+    async (values) => {
+      try {
+        await authApi.updateProfile(values);
+        await refreshProfile();
+        toast.success("profile.updated");
+        onOpenChange(false);
+      } catch (error) {
+        toast.error(...errorToast(error));
+      }
+    },
+    () => revealFirstError(),
+  );
 
   return (
     <Modal
@@ -83,6 +88,7 @@ export function ProfileFormModal({
             data-testid={`${testId}-save`}
             form="profile-form"
             type="submit"
+            aria-disabled={!isValid || isSubmitting || undefined}
             isLoading={isSubmitting}
           >
             {t("common.save")}

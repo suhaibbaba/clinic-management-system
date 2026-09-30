@@ -10,7 +10,7 @@ import { useSession } from "@web/shared/providers/session";
 import { useClinic } from "@web/shared/queries/clinic";
 import { useDoctor, useUpdateDoctorSchedule } from "@web/modules/doctors/queries";
 import { TimeOffPanel } from "@web/modules/schedule/components/time-off-panel";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
@@ -59,7 +59,7 @@ export function DoctorPage(): JSX.Element {
       await updateSchedule.mutateAsync({ id, weeklySchedule: schedule });
       toast.success("doctors.scheduleUpdated");
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 

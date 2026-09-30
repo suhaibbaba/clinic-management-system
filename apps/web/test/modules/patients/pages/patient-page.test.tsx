@@ -444,9 +444,7 @@ describe("Patient page", () => {
       );
       await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
 
-      expect(
-        await within(dialog).findByText(ar.chart.panel.discountNeedsReason),
-      ).toBeInTheDocument();
+      expect(await within(dialog).findByText(ar.errors.validation.required)).toBeInTheDocument();
     });
   });
 });

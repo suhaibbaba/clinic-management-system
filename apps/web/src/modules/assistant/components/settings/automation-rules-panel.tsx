@@ -4,6 +4,7 @@ import {
   AI_AUTOMATION_RULES,
   AI_OUTBOUND_TARGET,
   AI_RECIPIENT_CAP_MAX,
+  aiAutomationSettingsSchema,
   type AiAutomationMode,
   type AiAutomationRule,
   type AiAutomationSettings,
@@ -14,6 +15,8 @@ import { Button, Card, FormField, Icon, Input, SegmentedControl, useToast } from
 import { Skeleton } from "@clinic/ui/components/skeleton";
 import { outboundErrorKey } from "@web/modules/assistant/lib/messages";
 import { useAutomationSettings, useSaveAutomationSettings } from "@web/modules/assistant/queries";
+import { schemaErrors } from "@web/shared/lib/form-errors";
+import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 
 export function AutomationRulesPanel(): JSX.Element {
   const { t } = useTranslation();
@@ -21,6 +24,9 @@ export function AutomationRulesPanel(): JSX.Element {
   const settings = useAutomationSettings();
   const save = useSaveAutomationSettings();
   const [draft, setDraft] = useState<AiAutomationSettings | null>(null);
+  const form = useFormErrors<HTMLFormElement>(
+    draft ? schemaErrors(aiAutomationSettingsSchema, draft) : {},
+  );
 
   useEffect(() => {
     if (settings.data) {
@@ -46,10 +52,16 @@ export function AutomationRulesPanel(): JSX.Element {
 
   return (
     <form
+      ref={form.formRef}
       data-testid="assistant-rules"
       className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
+
+        if (!form.check()) {
+          return;
+        }
+
         save.mutate(draft, {
           onSuccess: () => toast.success("assistantSettings.saved"),
           onError: (error) => toast.error(outboundErrorKey(error)),
@@ -90,61 +102,84 @@ export function AutomationRulesPanel(): JSX.Element {
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {rule !== AI_OUTBOUND_TARGET.TOMORROW_APPOINTMENTS && (
-                <FormField label="assistantSettings.days" htmlFor={`rule-${rule}-days`}>
+                <div onBlur={form.leave(`rules.${rule}.days`)}>
+                  <FormField
+                    error={form.errors[`rules.${rule}.days`]}
+                    label="assistantSettings.days"
+                    htmlFor={`rule-${rule}-days`}
+                  >
+                    <NumberInput
+                      id={`rule-${rule}-days`}
+                      value={draft.rules[rule].days}
+                      min={1}
+                      max={365}
+                      onValue={(days) => setRule(rule, { days })}
+                    />
+                  </FormField>
+                </div>
+              )}
+              <div onBlur={form.leave(`rules.${rule}.cap`)}>
+                <FormField
+                  error={form.errors[`rules.${rule}.cap`]}
+                  label="assistantSettings.cap"
+                  htmlFor={`rule-${rule}-cap`}
+                >
                   <NumberInput
-                    id={`rule-${rule}-days`}
-                    value={draft.rules[rule].days}
+                    id={`rule-${rule}-cap`}
+                    value={current.cap}
                     min={1}
-                    max={365}
-                    onValue={(days) => setRule(rule, { days })}
+                    max={AI_RECIPIENT_CAP_MAX}
+                    onValue={(cap) => setRule(rule, { cap })}
                   />
                 </FormField>
-              )}
-              <FormField label="assistantSettings.cap" htmlFor={`rule-${rule}-cap`}>
-                <NumberInput
-                  id={`rule-${rule}-cap`}
-                  value={current.cap}
-                  min={1}
-                  max={AI_RECIPIENT_CAP_MAX}
-                  onValue={(cap) => setRule(rule, { cap })}
-                />
-              </FormField>
+              </div>
             </div>
           </Card>
         );
       })}
 
       <Card data-testid="assistant-caps" className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <FormField
-          label="assistantSettings.recipientCap"
-          htmlFor="assistant-recipient-cap"
-          hint="assistantSettings.recipientCapHint"
-        >
-          <NumberInput
-            id="assistant-recipient-cap"
-            value={draft.recipientCap}
-            min={1}
-            max={AI_RECIPIENT_CAP_MAX}
-            onValue={(recipientCap) => setDraft({ ...draft, recipientCap })}
-          />
-        </FormField>
-        <FormField
-          label="assistantSettings.dailyCap"
-          htmlFor="assistant-daily-cap"
-          hint="assistantSettings.dailyCapHint"
-        >
-          <NumberInput
-            id="assistant-daily-cap"
-            value={draft.dailyCap}
-            min={1}
-            max={5_000}
-            onValue={(dailyCap) => setDraft({ ...draft, dailyCap })}
-          />
-        </FormField>
+        <div onBlur={form.leave("recipientCap")}>
+          <FormField
+            error={form.errors["recipientCap"]}
+            label="assistantSettings.recipientCap"
+            htmlFor="assistant-recipient-cap"
+            hint="assistantSettings.recipientCapHint"
+          >
+            <NumberInput
+              id="assistant-recipient-cap"
+              value={draft.recipientCap}
+              min={1}
+              max={AI_RECIPIENT_CAP_MAX}
+              onValue={(recipientCap) => setDraft({ ...draft, recipientCap })}
+            />
+          </FormField>
+        </div>
+        <div onBlur={form.leave("dailyCap")}>
+          <FormField
+            error={form.errors["dailyCap"]}
+            label="assistantSettings.dailyCap"
+            htmlFor="assistant-daily-cap"
+            hint="assistantSettings.dailyCapHint"
+          >
+            <NumberInput
+              id="assistant-daily-cap"
+              value={draft.dailyCap}
+              min={1}
+              max={5_000}
+              onValue={(dailyCap) => setDraft({ ...draft, dailyCap })}
+            />
+          </FormField>
+        </div>
       </Card>
 
       <div className="flex justify-end">
-        <Button type="submit" data-testid="assistant-rules-save" disabled={save.isPending}>
+        <Button
+          type="submit"
+          data-testid="assistant-rules-save"
+          {...(!form.isValid && { "aria-disabled": true })}
+          isLoading={save.isPending}
+        >
           {t("common.save")}
         </Button>
       </div>

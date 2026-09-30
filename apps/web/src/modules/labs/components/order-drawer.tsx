@@ -29,7 +29,7 @@ import {
 } from "@web/modules/labs/queries";
 import { availableSteps, canReturn } from "@web/modules/labs/lib/status";
 import { LAB_ORDER_STATUS_STYLES } from "@web/shared/lib/lab-order-status";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { formatDate } from "@web/shared/lib/format";
 import { cn } from "@clinic/ui/lib/cn";
 import { LABS_TAB_DONE } from "@web/modules/labs/constants";
@@ -75,7 +75,7 @@ export function OrderDrawer({
       await step.mutateAsync({ id: order.id, step: next.step });
       toast.success("labs.order.moved");
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -115,7 +115,7 @@ export function OrderDrawer({
               ),
           });
         } catch (error) {
-          toast.error(errorMessageKey(error));
+          toast.error(...errorToast(error));
           throw error;
         }
       },
@@ -129,7 +129,7 @@ export function OrderDrawer({
       setReason("");
       setExpectedAt("");
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -367,7 +367,7 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
       await upload.mutateAsync({ orderId, file });
       toast.success("labs.order.attachmentAdded");
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -443,7 +443,7 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
                     try {
                       await remove.mutateAsync({ orderId, id: file.id });
                     } catch (error) {
-                      toast.error(errorMessageKey(error));
+                      toast.error(...errorToast(error));
                       throw error;
                     }
                   },

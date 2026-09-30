@@ -15,7 +15,7 @@ import {
   usePatientAttachments,
   useUploadAttachment,
 } from "@web/modules/patients/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { cn } from "@clinic/ui/lib/cn";
 import { formatDate } from "@web/shared/lib/format";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
@@ -78,7 +78,7 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
                 attachment={attachment}
                 patientId={patientId}
                 canRemove={canRemove}
-                onError={(error) => toast.error(errorMessageKey(error))}
+                onError={(error) => toast.error(...errorToast(error))}
               />
             </li>
           ))}
@@ -111,7 +111,7 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
       await upload.mutateAsync({ file });
       toast.success("imaging.uploaded");
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 

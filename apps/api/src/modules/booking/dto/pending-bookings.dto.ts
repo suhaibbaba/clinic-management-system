@@ -1,7 +1,7 @@
 import { createZodDto } from "nestjs-zod";
 import { listAppointmentsQuerySchema, uuidSchema } from "@clinic/shared";
 import { z } from "zod";
-import { rejectBookingSchema } from "@api/modules/booking/lib/pending-bookings";
+import { rejectBookingSchema } from "@clinic/shared";
 
 export class PendingQueryDto extends createZodDto(
   listAppointmentsQuerySchema.omit({ status: true }),

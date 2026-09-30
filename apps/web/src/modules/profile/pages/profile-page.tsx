@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { changePasswordSchema, personName, type ChangePasswordInput } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useForm } from "react-hook-form";
+import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import {
   Avatar,
@@ -31,26 +32,30 @@ export function ProfilePage(): JSX.Element {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<ChangePasswordInput>({
+    mode: "onTouched",
     resolver: zodResolver(changePasswordSchema),
     defaultValues: { currentPassword: "", newPassword: "" },
   });
 
-  const onSubmit = handleSubmit(async (values) => {
-    try {
-      await authApi.changePassword(values);
-      reset();
-      toast.success("profile.passwordChanged");
-      await logout();
-    } catch (error) {
-      toast.error(
-        error instanceof ApiError && error.statusCode === 401
-          ? "auth.invalidCredentials"
-          : errorMessageKey(error),
-      );
-    }
-  });
+  const onSubmit = handleSubmit(
+    async (values) => {
+      try {
+        await authApi.changePassword(values);
+        reset();
+        toast.success("profile.passwordChanged");
+        await logout();
+      } catch (error) {
+        toast.error(
+          error instanceof ApiError && error.statusCode === 401
+            ? "auth.invalidCredentials"
+            : errorMessageKey(error),
+        );
+      }
+    },
+    () => revealFirstError(),
+  );
 
   return (
     <div data-testid="profile-page" className="flex flex-col gap-5">
@@ -190,6 +195,7 @@ export function ProfilePage(): JSX.Element {
             <Button
               icon={<Icon name="key" />}
               type="submit"
+              aria-disabled={!isValid || isSubmitting || undefined}
               data-testid="profile-change-password"
               isLoading={isSubmitting}
               className="self-start"

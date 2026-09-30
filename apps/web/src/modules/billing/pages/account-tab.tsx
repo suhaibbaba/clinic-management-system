@@ -33,7 +33,7 @@ import { PaymentModal } from "@web/modules/billing/components/payment-modal";
 import { ReversePaymentModal } from "@web/modules/billing/components/reverse-payment-modal";
 import { useDeletePayment, usePatientBalance, useStatement } from "@web/modules/billing/queries";
 import { useClinic } from "@web/shared/queries/clinic";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { cn } from "@clinic/ui/lib/cn";
 import { formatDate } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
@@ -64,7 +64,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
           await deletePayment.mutateAsync(entry.id);
           toast.success("billing.paymentDeleted");
         } catch (error) {
-          toast.error(errorMessageKey(error));
+          toast.error(...errorToast(error));
           throw error;
         }
       },
@@ -100,7 +100,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
     try {
       await action();
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 

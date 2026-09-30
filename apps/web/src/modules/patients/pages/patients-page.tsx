@@ -35,7 +35,7 @@ import {
 } from "@web/shared/permissions/patients";
 import { useDeletePatient, usePatient } from "@web/modules/patients/queries";
 import { usePatients } from "@web/shared/queries/patients";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 import { ageInYears } from "@web/modules/patients/lib/age";
 import { cn } from "@clinic/ui/lib/cn";
 import { useDebounced } from "@web/shared/hooks/use-debounced";
@@ -125,7 +125,7 @@ export function PatientsPage(): JSX.Element {
             await deletePatient(patient.id);
             toast.success("patients.deleted");
           } catch (error) {
-            toast.error(errorMessageKey(error));
+            toast.error(...errorToast(error));
             throw error;
           }
         },

@@ -8,7 +8,12 @@ import {
   WAITING_LIST_STATUSES,
 } from "@shared/enums";
 import { clinicClosureSchema, doctorTimeOffSchema } from "@shared/schemas/closures";
-import { paginationQuerySchema, timeOfDaySchema, uuidSchema } from "@shared/schemas/common";
+import {
+  paginationQuerySchema,
+  timeOfDaySchema,
+  calendarDateSchema,
+  uuidSchema,
+} from "@shared/schemas/common";
 import {
   hasExactlyOnePatient,
   patientRefFields,
@@ -17,7 +22,7 @@ import {
 import { personNameSchema } from "@shared/schemas/person-name";
 import { lookupCodeSchema } from "@shared/schemas/lookups";
 
-export const isoDateSchema = z.iso.date();
+export const isoDateSchema = calendarDateSchema;
 
 export const durationMinutesSchema = z.number().int().min(5).max(480);
 

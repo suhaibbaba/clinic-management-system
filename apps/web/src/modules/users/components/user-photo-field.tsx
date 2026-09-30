@@ -8,7 +8,7 @@ import { useRef, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar, Button, Icon, useConfirm, useToast } from "@clinic/ui";
 import { useRemoveUserPhoto, useUploadUserPhoto } from "@web/modules/users/queries";
-import { errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 
 export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
   const { t, i18n } = useTranslation();
@@ -38,7 +38,7 @@ export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
       await upload.mutateAsync({ id: user.id, file });
       toast.success("users.photoUpdated");
     } catch (error) {
-      toast.error(errorMessageKey(error));
+      toast.error(...errorToast(error));
     }
   };
 
@@ -50,7 +50,7 @@ export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
           await remove.mutateAsync(user.id);
           toast.success("users.photoRemoved");
         } catch (error) {
-          toast.error(errorMessageKey(error));
+          toast.error(...errorToast(error));
           throw error;
         }
       },
