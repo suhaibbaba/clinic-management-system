@@ -4,6 +4,11 @@ export const DEFAULT_APPOINTMENT_DURATION = 30;
 
 export const DOCTOR_FORM_MODES = ["new", "link"] as const;
 
+export const DOCTOR_KINDS = [
+  { id: "staff", label: "doctors.kinds.staff" },
+  { id: "visiting", label: "doctors.kinds.visiting" },
+] as const;
+
 export const DOCTOR_NAME_FIELDS = [
   { key: "firstNameAr", label: "users.firstNameAr", id: "doctor-first-name-ar", ltr: false },
   { key: "lastNameAr", label: "users.lastNameAr", id: "doctor-last-name-ar", ltr: false },

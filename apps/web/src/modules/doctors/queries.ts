@@ -1,4 +1,4 @@
-import { DOCTORS_KEY } from "@web/shared/constants/query-keys";
+import { DOCTORS_KEY, USERS_KEY } from "@web/shared/constants/query-keys";
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   CreateDoctorInput,
@@ -55,6 +55,20 @@ export function useUpdateDoctor() {
     mutationFn: ({ id, body }: { id: string; body: UpdateDoctorInput }) =>
       doctorsApi.update(id, body),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [DOCTORS_KEY] }),
+  });
+}
+
+export function useDeleteDoctor() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => doctorsApi.remove(id),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: [DOCTORS_KEY] }),
+        queryClient.invalidateQueries({ queryKey: [USERS_KEY] }),
+      ]);
+    },
   });
 }
 

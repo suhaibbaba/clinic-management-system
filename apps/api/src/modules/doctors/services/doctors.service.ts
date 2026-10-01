@@ -25,7 +25,6 @@ import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import { StorageService } from "@api/modules/storage/services/storage.service";
-import { TokenService } from "@api/modules/auth/services/token.service";
 import { UsersService } from "@api/modules/users/services/users.service";
 import { doctors, specialties, users } from "@api/database/schema";
 import { DOCTORS_ENTITY } from "@api/common/constants/audit-entities";
@@ -44,7 +43,6 @@ export class DoctorsService implements OnModuleInit {
     private readonly auditSnapshots: AuditSnapshotRegistry,
     private readonly storage: StorageService,
     private readonly users: UsersService,
-    private readonly tokens: TokenService,
   ) {}
 
   onModuleInit(): void {
@@ -67,7 +65,7 @@ export class DoctorsService implements OnModuleInit {
   }
 
   async list(actor: AuthenticatedUser, query: ListDoctorsQuery): Promise<Paginated<Doctor>> {
-    const filters: (SQL | undefined)[] = [];
+    const filters: (SQL | undefined)[] = [isNull(users.deletedAt)];
 
     if (query.specialtyId) {
       filters.push(eq(doctors.specialtyId, query.specialtyId));
@@ -283,19 +281,7 @@ export class DoctorsService implements OnModuleInit {
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     const doctor = await this.scope.findOneOrFail<DoctorRow>(doctors, actor.clinicId, id);
 
-    await this.db.transaction(async (tx) => {
-      await tx
-        .update(doctors)
-        .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
-        .where(this.scope.where(doctors, actor.clinicId, eq(doctors.id, id)));
-
-      await tx
-        .update(users)
-        .set({ isActive: false, updatedAt: new Date(), updatedBy: actor.id })
-        .where(this.scope.where(users, actor.clinicId, eq(users.id, doctor.userId)));
-    });
-
-    await this.tokens.revokeAllForUser(doctor.userId);
+    await this.users.softDelete(actor, doctor.userId);
   }
 
   private baseQuery() {

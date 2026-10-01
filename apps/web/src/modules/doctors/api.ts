@@ -30,6 +30,8 @@ export const doctorsApi = {
   update: (id: string, body: UpdateDoctorInput): Promise<Doctor> =>
     apiRequest(`/doctors/${id}`, { method: "PATCH", body }),
 
+  remove: (id: string): Promise<void> => apiRequest(`/doctors/${id}`, { method: "DELETE" }),
+
   updateSchedule: (id: string, body: UpdateDoctorScheduleInput): Promise<Doctor> =>
     apiRequest(`/doctors/${id}/schedule`, { method: "PATCH", body }),
 

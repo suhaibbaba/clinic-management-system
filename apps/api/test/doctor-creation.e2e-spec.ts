@@ -1,6 +1,6 @@
 import { USER_ROLE, type Doctor, type Paginated, type User } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-import { users } from "@api/database/schema";
+import { doctors, users } from "@api/database/schema";
 import {
   auth,
   createTestContext,
@@ -170,7 +170,7 @@ describe("Doctor creation (e2e)", () => {
       expect(row?.role).toBe(USER_ROLE.DOCTOR);
     });
 
-    it("deactivates the account when the profile is removed", async () => {
+    it("deletes the account when the profile is removed", async () => {
       const phone = uniquePhone();
 
       const created = await createDoctor({
@@ -178,6 +178,7 @@ describe("Doctor creation (e2e)", () => {
       });
 
       const doctor = created.json() as Doctor;
+      const before = await listDoctors();
 
       const removed = await context.app.inject({
         method: "DELETE",
@@ -188,8 +189,41 @@ describe("Doctor creation (e2e)", () => {
       expect(removed.statusCode).toBe(204);
 
       const [row] = await context.db.select().from(users).where(eq(users.id, doctor.userId));
-      expect(row?.isActive).toBe(false);
+      expect(row?.deletedAt).not.toBeNull();
+      expect(await listDoctors()).toBe(before - 1);
+      expect(await staffMatching(phone)).toHaveLength(0);
       await expect(context.login(phone)).rejects.toThrow();
+    });
+
+    it("drops the profile when the account is deleted on the users screen", async () => {
+      const phone = uniquePhone();
+
+      const created = await createDoctor({
+        newUser: { ...staffName("د. زائل", "Dr. Gone"), phone, password },
+      });
+
+      const doctor = created.json() as Doctor;
+      const before = await listDoctors();
+
+      const removed = await context.app.inject({
+        method: "DELETE",
+        url: `/users/${doctor.userId}`,
+        headers: auth(token),
+      });
+
+      expect(removed.statusCode).toBe(204);
+
+      const [row] = await context.db.select().from(doctors).where(eq(doctors.id, doctor.id));
+      expect(row?.deletedAt).not.toBeNull();
+      expect(await listDoctors()).toBe(before - 1);
+
+      const fetched = await context.app.inject({
+        method: "GET",
+        url: `/doctors/${doctor.id}`,
+        headers: auth(token),
+      });
+
+      expect(fetched.statusCode).toBe(404);
     });
 
     it("refuses a second profile for one account", async () => {

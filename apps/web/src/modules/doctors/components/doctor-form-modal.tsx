@@ -21,6 +21,7 @@ import {
   PhoneInput,
   SegmentedControl,
   Select,
+  Tabs,
   useToast,
 } from "@clinic/ui";
 import { WorkingHours } from "@web/shared/components/working-hours";
@@ -33,16 +34,23 @@ import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import {
   DEFAULT_APPOINTMENT_DURATION,
   DOCTOR_FORM_MODES,
+  DOCTOR_KINDS,
   DOCTOR_NAME_FIELDS,
+  VISITING_DOCTOR_FORM_ID,
 } from "@web/modules/doctors/constants";
+import { VisitingDoctorFields } from "@web/modules/doctors/components/visiting-doctor-fields";
+import { useVisitingDoctorForm } from "@web/modules/doctors/hooks/use-visiting-doctor-form";
+import { ellipsis } from "@web/i18n/ellipsis";
 
 interface DoctorFormModalProps {
   "data-testid"?: string | undefined;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   doctor: Doctor | null;
+  onVisitingCreated: (doctor: Doctor) => void;
 }
 type Mode = (typeof DOCTOR_FORM_MODES)[number];
+type Kind = (typeof DOCTOR_KINDS)[number]["id"];
 
 interface NewUserFields {
   firstNameAr: string;
@@ -70,6 +78,7 @@ export function DoctorFormModal({
   open,
   onOpenChange,
   doctor,
+  onVisitingCreated,
   "data-testid": testId = "doctor-form-modal",
 }: DoctorFormModalProps): JSX.Element {
   const { t, i18n } = useTranslation();
@@ -81,6 +90,13 @@ export function DoctorFormModal({
   const doctorUsers = useUsers({ limit: 100 });
 
   const isEdit = doctor !== null;
+  const [kind, setKind] = useState<Kind>("staff");
+  const visiting = useVisitingDoctorForm(open, (created) => {
+    onOpenChange(false);
+    onVisitingCreated(created);
+  });
+  const isVisiting = !isEdit && kind === "visiting";
+  const visitingState = visiting.form.formState;
   const [mode, setMode] = useState<Mode>("new");
   const [newUser, setNewUser] = useState<NewUserFields>(EMPTY_USER);
   const [userId, setUserId] = useState("");
@@ -94,6 +110,7 @@ export function DoctorFormModal({
       return;
     }
 
+    setKind("staff");
     setMode("new");
     setNewUser(EMPTY_USER);
     setUserId(doctor?.userId ?? "");
@@ -178,7 +195,7 @@ export function DoctorFormModal({
       open={open}
       onOpenChange={onOpenChange}
       size="lg"
-      title={isEdit ? "doctors.edit" : "doctors.create"}
+      title={isEdit ? "doctors.edit" : isVisiting ? "doctors.visiting.create" : "doctors.create"}
       footer={
         <>
           <Button
@@ -189,199 +206,233 @@ export function DoctorFormModal({
           >
             {t("common.cancel")}
           </Button>
-          <Button
-            icon={<Icon name="check" />}
-            data-testid={`${testId}-save`}
-            {...(!form.isValid && { "aria-disabled": true })}
-            isLoading={isSaving}
-            onClick={() => void submit()}
-          >
-            {t("common.save")}
-          </Button>
+          {isVisiting ? (
+            <Button
+              icon={<Icon name="check" />}
+              type="submit"
+              form={VISITING_DOCTOR_FORM_ID}
+              data-testid="visiting-doctor-save"
+              aria-disabled={!visitingState.isValid || visitingState.isSubmitting || undefined}
+              isLoading={visitingState.isSubmitting}
+            >
+              {visitingState.isSubmitting ? ellipsis(t("common.saving")) : t("common.save")}
+            </Button>
+          ) : (
+            <Button
+              icon={<Icon name="check" />}
+              data-testid={`${testId}-save`}
+              {...(!form.isValid && { "aria-disabled": true })}
+              isLoading={isSaving}
+              onClick={() => void submit()}
+            >
+              {t("common.save")}
+            </Button>
+          )}
         </>
       }
     >
-      <div ref={form.formRef} data-testid={`${testId}-form`} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
         {!isEdit && (
-          <>
-            <SegmentedControl<Mode>
-              data-testid="doctor-field-mode"
-              label={t("doctors.account")}
-              value={mode}
-              onChange={setMode}
-              options={DOCTOR_FORM_MODES.map((value) => ({
-                value,
-                label: t(`doctors.modes.${value}`),
-              }))}
-            />
+          <Tabs<Kind>
+            data-testid="doctor-kind"
+            label="doctors.kind"
+            className="border-b border-line pb-3 sm:pb-3"
+            value={kind}
+            onChange={setKind}
+            tabs={DOCTOR_KINDS}
+          />
+        )}
 
-            {mode === "new" ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {DOCTOR_NAME_FIELDS.map((field) => (
-                  <div key={field.key} onBlur={form.leave(namePath(field.key))}>
+        {isVisiting ? (
+          <VisitingDoctorFields {...visiting} />
+        ) : (
+          <div ref={form.formRef} data-testid={`${testId}-form`} className="flex flex-col gap-4">
+            {!isEdit && (
+              <>
+                <SegmentedControl<Mode>
+                  data-testid="doctor-field-mode"
+                  label={t("doctors.account")}
+                  value={mode}
+                  onChange={setMode}
+                  options={DOCTOR_FORM_MODES.map((value) => ({
+                    value,
+                    label: t(`doctors.modes.${value}`),
+                  }))}
+                />
+
+                {mode === "new" ? (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {DOCTOR_NAME_FIELDS.map((field) => (
+                      <div key={field.key} onBlur={form.leave(namePath(field.key))}>
+                        <FormField
+                          label={field.label}
+                          htmlFor={field.id}
+                          error={errors[namePath(field.key)]}
+                          required
+                        >
+                          <Input
+                            id={field.id}
+                            data-testid={field.id.replace("doctor-", "doctor-field-")}
+                            adornment="user"
+                            {...(field.ltr && { dir: "ltr" })}
+                            placeholder={t(`common.placeholders.${field.key}`)}
+                            value={newUser[field.key]}
+                            onChange={(event) =>
+                              setNewUser({ ...newUser, [field.key]: event.target.value })
+                            }
+                          />
+                        </FormField>
+                      </div>
+                    ))}
+
+                    <div onBlur={form.leave("newUser.phone")}>
+                      <FormField
+                        label="users.phone"
+                        htmlFor="doctor-phone"
+                        error={errors["newUser.phone"]}
+                        errorKey="errors.validation.invalidPhone"
+                        required
+                      >
+                        <PhoneInput
+                          id="doctor-phone"
+                          data-testid="doctor-field-phone"
+                          placeholder={t("common.placeholders.phone")}
+                          value={newUser.phone}
+                          onChange={(next) => setNewUser({ ...newUser, phone: next ?? "" })}
+                        />
+                      </FormField>
+                    </div>
+
+                    <div onBlur={form.leave("newUser.joinedOn")}>
+                      <FormField
+                        label="users.joinedOn"
+                        htmlFor="doctor-joined-on"
+                        error={errors["newUser.joinedOn"]}
+                        required
+                      >
+                        <DatePicker
+                          id="doctor-joined-on"
+                          data-testid="doctor-field-joined-on"
+                          label={t("users.joinedOn")}
+                          value={newUser.joinedOn}
+                          max={todayIso()}
+                          onChange={(next) => setNewUser({ ...newUser, joinedOn: next })}
+                        />
+                      </FormField>
+                    </div>
+
+                    <div onBlur={form.leave("newUser.email")}>
+                      <FormField
+                        label="users.email"
+                        htmlFor="doctor-email"
+                        error={errors["newUser.email"]}
+                        errorKey="errors.validation.invalidEmail"
+                        optional
+                      >
+                        <Input
+                          id="doctor-email"
+                          data-testid="doctor-field-email"
+                          type="email"
+                          dir="ltr"
+                          placeholder={t("common.placeholders.email")}
+                          value={newUser.email}
+                          onChange={(event) =>
+                            setNewUser({ ...newUser, email: event.target.value })
+                          }
+                        />
+                      </FormField>
+                    </div>
+
+                    <div onBlur={form.leave("newUser.password")}>
+                      <FormField
+                        label="users.password"
+                        htmlFor="doctor-password"
+                        hint="doctors.roleLocked"
+                        error={errors["newUser.password"]}
+                        errorKey="errors.validation.passwordMin"
+                        required
+                      >
+                        <PasswordInput
+                          id="doctor-password"
+                          data-testid="doctor-field-password"
+                          autoComplete="new-password"
+                          placeholder={t("common.placeholders.password")}
+                          value={newUser.password}
+                          onChange={(event) =>
+                            setNewUser({ ...newUser, password: event.target.value })
+                          }
+                        />
+                      </FormField>
+                    </div>
+                  </div>
+                ) : (
+                  <div onBlur={form.leave("userId")}>
                     <FormField
-                      label={field.label}
-                      htmlFor={field.id}
-                      error={errors[namePath(field.key)]}
-                      required
+                      label="doctors.user"
+                      htmlFor="doctor-user"
+                      hint="doctors.linkPromotes"
+                      error={errors["userId"]}
                     >
-                      <Input
-                        id={field.id}
-                        data-testid={field.id.replace("doctor-", "doctor-field-")}
-                        adornment="user"
-                        {...(field.ltr && { dir: "ltr" })}
-                        placeholder={t(`common.placeholders.${field.key}`)}
-                        value={newUser[field.key]}
-                        onChange={(event) =>
-                          setNewUser({ ...newUser, [field.key]: event.target.value })
-                        }
+                      <Select
+                        id="doctor-user"
+                        data-testid="doctor-field-user"
+                        options={userOptions}
+                        placeholder={t("doctors.selectUser")}
+                        value={userId}
+                        onChange={(event) => setUserId(event.target.value)}
                       />
                     </FormField>
                   </div>
-                ))}
-
-                <div onBlur={form.leave("newUser.phone")}>
-                  <FormField
-                    label="users.phone"
-                    htmlFor="doctor-phone"
-                    error={errors["newUser.phone"]}
-                    errorKey="errors.validation.invalidPhone"
-                    required
-                  >
-                    <PhoneInput
-                      id="doctor-phone"
-                      data-testid="doctor-field-phone"
-                      placeholder={t("common.placeholders.phone")}
-                      value={newUser.phone}
-                      onChange={(next) => setNewUser({ ...newUser, phone: next ?? "" })}
-                    />
-                  </FormField>
-                </div>
-
-                <div onBlur={form.leave("newUser.joinedOn")}>
-                  <FormField
-                    label="users.joinedOn"
-                    htmlFor="doctor-joined-on"
-                    error={errors["newUser.joinedOn"]}
-                    required
-                  >
-                    <DatePicker
-                      id="doctor-joined-on"
-                      data-testid="doctor-field-joined-on"
-                      label={t("users.joinedOn")}
-                      value={newUser.joinedOn}
-                      max={todayIso()}
-                      onChange={(next) => setNewUser({ ...newUser, joinedOn: next })}
-                    />
-                  </FormField>
-                </div>
-
-                <div onBlur={form.leave("newUser.email")}>
-                  <FormField
-                    label="users.email"
-                    htmlFor="doctor-email"
-                    error={errors["newUser.email"]}
-                    errorKey="errors.validation.invalidEmail"
-                    optional
-                  >
-                    <Input
-                      id="doctor-email"
-                      data-testid="doctor-field-email"
-                      type="email"
-                      dir="ltr"
-                      placeholder={t("common.placeholders.email")}
-                      value={newUser.email}
-                      onChange={(event) => setNewUser({ ...newUser, email: event.target.value })}
-                    />
-                  </FormField>
-                </div>
-
-                <div onBlur={form.leave("newUser.password")}>
-                  <FormField
-                    label="users.password"
-                    htmlFor="doctor-password"
-                    hint="doctors.roleLocked"
-                    error={errors["newUser.password"]}
-                    errorKey="errors.validation.passwordMin"
-                    required
-                  >
-                    <PasswordInput
-                      id="doctor-password"
-                      data-testid="doctor-field-password"
-                      autoComplete="new-password"
-                      placeholder={t("common.placeholders.password")}
-                      value={newUser.password}
-                      onChange={(event) => setNewUser({ ...newUser, password: event.target.value })}
-                    />
-                  </FormField>
-                </div>
-              </div>
-            ) : (
-              <div onBlur={form.leave("userId")}>
-                <FormField
-                  label="doctors.user"
-                  htmlFor="doctor-user"
-                  hint="doctors.linkPromotes"
-                  error={errors["userId"]}
-                >
-                  <Select
-                    id="doctor-user"
-                    data-testid="doctor-field-user"
-                    options={userOptions}
-                    placeholder={t("doctors.selectUser")}
-                    value={userId}
-                    onChange={(event) => setUserId(event.target.value)}
-                  />
-                </FormField>
-              </div>
+                )}
+              </>
             )}
-          </>
+
+            <div onBlur={form.leave("specialtyId")}>
+              <FormField
+                label="doctors.specialty"
+                htmlFor="doctor-specialty"
+                error={errors["specialtyId"]}
+                required
+              >
+                <Select
+                  id="doctor-specialty"
+                  data-testid="doctor-field-specialty"
+                  options={specialtyOptions}
+                  placeholder={t("doctors.selectSpecialty")}
+                  value={specialtyId}
+                  onChange={(event) => setSpecialtyId(event.target.value)}
+                />
+              </FormField>
+            </div>
+
+            <div onBlur={form.leave("defaultAppointmentDurationMinutes")}>
+              <FormField
+                label="doctors.duration"
+                htmlFor="doctor-duration"
+                hint="doctors.durationUnit"
+                error={errors["defaultAppointmentDurationMinutes"]}
+              >
+                <Input
+                  placeholder={t("common.placeholders.minutes")}
+                  id="doctor-duration"
+                  data-testid="doctor-field-duration"
+                  inputMode="numeric"
+                  dir="ltr"
+                  value={duration}
+                  onChange={(event) => setDuration(event.target.value)}
+                />
+              </FormField>
+            </div>
+
+            <div>
+              <p className="mb-1 text-value font-medium text-ink">{t("doctors.schedule")}</p>
+              {!isEdit && (
+                <p className="mb-2 text-label text-ink-muted">{t("doctors.scheduleDefault")}</p>
+              )}
+              <WorkingHours value={schedule} onChange={setSchedule} idPrefix="doctor-form-hours" />
+            </div>
+          </div>
         )}
-
-        <div onBlur={form.leave("specialtyId")}>
-          <FormField
-            label="doctors.specialty"
-            htmlFor="doctor-specialty"
-            error={errors["specialtyId"]}
-            required
-          >
-            <Select
-              id="doctor-specialty"
-              data-testid="doctor-field-specialty"
-              options={specialtyOptions}
-              placeholder={t("doctors.selectSpecialty")}
-              value={specialtyId}
-              onChange={(event) => setSpecialtyId(event.target.value)}
-            />
-          </FormField>
-        </div>
-
-        <div onBlur={form.leave("defaultAppointmentDurationMinutes")}>
-          <FormField
-            label="doctors.duration"
-            htmlFor="doctor-duration"
-            hint="doctors.durationUnit"
-            error={errors["defaultAppointmentDurationMinutes"]}
-          >
-            <Input
-              placeholder={t("common.placeholders.minutes")}
-              id="doctor-duration"
-              data-testid="doctor-field-duration"
-              inputMode="numeric"
-              dir="ltr"
-              value={duration}
-              onChange={(event) => setDuration(event.target.value)}
-            />
-          </FormField>
-        </div>
-
-        <div>
-          <p className="mb-1 text-value font-medium text-ink">{t("doctors.schedule")}</p>
-          {!isEdit && (
-            <p className="mb-2 text-label text-ink-muted">{t("doctors.scheduleDefault")}</p>
-          )}
-          <WorkingHours value={schedule} onChange={setSchedule} idPrefix="doctor-form-hours" />
-        </div>
       </div>
     </Modal>
   );

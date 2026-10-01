@@ -41,7 +41,12 @@ export function useDeleteUser() {
 
   return useMutation({
     mutationFn: (id: string) => usersApi.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [USERS_KEY] }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: [USERS_KEY] }),
+        queryClient.invalidateQueries({ queryKey: [DOCTORS_KEY] }),
+      ]);
+    },
   });
 }
 
