@@ -491,6 +491,7 @@ describe("Clinic assistant (e2e)", () => {
 
       expect(messages.json()).toMatchObject([
         { role: "user", content: "كم موعد اليوم؟" },
+        { role: "tool", toolName: "get_appointments" },
         { role: "assistant" },
       ]);
     });

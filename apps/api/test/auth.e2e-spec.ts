@@ -100,11 +100,16 @@ describe("Auth (e2e)", () => {
     });
 
     it("locks an unknown identifier the same way, so a lock reveals no account", async () => {
+      const unknown = "+97000000123";
+      await context.db
+        .delete(loginThrottles)
+        .where(eq(loginThrottles.key, loginThrottleKey(unknown)));
+
       for (let attempt = 0; attempt < 5; attempt += 1) {
-        expect((await login("+97000000123")).statusCode).toBe(401);
+        expect((await login(unknown)).statusCode).toBe(401);
       }
 
-      expect((await login("+97000000123")).statusCode).toBe(429);
+      expect((await login(unknown)).statusCode).toBe(429);
     });
 
     it("starts the count again after a successful login", async () => {

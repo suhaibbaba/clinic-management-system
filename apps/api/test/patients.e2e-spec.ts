@@ -1,4 +1,4 @@
-import { USER_ROLE, type UserRole } from "@clinic/shared";
+import { LATEST_YEAR, USER_ROLE, type UserRole } from "@clinic/shared";
 import {
   createPatient,
   seedClinicFixtures,
@@ -385,7 +385,7 @@ describe("Patients (e2e)", () => {
     it("excludes a visit older than the date", async () => {
       const response = await context.app.inject({
         method: "GET",
-        url: "/patients?visitedSince=2999-01-01&limit=100",
+        url: `/patients?visitedSince=${LATEST_YEAR}-01-01&limit=100`,
         headers: auth(tokens[USER_ROLE.DOCTOR]),
       });
 
