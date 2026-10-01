@@ -29,7 +29,7 @@ import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
-import { users } from "@api/database/schema";
+import { doctors, users } from "@api/database/schema";
 import { StorageService } from "@api/modules/storage/services/storage.service";
 import { USERS_ENTITY } from "@api/common/constants/audit-entities";
 import {
@@ -232,10 +232,19 @@ export class UsersService implements OnModuleInit {
       throw new BadRequestException("You cannot delete your own account");
     }
 
-    await this.db
-      .update(users)
-      .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
-      .where(this.scope.where(users, actor.clinicId, eq(users.id, id)));
+    await this.db.transaction(async (tx) => {
+      const stamp = { deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id };
+
+      await tx
+        .update(users)
+        .set(stamp)
+        .where(this.scope.where(users, actor.clinicId, eq(users.id, id)));
+
+      await tx
+        .update(doctors)
+        .set(stamp)
+        .where(this.scope.where(doctors, actor.clinicId, eq(doctors.userId, id)));
+    });
 
     await this.tokenService.revokeAllForUser(id);
     forgetSessionState(id);

@@ -379,6 +379,13 @@
       "when": 1790809121861,
       "tag": "0053_settlements_and_payroll",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1790840569347,
+      "tag": "0054_doctors_follow_deleted_users",
+      "breakpoints": true
     }
   ]
 }

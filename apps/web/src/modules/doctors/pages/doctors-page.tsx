@@ -6,27 +6,34 @@ import {
   Avatar,
   Badge,
   Button,
+  ConfirmDialog,
   EmptyState,
   Icon,
+  MenuItem,
   PageHeader,
   PersonName,
   PhoneLink,
+  RowMenu,
   SearchField,
   Table,
   TotalBadge,
   usePageParams,
+  useToast,
   type Column,
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
 import { DoctorFormModal } from "@web/modules/doctors/components/doctor-form-modal";
-import { VisitingDoctorModal } from "@web/modules/doctors/components/visiting-doctor-modal";
+import { useDeleteDoctor } from "@web/modules/doctors/queries";
 import { useDoctors } from "@web/shared/queries/doctors";
+import { errorToast } from "@web/shared/lib/api-error";
 import { formatList } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
 export function DoctorsPage(): JSX.Element {
   const { t, i18n } = useTranslation();
-  const { hasRole } = useSession();
+  const { hasRole, user: currentUser } = useSession();
+  const toast = useToast();
+  const removeDoctor = useDeleteDoctor();
   const navigate = useNavigate();
   const isAdmin = hasRole(USER_ROLE.ADMIN);
 
@@ -34,7 +41,7 @@ export function DoctorsPage(): JSX.Element {
   const [search, setSearch] = useState("");
   const [formDoctor, setFormDoctor] = useState<Doctor | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [visitingOpen, setVisitingOpen] = useState(false);
+  const [deleting, setDeleting] = useState<Doctor | null>(null);
 
   const query = useDoctors({ page, limit: perPage, ...(search !== "" && { search }) });
 
@@ -103,37 +110,44 @@ export function DoctorsPage(): JSX.Element {
       header: "common.actions",
       actions: true,
       render: (row) => (
-        <span className="flex items-center justify-end gap-3">
-          <Button
-            size="sm"
-            variant="quiet"
-            icon={<Icon name="clock" />}
+        <RowMenu label={t("doctors.rowMenu")} data-testid={`doctor-${row.id}-menu`}>
+          <MenuItem
+            icon="clock"
             data-testid="doctor-open-schedule"
-            onClick={() => navigate(`/doctors/${row.id}`)}
+            onSelect={() => navigate(`/doctors/${row.id}`)}
           >
             {t("doctors.openSchedule")}
-          </Button>
+          </MenuItem>
 
           {isAdmin && (
-            <Button
-              size="sm"
-              variant="ghost"
-              icon={<Icon name="edit" />}
+            <MenuItem
+              icon="edit"
               data-testid="doctor-edit"
-              onClick={() => {
+              onSelect={() => {
                 setFormDoctor(row);
                 setFormOpen(true);
               }}
             >
               {t("common.edit")}
-            </Button>
+            </MenuItem>
           )}
-        </span>
+
+          {isAdmin && row.userId !== currentUser?.id && (
+            <MenuItem
+              icon="trash"
+              tone="danger"
+              data-testid="doctor-delete"
+              onSelect={() => setDeleting(row)}
+            >
+              {t("doctors.delete")}
+            </MenuItem>
+          )}
+        </RowMenu>
       ),
     });
 
     return base;
-  }, [t, isAdmin, navigate]);
+  }, [t, isAdmin, navigate, currentUser?.id]);
 
   const data = query.data;
 
@@ -154,18 +168,6 @@ export function DoctorsPage(): JSX.Element {
               }}
             >
               {t("doctors.create")}
-            </Button>
-          ) : undefined
-        }
-        actions={
-          isAdmin ? (
-            <Button
-              variant="secondary"
-              icon={<Icon name="user-plus" />}
-              data-testid="doctors-create-visiting"
-              onClick={() => setVisitingOpen(true)}
-            >
-              {t("doctors.visiting.create")}
             </Button>
           ) : undefined
         }
@@ -226,12 +228,34 @@ export function DoctorsPage(): JSX.Element {
         open={formOpen}
         onOpenChange={setFormOpen}
         doctor={formDoctor}
+        onVisitingCreated={(doctor) => navigate(`/doctors/${doctor.id}`)}
       />
 
-      <VisitingDoctorModal
-        open={visitingOpen}
-        onOpenChange={setVisitingOpen}
-        onCreated={(doctor) => navigate(`/doctors/${doctor.id}`)}
+      <ConfirmDialog
+        data-testid="doctor-delete-confirm"
+        open={deleting !== null}
+        onOpenChange={(open) => !open && setDeleting(null)}
+        title="doctors.deleteTitle"
+        titleValues={{ name: deleting ? personName(deleting.user.name, i18n.language) : "" }}
+        consequences={[
+          t("doctors.deleteSignIn"),
+          t("doctors.deleteBooking"),
+          t("doctors.deleteKeeps"),
+        ]}
+        confirmLabel="doctors.delete"
+        onConfirm={async () => {
+          if (!deleting) {
+            return;
+          }
+
+          try {
+            await removeDoctor.mutateAsync(deleting.id);
+            toast.success("doctors.deleted");
+          } catch (error) {
+            toast.error(...errorToast(error));
+            throw error;
+          }
+        }}
       />
     </div>
   );

@@ -102,6 +102,7 @@ export function EmployeeMonthModal({
         title="payroll.reverseTitle"
         consequences={[t("payroll.reverseConsequence")]}
         note={{ label: t("payroll.reverseReason") }}
+        confirmLabel={t("payroll.reverse")}
         onConfirm={async ({ note }) => {
           if (!reversing) {
             return;

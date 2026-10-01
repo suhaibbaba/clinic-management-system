@@ -293,7 +293,19 @@
       "total": "Total",
       "signatureClinic": "Clinic signature",
       "signatureDoctor": "Doctor signature"
-    }
+    },
+    "kind": "Doctor type",
+    "kinds": {
+      "staff": "Clinic doctor",
+      "visiting": "Visiting doctor"
+    },
+    "rowMenu": "Doctor actions",
+    "delete": "Delete the doctor",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteSignIn": "Their account is deleted and they can no longer sign in.",
+    "deleteBooking": "They leave the doctor list and no new appointments can be booked with them.",
+    "deleteKeeps": "Their past appointments, visits, treatments and payments stay as they are.",
+    "deleted": "Doctor deleted"
   },
   "schedule": {
     "off": "Off",

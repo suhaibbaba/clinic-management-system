@@ -363,6 +363,7 @@ export function SettlementSection({
         title="doctors.settlement.reverseTitle"
         consequences={[t("doctors.settlement.reverseConsequence")]}
         note={{ label: t("doctors.settlement.reverseReason") }}
+        confirmLabel={t("doctors.settlement.reverse")}
         onConfirm={async ({ note }) => {
           if (!reversing) {
             return;
