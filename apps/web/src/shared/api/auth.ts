@@ -1,15 +1,24 @@
 import type {
+  PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+} from "@simplewebauthn/browser";
+import type {
+  AuthMethods,
   AuthenticatedUserProfile,
   ChangePasswordInput,
   ForgotPasswordInput,
   LoginInput,
   LoginResponse,
+  Passkey,
+  PasskeyChallenge,
+  RegisterPasskeyInput,
   RequestLoginCodeInput,
   SetPasswordInput,
   UpdateOwnProfileInput,
   VerifyLoginCodeInput,
+  VerifyPasskeyLoginInput,
 } from "@clinic/shared";
-import { apiRequest } from "@web/shared/lib/api-client";
+import { apiRequest, apiUrl } from "@web/shared/lib/api-client";
 
 export const authApi = {
   login: (body: LoginInput): Promise<LoginResponse> =>
@@ -20,6 +29,28 @@ export const authApi = {
 
   verifyLoginCode: (body: VerifyLoginCodeInput): Promise<LoginResponse> =>
     apiRequest("/auth/login-code/verify", { method: "POST", body }),
+
+  methods: (): Promise<AuthMethods> => apiRequest("/auth/methods"),
+
+  googleSignInUrl: (): string => apiUrl("/auth/google"),
+
+  passkeyOptions: (): Promise<PasskeyChallenge<PublicKeyCredentialRequestOptionsJSON>> =>
+    apiRequest("/auth/passkey/options", { method: "POST", body: {} }),
+
+  verifyPasskey: (body: VerifyPasskeyLoginInput): Promise<LoginResponse> =>
+    apiRequest("/auth/passkey/verify", { method: "POST", body }),
+
+  passkeys: (): Promise<Passkey[]> => apiRequest("/me/passkeys"),
+
+  passkeyRegistrationOptions: (): Promise<
+    PasskeyChallenge<PublicKeyCredentialCreationOptionsJSON>
+  > => apiRequest("/me/passkeys/options", { method: "POST", body: {} }),
+
+  registerPasskey: (body: RegisterPasskeyInput): Promise<Passkey> =>
+    apiRequest("/me/passkeys", { method: "POST", body }),
+
+  removePasskey: (id: string): Promise<void> =>
+    apiRequest(`/me/passkeys/${id}`, { method: "DELETE" }),
 
   logout: (): Promise<void> => apiRequest("/auth/logout", { method: "POST", body: {} }),
 

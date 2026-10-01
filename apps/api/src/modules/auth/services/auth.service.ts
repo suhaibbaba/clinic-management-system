@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { LoginThrottleService } from "@api/modules/auth/services/login-throttle.service";
 import { LoginCodeService } from "@api/modules/auth/services/login-code.service";
+import { PasskeyService } from "@api/modules/auth/services/passkey.service";
 import { and, eq, isNull, like, sql } from "drizzle-orm";
 import {
   AUTH_ERROR,
@@ -14,6 +15,7 @@ import {
   type SessionClinic,
   type UserRole,
   type VerifyLoginCodeInput,
+  type VerifyPasskeyLoginInput,
 } from "@clinic/shared";
 import { PasswordService } from "@api/modules/auth/services/password.service";
 import { TokenService } from "@api/modules/auth/services/token.service";
@@ -39,6 +41,7 @@ export class AuthService {
     private readonly permissions: PermissionsService,
     private readonly loginThrottle: LoginThrottleService,
     private readonly loginCodes: LoginCodeService,
+    private readonly passkeys: PasskeyService,
   ) {}
 
   async login(input: LoginInput): Promise<LoginResponse & IssuedSession> {
@@ -77,6 +80,30 @@ export class AuthService {
     }
 
     await this.loginThrottle.clear(input.email);
+
+    return this.startSession(user);
+  }
+
+  async loginWithPasskey(input: VerifyPasskeyLoginInput): Promise<LoginResponse & IssuedSession> {
+    const user = await this.passkeys.authenticate(input);
+
+    if (!user?.isActive) {
+      throw new UnauthorizedException(AUTH_ERROR.PASSKEY_INVALID);
+    }
+
+    return this.startSession(user);
+  }
+
+  async loginWithGoogle(email: string): Promise<LoginResponse & IssuedSession> {
+    const [user] = await this.db
+      .select()
+      .from(users)
+      .where(and(isNull(users.deletedAt), eq(sql`lower(${users.email})`, email.toLowerCase())))
+      .limit(1);
+
+    if (!user?.isActive) {
+      throw new UnauthorizedException(AUTH_ERROR.GOOGLE_NO_ACCOUNT);
+    }
 
     return this.startSession(user);
   }

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -10,11 +11,19 @@ import {
 } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import { ConfigService } from "@nestjs/config";
-import { type AuthTokens, type LoginResponse } from "@clinic/shared";
+import {
+  type AuthMethods,
+  type AuthTokens,
+  type LoginResponse,
+  type PasskeyChallenge,
+} from "@clinic/shared";
+import { type PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/server";
 import { type FastifyReply, type FastifyRequest } from "fastify";
 import { AccountInvitationsService } from "@api/modules/email/services/account-invitations.service";
 import { AuthService } from "@api/modules/auth/services/auth.service";
 import { LoginCodeService } from "@api/modules/auth/services/login-code.service";
+import { GoogleAuthService } from "@api/modules/auth/services/google-auth.service";
+import { PasskeyService } from "@api/modules/auth/services/passkey.service";
 import {
   clearRefreshCookie,
   readRefreshToken,
@@ -30,6 +39,7 @@ import {
   SetPasswordDto,
   RequestLoginCodeDto,
   VerifyLoginCodeDto,
+  VerifyPasskeyLoginDto,
 } from "@api/modules/auth/dto/auth.dto";
 
 @Controller("auth")
@@ -37,9 +47,17 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly loginCodes: LoginCodeService,
+    private readonly passkeys: PasskeyService,
+    private readonly google: GoogleAuthService,
     private readonly invitations: AccountInvitationsService,
     private readonly config: ConfigService<Env, true>,
   ) {}
+
+  @Public()
+  @Get("methods")
+  methods(): AuthMethods {
+    return { google: this.google.enabled };
+  }
 
   @Public()
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
@@ -72,6 +90,28 @@ export class AuthController {
     @Res({ passthrough: true }) reply: FastifyReply,
   ): Promise<LoginResponse> {
     const { refreshToken, ...response } = await this.authService.loginWithCode(body);
+    setRefreshCookie(reply, this.config, refreshToken);
+
+    return response;
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Post("passkey/options")
+  @HttpCode(HttpStatus.OK)
+  passkeyOptions(): Promise<PasskeyChallenge<PublicKeyCredentialRequestOptionsJSON>> {
+    return this.passkeys.loginOptions();
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post("passkey/verify")
+  @HttpCode(HttpStatus.OK)
+  async verifyPasskey(
+    @Body() body: VerifyPasskeyLoginDto,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ): Promise<LoginResponse> {
+    const { refreshToken, ...response } = await this.authService.loginWithPasskey(body);
     setRefreshCookie(reply, this.config, refreshToken);
 
     return response;

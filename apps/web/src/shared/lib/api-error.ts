@@ -46,6 +46,9 @@ const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [PAYROLL_ERROR.FUTURE_MONTH]: "errors.payroll.futureMonth",
   [AUTH_ERROR.LOCKED]: "errors.auth.locked",
   [AUTH_ERROR.CODE_INVALID]: "errors.auth.codeInvalid",
+  [AUTH_ERROR.GOOGLE_FAILED]: "errors.auth.googleFailed",
+  [AUTH_ERROR.GOOGLE_NO_ACCOUNT]: "errors.auth.googleNoAccount",
+  [AUTH_ERROR.PASSKEY_INVALID]: "errors.auth.passkeyInvalid",
   [CLINICAL_DELETE_ERROR.HAS_PAYMENTS]: "errors.clinicalDelete.hasPayments",
   [LAB_ORDER_ERROR.EXPECTED_IN_PAST]: "errors.labOrder.expectedInPast",
   [STOCK_ERROR.INSUFFICIENT]: "errors.stock.insufficient",
@@ -53,6 +56,10 @@ const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [PAYMENT_ERROR.EXCEEDS_BALANCE]: "errors.payment.exceedsBalance",
   [PAYMENT_ERROR.REVERSED]: "errors.payment.reversed",
 };
+
+export function codedMessageKey(code: string | null | undefined): string | undefined {
+  return code && Object.hasOwn(CODED_MESSAGES, code) ? CODED_MESSAGES[code] : undefined;
+}
 
 export function errorMessageKey(error: unknown): string {
   if (error instanceof NetworkError) {

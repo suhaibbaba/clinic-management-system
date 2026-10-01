@@ -164,7 +164,9 @@
     "codeResend": "Send a new code",
     "codeResendIn": "You can ask for a new code in {{seconds}} seconds",
     "codeChangeEmail": "Use a different email",
-    "withPassword": "Sign in with a password"
+    "withPassword": "Sign in with a password",
+    "passkeyLink": "Sign in with a passkey",
+    "googleLink": "Sign in with Google"
   },
   "users": {
     "activate": "Activate",
@@ -473,7 +475,24 @@
     "passwordChanged": "Password changed, please sign in again",
     "subtitle": "Your details and password",
     "title": "My account",
-    "updated": "Your details were saved"
+    "updated": "Your details were saved",
+    "passkeys": {
+      "title": "Passkeys",
+      "subtitle": "Sign in with your fingerprint, face or device PIN instead of a password. Add one on each device you use.",
+      "empty": "You have no passkeys yet.",
+      "name": "Device name",
+      "namePlaceholder": "e.g. My phone",
+      "add": "Add a passkey",
+      "added": "Passkey added",
+      "addedOn": "Added {{date}}",
+      "lastUsed": "last used {{date}}",
+      "neverUsed": "not used yet",
+      "remove": "Remove",
+      "removeTitle": "Remove the passkey “{{name}}”?",
+      "removeConsequence": "This device will no longer sign you in with it. Your password and other passkeys keep working.",
+      "removed": "Passkey removed",
+      "unsupported": "This browser can't create passkeys."
+    }
   },
   "errors": {
     "network": "Could not reach the server",
@@ -519,7 +538,10 @@
     "tooMany": "Too many requests in a short time; wait a moment and try again",
     "auth": {
       "locked": "Too many wrong attempts. Try again in fifteen minutes.",
-      "codeInvalid": "That code is wrong or has expired. Ask for a new one if you need to."
+      "codeInvalid": "That code is wrong or has expired. Ask for a new one if you need to.",
+      "googleFailed": "Google sign-in didn't finish. Try again.",
+      "googleNoAccount": "No account here uses that Google address. Sign in another way, or ask your admin to put this email on your account.",
+      "passkeyInvalid": "That passkey isn't recognised here. Sign in another way."
     },
     "appointment": {
       "dayNotReached": "This appointment's day has not come yet",

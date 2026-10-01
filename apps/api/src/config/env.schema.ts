@@ -106,6 +106,21 @@ export const envSchema = z.object({
 
   PUBLIC_BASE_URL: z.string().url().default("http://localhost:5173"),
 
+  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
+  GOOGLE_REDIRECT_URI: z.string().url().optional(),
+
+  WEBAUTHN_RP_ID: z.string().min(1).optional(),
+  WEBAUTHN_ORIGIN: z
+    .string()
+    .optional()
+    .transform((value) =>
+      value
+        ?.split(",")
+        .map((origin) => origin.trim())
+        .filter((origin) => origin.length > 0),
+    ),
+
   AI_PROVIDER: z.enum(["log", "openai"]).default("log"),
   OPENAI_API_KEY: z.string().optional(),
   AI_MODEL: z.string().min(1).default("gpt-5.6-luna"),

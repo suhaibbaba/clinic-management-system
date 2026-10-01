@@ -2,6 +2,7 @@ import { APPOINTMENT_ERROR, AUTH_ERROR } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
 import {
   ApiError,
+  codedMessageKey,
   errorMessageKey,
   errorToast,
   invalidFieldLabels,
@@ -15,6 +16,20 @@ describe("errors read by code", () => {
     expect(
       errorMessageKey(new ApiError(429, { message: "ThrottlerException: Too Many Requests" })),
     ).toBe("errors.tooMany");
+  });
+
+  it("reads a refused passkey as its own message", () => {
+    expect(errorMessageKey(new ApiError(401, { message: AUTH_ERROR.PASSKEY_INVALID }))).toBe(
+      "errors.auth.passkeyInvalid",
+    );
+  });
+
+  it("reads the error Google sign-in returns with in the address", () => {
+    expect(codedMessageKey(AUTH_ERROR.GOOGLE_NO_ACCOUNT)).toBe("errors.auth.googleNoAccount");
+    expect(codedMessageKey(AUTH_ERROR.GOOGLE_FAILED)).toBe("errors.auth.googleFailed");
+    expect(codedMessageKey(null)).toBeUndefined();
+    expect(codedMessageKey("constructor")).toBeUndefined();
+    expect(codedMessageKey("toString")).toBeUndefined();
   });
 
   it("reads a refused sign-in code as its own message", () => {
