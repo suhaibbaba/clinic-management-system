@@ -406,9 +406,20 @@ describe("Appointments (e2e)", () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it("answers 400, not 500, for an id that is not a uuid", async () => {
+      const response = await context.app.inject({
+        method: "PATCH",
+        url: "/appointments/not-a-uuid",
+        headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
+        payload: { notes: "x" },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it("refuses booking or moving an appointment onto a day that has passed", async () => {
       const past = addDays(monday, -14);
-      const created = await book("09:00");
+      const created = await book("11:30");
       const id = (created.json() as { id: string }).id;
 
       const booked = await context.app.inject({
@@ -440,7 +451,7 @@ describe("Appointments (e2e)", () => {
     });
 
     it("still edits the notes of a past appointment without moving it", async () => {
-      const created = await book("09:30");
+      const created = await book("10:30");
       const id = (created.json() as { id: string }).id;
       await moveIntoPast(context.db, id);
 

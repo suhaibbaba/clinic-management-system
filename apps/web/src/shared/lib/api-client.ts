@@ -14,8 +14,12 @@ export interface RequestOptions {
   signal?: AbortSignal;
 }
 
+export function apiUrl(path: string): string {
+  return `${API_BASE_URL}${path}`;
+}
+
 function buildUrl(path: string, query: RequestOptions["query"]): string {
-  const url = `${API_BASE_URL}${path}`;
+  const url = apiUrl(path);
 
   if (!query) {
     return url;

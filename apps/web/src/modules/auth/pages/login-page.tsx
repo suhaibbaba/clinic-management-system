@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { loginSchema, type LoginInput } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useForm } from "react-hook-form";
@@ -6,10 +7,13 @@ import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import { Logo } from "@web/shared/components/brand/logo";
 import { useClinicBranding, BRANDING_SCOPE } from "@web/shared/queries/clinic";
-import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button, FormField, Icon, Input, PasswordInput, PersonName } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
-import { ApiError, errorMessageKey } from "@web/shared/lib/api-error";
+import { ApiError, codedMessageKey, errorMessageKey } from "@web/shared/lib/api-error";
+import { isPasskeyCancelled } from "@web/shared/lib/passkeys";
+import { authApi } from "@web/shared/api/auth";
+import { useAuthMethods } from "@web/modules/auth/queries";
 import { useClinicLogo } from "@web/shared/hooks/use-clinic-logo";
 import { ellipsis } from "@web/i18n/ellipsis";
 
@@ -19,12 +23,18 @@ interface LocationState {
 
 export function LoginPage(): JSX.Element {
   const { t } = useTranslation();
-  const { status, login } = useSession();
+  const { status, login, loginWithPasskey } = useSession();
+  const methods = useAuthMethods();
+  const [searchParams] = useSearchParams();
   const branding = useClinicBranding();
   const logoUrl = useClinicLogo(BRANDING_SCOPE, branding.data?.logoUrl);
   const navigate = useNavigate();
   const location = useLocation();
-  const [formErrorKey, setFormErrorKey] = useState<string | null>(null);
+  const returnedError = searchParams.get("error");
+  const [formErrorKey, setFormErrorKey] = useState<string | null>(
+    codedMessageKey(returnedError) ?? (returnedError ? "errors.auth.googleFailed" : null),
+  );
+  const [passkeyBusy, setPasskeyBusy] = useState(false);
 
   const {
     register,
@@ -41,14 +51,42 @@ export function LoginPage(): JSX.Element {
     return <Navigate to={from ?? "/"} replace />;
   }
 
+  const goOn = (): void => {
+    const from = (location.state as LocationState | null)?.from;
+    void navigate(from ?? "/", { replace: true });
+  };
+
+  const onPasskey = async (): Promise<void> => {
+    if (passkeyBusy) {
+      return;
+    }
+
+    setFormErrorKey(null);
+    setPasskeyBusy(true);
+
+    try {
+      await loginWithPasskey();
+      goOn();
+    } catch (error) {
+      if (!isPasskeyCancelled(error)) {
+        setFormErrorKey(
+          error instanceof ApiError && error.statusCode === 401
+            ? "errors.auth.passkeyInvalid"
+            : errorMessageKey(error),
+        );
+      }
+    } finally {
+      setPasskeyBusy(false);
+    }
+  };
+
   const onSubmit = handleSubmit(
     async (values) => {
       setFormErrorKey(null);
 
       try {
         await login(values);
-        const from = (location.state as LocationState | null)?.from;
-        void navigate(from ?? "/", { replace: true });
+        goOn();
       } catch (error) {
         setFormErrorKey(
           error instanceof ApiError && error.statusCode === 401
@@ -139,6 +177,32 @@ export function LoginPage(): JSX.Element {
           >
             {isSubmitting ? ellipsis(t("auth.submitting")) : t("auth.submit")}
           </Button>
+
+          {browserSupportsWebAuthn() && (
+            <Button
+              variant="secondary"
+              icon={<Icon name="key" />}
+              data-testid="login-passkey"
+              isLoading={passkeyBusy}
+              aria-disabled={passkeyBusy || undefined}
+              className="w-full"
+              onClick={() => void onPasskey()}
+            >
+              {t("auth.passkeyLink")}
+            </Button>
+          )}
+
+          {methods.data?.google && (
+            <Button
+              variant="secondary"
+              icon={<Icon name="google" />}
+              data-testid="login-google"
+              className="w-full"
+              onClick={() => window.location.assign(authApi.googleSignInUrl())}
+            >
+              {t("auth.googleLink")}
+            </Button>
+          )}
 
           <Button
             variant="secondary"

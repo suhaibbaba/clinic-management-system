@@ -1012,6 +1012,9 @@ export const LAB_ORDER_ERROR = {
 export const AUTH_ERROR = {
   LOCKED: "auth_locked",
   CODE_INVALID: "auth_code_invalid",
+  GOOGLE_FAILED: "auth_google_failed",
+  GOOGLE_NO_ACCOUNT: "auth_google_no_account",
+  PASSKEY_INVALID: "auth_passkey_invalid",
 } as const satisfies Record<string, string>;
 
 export const BOOKING_ERROR = {
@@ -1040,7 +1043,10 @@ export const STAFF_PAYMENT_KIND = {
 } as const satisfies Record<string, string>;
 export type StaffPaymentKind = EnumValue<typeof STAFF_PAYMENT_KIND>;
 
-export const STAFF_PAYMENT_KINDS = [STAFF_PAYMENT_KIND.SALARY, STAFF_PAYMENT_KIND.SETTLEMENT] as const;
+export const STAFF_PAYMENT_KINDS = [
+  STAFF_PAYMENT_KIND.SALARY,
+  STAFF_PAYMENT_KIND.SETTLEMENT,
+] as const;
 
 export const PAYROLL_ERROR = {
   MONTH_CLOSED: "payroll_month_closed",

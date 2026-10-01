@@ -86,6 +86,7 @@ export type IconName =
   | "gear"
   | "grip"
   | "globe"
+  | "google"
   | "image"
   | "info"
   | "language"
@@ -132,6 +133,12 @@ const ToothGlyph: LucideIcon = ((props) => (
       strokeLinecap="round"
       strokeLinejoin="round"
     />
+  </svg>
+)) as LucideIcon;
+
+const GoogleGlyph: LucideIcon = ((props) => (
+  <svg viewBox="0 0 24 24" {...props} fill="currentColor" stroke="none">
+    <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.79 4.13-1.15 1.15-2.94 2.4-6.05 2.4-4.83 0-8.6-3.89-8.6-8.72s3.77-8.72 8.6-8.72c2.6 0 4.5 1.03 5.9 2.35l2.31-2.31C18.75 1.44 16.13 0 12.48 0 5.87 0 .31 5.39.31 12s5.56 12 12.17 12c3.57 0 6.27-1.17 8.37-3.36 2.16-2.16 2.84-5.21 2.84-7.67 0-.76-.05-1.47-.17-2.05H12.48Z" />
   </svg>
 )) as LucideIcon;
 
@@ -200,6 +207,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   user: User,
   "user-plus": UserPlus,
   users: Users,
+  google: GoogleGlyph,
   whatsapp: WhatsAppGlyph,
   x: X,
 };

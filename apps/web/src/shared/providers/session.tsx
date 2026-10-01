@@ -18,6 +18,7 @@ import {
 import { authApi } from "@web/shared/api/auth";
 import { restoreSession } from "@web/shared/lib/api-client";
 import { authTokens } from "@web/shared/lib/auth-tokens";
+import { signInWithPasskey } from "@web/shared/lib/passkeys";
 
 export type SessionStatus = "loading" | "authenticated" | "unauthenticated";
 
@@ -28,6 +29,7 @@ interface SessionValue {
   readonly user: AuthenticatedUserProfile | null;
   readonly login: (input: LoginInput) => Promise<void>;
   readonly loginWithCode: (input: VerifyLoginCodeInput) => Promise<void>;
+  readonly loginWithPasskey: () => Promise<void>;
   readonly logout: () => Promise<void>;
   readonly refreshProfile: () => Promise<void>;
   readonly hasRole: (...roles: UserRole[]) => boolean;
@@ -106,6 +108,8 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
     [begin],
   );
 
+  const loginWithPasskey = useCallback(async () => begin(await signInWithPasskey()), [begin]);
+
   const refreshProfile = useCallback(async () => {
     try {
       setUser(await authApi.me());
@@ -130,12 +134,13 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
       user,
       login,
       loginWithCode,
+      loginWithPasskey,
       logout,
       refreshProfile,
       hasRole: (...roles: UserRole[]) => (user ? roles.includes(user.role) : false),
       can: (capability: string) => granted.has(capability),
     }),
-    [status, user, login, loginWithCode, logout, refreshProfile, granted],
+    [status, user, login, loginWithCode, loginWithPasskey, logout, refreshProfile, granted],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

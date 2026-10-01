@@ -47,6 +47,53 @@ export const verifyLoginCodeSchema = z.object({
 });
 export type VerifyLoginCodeInput = z.infer<typeof verifyLoginCodeSchema>;
 
+export const authMethodsSchema = z.object({
+  google: z.boolean(),
+});
+export type AuthMethods = z.infer<typeof authMethodsSchema>;
+
+export const googleCallbackQuerySchema = z.object({
+  code: z.string().min(1).max(2048).optional(),
+  state: z.string().min(1).max(512).optional(),
+  error: z.string().max(256).optional(),
+});
+export type GoogleCallbackQuery = z.infer<typeof googleCallbackQuerySchema>;
+
+export const PASSKEY_NAME_MAX_LENGTH = 60;
+
+const webAuthnResponseSchema = z.looseObject({
+  id: z.string().min(1).max(1024),
+  rawId: z.string().min(1).max(1024),
+  type: z.literal("public-key"),
+  response: z.looseObject({ clientDataJSON: z.string().min(1).max(4096) }),
+});
+
+export const verifyPasskeyLoginSchema = z.object({
+  challengeId: z.uuid(),
+  response: webAuthnResponseSchema,
+});
+export type VerifyPasskeyLoginInput = z.infer<typeof verifyPasskeyLoginSchema>;
+
+export const registerPasskeySchema = z.object({
+  challengeId: z.uuid(),
+  name: z.string().trim().min(1).max(PASSKEY_NAME_MAX_LENGTH),
+  response: webAuthnResponseSchema,
+});
+export type RegisterPasskeyInput = z.infer<typeof registerPasskeySchema>;
+
+export const passkeySchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  createdAt: z.iso.datetime(),
+  lastUsedAt: z.iso.datetime().nullable(),
+});
+export type Passkey = z.infer<typeof passkeySchema>;
+
+export interface PasskeyChallenge<Options> {
+  readonly challengeId: string;
+  readonly options: Options;
+}
+
 export const changePasswordSchema = z
   .object({
     currentPassword: passwordSchema,

@@ -19,6 +19,7 @@ import {
 } from "@clinic/ui";
 import { authApi } from "@web/shared/api/auth";
 import { ProfileFormModal } from "@web/modules/profile/components/profile-form-modal";
+import { PasskeysSection } from "@web/modules/profile/components/passkeys-section";
 import { useSession } from "@web/shared/providers/session";
 import { ApiError, errorMessageKey } from "@web/shared/lib/api-error";
 
@@ -204,6 +205,8 @@ export function ProfilePage(): JSX.Element {
             </Button>
           </form>
         </section>
+
+        <PasskeysSection />
       </div>
     </div>
   );

@@ -7,6 +7,10 @@ import {
   setPasswordSchema,
   requestLoginCodeSchema,
   verifyLoginCodeSchema,
+  verifyPasskeyLoginSchema,
+  registerPasskeySchema,
+  googleCallbackQuerySchema,
+  idParamSchema,
 } from "@clinic/shared";
 
 export class LoginDto extends createZodDto(loginSchema) {}
@@ -22,3 +26,11 @@ export class SetPasswordDto extends createZodDto(setPasswordSchema) {}
 export class RequestLoginCodeDto extends createZodDto(requestLoginCodeSchema) {}
 
 export class VerifyLoginCodeDto extends createZodDto(verifyLoginCodeSchema) {}
+
+export class VerifyPasskeyLoginDto extends createZodDto(verifyPasskeyLoginSchema) {}
+
+export class RegisterPasskeyDto extends createZodDto(registerPasskeySchema) {}
+
+export class GoogleCallbackQueryDto extends createZodDto(googleCallbackQuerySchema) {}
+
+export class IdParamDto extends createZodDto(idParamSchema) {}

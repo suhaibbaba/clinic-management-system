@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { type AuditMetadata } from "@api/common/decorators/audit.decorator";
 import { type AuditSnapshotLoader } from "@api/modules/audit/lib/audit-snapshot.registry";
 
@@ -25,7 +26,7 @@ export async function snapshot(
   id: string | undefined,
   clinicId: string,
 ): Promise<Record<string, unknown> | null> {
-  if (!loader || !id) {
+  if (!loader || id === undefined || !z.uuid().safeParse(id).success) {
     return null;
   }
 

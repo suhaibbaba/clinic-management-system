@@ -1,6 +1,7 @@
 import { AUDIT_ACTIONS, CHART_TYPES, USER_ROLES, type WeeklySchedule } from "@clinic/shared";
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   date,
   index,
@@ -206,6 +207,46 @@ export const loginCodes = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("login_codes_user_created_idx").on(table.userId, table.createdAt)],
+);
+
+export const passkeys = pgTable(
+  "passkeys",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    credentialId: text("credential_id").notNull(),
+    publicKey: text("public_key").notNull(),
+    counter: bigint("counter", { mode: "number" }).notNull().default(0),
+    transports: text("transports")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    name: text("name").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("passkeys_credential_uniq").on(table.credentialId),
+    index("passkeys_user_idx").on(table.userId),
+  ],
+);
+
+export const authChallenges = pgTable(
+  "auth_challenges",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").references(() => users.id),
+    purpose: text("purpose").notNull(),
+    challenge: text("challenge").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("auth_challenges_expires_idx").on(table.expiresAt)],
 );
 
 export const auditLog = pgTable(

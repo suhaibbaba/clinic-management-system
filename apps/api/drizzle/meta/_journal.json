@@ -386,6 +386,13 @@
       "when": 1790840569347,
       "tag": "0054_doctors_follow_deleted_users",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1790848601591,
+      "tag": "0055_passkeys",
+      "breakpoints": true
     }
   ]
 }
