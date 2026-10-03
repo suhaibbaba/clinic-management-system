@@ -23,7 +23,6 @@
     "all": "الكل",
     "none": "لا يوجد",
     "optional": "اختياري",
-    "reset": "إعادة تعيين",
     "delete": "حذف",
     "placeholders": {
       "identifier": "09XXXXXXXX",
@@ -910,7 +909,8 @@
       "kept": "تبقى ظاهرة للمدير في كشف الحساب مع اسم من حذفها، ويُسجَّل الحذف في سجل التدقيق"
     },
     "entryMenu": "خيارات القيد",
-    "balanceAfter": "الرصيد بعد هذه الدفعة: {{amount}}"
+    "balanceAfter": "الرصيد بعد هذه الدفعة: {{amount}}",
+    "clearPeriod": "مسح الفترة"
   },
   "appointments": {
     "title": "المواعيد",

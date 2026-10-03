@@ -23,7 +23,6 @@
     "all": "All",
     "none": "None",
     "optional": "Optional",
-    "reset": "Reset",
     "delete": "Delete",
     "placeholders": {
       "identifier": "09XXXXXXXX",
@@ -886,7 +885,8 @@
       "kept": "It stays on the admin's statement with who deleted it, and the audit log records the deletion"
     },
     "entryMenu": "Entry Options",
-    "balanceAfter": "Balance after this payment: {{amount}}"
+    "balanceAfter": "Balance after this payment: {{amount}}",
+    "clearPeriod": "Clear Period"
   },
   "appointments": {
     "title": "Appointments",
