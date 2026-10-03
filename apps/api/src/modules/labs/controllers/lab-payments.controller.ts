@@ -93,7 +93,7 @@ export class LabPaymentsController {
   constructor(private readonly payments: LabPaymentsService) {}
 
   @Post()
-  @Roles(USER_ROLE.TECHNICIAN)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(LAB_PAYMENTS_ENTITY, AUDIT_ACTION.CREATE)
   create(
     @CurrentUser() actor: AuthenticatedUser,

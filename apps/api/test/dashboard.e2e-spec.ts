@@ -249,19 +249,18 @@ describe("Dashboard (e2e)", () => {
     expect(body.pendingBookings).toBeGreaterThanOrEqual(1);
   });
 
-  it("gives a technician no financial figure and no booking queue", async () => {
+  it("gives a technician the overdue figure and the booking queue, as a doctor", async () => {
     const body = await summary(USER_ROLE.TECHNICIAN);
 
-    expect(body).not.toHaveProperty("overdueTotal");
-    expect(body).not.toHaveProperty("overduePatients");
-    expect(body).not.toHaveProperty("pendingBookings");
+    expect(body.overdueTotal).toEqual(expect.any(String));
+    expect(body.pendingBookings).toEqual(expect.any(Number));
   });
 
-  it("gives a doctor their own day, and no overdue list they may not read", async () => {
+  it("gives a doctor their own day, with the overdue figure and the booking queue", async () => {
     const body = await summary(USER_ROLE.DOCTOR);
 
-    expect(body).not.toHaveProperty("overdueTotal");
-    expect(body).not.toHaveProperty("pendingBookings");
+    expect(body.overdueTotal).toEqual(expect.any(String));
+    expect(body.pendingBookings).toEqual(expect.any(Number));
 
     for (const entry of body.schedule) {
       expect(entry.doctorId).toBe(fixtures.doctorId);

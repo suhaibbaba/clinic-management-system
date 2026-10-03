@@ -82,25 +82,25 @@ describe("Patients permission boundaries (e2e)", () => {
       name: "visits list",
       method: "GET",
       url: () => `/visits?patientId=${patientId}`,
-      roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
+      roles: [USER_ROLE.RECEPTIONIST],
     },
     {
       name: "a single visit",
       method: "GET",
       url: () => `/visits/${visitId}`,
-      roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
+      roles: [USER_ROLE.RECEPTIONIST],
     },
     {
       name: "medical history read",
       method: "GET",
       url: () => `/patients/${patientId}/medical-history`,
-      roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
+      roles: [USER_ROLE.RECEPTIONIST],
     },
     {
       name: "medical history write",
       method: "PATCH",
       url: () => `/patients/${patientId}/medical-history`,
-      roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
+      roles: [USER_ROLE.RECEPTIONIST],
     },
     {
       name: "allergy flags",
@@ -112,19 +112,19 @@ describe("Patients permission boundaries (e2e)", () => {
       name: "prescriptions list",
       method: "GET",
       url: () => `/prescriptions?patientId=${patientId}`,
-      roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
+      roles: [USER_ROLE.RECEPTIONIST],
     },
     {
       name: "a single prescription",
       method: "GET",
       url: () => `/prescriptions/${prescriptionId}`,
-      roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
+      roles: [USER_ROLE.RECEPTIONIST],
     },
     {
       name: "tooth history",
       method: "GET",
       url: () => `/patients/${patientId}/teeth/46`,
-      roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
+      roles: [USER_ROLE.RECEPTIONIST],
     },
     {
       name: "attachments",
@@ -133,12 +133,33 @@ describe("Patients permission boundaries (e2e)", () => {
       roles: [USER_ROLE.RECEPTIONIST],
     },
     {
-      name: "the timeline",
-      method: "GET",
-      url: () => `/patients/${patientId}/timeline`,
-      roles: [USER_ROLE.TECHNICIAN],
+      name: "a new prescription",
+      method: "POST",
+      url: () => "/prescriptions",
+      roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
+    },
+    {
+      name: "a new visit",
+      method: "POST",
+      url: () => "/visits",
+      roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
     },
   ];
+
+  it.each([
+    ["visits", () => `/visits?patientId=${patientId}`],
+    ["a prescription", () => `/prescriptions/${prescriptionId}`],
+    ["the medical history", () => `/patients/${patientId}/medical-history`],
+    ["the timeline", () => `/patients/${patientId}/timeline`],
+  ])("lets a technician read %s, as a doctor does", async (_name, url) => {
+    const response = await context.app.inject({
+      method: "GET",
+      url: url(),
+      headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+    });
+
+    expect(response.statusCode).toBe(200);
+  });
 
   for (const testCase of FORBIDDEN) {
     for (const role of testCase.roles) {

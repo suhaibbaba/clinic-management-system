@@ -165,8 +165,8 @@ describe("Assistant lab and stock actions (e2e)", () => {
       expect(result).toMatchObject({ status: "not_possible", current_status: "sent" });
     });
 
-    it("refuses a doctor the step only the technician may take", async () => {
-      const { error } = await tool(USER_ROLE.DOCTOR, AI_TOOL.SET_LAB_ORDER_STATUS, {
+    it("refuses a receptionist a lab step, which is not front-desk work", async () => {
+      const { error } = await tool(USER_ROLE.RECEPTIONIST, AI_TOOL.SET_LAB_ORDER_STATUS, {
         lab_order_id: labOrderId,
         status: LAB_ORDER_STATUS.READY,
       });
@@ -229,8 +229,8 @@ describe("Assistant lab and stock actions (e2e)", () => {
       expect(result?.proposal_id).toBeUndefined();
     });
 
-    it("refuses a doctor a purchase, which the technician records", async () => {
-      const { error } = await tool(USER_ROLE.DOCTOR, AI_TOOL.RECORD_STOCK_MOVEMENT, {
+    it("refuses a receptionist a purchase, which the clinical staff record", async () => {
+      const { error } = await tool(USER_ROLE.RECEPTIONIST, AI_TOOL.RECORD_STOCK_MOVEMENT, {
         item_id: itemId,
         type: MOVEMENT_TYPE.PURCHASE,
         quantity: "1",

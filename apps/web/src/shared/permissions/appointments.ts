@@ -1,4 +1,4 @@
-import { USER_ROLE, type UserRole } from "@clinic/shared";
+import { RULE } from "@clinic/shared";
 import type { Can } from "@web/shared/providers/session";
 import type { AppointmentStep } from "@web/shared/queries/appointments";
 
@@ -13,5 +13,4 @@ export const canOpenVisit = (can: Can): boolean => can("appointments.convertToVi
 
 export const canManageWaitingList = (can: Can): boolean => can("waiting-list.create");
 
-export const seesWholeClinic = (role: UserRole): boolean =>
-  role !== USER_ROLE.DOCTOR && role !== USER_ROLE.VISITING_DOCTOR;
+export const seesWholeClinic = (can: Can): boolean => can(RULE.ALL_CALENDARS);

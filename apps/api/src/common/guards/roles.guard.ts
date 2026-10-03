@@ -7,6 +7,7 @@ import {
 import { Reflector } from "@nestjs/core";
 import { USER_ROLE, type UserRole } from "@clinic/shared";
 import { ROLES_KEY } from "@api/common/decorators/roles.decorator";
+import { OR_SELF_KEY } from "@api/common/decorators/or-self.decorator";
 import { CapabilityRegistry } from "@api/modules/permissions/services/capability-registry.service";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import type { RequestWithUser } from "@api/common/types/authenticated-user";
@@ -25,7 +26,7 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    const { user } = context.switchToHttp().getRequest<RequestWithUser>();
+    const { user, params } = context.switchToHttp().getRequest<RequestWithUser>();
 
     if (!required || required.length === 0) {
       return true;
@@ -35,11 +36,21 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException("Insufficient role");
     }
 
+    const capability = this.registry.keyFor(context.getHandler(), context.getClass());
+
+    if (!(await this.permissions.available(user.clinicId, capability))) {
+      throw new ForbiddenException("This module is not enabled for the clinic");
+    }
+
     if (user.role === USER_ROLE.ADMIN) {
       return true;
     }
 
-    const capability = this.registry.keyFor(context.getHandler(), context.getClass());
+    const selfParam = this.reflector.get<string | undefined>(OR_SELF_KEY, context.getHandler());
+
+    if (selfParam && params?.[selfParam] === user.id) {
+      return true;
+    }
 
     if (await this.permissions.allows(user.clinicId, user.role, capability)) {
       return true;

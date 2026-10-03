@@ -15,6 +15,7 @@ import {
   minutesFromLocalMidnight,
   type AiAutomationRule,
   type AiAutomationSettings,
+  CLINIC_MODULE,
 } from "@clinic/shared";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { OutboundError, ProposalsService } from "@api/modules/ai/outbound/proposals.service";
@@ -82,7 +83,9 @@ export class AutomationService {
     const rows = await this.db
       .select({ id: clinics.id, settings: clinics.settings })
       .from(clinics)
-      .where(isNull(clinics.deletedAt));
+      .where(
+        and(isNull(clinics.deletedAt), sql`${CLINIC_MODULE.ASSISTANT} = any(${clinics.modules})`),
+      );
 
     for (const clinic of rows) {
       const timeZone = clinicScheduleSettings(clinic.settings).timezone || DEFAULT_TIME_ZONE;

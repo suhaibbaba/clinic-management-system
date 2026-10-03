@@ -1,10 +1,9 @@
-import { USER_ROLE } from "@clinic/shared";
 import { lazyPage } from "@web/shared/lib/lazy-page";
 import { Suspense, type JSX } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { ASSISTANT_ROLES } from "@web/shared/lib/navigation";
+import { PAGE_CAPABILITIES } from "@web/shared/lib/navigation";
 import { AppLayout } from "@web/app/layout/app-layout";
-import { RequireAuth, RequireRole } from "@web/modules/auth/components/guards";
+import { RequireAuth, RequireCapability } from "@web/modules/auth/components/guards";
 import { ForgotPasswordPage } from "@web/modules/auth/pages/forgot-password-page";
 import { LoginCodePage } from "@web/modules/auth/pages/login-code-page";
 import { LoginPage } from "@web/modules/auth/pages/login-page";
@@ -18,7 +17,6 @@ import { ShoppingListPage } from "@web/modules/inventory/pages/shopping-list-pag
 import { LabsSection } from "@web/modules/labs/pages/labs-section";
 import { LabPage } from "@web/modules/labs/pages/lab-page";
 import { PatientPage } from "@web/modules/patients/pages/patient-page";
-import { PATIENT_FILE_ROLES } from "@web/shared/permissions/patients";
 import { PatientsPage } from "@web/modules/patients/pages/patients-page";
 import { ProfilePage } from "@web/modules/profile/pages/profile-page";
 import { SettingsSection } from "@web/modules/settings/pages/settings-section";
@@ -40,19 +38,6 @@ const PayrollPage = lazyPage(async () => ({
 const LookupsPage = lazyPage(async () => ({
   default: (await import("@web/modules/lookups/pages/lookups-page")).LookupsPage,
 }));
-
-const ADMIN_ONLY = [USER_ROLE.ADMIN] as const;
-
-const PATIENTS = [
-  USER_ROLE.ADMIN,
-  USER_ROLE.DOCTOR,
-  USER_ROLE.VISITING_DOCTOR,
-  USER_ROLE.RECEPTIONIST,
-] as const;
-const APPOINTMENTS = PATIENTS;
-const LABS = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN] as const;
-const INVENTORY = [USER_ROLE.ADMIN, USER_ROLE.TECHNICIAN] as const;
-const DOCTOR_PAGE = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR] as const;
 
 const HOME = "/dashboard";
 
@@ -113,148 +98,148 @@ export function AppRoutes(): JSX.Element {
         <Route
           path="/assistant"
           element={
-            <RequireRole roles={ASSISTANT_ROLES} redirectTo={HOME}>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.assistant} redirectTo={HOME}>
               <RouteChunk>
                 <AssistantPage />
               </RouteChunk>
-            </RequireRole>
+            </RequireCapability>
           }
         />
         <Route
           path="/assistant/:conversationId"
           element={
-            <RequireRole roles={ASSISTANT_ROLES} redirectTo={HOME}>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.assistant} redirectTo={HOME}>
               <RouteChunk>
                 <AssistantPage />
               </RouteChunk>
-            </RequireRole>
+            </RequireCapability>
           }
         />
 
         <Route
           path="/patients"
           element={
-            <RequireRole roles={PATIENTS} redirectTo={HOME}>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.patients} redirectTo={HOME}>
               <PatientsPage />
-            </RequireRole>
+            </RequireCapability>
           }
         />
 
         <Route
           path="/patients/:id"
           element={
-            <RequireRole roles={PATIENT_FILE_ROLES} redirectTo={HOME}>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.patientFile} redirectTo={HOME}>
               <PatientPage />
-            </RequireRole>
+            </RequireCapability>
           }
         />
 
         <Route
           path="/appointments"
           element={
-            <RequireRole roles={APPOINTMENTS} redirectTo={HOME}>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.appointments} redirectTo={HOME}>
               <RouteChunk>
                 <AppointmentsSection />
               </RouteChunk>
-            </RequireRole>
+            </RequireCapability>
           }
         />
 
         <Route
           path="/labs"
           element={
-            <RequireRole roles={LABS} redirectTo={HOME}>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.labs} redirectTo={HOME}>
               <LabsSection />
-            </RequireRole>
+            </RequireCapability>
           }
         />
 
         <Route
           path="/labs/:id"
           element={
-            <RequireRole roles={LABS} redirectTo={HOME}>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.labs} redirectTo={HOME}>
               <LabPage />
-            </RequireRole>
+            </RequireCapability>
           }
         />
 
         <Route
           path="/inventory"
           element={
-            <RequireRole roles={INVENTORY} redirectTo={HOME}>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.inventory} redirectTo={HOME}>
               <InventorySection />
-            </RequireRole>
+            </RequireCapability>
           }
         />
 
         <Route
           path="/inventory/items/:id"
           element={
-            <RequireRole roles={INVENTORY} redirectTo={HOME}>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.inventory} redirectTo={HOME}>
               <ItemPage />
-            </RequireRole>
+            </RequireCapability>
           }
         />
 
         <Route
           path="/inventory/shopping-list"
           element={
-            <RequireRole roles={INVENTORY} redirectTo={HOME}>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.inventory} redirectTo={HOME}>
               <ShoppingListPage />
-            </RequireRole>
+            </RequireCapability>
           }
         />
 
         <Route
           path="/clinic"
           element={
-            <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.clinic} redirectTo={HOME}>
               <ClinicPage />
-            </RequireRole>
+            </RequireCapability>
           }
         />
         <Route
           path="/users"
           element={
-            <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.users} redirectTo={HOME}>
               <UsersSection />
-            </RequireRole>
+            </RequireCapability>
           }
         />
         <Route
           path="/settings"
           element={
-            <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.settings} redirectTo={HOME}>
               <SettingsSection />
-            </RequireRole>
+            </RequireCapability>
           }
         />
         <Route
           path="/doctors/:id"
           element={
-            <RequireRole roles={DOCTOR_PAGE} redirectTo={HOME}>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.doctor} redirectTo={HOME}>
               <DoctorPage />
-            </RequireRole>
+            </RequireCapability>
           }
         />
         <Route
           path="/payroll"
           element={
-            <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.payroll} redirectTo={HOME}>
               <RouteChunk>
                 <PayrollPage />
               </RouteChunk>
-            </RequireRole>
+            </RequireCapability>
           }
         />
         <Route
           path="/clinic/lists"
           element={
-            <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.lists} redirectTo={HOME}>
               <RouteChunk>
                 <LookupsPage />
               </RouteChunk>
-            </RequireRole>
+            </RequireCapability>
           }
         />
 

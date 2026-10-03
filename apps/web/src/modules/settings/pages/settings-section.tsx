@@ -4,6 +4,8 @@ import { TabPanel, useTabParam, type TabDefinition } from "@clinic/ui";
 import { Skeleton } from "@clinic/ui/components/skeleton";
 import { SectionViews } from "@web/shared/components/layout/section-views";
 import { SETTINGS_INNER_PARAMS, SETTINGS_VIEWS } from "@web/modules/settings/constants";
+import { SETTINGS_VIEW_CAPABILITIES } from "@web/shared/lib/navigation";
+import { useSession } from "@web/shared/providers/session";
 
 const TranslationsPage = lazyPage(async () => ({
   default: (await import("@web/modules/translations/pages/translations-page")).TranslationsPage,
@@ -28,10 +30,13 @@ const VIEWS: readonly TabDefinition<SettingsView>[] = [
 ];
 
 export function SettingsSection(): JSX.Element {
+  const { can } = useSession();
+  const views = VIEWS.filter((view) => can(SETTINGS_VIEW_CAPABILITIES[view.id]));
+  const ids = SETTINGS_VIEWS.filter((id) => can(SETTINGS_VIEW_CAPABILITIES[id]));
   const [active, setActive] = useTabParam<SettingsView>(
     "view",
-    SETTINGS_VIEWS,
-    "translations",
+    ids,
+    ids[0] ?? "translations",
     SETTINGS_INNER_PARAMS,
   );
 
@@ -39,7 +44,7 @@ export function SettingsSection(): JSX.Element {
     <div data-testid="settings-section" className="flex flex-col gap-5">
       <SectionViews
         data-testid="settings-section-views"
-        views={VIEWS}
+        views={views}
         value={active}
         onChange={setActive}
         label="nav.settingsPage"

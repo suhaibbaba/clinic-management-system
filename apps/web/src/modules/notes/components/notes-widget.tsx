@@ -2,6 +2,7 @@ import { useState, type FormEvent, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Icon, PersonName, useConfirm, Widget } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
+import { RULE } from "@clinic/shared";
 import { useCreateNote, useDeleteNote, useNotes } from "@web/modules/notes/queries";
 import { formatDate } from "@web/shared/lib/format";
 import { cn } from "@clinic/ui/lib/cn";
@@ -9,7 +10,7 @@ import { ellipsis } from "@web/i18n/ellipsis";
 
 export function NotesWidget(): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { user, can } = useSession();
   const notes = useNotes();
   const create = useCreateNote();
   const remove = useDeleteNote();
@@ -32,7 +33,7 @@ export function NotesWidget(): JSX.Element {
       {dialog}
       <ul data-testid="notes-list" className="flex flex-col">
         {(notes.data?.items ?? []).map((note) => {
-          const canRemove = user?.role === "admin" || note.authorId === user?.id;
+          const canRemove = can(RULE.ALL_NOTES) || note.authorId === user?.id;
 
           return (
             <li

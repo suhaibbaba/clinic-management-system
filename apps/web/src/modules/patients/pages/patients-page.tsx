@@ -106,8 +106,8 @@ export function PatientsPage(): JSX.Element {
     }
   }, [debouncedSearch]);
 
-  const showClinical = user ? seesClinicalPatientFields(user.role) : false;
-  const showBalance = user ? canSeeBilling(user.role) : false;
+  const showClinical = user ? seesClinicalPatientFields(can) : false;
+  const showBalance = user ? canSeeBilling(can) : false;
   const showDelete = canDeletePatient(can);
   const showEdit = canEditPatient(can);
   const toast = useToast();

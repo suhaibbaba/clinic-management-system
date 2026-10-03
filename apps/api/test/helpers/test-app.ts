@@ -3,7 +3,14 @@ import { Test } from "@nestjs/testing";
 import { type NestFastifyApplication } from "@nestjs/platform-fastify";
 import { ThrottlerStorage } from "@nestjs/throttler";
 import { hash } from "@node-rs/argon2";
-import { CHART_TYPE, SPECIALTY_CODE, USER_ROLES, type UserRole } from "@clinic/shared";
+import {
+  CHART_TYPE,
+  CLINIC_MODULES,
+  SPECIALTY_CODE,
+  USER_ROLES,
+  type ClinicModule,
+  type UserRole,
+} from "@clinic/shared";
 import { AppModule } from "@api/app.module";
 import { createFastifyAdapter, registerFastifyPlugins } from "@api/bootstrap";
 import { DATABASE, POSTGRES_CLIENT, type Database } from "@api/database/database.module";
@@ -36,7 +43,7 @@ export interface TestContext {
   readonly app: NestFastifyApplication;
   readonly db: Database;
   login(phone: string): Promise<string>;
-  createClinic(): Promise<TestClinic>;
+  createClinic(options?: { readonly modules?: readonly ClinicModule[] }): Promise<TestClinic>;
   resetThrottle(): void;
   close(): Promise<void>;
 }
@@ -85,7 +92,7 @@ export async function createTestContext(): Promise<TestContext> {
       return (response.json() as { accessToken: string }).accessToken;
     },
 
-    async createClinic(): Promise<TestClinic> {
+    async createClinic({ modules = CLINIC_MODULES } = {}): Promise<TestClinic> {
       const passwordHash = await testPasswordHash();
       const suffix = randomUUID().replaceAll("-", "").slice(0, 10);
       const phoneDigits = String(Number.parseInt(suffix.slice(0, 8), 16))
@@ -98,6 +105,7 @@ export async function createTestContext(): Promise<TestContext> {
           nameAr: `عيادة اختبار ${suffix}`,
           nameEn: `Test Clinic ${suffix}`,
           slug: `test-${suffix}`,
+          modules: [...modules],
         })
         .returning({ id: clinics.id, slug: clinics.slug });
 

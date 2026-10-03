@@ -1,0 +1,1 @@
+ALTER TABLE "clinics" ADD COLUMN "modules" text[] DEFAULT '{}'::text[] NOT NULL;

@@ -5,7 +5,6 @@ import {
   isPhoneCountry,
   MAX_CLINIC_LOGO_BYTES,
   PHONE_COUNTRIES,
-  USER_ROLE,
   updateClinicSchema,
   type Currency,
   type PhoneCountry,
@@ -64,8 +63,8 @@ const isCurrency = (value: string): value is Currency =>
 export function ClinicPage(): JSX.Element {
   const { t, i18n } = useTranslation();
   const toast = useToast();
-  const { hasRole, refreshProfile } = useSession();
-  const canEdit = hasRole(USER_ROLE.ADMIN);
+  const { can, refreshProfile } = useSession();
+  const canEdit = can("clinics.update");
 
   const clinic = useClinic();
   const showSkeleton = useDelayedLoading(clinic.isPending);

@@ -115,7 +115,7 @@ describe("Appointments, as tabs", () => {
     ).toBeVisible();
   });
 
-  it("shows a doctor the calendar and what needs updating — the queue is front-desk work", async () => {
+  it("shows a doctor every tab, the online-booking queue included", async () => {
     await render(USER_ROLE.DOCTOR, "/appointments");
 
     const tabs = await strip(ar.appointments.tabs.label);
@@ -124,7 +124,12 @@ describe("Appointments, as tabs", () => {
       within(tabs)
         .getAllByRole("tab")
         .map((tab) => tab.textContent?.replace(/\d+/g, "").trim()),
-    ).toEqual([ar.appointments.tabs.all, ar.appointments.tabs.overdue]);
+    ).toEqual([
+      ar.appointments.tabs.all,
+      ar.appointments.tabs.pending,
+      ar.appointments.tabs.confirmed,
+      ar.appointments.tabs.overdue,
+    ]);
     expect(
       await screen.findByRole("heading", { name: ar.appointments.title, level: 1 }),
     ).toBeVisible();

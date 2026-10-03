@@ -30,6 +30,7 @@ export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 
   @Get()
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN)
   list(
     @CurrentUser() actor: AuthenticatedUser,
     @Query() query: ListPatientsQueryDto,
@@ -38,6 +39,7 @@ export class PatientsController {
   }
 
   @Get(":id")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN)
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
@@ -46,7 +48,7 @@ export class PatientsController {
   }
 
   @Post()
-  @Roles(USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(PATIENTS_ENTITY, AUDIT_ACTION.CREATE)
   create(
     @CurrentUser() actor: AuthenticatedUser,
@@ -61,7 +63,7 @@ export class PatientsController {
       "Correct a patient's details — name, phone, date of birth, address. Not for notes: use add_patient_note. Waits on a card.",
   })
   @Patch(":id")
-  @Roles(USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(PATIENTS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
     @CurrentUser() actor: AuthenticatedUser,

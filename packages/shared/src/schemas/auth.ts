@@ -104,17 +104,6 @@ export interface PasskeyChallenge<Options> {
   readonly options: Options;
 }
 
-export const changePasswordSchema = z
-  .object({
-    currentPassword: passwordSchema,
-    newPassword: passwordSchema,
-  })
-  .refine((input) => input.currentPassword !== input.newPassword, {
-    message: "New password must differ from the current one",
-    path: ["newPassword"],
-  });
-export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
-
 export const sessionClinicSchema = z.object({
   name: personNameSchema,
   logoUrl: z.url().nullable(),

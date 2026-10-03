@@ -8,7 +8,6 @@ import {
   DEFAULT_PHONE_COUNTRY,
   normalizePhone,
   type AuthenticatedUserProfile,
-  type ChangePasswordInput,
   type IssuedSession,
   type LoginInput,
   type LoginResponse,
@@ -162,31 +161,6 @@ export class AuthService {
     }
 
     return this.toProfile(user);
-  }
-
-  async changePassword(actor: AuthenticatedUser, input: ChangePasswordInput): Promise<void> {
-    const user = await this.findActiveById(actor.id);
-
-    if (!user) {
-      throw new UnauthorizedException("Account is no longer available");
-    }
-
-    const matches =
-      user.passwordHash !== null &&
-      (await this.passwordService.verify(user.passwordHash, input.currentPassword));
-
-    if (!matches) {
-      throw new UnauthorizedException("Current password is incorrect");
-    }
-
-    const passwordHash = await this.passwordService.hash(input.newPassword);
-
-    await this.db
-      .update(users)
-      .set({ passwordHash, updatedAt: new Date(), updatedBy: actor.id })
-      .where(eq(users.id, actor.id));
-
-    await this.tokenService.revokeAllForUser(actor.id);
   }
 
   private async startSession(

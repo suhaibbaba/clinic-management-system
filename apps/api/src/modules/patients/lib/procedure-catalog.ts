@@ -1,10 +1,5 @@
 import { procedureCatalog } from "@api/database/schema";
-import {
-  type ProcedureCatalogItem,
-  type ProcedureCatalogPriceView,
-  type UserRole,
-  USER_ROLE,
-} from "@clinic/shared";
+import { type ProcedureCatalogItem, type ProcedureCatalogPriceView } from "@clinic/shared";
 
 export type CatalogRow = typeof procedureCatalog.$inferSelect;
 
@@ -25,8 +20,8 @@ export function toCatalogItem(row: CatalogRow): ProcedureCatalogItem {
   };
 }
 
-export function toRoleView(row: CatalogRow, role: UserRole): CatalogView {
-  if (role === USER_ROLE.RECEPTIONIST) {
+export function toRoleView(row: CatalogRow, details: boolean): CatalogView {
+  if (!details) {
     return {
       id: row.id,
       code: row.code,

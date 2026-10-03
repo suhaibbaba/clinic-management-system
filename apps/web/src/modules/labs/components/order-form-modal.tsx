@@ -1,5 +1,4 @@
 import {
-  USER_ROLE,
   VALIDATION_CODE,
   createLabOrderSchema,
   updateLabOrderSchema,
@@ -21,6 +20,7 @@ import {
   useToast,
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
+import { canPriceLabWork } from "@web/shared/permissions/labs";
 import { PatientPicker } from "@web/shared/components/patient-picker";
 import {
   patientPhoneClash,
@@ -74,7 +74,7 @@ export function OrderFormModal({
   const currency = useCurrency();
   const doctorName = usePersonName();
   const toast = useToast();
-  const { user } = useSession();
+  const { user, can } = useSession();
 
   const create = useCreateLabOrder();
   const update = useUpdateLabOrder();
@@ -95,7 +95,7 @@ export function OrderFormModal({
   const [price, setPrice] = useState("");
 
   const workTypes = useLabWorkTypes(labId);
-  const mayPrice = user?.role === USER_ROLE.ADMIN;
+  const mayPrice = canPriceLabWork(can);
 
   const body: Omit<CreateLabOrderInput, "patientId" | "newPatient"> = {
     labId,

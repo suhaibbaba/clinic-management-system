@@ -1,7 +1,14 @@
 import { Inject, Injectable, type OnApplicationShutdown, type OnModuleInit } from "@nestjs/common";
 import { AppointmentAccessService } from "@api/modules/appointments/services/appointment-access.service";
 import { VIEW_CAPABILITIES } from "@api/modules/ai/query/catalogue";
-import { AI_TOOL_ERROR, USER_ROLE, type AiTableView, type AiToolError } from "@clinic/shared";
+import {
+  AI_TOOL_ERROR,
+  CLINIC_MODULE,
+  RULE,
+  USER_ROLE,
+  type AiTableView,
+  type AiToolError,
+} from "@clinic/shared";
 import type { Sql } from "postgres";
 import {
   guardQuery,
@@ -51,7 +58,8 @@ export class QueryDataService implements OnModuleInit, OnApplicationShutdown {
       resource: "reports",
       method: "GET",
       path: "/ai/query",
-      defaultRoles: [USER_ROLE.ADMIN, USER_ROLE.DOCTOR],
+      defaultRoles: [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN],
+      module: CLINIC_MODULE.ASSISTANT,
     });
   }
 
@@ -60,7 +68,7 @@ export class QueryDataService implements OnModuleInit, OnApplicationShutdown {
   }
 
   async run(actor: AuthenticatedUser, sql: string): Promise<QueryResult> {
-    if (actor.role === USER_ROLE.VISITING_DOCTOR) {
+    if (!(await this.permissions.allows(actor.clinicId, actor.role, RULE.PATIENTS_ALL))) {
       throw new ToolRefusal(AI_TOOL_ERROR.QUERY_NOT_PERMITTED);
     }
 

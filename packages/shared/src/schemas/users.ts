@@ -54,16 +54,6 @@ export const updateUserSchema = z
   .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 
-export const updateOwnProfileSchema = z
-  .object({
-    ...staffNameInputFields,
-    phone: phoneSchema,
-    email: z.email().max(255).nullish(),
-  })
-  .partial()
-  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
-export type UpdateOwnProfileInput = z.infer<typeof updateOwnProfileSchema>;
-
 export const resetUserPasswordSchema = z.object({
   newPassword: passwordSchema,
 });

@@ -1,8 +1,9 @@
-import { USER_ROLE, type UserRole } from "@clinic/shared";
+import { RULE } from "@clinic/shared";
 import type { Can } from "@web/shared/providers/session";
 
-export const canSeeBilling = (role: UserRole): boolean =>
-  role !== USER_ROLE.TECHNICIAN && role !== USER_ROLE.VISITING_DOCTOR;
+export const canSeeBilling = (can: Can): boolean => can(RULE.PATIENTS_FINANCIAL);
+
+export const canDeletePayment = (can: Can): boolean => can("payments.remove");
 
 export const canRecordPayment = (can: Can): boolean => can("payments.create");
 

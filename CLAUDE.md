@@ -17,8 +17,11 @@ rules, in short:
 
 1. Every request is scoped to the caller's `clinic_id`, taken from the token and never from the
    body, path or query. Another clinic's row is a 404, never a 403.
-2. Role decides **which fields are serialized**, not only which endpoints answer. A field a role may
-   not read is absent, not null.
+2. **Capabilities decide, never a role in code.** Every endpoint is a capability and every data rule
+   (medical fields, balances, every patient vs assigned ones, every calendar vs one's own) is a rule
+   capability in `RULE`; a clinic grants or withdraws each per role. Capabilities decide which fields
+   are serialized, not only which endpoints answer; a field the caller may not read is absent, not
+   null. Only `admin` is fixed: it passes every check.
 3. Financial and medical mutations always write an audit entry with old and new values.
 4. Nothing is hard-deleted. Only `admin` may soft-delete financial records or view deleted rows.
 5. Doctors see the records of patients in their clinic (v1); `STRICT_DOCTOR_SCOPE` exists to tighten
@@ -108,6 +111,9 @@ core · patients · billing · appointments · booking · notifications · labs 
   `constants.ts` are private to it; what two modules need lives in `src/common/` (`lib/`,
   `constants/` — audit entity names, Postgres error codes —, `types/`). ESLint enforces it.
 - DTOs are shared Zod schemas. Never duplicate validation.
+- **A paid feature is a module** (`CLINIC_MODULE`): its capabilities carry the module, and
+  `PermissionsService` refuses them while the clinic's `modules` lacks it. Background jobs filter
+  clinics by module. Switching one on is the vendor's command, never a screen.
 - `JwtAuthGuard` global; `@Roles(...)` per endpoint; object-level checks inside services.
 - **Every route is rate limited** by the global `RequestThrottlerGuard` (per user, or per IP when
   signed out); a public or costly route adds a tighter `@Throttle`. The client IP is trusted only
@@ -149,10 +155,12 @@ core · patients · billing · appointments · booking · notifications · labs 
   bounced off — check the helper the route guard uses.
 - **A view somebody can reach is a view somebody can link to.** Tabs and filters live in the URL,
   never `useState`. A retired route redirects, it does not disappear.
-- **Navigation is one table.** `shared/lib/navigation.ts` lists sections and roles; the route guards
-  are built from the same sets. An inner page (a patient, a lab, an item) takes the back link above its
-  title from the same file, `backTarget`: one step back in the app, or its parent list when opened
-  directly — the installed app has no browser Back.
+- **Navigation is one table.** `shared/lib/navigation.ts` gives each section the capabilities that
+  open it (`PAGE_CAPABILITIES`); the sidebar and the route guards read the same table, so a grant on
+  the Permissions page adds the section and its route at once. No screen tests a role. An inner page
+  (a patient, a lab, an item) takes the back link above its title from the same file, `backTarget`:
+  one step back in the app, or its parent list when opened directly — the installed app has no
+  browser Back.
 - The top bar reads search-first, actions-last, in logical properties.
 
 ### The interface system
@@ -230,7 +238,8 @@ push or a pull request.
 - hard-delete a medical or financial row
 - use a float for money
 - skip the audit interceptor on a financial or medical mutation
-- return medical fields in a receptionist response
+- return medical fields to a caller without `patients.clinical`
+- decide anything by comparing a role in code; add a capability or a `RULE` instead
 - put dental logic in core, billing or appointments
 - hardcode a user-facing choice list, a colour, a font size or a control height
 - decide whether a minute is bookable anywhere but `AvailabilityService`

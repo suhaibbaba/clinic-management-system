@@ -208,23 +208,56 @@ describe("Staff photo (e2e)", () => {
     });
   });
 
-  describe("permissions (ROLES.md: staff accounts are the admin’s)", () => {
-    it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
-      "refuses %s the upload — even of their own face",
+  describe("permissions (ROLES.md: staff accounts are the admin’s, a face is its owner’s too)", () => {
+    const STAFF = [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN] as const;
+
+    it.each(STAFF)("lets %s put up and take down their own face", async (role) => {
+      const own = clinic.userIds[role];
+      const signed = await context.app.inject({
+        method: "POST",
+        url: `/users/${own}/photo/presign`,
+        headers: auth(tokens[role]),
+        payload: { filename: "me.png", mime: "image/png", sizeBytes: 1000 },
+      });
+
+      expect(signed.statusCode).toBe(200);
+
+      const confirmed = await context.app.inject({
+        method: "POST",
+        url: `/users/${own}/photo`,
+        headers: auth(tokens[role]),
+        payload: { key: (signed.json() as PresignUserPhotoResponse).key },
+      });
+
+      expect(confirmed.statusCode).toBe(200);
+      expect((confirmed.json() as User).photoUrl).toBeTruthy();
+
+      const removed = await context.app.inject({
+        method: "DELETE",
+        url: `/users/${own}/photo`,
+        headers: auth(tokens[role]),
+      });
+
+      expect(removed.statusCode).toBe(200);
+      expect((removed.json() as User).photoUrl).toBeNull();
+    });
+
+    it.each([USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
+      "refuses %s the upload of a colleague's face",
       async (role) => {
         const response = await context.app.inject({
           method: "POST",
-          url: `/users/${clinic.userIds[role]}/photo/presign`,
+          url: `/users/${subject()}/photo/presign`,
           headers: auth(tokens[role]),
-          payload: { filename: "me.png", mime: "image/png", sizeBytes: 1000 },
+          payload: { filename: "them.png", mime: "image/png", sizeBytes: 1000 },
         });
 
         expect(response.statusCode).toBe(403);
       },
     );
 
-    it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
-      "refuses %s the removal",
+    it.each([USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
+      "refuses %s the removal of a colleague's face",
       async (role) => {
         const response = await context.app.inject({
           method: "DELETE",

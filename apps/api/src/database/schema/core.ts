@@ -1,4 +1,10 @@
-import { AUDIT_ACTIONS, CHART_TYPES, USER_ROLES, type WeeklySchedule } from "@clinic/shared";
+import {
+  AUDIT_ACTIONS,
+  CHART_TYPES,
+  USER_ROLES,
+  type ClinicModule,
+  type WeeklySchedule,
+} from "@clinic/shared";
 import { sql } from "drizzle-orm";
 import {
   bigint,
@@ -54,6 +60,11 @@ export const clinics = pgTable(
     country: varchar("country", { length: 2 }).notNull().default("PS"),
     workingHours: jsonb("working_hours").$type<WeeklySchedule>().notNull().default([]),
     settings: jsonb("settings").$type<Record<string, unknown>>().notNull().default({}),
+    modules: text("modules")
+      .array()
+      .$type<ClinicModule[]>()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     ...auditColumns,
     ...softDeleteColumn,
   },

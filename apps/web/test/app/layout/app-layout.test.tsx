@@ -11,17 +11,26 @@ import {
   makeDashboardSummary,
   makeProfile,
   paginated,
+  SHIPPED_CAPABILITIES,
 } from "@test/helpers/fixtures";
 import { mockApi, renderWithProviders, type MockResponse } from "@test/helpers/render";
 
 const ITEM_ID = "44444444-4444-4444-8444-444444444444";
 
-function handlers(role: UserRole, overrides: Record<string, MockResponse> = {}) {
+function handlers(
+  role: UserRole,
+  capabilities: readonly string[] = SHIPPED_CAPABILITIES[role],
+  overrides: Record<string, MockResponse> = {},
+) {
   return {
     "POST /auth/refresh": { status: 200, body: { accessToken: "access", expiresIn: 900 } },
     "GET /me": {
       status: 200,
-      body: makeProfile({ role, name: { ar: `مستخدم ${role}`, en: `User ${role}` } }),
+      body: makeProfile({
+        role,
+        name: { ar: `مستخدم ${role}`, en: `User ${role}` },
+        capabilities: [...capabilities],
+      }),
     },
     "GET /clinic": { status: 200, body: makeClinic() },
     "GET /dashboard/summary": { status: 200, body: makeDashboardSummary() },
@@ -35,9 +44,13 @@ function handlers(role: UserRole, overrides: Record<string, MockResponse> = {}) 
   } as Record<string, MockResponse>;
 }
 
-async function renderAs(role: UserRole, route = "/dashboard"): Promise<void> {
+async function renderAs(
+  role: UserRole,
+  route = "/dashboard",
+  capabilities: readonly string[] = SHIPPED_CAPABILITIES[role],
+): Promise<void> {
   authTokens.clear();
-  mockApi(handlers(role));
+  mockApi(handlers(role, capabilities));
 
   renderWithProviders(<AppRoutes />, { route });
   await screen.findAllByText(`مستخدم ${role}`);
@@ -72,10 +85,27 @@ describe("Sidebar navigation", () => {
   it.each([
     [
       USER_ROLE.DOCTOR,
-      [ar.nav.dashboard, ar.nav.assistant, ar.nav.patients, ar.nav.appointments, ar.nav.labs],
+      [
+        ar.nav.dashboard,
+        ar.nav.assistant,
+        ar.nav.patients,
+        ar.nav.appointments,
+        ar.nav.labs,
+        ar.nav.inventory,
+      ],
     ],
     [USER_ROLE.VISITING_DOCTOR, [ar.nav.dashboard, ar.nav.patients, ar.nav.appointments]],
-    [USER_ROLE.TECHNICIAN, [ar.nav.dashboard, ar.nav.assistant, ar.nav.labs, ar.nav.inventory]],
+    [
+      USER_ROLE.TECHNICIAN,
+      [
+        ar.nav.dashboard,
+        ar.nav.assistant,
+        ar.nav.patients,
+        ar.nav.appointments,
+        ar.nav.labs,
+        ar.nav.inventory,
+      ],
+    ],
     [
       USER_ROLE.RECEPTIONIST,
       [ar.nav.dashboard, ar.nav.assistant, ar.nav.patients, ar.nav.appointments],
@@ -85,6 +115,42 @@ describe("Sidebar navigation", () => {
 
     expect(linkNames()).toEqual(expected);
     expect(within(nav()).queryByRole("link", { name: ar.nav.users })).not.toBeInTheDocument();
+  });
+
+  it("adds a section the moment its capability is granted", async () => {
+    await renderAs(USER_ROLE.DOCTOR, "/dashboard", [
+      ...SHIPPED_CAPABILITIES[USER_ROLE.DOCTOR],
+      "users.list",
+      "clinics.update",
+    ]);
+
+    expect(linkNames()).toEqual([
+      ar.nav.dashboard,
+      ar.nav.assistant,
+      ar.nav.patients,
+      ar.nav.appointments,
+      ar.nav.labs,
+      ar.nav.inventory,
+      ar.nav.clinic,
+      ar.nav.users,
+    ]);
+  });
+
+  it("drops a section the moment its capability is withdrawn", async () => {
+    await renderAs(
+      USER_ROLE.DOCTOR,
+      "/dashboard",
+      SHIPPED_CAPABILITIES[USER_ROLE.DOCTOR].filter(
+        (capability) => capability !== "inventory.list" && capability !== "ai.chat",
+      ),
+    );
+
+    expect(linkNames()).toEqual([
+      ar.nav.dashboard,
+      ar.nav.patients,
+      ar.nav.appointments,
+      ar.nav.labs,
+    ]);
   });
 
   it("keeps the account out of the nav and behind the avatar", async () => {
@@ -175,10 +241,6 @@ describe("The current row", () => {
 
 describe("Route guards", () => {
   it.each([
-    [USER_ROLE.TECHNICIAN, "/patients"],
-    [USER_ROLE.TECHNICIAN, "/appointments"],
-    [USER_ROLE.DOCTOR, "/inventory"],
-    [USER_ROLE.DOCTOR, `/inventory/items/${ITEM_ID}`],
     [USER_ROLE.RECEPTIONIST, `/inventory/items/${ITEM_ID}`],
     [USER_ROLE.RECEPTIONIST, "/labs"],
     [USER_ROLE.RECEPTIONIST, "/users"],
@@ -202,6 +264,23 @@ describe("Route guards", () => {
     expect(
       await screen.findByRole("region", { name: ar.dashboard.schedule.title }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("Route guards follow the grants", () => {
+  it("opens a page for a role the clinic granted it to", async () => {
+    await renderAs(USER_ROLE.DOCTOR, "/users", [
+      ...SHIPPED_CAPABILITIES[USER_ROLE.DOCTOR],
+      "users.list",
+    ]);
+
+    expect(
+      screen.queryByRole("region", { name: ar.dashboard.schedule.title }),
+    ).not.toBeInTheDocument();
+    expect(within(nav()).getByRole("link", { name: ar.nav.users })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   });
 });
 

@@ -11,13 +11,19 @@ import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
-import { allowedTypes, TimelineRow, toTimelineEntry } from "@api/modules/patients/lib/timeline";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
+import {
+  TIMELINE_TYPE_CAPABILITY,
+  TimelineRow,
+  toTimelineEntry,
+} from "@api/modules/patients/lib/timeline";
 
 @Injectable()
 export class TimelineService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly patientAccess: PatientAccessService,
+    private readonly permissions: PermissionsService,
   ) {}
 
   async list(
@@ -27,8 +33,14 @@ export class TimelineService {
   ): Promise<Paginated<TimelineEntry>> {
     await this.patientAccess.requirePatientId(actor, patientId);
 
-    const allowed = allowedTypes(actor.role).filter(
-      (type) => query.type === undefined || query.type === type,
+    const permitted = await Promise.all(
+      Object.entries(TIMELINE_TYPE_CAPABILITY).map(async ([type, capability]) =>
+        (await this.permissions.can(actor, capability)) ? (type as TimelineEntryType) : null,
+      ),
+    );
+    const allowed = permitted.filter(
+      (type): type is TimelineEntryType =>
+        type !== null && (query.type === undefined || query.type === type),
     );
 
     if (allowed.length === 0) {

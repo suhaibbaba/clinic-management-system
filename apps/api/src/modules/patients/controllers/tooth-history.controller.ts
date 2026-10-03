@@ -18,6 +18,7 @@ export class ToothHistoryController {
       "Everything done to one tooth of a patient, by its FDI number (11–48, 51–85). Returns the tooth's history.",
   })
   @Get(":fdi")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN)
   get(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: PatientToothParamDto,

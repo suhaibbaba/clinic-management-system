@@ -261,22 +261,22 @@ describe("Labs (e2e)", () => {
       expect((await move(order.id, "receive", USER_ROLE.TECHNICIAN)).statusCode).toBe(200);
     });
 
-    it("keeps the technician out of the chair", async () => {
+    it("lets the technician record the fitting", async () => {
       const order = await createOrder();
       await move(order.id, "send");
       await move(order.id, "ready");
       await move(order.id, "receive");
 
-      expect((await move(order.id, "fit", USER_ROLE.TECHNICIAN)).statusCode).toBe(403);
-      expect((await move(order.id, "fit", USER_ROLE.DOCTOR)).statusCode).toBe(200);
+      expect((await move(order.id, "fit", USER_ROLE.TECHNICIAN)).statusCode).toBe(200);
     });
 
-    it("keeps the doctor out of the lab conversation", async () => {
+    it("lets the doctor run the lab conversation on their own order", async () => {
       const order = await createOrder();
       await move(order.id, "send", USER_ROLE.DOCTOR);
 
-      expect((await move(order.id, "ready", USER_ROLE.DOCTOR)).statusCode).toBe(403);
-      expect((await move(order.id, "receive", USER_ROLE.DOCTOR)).statusCode).toBe(403);
+      expect((await move(order.id, "ready", USER_ROLE.DOCTOR)).statusCode).toBe(200);
+      expect((await move(order.id, "receive", USER_ROLE.DOCTOR)).statusCode).toBe(200);
+      expect((await move(order.id, "fit", USER_ROLE.DOCTOR)).statusCode).toBe(200);
     });
 
     it("will not let a doctor set the price of the work", async () => {

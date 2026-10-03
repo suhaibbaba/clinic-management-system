@@ -92,7 +92,7 @@ export function TreatmentsPanel({
   const role = user?.role;
   const mayChange = canRecordProcedure(can);
   const mayDelete = canDeleteProcedure(can);
-  const showPrices = role ? canSeePrices(role) : false;
+  const showPrices = role ? canSeePrices(can) : false;
   const doctorList = doctors.data?.items ?? [];
   const ordered = newestTreatmentsFirst(treatments);
 
@@ -261,7 +261,7 @@ export function TreatmentsPanel({
               formId={TREATMENT_FORM_ID}
               patientId={patientId}
               onValidityChange={setFormValid}
-              role={role}
+              showPrices={showPrices}
               catalog={catalog.data ?? []}
               doctors={doctorList}
               defaults={defaults}

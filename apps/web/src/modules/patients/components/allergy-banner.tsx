@@ -1,6 +1,5 @@
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { USER_ROLE } from "@clinic/shared";
 import { Icon } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
 import { useAllergyFlags } from "@web/modules/patients/queries";
@@ -9,8 +8,8 @@ import { formatList } from "@web/shared/lib/format";
 
 export function AllergyBanner({ patientId }: { patientId: string }): JSX.Element | null {
   const { t } = useTranslation();
-  const { user } = useSession();
-  const mayRead = user !== null && user.role !== USER_ROLE.RECEPTIONIST;
+  const { user, can } = useSession();
+  const mayRead = user !== null && can("medical-histories.allergyFlags");
   const { data } = useAllergyFlags(patientId, mayRead);
 
   if (!data?.hasAllergies) {

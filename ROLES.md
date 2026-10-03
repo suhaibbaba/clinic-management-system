@@ -15,6 +15,24 @@ Authoritative spec for authorization. Every endpoint must map to a row here befo
 
 Users belong to one clinic and have exactly one role (v1). `admin` implicitly passes every role check within their clinic.
 
+**Every permission is a capability a clinic can change.** The matrix below is the shipped default. Each endpoint is a capability, and so is each data rule below (`RULE` in `packages/shared`); the Permissions page grants or withdraws any of them per role. The sidebar and the route guards follow the same capabilities, so a page appears the moment its list capability is granted.
+
+**Paid modules** sit above the matrix. A clinic has a `modules` list, empty by default; while a module is off its capabilities are refused to everyone, admin included, and leave the session and the Permissions page. Only the vendor switches one on: `pnpm -C apps/api module:enable <clinic slug> <module>` (and `module:disable`, `module:list`). Today's module is `assistant`: every `/ai` route, the AI query, and the daily follow-ups.
+
+| Rule capability | Decides | Default roles (admin always) |
+|---|---|---|
+| `patients.list` / `patients.findOne` | The patient list and a patient file | doctor, visiting doctor, receptionist, technician |
+| `patients.clinical` | Medical fields, the chart and prices, clinical timeline entries | doctor, visiting doctor, technician |
+| `patients.financial` | Balances, the balance filter and sort, payment and charge timeline entries | doctor, technician, receptionist |
+| `patients.all` | Every patient; without it, only assigned patients (the visiting doctor rule) | doctor, receptionist, technician |
+| `procedure-catalog.details` | The full catalog; without it, names and prices only | doctor, visiting doctor, technician |
+| `appointments.allCalendars` | Every doctor's calendar, lab orders, time off and extra hours; without it, one's own | receptionist, technician |
+| `lab-orders.setPrice` | Setting the price of lab work | receptionist, technician |
+| `doctors.allSchedules` | Changing any doctor's weekly hours; without it, one's own | — |
+| `notes.manageAll` | Editing or deleting another person's note | — |
+| `payments.viewDeleted` | Deleted payments in the statement | — |
+| `dashboard.overdue` | The overdue balances widget | doctor, technician, receptionist |
+
 ## Global rules
 
 1. **Clinic scoping:** every authenticated request is scoped to the user's `clinic_id`. Cross-clinic access is impossible regardless of role. Applied automatically in a base query helper — never rely on the client sending `clinic_id`.
@@ -28,11 +46,13 @@ Users belong to one clinic and have exactly one role (v1). `admin` implicitly pa
 
 Legend: **C** create · **R** read · **U** update · **D** soft-delete · — none
 
+Shipped defaults, each changeable per clinic on the Permissions page. Doctor and technician share the clinic's working rights; a technician does not write prescriptions or visits, or change a doctor's hours. Admin alone keeps users, payroll and settlements, clinic settings and closures, lists and the treatment catalog, permissions, translations, the audit log, the assistant's settings and keys, every soft-delete and every money reversal.
+
 ### Core
 | Resource | admin | doctor | technician | receptionist |
 |---|---|---|---|---|
 | Clinic settings, templates | CRUD | R | R | R |
-| Users & roles | CRUD | — | — | — |
+| Users & roles | CRUD | own RU¹ | own RU¹ | own RU¹ |
 | Doctors & schedules | CRUD | R (own U: schedule) | R | R |
 | Doctor time off | CRUD | R (own CRUD) | R | R |
 | Clinic closures | CRUD | R | R | R |
@@ -43,54 +63,55 @@ Legend: **C** create · **R** read · **U** update · **D** soft-delete · — n
 ### Patients
 | Resource | admin | doctor | technician | receptionist |
 |---|---|---|---|---|
-| Patient basic info (name, phone, dob, address) | CRUD | CRU | R | CRU |
-| Medical history & allergies | CRUD | CRU | R (allergy flags only) | — |
-| Visits (complaint, exam, diagnosis) | CRUD (D blocked while payments cover its charges) | CRU | — | — |
-| Treatments (planned, in progress, done, cancelled) & chart marks | CRUD | CRUD (D blocked while payments cover its charge) | R (lab-linked only) | — |
-| Attachments / X-rays | CRUD | CRU | R (lab-linked only) | — |
-| Prescriptions | CRUD | CRUD | — | — |
-| Patient timeline (full) | R | R | — | R (financial + appointment entries only) |
+| Patient basic info (name, phone, dob, address) | CRUD | CRU | CRU | CRU |
+| Medical history & allergies | CRUD | CRU | CRU | — |
+| Visits (complaint, exam, diagnosis) | CRUD (D blocked while payments cover its charges) | CRU | R | — |
+| Treatments (planned, in progress, done, cancelled) & chart marks | CRUD | CRUD (D blocked while payments cover its charge) | CRUD (as doctor) | — |
+| Attachments / X-rays | CRUD | CRU | CRU | — |
+| Prescriptions | CRUD | CRUD | R | — |
+| Patient timeline (full) | R | R | R | R (financial + appointment entries only) |
 
 ### Billing
 | Resource | admin | doctor | technician | receptionist |
 |---|---|---|---|---|
-| Charges (from procedures) | CRUD | CR (own patients) | — | R (amounts only) |
-| Discounts | CRU | CR (with reason) | — | — |
-| Payments & receipts | CRUD | R | — | CR (cannot update/delete) |
-| Patient balance & statement | R | R (own patients) | — | R |
-| Overdue balances list | R | — | — | R |
+| Charges (from procedures) | CRUD | CR | CR | R (amounts only) |
+| Discounts | CRU | CR (with reason) | CR (with reason) | — |
+| Payments & receipts | CRUD | CR | CR | CR (cannot update/delete) |
+| Patient balance & statement | R | R | R | R |
+| Overdue balances list | R | R | R | R |
 | Clinic expenses | CRUD | — | — | — |
 
 ### Appointments & booking
 | Resource | admin | doctor | technician | receptionist |
 |---|---|---|---|---|
 | Calendar (all doctors) | R | R (own) | R | R |
-| Appointments | CRUD | CRU (own) | — | CRUD |
-| Waiting list | CRUD | R | — | CRUD |
+| Appointments | CRUD | CRU (own) | CRU | CRU |
+| Waiting list | CRUD | CRU | CRU | CRU |
+| Online booking requests | RU (confirm, reject) | RU | RU | RU |
 | Booking settings (rules, windows) | CRU | — | — | R |
 | Public slot listing + create booking | — | — | — | — (public endpoints, rate-limited, OTP) |
 
 ### Labs
 | Resource | admin | doctor | technician | receptionist |
 |---|---|---|---|---|
-| Labs directory & prices | CRUD | R | CRU | — |
-| Lab orders | CRUD | CRU (create/edit own; not financial fields) | RU (status transitions, receiving) | — |
-| Lab payments | CRUD | — | CR | — |
+| Labs directory & prices | CRUD | CRU | CRU | — |
+| Lab orders | CRUD | CRU (own; every transition; not the price) | CRU (every transition and the price) | — |
+| Lab payments | CRUD (reversal admin only) | CR | CR | — |
 | Lab balances & statements | R | R | R | — |
 
 ### Inventory
 | Resource | admin | doctor | technician | receptionist |
 |---|---|---|---|---|
-| Items & suppliers | CRUD | R | CRU | — |
-| Stock movements: purchase | CRUD | — | CR | — |
+| Items & suppliers | CRUD | CRU | CRU | — |
+| Stock movements: purchase | CRUD | CR | CR | — |
 | Stock movements: consume | CRUD | CR | CR | — |
-| Stock movements: adjust (with reason) | CRUD | — | CR | — |
+| Stock movements: adjust (with reason) | CRUD | CR | CR | — |
 | Alerts (low stock, expiry) | R | R | R | — |
 
 ### Reports
 | Report | admin | doctor | technician | receptionist |
 |---|---|---|---|---|
-| Dashboard (full) | R | R (own KPIs) | R (labs+stock widgets) | R (appointments+today's cash) |
+| Dashboard (full) | R | R (own KPIs, overdue) | R (whole clinic, overdue) | R (appointments, overdue, today's cash) |
 | Revenue / expenses / profit | R | R (own revenue only) | — | — |
 | Patients & balances | R | R (own) | — | R |
 | Appointments & attendance | R | R (own) | — | R |
@@ -113,6 +134,8 @@ Everything a `doctor` may do on a patient's clinical record, scoped by global ru
 A visiting doctor is a contractor, not staff. Only `admin` creates one, from the Doctors page (`POST /doctors/visiting`): the account and its `doctors` row together, with a specialty, a default appointment length, optional working days and the clinic's share, and without a password. Without working days they are bookable any time the clinic is open. They are never offered on the public booking page. The users screen may not create or assign the role. The admin activates the account later by invitation or by setting a password.
 
 **Settlement.** Only `admin` sees and changes a visiting doctor's settlement (`/doctors/:id/settlement`, `/settlement-treatments/:id`, `/doctors/:id/payouts`, `/doctor-payouts/:id/reverse`): per done treatment, price after discount − materials = net; the clinic takes its percentage of the net (the doctor's default, or a per-treatment override, down to 0) and the rest is the doctor's. Materials default to linked lab work plus stock used, and can be overridden (0 included). Payments to the doctor are an append-only ledger corrected by reversal. The clinic's share is never serialized on the doctor record.
+
+**Own account.**¹ Every signed-in user, a visiting doctor included, reads and edits their own account through the same routes the admin uses (`GET`/`PATCH /users/:id`, `/users/:id/photo*`, `POST /users/:id/send-password-reset` on their own id): name, phone, email and photo, and a password link to their own email, which opens the secure set-password page. There is no in-app password change. A role, status or joining date is the admin's; changing your own is a 403. Another user's account is a 403 unless the clinic grants the capability.
 
 **Payroll.** Only `admin` sees or changes pay (`/payroll/*`, `/payroll-adjustments/:id/reverse`, `/staff-payments/:id/reverse`). Every staff member except a visiting doctor has a monthly salary that applies from a month onward (a raise is a new row; earlier months keep theirs) and a joining date, never in the future; they appear from the month they joined. Per month: salary + extras − cuts = due; due − paid = remaining. Extras, cuts and payments are append-only and corrected by reversal. Closing a month freezes its salaries, extras and cuts; payments and their reversals still go through. One `staff_payments` ledger holds both salaries and visiting-doctor settlements, and the month's staff cost is salaries due plus visiting-doctor shares.
 

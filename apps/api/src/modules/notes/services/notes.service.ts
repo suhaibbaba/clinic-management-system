@@ -6,12 +6,12 @@ import {
   type OnModuleInit,
 } from "@nestjs/common";
 import {
-  USER_ROLE,
   type ClinicNote,
   type CreateClinicNoteInput,
   type ListClinicNotesQuery,
   type Paginated,
   type UpdateClinicNoteInput,
+  RULE,
 } from "@clinic/shared";
 import { desc, eq, sql } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
@@ -22,6 +22,7 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import { clinicNotes, users } from "@api/database/schema";
 import { CLINIC_NOTES_ENTITY } from "@api/common/constants/audit-entities";
 import { toClinicNote, NoteRow } from "@api/modules/notes/lib/notes";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 
 @Injectable()
 export class NotesService implements OnModuleInit {
@@ -29,6 +30,7 @@ export class NotesService implements OnModuleInit {
     @Inject(DATABASE) private readonly db: Database,
     private readonly scope: ClinicScopeService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly permissions: PermissionsService,
   ) {}
 
   onModuleInit(): void {
@@ -96,7 +98,7 @@ export class NotesService implements OnModuleInit {
     input: UpdateClinicNoteInput,
   ): Promise<ClinicNote> {
     const existing = await this.scope.findOneOrFail<NoteRow>(clinicNotes, actor.clinicId, id);
-    this.requireOwnership(actor, existing);
+    await this.requireOwnership(actor, existing);
 
     const [row] = await this.db
       .update(clinicNotes)
@@ -109,7 +111,7 @@ export class NotesService implements OnModuleInit {
 
   async remove(actor: AuthenticatedUser, id: string): Promise<void> {
     const existing = await this.scope.findOneOrFail<NoteRow>(clinicNotes, actor.clinicId, id);
-    this.requireOwnership(actor, existing);
+    await this.requireOwnership(actor, existing);
 
     await this.db
       .update(clinicNotes)
@@ -117,8 +119,8 @@ export class NotesService implements OnModuleInit {
       .where(this.scope.where(clinicNotes, actor.clinicId, eq(clinicNotes.id, id)));
   }
 
-  private requireOwnership(actor: AuthenticatedUser, note: NoteRow): void {
-    if (actor.role !== USER_ROLE.ADMIN && note.authorId !== actor.id) {
+  private async requireOwnership(actor: AuthenticatedUser, note: NoteRow): Promise<void> {
+    if (note.authorId !== actor.id && !(await this.permissions.can(actor, RULE.ALL_NOTES))) {
       throw new ForbiddenException("A note may only be changed by the person who wrote it");
     }
   }

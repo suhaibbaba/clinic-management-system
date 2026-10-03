@@ -39,7 +39,7 @@ class ListProposalsQueryDto extends createZodDto(listAiProposalsQuerySchema) {}
 class ListOutboundQueryDto extends createZodDto(listAiOutboundQuerySchema) {}
 class AutomationSettingsDto extends createZodDto(aiAutomationSettingsSchema) {}
 
-const SENDERS = [USER_ROLE.ADMIN, USER_ROLE.RECEPTIONIST] as const;
+const SENDERS = [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST] as const;
 
 @Controller("ai")
 export class OutboundController {

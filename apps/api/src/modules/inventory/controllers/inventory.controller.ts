@@ -97,7 +97,7 @@ export class InventoryController {
   }
 
   @Post("movements/purchase")
-  @Roles(USER_ROLE.TECHNICIAN)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(STOCK_MOVEMENTS_ENTITY, AUDIT_ACTION.CREATE)
   purchase(
     @CurrentUser() actor: AuthenticatedUser,
@@ -117,14 +117,14 @@ export class InventoryController {
   }
 
   @Post("movements/adjust")
-  @Roles(USER_ROLE.TECHNICIAN)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(STOCK_MOVEMENTS_ENTITY, AUDIT_ACTION.CREATE)
   adjust(@CurrentUser() actor: AuthenticatedUser, @Body() body: AdjustDto): Promise<StockMovement> {
     return this.movements.adjust(actor, body);
   }
 
   @Patch("movements/:id/reverse")
-  @Roles(USER_ROLE.ADMIN)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(STOCK_MOVEMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   reverse(
     @CurrentUser() actor: AuthenticatedUser,
@@ -195,7 +195,7 @@ export class InventoryController {
       "Add a stock item with its category, unit and minimum. The quantity comes from purchases, never set. Waits on a card.",
   })
   @Post("items")
-  @Roles(USER_ROLE.TECHNICIAN)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(INVENTORY_ITEMS_ENTITY, AUDIT_ACTION.CREATE)
   create(
     @CurrentUser() actor: AuthenticatedUser,
@@ -210,7 +210,7 @@ export class InventoryController {
       "Change a stock item's name, minimum or supplier — never its quantity or unit. Waits on a card.",
   })
   @Patch("items/:id")
-  @Roles(USER_ROLE.TECHNICIAN)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(INVENTORY_ITEMS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
     @CurrentUser() actor: AuthenticatedUser,

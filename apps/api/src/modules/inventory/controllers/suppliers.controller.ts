@@ -86,7 +86,7 @@ export class SuppliersController {
     description: "Add a supplier. Waits on a card.",
   })
   @Post()
-  @Roles(USER_ROLE.TECHNICIAN)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(SUPPLIERS_ENTITY, AUDIT_ACTION.CREATE)
   create(
     @CurrentUser() actor: AuthenticatedUser,
@@ -100,7 +100,7 @@ export class SuppliersController {
     description: "Change a supplier's details, or switch them off. Waits on a card.",
   })
   @Patch(":id")
-  @Roles(USER_ROLE.TECHNICIAN)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(SUPPLIERS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
     @CurrentUser() actor: AuthenticatedUser,

@@ -17,6 +17,7 @@ import {
   type Paginated,
   type UpdateDoctorInput,
   type UpdateDoctorScheduleInput,
+  RULE,
 } from "@clinic/shared";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { arabicNameSearch } from "@api/common/database/arabic-search";
@@ -34,6 +35,7 @@ import {
   DoctorJoinedRow,
   toDoctor,
 } from "@api/modules/doctors/lib/doctors";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 
 @Injectable()
 export class DoctorsService implements OnModuleInit {
@@ -43,6 +45,7 @@ export class DoctorsService implements OnModuleInit {
     private readonly auditSnapshots: AuditSnapshotRegistry,
     private readonly storage: StorageService,
     private readonly users: UsersService,
+    private readonly permissions: PermissionsService,
   ) {}
 
   onModuleInit(): void {
@@ -266,7 +269,7 @@ export class DoctorsService implements OnModuleInit {
   ): Promise<Doctor> {
     const doctor = await this.scope.findOneOrFail<DoctorRow>(doctors, actor.clinicId, id);
 
-    if (actor.role !== USER_ROLE.ADMIN && doctor.userId !== actor.id) {
+    if (doctor.userId !== actor.id && !(await this.permissions.can(actor, RULE.ALL_SCHEDULES))) {
       throw new ForbiddenException("You may only change your own schedule");
     }
 

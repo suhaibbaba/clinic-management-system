@@ -8,7 +8,7 @@ import {
   type UpdateUserInput,
   type User,
 } from "@clinic/shared";
-import { useEffect, type JSX } from "react";
+import { useEffect, useRef, type JSX } from "react";
 import { Controller, useForm, type UseFormRegister } from "react-hook-form";
 import { revealFirstError } from "@web/shared/lib/form-errors";
 import { todayIso } from "@web/shared/lib/dates";
@@ -24,7 +24,7 @@ import {
   Select,
   useToast,
 } from "@clinic/ui";
-import { useCreateUser, useUpdateUser } from "@web/modules/users/queries";
+import { useCreateUser, useUpdateUser, useUser } from "@web/modules/users/queries";
 import { StaffNameFields, type StaffNameValues } from "@web/shared/components/staff-name-fields";
 import { UserPhotoField } from "@web/modules/users/components/user-photo-field";
 import { errorToast } from "@web/shared/lib/api-error";
@@ -34,7 +34,7 @@ interface UserFormModalProps {
   "data-testid"?: string | undefined;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  user: User | null;
+  userId: string | null;
 }
 
 type FormValues = CreateUserInput & { password?: string };
@@ -42,14 +42,17 @@ type FormValues = CreateUserInput & { password?: string };
 export function UserFormModal({
   open,
   onOpenChange,
-  user,
+  userId,
   "data-testid": testId = "user-form-modal",
 }: UserFormModalProps): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
-  const isEdit = user !== null;
+  const isEdit = userId !== null;
+  const userQuery = useUser(userId, open);
+  const user: User | null = isEdit ? (userQuery.data ?? null) : null;
+  const loadedFor = useRef<string | null>(null);
 
   const {
     watch,
@@ -65,8 +68,21 @@ export function UserFormModal({
 
   useEffect(() => {
     if (!open) {
+      loadedFor.current = null;
       return;
     }
+
+    if (isEdit && !user) {
+      return;
+    }
+
+    const loading = user?.id ?? "new";
+
+    if (loadedFor.current === loading) {
+      return;
+    }
+
+    loadedFor.current = loading;
 
     reset(
       user
@@ -88,7 +104,7 @@ export function UserFormModal({
             joinedOn: todayIso(),
           },
     );
-  }, [open, user, reset]);
+  }, [open, isEdit, user, reset]);
 
   const roleOptions = USER_ROLES.filter(
     (role) => role !== USER_ROLE.VISITING_DOCTOR || user?.role === role,

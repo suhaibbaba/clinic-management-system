@@ -1,4 +1,4 @@
-import { listUsers } from "@web/shared/api/users";
+import { listUsers, sendPasswordReset } from "@web/shared/api/users";
 import type {
   CreateUserInput,
   PresignUserPhotoInput,
@@ -14,6 +14,8 @@ export const usersApi = {
 
   create: (body: CreateUserInput): Promise<User> => apiRequest("/users", { method: "POST", body }),
 
+  get: (id: string): Promise<User> => apiRequest(`/users/${id}`),
+
   update: (id: string, body: UpdateUserInput): Promise<User> =>
     apiRequest(`/users/${id}`, { method: "PATCH", body }),
 
@@ -23,8 +25,7 @@ export const usersApi = {
   resetPassword: (id: string, body: ResetUserPasswordInput): Promise<void> =>
     apiRequest(`/users/${id}/reset-password`, { method: "POST", body }),
 
-  sendPasswordReset: (id: string): Promise<void> =>
-    apiRequest(`/users/${id}/send-password-reset`, { method: "POST", body: {} }),
+  sendPasswordReset,
 
   remove: (id: string): Promise<void> => apiRequest(`/users/${id}`, { method: "DELETE" }),
 

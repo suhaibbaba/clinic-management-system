@@ -38,6 +38,7 @@ export class WaitingListController {
       "The waiting list: patients waiting for a slot, filtered as the query allows. Use to see who could take a freed time. Returns a page of entries.",
   })
   @Get()
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   list(
     @CurrentUser() actor: AuthenticatedUser,
     @Query() query: ListWaitingListQueryDto,
@@ -51,6 +52,7 @@ export class WaitingListController {
       "One waiting-list entry by id. Returns the entry with its patient and what they wait for.",
   })
   @Get(":id")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
@@ -64,7 +66,7 @@ export class WaitingListController {
       "Put a patient on the waiting list for a doctor or any doctor, with what they are waiting for. Not a booking — use create_appointment for that. Waits on a card.",
   })
   @Post()
-  @Roles(USER_ROLE.RECEPTIONIST)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.CREATE)
   create(
     @CurrentUser() actor: AuthenticatedUser,
@@ -78,7 +80,7 @@ export class WaitingListController {
     description: "Change a waiting-list entry's preferences or note. Waits on a card.",
   })
   @Patch(":id")
-  @Roles(USER_ROLE.RECEPTIONIST)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.UPDATE)
   update(
     @CurrentUser() actor: AuthenticatedUser,
@@ -94,7 +96,7 @@ export class WaitingListController {
       "Book a waiting-list entry into a real appointment at a free time. Check the time with find_available_slots first. Waits on a card.",
   })
   @Post(":id/promote")
-  @Roles(USER_ROLE.RECEPTIONIST)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.UPDATE)
   promote(
     @CurrentUser() actor: AuthenticatedUser,
@@ -109,7 +111,7 @@ export class WaitingListController {
     description: "Record that a waiting-list patient was contacted. Waits on a card.",
   })
   @Patch(":id/contacted")
-  @Roles(USER_ROLE.RECEPTIONIST)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.UPDATE)
   markContacted(
     @CurrentUser() actor: AuthenticatedUser,
@@ -123,7 +125,7 @@ export class WaitingListController {
     description: "Record that a waiting-list patient declined the time offered. Waits on a card.",
   })
   @Patch(":id/decline")
-  @Roles(USER_ROLE.RECEPTIONIST)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.UPDATE)
   decline(
     @CurrentUser() actor: AuthenticatedUser,

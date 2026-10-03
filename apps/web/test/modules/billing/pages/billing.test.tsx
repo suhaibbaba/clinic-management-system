@@ -132,13 +132,11 @@ describe("Billing", () => {
       });
     });
 
-    it("is read-only for a doctor", async () => {
+    it("lets a doctor record a payment", async () => {
       await renderAccountTab(USER_ROLE.DOCTOR);
 
       await screen.findByRole("table");
-      expect(
-        screen.queryByRole("button", { name: ar.billing.recordPayment }),
-      ).not.toBeInTheDocument();
+      expect(screen.getAllByRole("button", { name: ar.billing.recordPayment })[0]).toBeVisible();
     });
 
     const openEntryMenu = async (): Promise<void> => {

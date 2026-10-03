@@ -10,8 +10,8 @@ export function BackLink(): JSX.Element | null {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { user } = useSession();
-  const target = backTarget(pathname, user?.role);
+  const { user, can } = useSession();
+  const target = backTarget(pathname, user ? can : undefined);
 
   if (target === undefined) {
     return null;

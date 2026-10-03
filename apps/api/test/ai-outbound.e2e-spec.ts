@@ -34,6 +34,7 @@ const ROLES = [
   USER_ROLE.DOCTOR,
   USER_ROLE.RECEPTIONIST,
   USER_ROLE.TECHNICIAN,
+  USER_ROLE.VISITING_DOCTOR,
 ] as const;
 
 interface Fixture {
@@ -223,9 +224,9 @@ describe("Outbound messages (e2e)", () => {
     it("refuses the roles that do not hold ai-outbound.send", async () => {
       const proposal = await draft(main, USER_ROLE.ADMIN);
 
-      for (const role of [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN] as const) {
-        expect((await post(main.tokens[role], proposal.id, "send")).statusCode).toBe(403);
-      }
+      expect(
+        (await post(main.tokens[USER_ROLE.VISITING_DOCTOR], proposal.id, "send")).statusCode,
+      ).toBe(403);
     });
 
     it("takes the button away with the permission", async () => {
@@ -484,7 +485,7 @@ describe("Outbound messages (e2e)", () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it("stays the admin's even when the matrix grants it to somebody else", async () => {
+    it("follows the matrix like every other capability", async () => {
       const permissions = context.app.get(PermissionsService);
       const admin = main.clinic.userIds[USER_ROLE.ADMIN];
 
@@ -501,7 +502,7 @@ describe("Outbound messages (e2e)", () => {
           [CLINIC_SECRET_KIND.OPENAI_API_KEY]: KEY,
         });
 
-        expect(response.statusCode).toBe(403);
+        expect(response.statusCode).toBe(200);
       } finally {
         await permissions.set(
           main.clinic.id,

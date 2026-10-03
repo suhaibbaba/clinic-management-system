@@ -1,11 +1,10 @@
-import { ForbiddenException, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   AUDIT_ACTION,
   CLINIC_SECRET_ERROR,
   CLINIC_SECRET_KIND,
   CLINIC_SECRET_KINDS,
-  USER_ROLE,
   type ClinicSecretKind,
   type ClinicSecrets,
   type UpdateClinicSecretsInput,
@@ -53,10 +52,6 @@ export class SecretsService {
   }
 
   async update(actor: AuthenticatedUser, input: UpdateClinicSecretsInput): Promise<ClinicSecrets> {
-    if (actor.role !== USER_ROLE.ADMIN) {
-      throw new ForbiddenException("Insufficient role");
-    }
-
     const changes = CLINIC_SECRET_KINDS.flatMap((kind) =>
       input[kind] === undefined ? [] : [{ kind, value: input[kind] }],
     );

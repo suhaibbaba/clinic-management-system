@@ -46,7 +46,7 @@ export class AppointmentsController {
   ) {}
 
   @Get()
-  @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   list(
     @CurrentUser() actor: AuthenticatedUser,
     @Query() query: ListAppointmentsQueryDto,
@@ -76,7 +76,7 @@ export class AppointmentsController {
       "One appointment by id, with its patient, doctor, time and status. Use after get_appointments when you need one row in full; not to list — use get_appointments.",
   })
   @Get(":id")
-  @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
@@ -85,7 +85,7 @@ export class AppointmentsController {
   }
 
   @Post()
-  @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.CREATE)
   create(
     @CurrentUser() actor: AuthenticatedUser,
@@ -95,7 +95,7 @@ export class AppointmentsController {
   }
 
   @Patch(":id")
-  @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
     @CurrentUser() actor: AuthenticatedUser,
@@ -106,7 +106,7 @@ export class AppointmentsController {
   }
 
   @Patch(":id/confirm")
-  @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   confirm(
     @CurrentUser() actor: AuthenticatedUser,
@@ -116,7 +116,7 @@ export class AppointmentsController {
   }
 
   @Patch(":id/arrived")
-  @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   arrived(
     @CurrentUser() actor: AuthenticatedUser,
@@ -126,7 +126,7 @@ export class AppointmentsController {
   }
 
   @Patch(":id/start")
-  @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   start(
     @CurrentUser() actor: AuthenticatedUser,
@@ -136,7 +136,7 @@ export class AppointmentsController {
   }
 
   @Patch(":id/complete")
-  @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   complete(
     @CurrentUser() actor: AuthenticatedUser,
@@ -146,7 +146,7 @@ export class AppointmentsController {
   }
 
   @Patch(":id/no-show")
-  @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   noShow(
     @CurrentUser() actor: AuthenticatedUser,
@@ -156,7 +156,7 @@ export class AppointmentsController {
   }
 
   @Patch(":id/cancel")
-  @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   cancel(
     @CurrentUser() actor: AuthenticatedUser,
@@ -172,7 +172,7 @@ export class AppointmentsController {
   }
 
   @Post(":id/visit")
-  @Roles(USER_ROLE.DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   convertToVisit(
     @CurrentUser() actor: AuthenticatedUser,

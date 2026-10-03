@@ -18,6 +18,7 @@ export class TimelineController {
       "A patient's history page by page — visits, treatments, appointments, payments, newest first. Use for older history than get_patient_summary shows.",
   })
   @Get()
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   list(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: PatientIdParamDto,

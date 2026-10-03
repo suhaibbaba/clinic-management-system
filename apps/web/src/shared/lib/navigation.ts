@@ -1,10 +1,10 @@
-import { USER_ROLE, USER_ROLES, type UserRole } from "@clinic/shared";
 import type { IconName } from "@clinic/ui/components/icon";
+import type { Can } from "@web/shared/providers/session";
 
 export interface NavItem {
   readonly to: string;
   readonly label: string;
-  readonly roles: readonly UserRole[];
+  readonly capabilities?: readonly string[];
   readonly icon: IconName;
   readonly badge?: "pendingBookings";
   readonly also?: readonly string[];
@@ -15,15 +15,38 @@ export interface NavGroup {
   readonly items: readonly NavItem[];
 }
 
-export const ASSISTANT_ROLES: readonly UserRole[] = USER_ROLES.filter(
-  (role) => role !== USER_ROLE.VISITING_DOCTOR,
-);
+export const SETTINGS_VIEW_CAPABILITIES = {
+  translations: "translations.list",
+  assistant: "ai-actions.settings",
+  permissions: "permissions.list",
+  audit: "audit.list",
+} as const;
+
+export const PAGE_CAPABILITIES = {
+  assistant: ["ai.chat"],
+  patients: ["patients.list"],
+  patientFile: ["patients.findOne"],
+  appointments: ["appointments.list"],
+  labs: ["labs.list"],
+  inventory: ["inventory.list"],
+  clinic: ["clinics.update"],
+  users: ["users.list"],
+  doctor: ["doctors.updateSchedule"],
+  payroll: ["payroll.month"],
+  lists: ["lookups.create"],
+  settings: Object.values(SETTINGS_VIEW_CAPABILITIES),
+} as const satisfies Record<string, readonly string[]>;
 
 export const NAV_GROUPS: readonly NavGroup[] = [
   {
     items: [
-      { to: "/dashboard", label: "nav.dashboard", roles: USER_ROLES, icon: "activity" },
-      { to: "/assistant", label: "nav.assistant", roles: ASSISTANT_ROLES, icon: "sparkles" },
+      { to: "/dashboard", label: "nav.dashboard", icon: "activity" },
+      {
+        to: "/assistant",
+        label: "nav.assistant",
+        capabilities: PAGE_CAPABILITIES.assistant,
+        icon: "sparkles",
+      },
     ],
   },
   {
@@ -32,13 +55,13 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       {
         to: "/patients",
         label: "nav.patients",
-        roles: [USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.RECEPTIONIST],
+        capabilities: PAGE_CAPABILITIES.patients,
         icon: "users",
       },
       {
         to: "/appointments",
         label: "nav.appointments",
-        roles: [USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.RECEPTIONIST],
+        capabilities: PAGE_CAPABILITIES.appointments,
         icon: "calendar",
         badge: "pendingBookings",
       },
@@ -47,16 +70,11 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   {
     label: "nav.groups.stores",
     items: [
-      {
-        to: "/labs",
-        label: "nav.labs",
-        roles: [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN],
-        icon: "clipboard",
-      },
+      { to: "/labs", label: "nav.labs", capabilities: PAGE_CAPABILITIES.labs, icon: "clipboard" },
       {
         to: "/inventory",
         label: "nav.inventory",
-        roles: [USER_ROLE.TECHNICIAN],
+        capabilities: PAGE_CAPABILITIES.inventory,
         icon: "package",
       },
     ],
@@ -66,45 +84,68 @@ export const NAV_GROUPS: readonly NavGroup[] = [
 export const NAV_SETTINGS: NavGroup = {
   label: "nav.settings",
   items: [
-    { to: "/clinic", label: "nav.clinic", roles: [USER_ROLE.ADMIN], icon: "building" },
+    {
+      to: "/clinic",
+      label: "nav.clinic",
+      capabilities: PAGE_CAPABILITIES.clinic,
+      icon: "building",
+    },
     {
       to: "/users",
       label: "nav.users",
-      roles: [USER_ROLE.ADMIN],
+      capabilities: PAGE_CAPABILITIES.users,
       icon: "users",
       also: ["/doctors"],
     },
-    { to: "/payroll", label: "nav.payroll", roles: [USER_ROLE.ADMIN], icon: "money" },
-    { to: "/clinic/lists", label: "nav.lists", roles: [USER_ROLE.ADMIN], icon: "list" },
-    { to: "/settings", label: "nav.settingsPage", roles: [USER_ROLE.ADMIN], icon: "gear" },
+    {
+      to: "/payroll",
+      label: "nav.payroll",
+      capabilities: PAGE_CAPABILITIES.payroll,
+      icon: "money",
+    },
+    {
+      to: "/clinic/lists",
+      label: "nav.lists",
+      capabilities: PAGE_CAPABILITIES.lists,
+      icon: "list",
+    },
+    {
+      to: "/settings",
+      label: "nav.settingsPage",
+      capabilities: PAGE_CAPABILITIES.settings,
+      icon: "gear",
+    },
   ],
 };
 
 export const NAV_ITEMS: readonly NavItem[] = NAV_GROUPS.flatMap((group) => group.items);
 
-const visible = (items: readonly NavItem[], role: UserRole): readonly NavItem[] =>
-  items.filter((item) => role === USER_ROLE.ADMIN || item.roles.includes(role));
+export const mayOpen = (capabilities: readonly string[] | undefined, can: Can): boolean =>
+  capabilities === undefined || capabilities.some(can);
 
-export function visibleNavGroups(role: UserRole | undefined): readonly NavGroup[] {
-  if (!role) {
+const visible = (items: readonly NavItem[], can: Can): readonly NavItem[] =>
+  items.filter((item) => mayOpen(item.capabilities, can));
+
+export function visibleNavGroups(can: Can | undefined): readonly NavGroup[] {
+  if (!can) {
     return [];
   }
 
-  return NAV_GROUPS.map((group) => ({ ...group, items: visible(group.items, role) })).filter(
+  return NAV_GROUPS.map((group) => ({ ...group, items: visible(group.items, can) })).filter(
     (group) => group.items.length > 0,
   );
 }
 
-export function visibleSettingsItems(role: UserRole | undefined): readonly NavItem[] {
-  return role ? visible(NAV_SETTINGS.items, role) : [];
+export function visibleSettingsItems(can: Can | undefined): readonly NavItem[] {
+  return can ? visible(NAV_SETTINGS.items, can) : [];
 }
 
 export const ALL_NAV_ITEMS: readonly NavItem[] = [...NAV_ITEMS, ...NAV_SETTINGS.items];
 
-export function canReachNavItem(to: string, role: UserRole | undefined): boolean {
+export function canReachNavItem(to: string, can: Can | undefined): boolean {
   const item = ALL_NAV_ITEMS.find((candidate) => candidate.to === to);
 
-  return role !== undefined && item !== undefined && visible([item], role).length === 1;
+  return can !== undefined && item !== undefined && visible([item], can).length === 1;
 }
 
 const WORKSPACE_PREFIXES = ["/assistant"] as const;
@@ -148,10 +189,10 @@ const BACK_ROUTES: readonly (BackTarget & { readonly pattern: RegExp })[] = [
   { pattern: /^\/profile$/, to: "/dashboard", label: "nav.dashboard" },
 ];
 
-export function backTarget(pathname: string, role: UserRole | undefined): BackTarget | undefined {
+export function backTarget(pathname: string, can: Can | undefined): BackTarget | undefined {
   const route = BACK_ROUTES.find((candidate) => candidate.pattern.test(pathname));
 
-  if (route === undefined || !canReachNavItem(route.to.split("?")[0] ?? route.to, role)) {
+  if (route === undefined || !canReachNavItem(route.to.split("?")[0] ?? route.to, can)) {
     return undefined;
   }
 

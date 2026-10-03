@@ -31,6 +31,7 @@ describe("Patients (e2e)", () => {
       USER_ROLE.DOCTOR,
       USER_ROLE.RECEPTIONIST,
       USER_ROLE.TECHNICIAN,
+      USER_ROLE.VISITING_DOCTOR,
     ]) {
       tokens[role] = await context.login(clinic.phones[role]);
     }
@@ -155,8 +156,8 @@ describe("Patients (e2e)", () => {
   });
 
   describe("role views (ROLES.md field-level security)", () => {
-    it("gives admin and doctor the full clinical view", async () => {
-      for (const role of [USER_ROLE.ADMIN, USER_ROLE.DOCTOR]) {
+    it("gives admin, doctor and technician the full clinical view", async () => {
+      for (const role of [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN]) {
         const response = await context.app.inject({
           method: "GET",
           url: `/patients/${ahmadId}`,
@@ -168,7 +169,7 @@ describe("Patients (e2e)", () => {
       }
     });
 
-    it("strips the clinical fields for a receptionist and a technician", async () => {
+    it("strips the clinical fields for a receptionist", async () => {
       const publicFields = [
         "dateOfBirth",
         "fileNumber",
@@ -182,7 +183,7 @@ describe("Patients (e2e)", () => {
         "whatsapp",
       ];
 
-      for (const role of [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN]) {
+      for (const role of [USER_ROLE.RECEPTIONIST]) {
         const response = await context.app.inject({
           method: "GET",
           url: `/patients/${ahmadId}`,
@@ -193,9 +194,7 @@ describe("Patients (e2e)", () => {
 
         const body = response.json() as Record<string, unknown>;
 
-        expect(Object.keys(body).sort()).toEqual(
-          (role === USER_ROLE.RECEPTIONIST ? [...publicFields, "balance"] : publicFields).sort(),
-        );
+        expect(Object.keys(body).sort()).toEqual([...publicFields, "balance"].sort());
         expect(body).not.toHaveProperty("address");
         expect(body).not.toHaveProperty("notes");
       }
@@ -238,12 +237,23 @@ describe("Patients (e2e)", () => {
       expect((saved.json() as { whatsapp: string }).whatsapp).toBe("+972599123456");
     });
 
-    it("refuses a technician write — the matrix gives them read only", async () => {
+    it("lets a technician register a patient, as a doctor does", async () => {
       const response = await context.app.inject({
         method: "POST",
         url: "/patients",
         headers: auth(tokens[USER_ROLE.TECHNICIAN]),
-        payload: { ...nameParts("محاولة من الفني"), phone: uniquePhone() },
+        payload: { ...nameParts("مريض سجّله الفني"), phone: uniquePhone() },
+      });
+
+      expect(response.statusCode).toBe(201);
+    });
+
+    it("refuses a visiting doctor write", async () => {
+      const response = await context.app.inject({
+        method: "POST",
+        url: "/patients",
+        headers: auth(tokens[USER_ROLE.VISITING_DOCTOR]),
+        payload: { ...nameParts("محاولة من الطبيب الزائر"), phone: uniquePhone() },
       });
 
       expect(response.statusCode).toBe(403);
@@ -293,7 +303,7 @@ describe("Patients (e2e)", () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it("gives a technician the allergy flags and nothing else", async () => {
+    it("gives a technician the allergy flags and the history, as a doctor", async () => {
       await context.app.inject({
         method: "PATCH",
         url: `/patients/${ahmadId}/medical-history`,
@@ -325,7 +335,7 @@ describe("Patients (e2e)", () => {
         headers: auth(tokens[USER_ROLE.TECHNICIAN]),
       });
 
-      expect(history.statusCode).toBe(403);
+      expect(history.statusCode).toBe(200);
     });
 
     it("returns an empty history rather than 404 before anything is recorded", async () => {

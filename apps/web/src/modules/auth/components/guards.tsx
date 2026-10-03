@@ -1,9 +1,9 @@
-import type { UserRole } from "@clinic/shared";
 import type { JSX, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useLocation } from "react-router-dom";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/shared/providers/session";
+import { mayOpen } from "@web/shared/lib/navigation";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 function FullPageMessage({ messageKey }: { messageKey: string }): JSX.Element {
@@ -66,22 +66,22 @@ export function RequireAuth({ children }: { children: ReactNode }): JSX.Element 
   return <>{children}</>;
 }
 
-export function RequireRole({
-  roles,
+export function RequireCapability({
+  capabilities,
   redirectTo,
   children,
 }: {
-  roles: readonly UserRole[];
+  capabilities: readonly string[];
   redirectTo?: string | undefined;
   children: ReactNode;
 }): JSX.Element {
-  const { user, hasRole } = useSession();
+  const { user, can } = useSession();
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!hasRole(...roles)) {
+  if (!mayOpen(capabilities, can)) {
     return redirectTo !== undefined ? (
       <Navigate to={redirectTo} replace />
     ) : (

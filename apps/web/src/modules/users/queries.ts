@@ -1,5 +1,5 @@
 import { DOCTORS_KEY, USERS_KEY } from "@web/shared/constants/query-keys";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type { CreateUserInput, PresignUserPhotoInput, UpdateUserInput, User } from "@clinic/shared";
 import { useSession } from "@web/shared/providers/session";
 import { uploadToStorage } from "@web/shared/lib/upload";
@@ -14,12 +14,20 @@ export function useCreateUser() {
   });
 }
 
+export function useUser(id: string | null, enabled: boolean): UseQueryResult<User> {
+  return useQuery({
+    queryKey: [USERS_KEY, "one", id],
+    queryFn: () => usersApi.get(id ?? ""),
+    enabled: enabled && id !== null,
+  });
+}
+
 export function useUpdateUser() {
-  const queryClient = useQueryClient();
+  const invalidate = useInvalidateStaff();
 
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: UpdateUserInput }) => usersApi.update(id, body),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [USERS_KEY] }),
+    onSuccess: invalidate,
   });
 }
 
@@ -58,7 +66,7 @@ export function useResetUserPassword() {
 }
 
 export function useUploadUserPhoto() {
-  const invalidate = useInvalidatePhotos();
+  const invalidate = useInvalidateStaff();
 
   return useMutation({
     mutationFn: async ({ id, file }: { id: string; file: File }): Promise<User> => {
@@ -77,7 +85,7 @@ export function useUploadUserPhoto() {
 }
 
 export function useRemoveUserPhoto() {
-  const invalidate = useInvalidatePhotos();
+  const invalidate = useInvalidateStaff();
 
   return useMutation({
     mutationFn: (id: string) => usersApi.removePhoto(id),
@@ -85,7 +93,7 @@ export function useRemoveUserPhoto() {
   });
 }
 
-function useInvalidatePhotos(): () => void {
+function useInvalidateStaff(): () => void {
   const queryClient = useQueryClient();
   const { refreshProfile } = useSession();
 

@@ -614,7 +614,7 @@ describe("Inventory (e2e)", () => {
       ).toBe(403);
     });
 
-    it("lets a doctor read and consume, and nothing else", async () => {
+    it("lets a doctor read, consume, purchase, adjust and add items, as a technician", async () => {
       const token = tokens[USER_ROLE.DOCTOR];
 
       const read = await context.app.inject({
@@ -625,10 +625,10 @@ describe("Inventory (e2e)", () => {
       expect(read.statusCode).toBe(200);
 
       expect((await move("consume", { itemId, quantity: "1" }, token)).statusCode).toBe(201);
-      expect((await move("purchase", { itemId, quantity: "1" }, token)).statusCode).toBe(403);
+      expect((await move("purchase", { itemId, quantity: "1" }, token)).statusCode).toBe(201);
       expect(
         (await move("adjust", { itemId, quantity: "1", reason: "جرد" }, token)).statusCode,
-      ).toBe(403);
+      ).toBe(201);
 
       const create = await context.app.inject({
         method: "POST",
@@ -636,10 +636,10 @@ describe("Inventory (e2e)", () => {
         headers: auth(token),
         payload: { name: "بند من طبيب", category: ITEM_CATEGORY.TOOL, unit: ITEM_UNIT.PIECE },
       });
-      expect(create.statusCode).toBe(403);
+      expect(create.statusCode).toBe(201);
     });
 
-    it("keeps reversal to an admin", async () => {
+    it("lets a technician reverse a stock movement — stock, not money", async () => {
       const purchase = await move("purchase", { itemId, quantity: "5" });
       const purchaseId = (purchase.json() as StockMovement).id;
 
@@ -647,10 +647,10 @@ describe("Inventory (e2e)", () => {
         method: "PATCH",
         url: `/inventory/movements/${purchaseId}/reverse`,
         headers: auth(tokens[USER_ROLE.TECHNICIAN]),
-        payload: { reason: "محاولة" },
+        payload: { reason: "خطأ في الإدخال" },
       });
 
-      expect(byTechnician.statusCode).toBe(403);
+      expect(byTechnician.statusCode).toBe(200);
     });
 
     it("reports another clinic’s item as 404 rather than 403", async () => {

@@ -1,4 +1,4 @@
-import { USER_ROLE, personName, type WeeklySchedule } from "@clinic/shared";
+import { personName, type WeeklySchedule } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useParams } from "react-router-dom";
@@ -7,6 +7,7 @@ import { WorkingHours } from "@web/shared/components/working-hours";
 import { weekFitsWithin } from "@web/shared/lib/week";
 import { SkeletonForm } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/shared/providers/session";
+import { canEditAnySchedule, canSeeSettlement } from "@web/shared/permissions/doctors";
 import { useClinic } from "@web/shared/queries/clinic";
 import { useDoctor, useUpdateDoctorSchedule } from "@web/modules/doctors/queries";
 import { TimeOffPanel } from "@web/modules/schedule/components/time-off-panel";
@@ -19,7 +20,7 @@ export function DoctorPage(): JSX.Element {
   const { t, i18n } = useTranslation();
   const toast = useToast();
   const { id } = useParams<{ id: string }>();
-  const { user, hasRole } = useSession();
+  const { user, can } = useSession();
 
   const doctor = useDoctor(id);
   const showSkeleton = useDelayedLoading(doctor.isPending);
@@ -51,7 +52,7 @@ export function DoctorPage(): JSX.Element {
   }
 
   const isOwn = doctor.data.userId === user?.id;
-  const canEdit = hasRole(USER_ROLE.ADMIN) || isOwn;
+  const canEdit = canEditAnySchedule(can) || isOwn;
   const clinicHours = clinic.data?.workingHours ?? [];
   const fits = weekFitsWithin(schedule, clinicHours);
 
@@ -131,7 +132,7 @@ export function DoctorPage(): JSX.Element {
         </section>
       </div>
 
-      {doctor.data.isVisiting && hasRole(USER_ROLE.ADMIN) && (
+      {doctor.data.isVisiting && canSeeSettlement(can) && (
         <div className="border border-line rounded-card bg-surface shadow-card p-4">
           <SettlementSection
             doctorId={id}

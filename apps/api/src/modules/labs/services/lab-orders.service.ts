@@ -16,7 +16,7 @@ import {
   LAB_ORDER_STAGES,
   LAB_ORDER_STATUS,
   LOOKUP_LIST,
-  USER_ROLE,
+  RULE,
   type CreateLabOrderInput,
   type LabOrderRow,
   type LabOrderStage,
@@ -28,6 +28,7 @@ import {
   type UpdateLabOrderInput,
 } from "@clinic/shared";
 import { and, asc, eq, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import { AppointmentAccessService } from "@api/modules/appointments/services/appointment-access.service";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { arabicNameSearch } from "@api/common/database/arabic-search";
@@ -71,6 +72,7 @@ export class LabOrdersService implements OnModuleInit {
     private readonly access: AppointmentAccessService,
     private readonly registration: PatientRegistrationService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly permissions: PermissionsService,
   ) {}
 
   onModuleInit(): void {
@@ -235,10 +237,9 @@ export class LabOrdersService implements OnModuleInit {
         ? await this.teethOfProcedure(actor.clinicId, input.performedProcedureId)
         : []);
 
-    const price =
-      actor.role === USER_ROLE.DOCTOR
-        ? (workType?.defaultPrice ?? "0.00")
-        : (input.price ?? workType?.defaultPrice ?? "0.00");
+    const price = (await this.permissions.can(actor, RULE.LAB_PRICE))
+      ? (input.price ?? workType?.defaultPrice ?? "0.00")
+      : (workType?.defaultPrice ?? "0.00");
 
     const [row] = await this.registration.withPatient(actor, input, (executor, patientId) =>
       executor
@@ -285,8 +286,8 @@ export class LabOrdersService implements OnModuleInit {
       throw new BadRequestException("Only a draft order can be edited");
     }
 
-    if (input.price !== undefined && actor.role === USER_ROLE.DOCTOR) {
-      throw new ForbiddenException("A doctor may not set the price of lab work");
+    if (input.price !== undefined && !(await this.permissions.can(actor, RULE.LAB_PRICE))) {
+      throw new ForbiddenException("You may not set the price of lab work");
     }
 
     if (input.expectedAt && input.expectedAt !== existing.expectedAt?.toISOString().slice(0, 10)) {
@@ -348,9 +349,7 @@ export class LabOrdersService implements OnModuleInit {
       throw new BadRequestException(`A lab order cannot go from ${existing.status} to ${next}`);
     }
 
-    if (actor.role === USER_ROLE.DOCTOR) {
-      await this.requireOwnOrder(actor, existing);
-    }
+    await this.requireOwnOrder(actor, existing);
 
     if (next === LAB_ORDER_STATUS.RETURNED && !reason?.trim()) {
       throw new BadRequestException("A return must state a reason");

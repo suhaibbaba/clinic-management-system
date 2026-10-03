@@ -7,7 +7,6 @@ import {
   type PerformedProcedure,
   type PerformedProcedureStatus,
   type ProcedureCatalogItem,
-  type UserRole,
 } from "@clinic/shared";
 import { useEffect, useId, useState, type FormEvent, type JSX } from "react";
 import { schemaErrors, type FieldErrors } from "@web/shared/lib/form-errors";
@@ -34,7 +33,6 @@ import {
   treatmentTeeth,
 } from "@web/modules/patients/lib/treatments/treatments";
 import { SELECTABLE_SURFACES } from "@web/modules/patients/constants";
-import { canSeePrices } from "@web/shared/permissions/patients";
 import { doctorOptionLabel } from "@web/shared/lib/doctor-label";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { ellipsis } from "@web/i18n/ellipsis";
@@ -51,7 +49,7 @@ export interface TreatmentDefaults {
 
 export interface TreatmentFormProps {
   readonly patientId: string;
-  readonly role: UserRole;
+  readonly showPrices: boolean;
   readonly catalog: readonly ProcedureCatalogItem[];
   readonly doctors: readonly Doctor[];
   readonly defaults: TreatmentDefaults;
@@ -63,7 +61,7 @@ export interface TreatmentFormProps {
 
 export function TreatmentForm({
   patientId,
-  role,
+  showPrices,
   catalog,
   doctors,
   defaults,
@@ -99,7 +97,6 @@ export function TreatmentForm({
   const [discountReason, setDiscountReason] = useState(treatment?.discountReason ?? "");
   const [notes, setNotes] = useState(treatment?.notes ?? "");
 
-  const showPrices = canSeePrices(role);
   const selected = catalog.find((item) => item.id === procedureId);
   const hasDiscount = discount !== "" && discount !== "0" && discount !== "0.00";
 

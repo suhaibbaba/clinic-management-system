@@ -1,4 +1,4 @@
-import { personName, USER_ROLE, type Doctor } from "@clinic/shared";
+import { personName, type Doctor } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,7 @@ import {
   type Column,
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
+import { canDeleteDoctor, canManageDoctors } from "@web/shared/permissions/doctors";
 import { DoctorFormModal } from "@web/modules/doctors/components/doctor-form-modal";
 import { useDeleteDoctor } from "@web/modules/doctors/queries";
 import { useDoctors } from "@web/shared/queries/doctors";
@@ -31,11 +32,13 @@ import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
 export function DoctorsPage(): JSX.Element {
   const { t, i18n } = useTranslation();
-  const { hasRole, user: currentUser } = useSession();
+  const { can, user: currentUser } = useSession();
   const toast = useToast();
   const removeDoctor = useDeleteDoctor();
   const navigate = useNavigate();
-  const isAdmin = hasRole(USER_ROLE.ADMIN);
+  const mayEdit = canManageDoctors(can);
+  const mayDelete = canDeleteDoctor(can);
+  const mayCreate = can("doctors.create");
 
   const { page, perPage, setPage, setPerPage, resetPage } = usePageParams();
   const [search, setSearch] = useState("");
@@ -119,7 +122,7 @@ export function DoctorsPage(): JSX.Element {
             {t("doctors.openSchedule")}
           </MenuItem>
 
-          {isAdmin && (
+          {mayEdit && (
             <MenuItem
               icon="edit"
               data-testid="doctor-edit"
@@ -132,7 +135,7 @@ export function DoctorsPage(): JSX.Element {
             </MenuItem>
           )}
 
-          {isAdmin && row.userId !== currentUser?.id && (
+          {mayDelete && row.userId !== currentUser?.id && (
             <MenuItem
               icon="trash"
               tone="danger"
@@ -147,7 +150,7 @@ export function DoctorsPage(): JSX.Element {
     });
 
     return base;
-  }, [t, isAdmin, navigate, currentUser?.id]);
+  }, [t, mayEdit, mayDelete, navigate, currentUser?.id]);
 
   const data = query.data;
 
@@ -158,7 +161,7 @@ export function DoctorsPage(): JSX.Element {
         title="doctors.title"
         subtitle="doctors.subtitle"
         primaryAction={
-          isAdmin ? (
+          mayCreate ? (
             <Button
               icon={<Icon name="user-plus" />}
               data-testid="doctors-create"

@@ -8,7 +8,6 @@ import {
 import {
   CHART_TYPE,
   PERFORMED_PROCEDURE_STATUS,
-  USER_ROLE,
   canMoveProcedure,
   type ChartMark,
   type CreateChartMarkInput,
@@ -64,7 +63,7 @@ export class ProceduresService implements OnModuleInit {
     actor: AuthenticatedUser,
     query: ListPerformedProceduresQuery,
   ): Promise<Paginated<PerformedProcedure>> {
-    if (actor.role === USER_ROLE.TECHNICIAN) {
+    if (!(await this.patientAccess.seesClinicalData(actor))) {
       return toPaginated<PerformedProcedure>([], 0, query);
     }
 

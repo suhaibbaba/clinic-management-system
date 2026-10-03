@@ -20,6 +20,9 @@
     "db:migrate": "node --env-file-if-exists=../../.env dist/database/migrate.js",
     "seed": "node --env-file-if-exists=../../.env dist/database/seed.js",
     "db:reset": "node scripts/reset-database.mjs",
+    "module:list": "node --env-file-if-exists=../../.env scripts/clinic-module.mjs list",
+    "module:enable": "node --env-file-if-exists=../../.env scripts/clinic-module.mjs enable",
+    "module:disable": "node --env-file-if-exists=../../.env scripts/clinic-module.mjs disable",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "clean": "rm -rf dist"

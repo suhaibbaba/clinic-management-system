@@ -14,7 +14,7 @@ export function TopSearch(): JSX.Element {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [params, setParams] = useSearchParams();
-  const { user } = useSession();
+  const { user, can } = useSession();
 
   const onList = pathname === PATIENTS_PATH;
   const [typed, setTyped] = useState("");
@@ -26,7 +26,8 @@ export function TopSearch(): JSX.Element {
 
   const term = onList ? (params.get("q") ?? "") : typed;
   const debounced = useDebounced(typed).trim();
-  const suggest = !onList && canOpenPatientFile(user?.role) && debounced.length >= SEARCH_MIN_TERM;
+  const suggest =
+    !onList && user !== null && canOpenPatientFile(can) && debounced.length >= SEARCH_MIN_TERM;
   const results = usePatients(
     { search: debounced, limit: SEARCH_SUGGESTIONS },
     { enabled: suggest },

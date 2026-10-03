@@ -33,14 +33,17 @@ describe("Admin user management and specialties (e2e)", () => {
     await context.close();
   });
 
-  describe("PATCH /me", () => {
+  describe("PATCH /users/:id on your own account", () => {
+    const own = (role: UserRole): string => clinic.userIds[role];
+    const withoutJoinedOn = ({ joinedOn: _, ...name }: ReturnType<typeof staffName>) => name;
+
     it("lets anybody correct their own name and contact details", async () => {
       const email = `me.${randomUUID()}@test.local`;
       const response = await context.app.inject({
         method: "PATCH",
-        url: "/me",
+        url: `/users/${own(USER_ROLE.TECHNICIAN)}`,
         headers: auth(tokens[USER_ROLE.TECHNICIAN]),
-        payload: { ...staffName("مؤيد كنعان", "Muayyad Kanaan"), email },
+        payload: { ...withoutJoinedOn(staffName("مؤيد كنعان", "Muayyad Kanaan")), email },
       });
       const body = response.json<{ name: { ar: string }; email: string; role: string }>();
 
@@ -50,15 +53,35 @@ describe("Admin user management and specialties (e2e)", () => {
       expect(body.role).toBe(USER_ROLE.TECHNICIAN);
     });
 
-    it("is not a way to change your own role", async () => {
-      const escalate = await context.app.inject({
-        method: "PATCH",
-        url: "/me",
+    it("lets anybody read their own account, and nobody else's", async () => {
+      const mine = await context.app.inject({
+        method: "GET",
+        url: `/users/${own(USER_ROLE.RECEPTIONIST)}`,
         headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
-        payload: { role: USER_ROLE.ADMIN },
+      });
+      const theirs = await context.app.inject({
+        method: "GET",
+        url: `/users/${own(USER_ROLE.DOCTOR)}`,
+        headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
       });
 
-      expect(escalate.statusCode).toBe(400);
+      expect(mine.statusCode).toBe(200);
+      expect(theirs.statusCode).toBe(403);
+    });
+
+    it.each([
+      ["role", { role: USER_ROLE.ADMIN }],
+      ["status", { isActive: false }],
+      ["joining date", { joinedOn: "2020-01-01" }],
+    ])("is not a way to change your own %s", async (_label, payload) => {
+      const escalate = await context.app.inject({
+        method: "PATCH",
+        url: `/users/${own(USER_ROLE.RECEPTIONIST)}`,
+        headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
+        payload,
+      });
+
+      expect(escalate.statusCode).toBe(403);
 
       const after = await context.app.inject({
         method: "GET",
@@ -66,7 +89,21 @@ describe("Admin user management and specialties (e2e)", () => {
         headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
       });
 
-      expect(after.json<{ role: string }>().role).toBe(USER_ROLE.RECEPTIONIST);
+      expect(after.json<{ role: string; isActive: boolean }>()).toMatchObject({
+        role: USER_ROLE.RECEPTIONIST,
+        isActive: true,
+      });
+    });
+
+    it("refuses an edit of a colleague's account", async () => {
+      const response = await context.app.inject({
+        method: "PATCH",
+        url: `/users/${own(USER_ROLE.DOCTOR)}`,
+        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        payload: withoutJoinedOn(staffName("منتحل", "Impostor")),
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it("refuses a phone another account already answers to", async () => {
@@ -87,12 +124,23 @@ describe("Admin user management and specialties (e2e)", () => {
 
       const response = await context.app.inject({
         method: "PATCH",
-        url: "/me",
+        url: `/users/${own(USER_ROLE.DOCTOR)}`,
         headers: auth(tokens[USER_ROLE.DOCTOR]),
         payload: { phone },
       });
 
       expect(response.statusCode).toBe(409);
+    });
+
+    it("no longer answers on /me", async () => {
+      const response = await context.app.inject({
+        method: "PATCH",
+        url: "/me",
+        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        payload: staffName("قديم", "Old"),
+      });
+
+      expect(response.statusCode).toBe(404);
     });
   });
 

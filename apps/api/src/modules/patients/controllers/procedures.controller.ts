@@ -54,7 +54,7 @@ export class ProceduresController {
     description: "One treatment in full. Clinical.",
   })
   @Get(":id")
-  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN)
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
@@ -69,7 +69,7 @@ export class ProceduresController {
     risk: AI_RISK_TIER.TYPED,
   })
   @Post()
-  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(PERFORMED_PROCEDURES_ENTITY, AUDIT_ACTION.CREATE)
   create(
     @CurrentUser() actor: AuthenticatedUser,
@@ -85,7 +85,7 @@ export class ProceduresController {
     risk: AI_RISK_TIER.TYPED,
   })
   @Patch(":id")
-  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(PERFORMED_PROCEDURES_ENTITY, AUDIT_ACTION.UPDATE)
   update(
     @CurrentUser() actor: AuthenticatedUser,
@@ -101,7 +101,7 @@ export class ProceduresController {
       "Void a treatment recorded by mistake; its charge is reversed. Waits on a typed confirmation.",
   })
   @Delete(":id")
-  @Roles(USER_ROLE.DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(PERFORMED_PROCEDURES_ENTITY, AUDIT_ACTION.DELETE)
   async remove(

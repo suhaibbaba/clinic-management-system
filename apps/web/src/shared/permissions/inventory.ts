@@ -1,10 +1,11 @@
-import { MOVEMENT_TYPE, USER_ROLE, type MovementType, type UserRole } from "@clinic/shared";
+import { MOVEMENT_TYPE, type MovementType } from "@clinic/shared";
 import type { Can } from "@web/shared/providers/session";
 
-export const seesInventory = (role: UserRole | undefined): boolean =>
-  role === USER_ROLE.ADMIN || role === USER_ROLE.DOCTOR || role === USER_ROLE.TECHNICIAN;
+export const seesInventory = (can: Can): boolean => can("inventory.list");
 
 export const canManageInventory = (can: Can): boolean => can("inventory.create");
+
+export const canDeleteSupplier = (can: Can): boolean => can("suppliers.remove");
 
 export const canManageSuppliers = (can: Can): boolean => can("suppliers.create");
 
