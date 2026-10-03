@@ -38,6 +38,8 @@ import { isIsoDate, todayIso } from "@web/shared/lib/dates";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { formatDate, moneyText } from "@web/shared/lib/format";
 import { useClinic } from "@web/shared/queries/clinic";
+import { PrintRoot } from "@web/shared/components/print-root";
+import { usePrint } from "@web/shared/hooks/use-print";
 
 export function SettlementSection({
   doctorId,
@@ -65,7 +67,7 @@ export function SettlementSection({
   const [editing, setEditing] = useState<SettlementTreatment | null>(null);
   const [paying, setPaying] = useState(false);
   const [reversing, setReversing] = useState<StaffPayment | null>(null);
-  const [printing, setPrinting] = useState(false);
+  const { printing, print } = usePrint();
 
   const data = settlement.data;
   const terms = useFormErrors(
@@ -102,11 +104,6 @@ export function SettlementSection({
     } catch (error) {
       toast.error(...errorToast(error));
     }
-  };
-
-  const print = (): void => {
-    setPrinting(true);
-    requestAnimationFrame(() => window.print());
   };
 
   const columns: Column<SettlementTreatment>[] = [
@@ -380,9 +377,9 @@ export function SettlementSection({
       />
 
       {printing && data && (
-        <div className="print-root">
+        <PrintRoot>
           <SettlementPrint settlement={data} clinic={clinic.data} doctorName={doctorName} />
-        </div>
+        </PrintRoot>
       )}
     </section>
   );
