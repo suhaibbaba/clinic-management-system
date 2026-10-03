@@ -34,6 +34,7 @@ export { MoneyInput } from "@ui/components/money-input";
 export { QuantityInput } from "@ui/components/quantity-input";
 export { PageAction } from "@ui/components/page-action";
 export { PageHeader } from "@ui/components/page-header";
+export { SaveBar, type SaveBarProps } from "@ui/components/save-bar";
 export { PasswordInput } from "@ui/components/password-input";
 export { Flag, PhoneCountryProvider, PhoneInput } from "@ui/components/phone-input";
 export { PersonName, usePersonName } from "@ui/components/person-name";

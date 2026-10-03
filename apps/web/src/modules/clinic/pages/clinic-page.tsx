@@ -8,6 +8,7 @@ import {
   updateClinicSchema,
   type Currency,
   type PhoneCountry,
+  type Clinic,
   type UpdateClinicInput,
   type WeeklySchedule,
 } from "@clinic/shared";
@@ -28,6 +29,7 @@ import {
   useToast,
 } from "@clinic/ui";
 import { WorkingHours } from "@web/shared/components/working-hours";
+import { UnsavedChanges } from "@web/shared/components/unsaved-changes";
 import {
   AUTO_NO_SHOW_DAYS,
   appointmentSettings,
@@ -86,6 +88,39 @@ export function ClinicPage(): JSX.Element {
   const [workingHours, setWorkingHours] = useState<WeeklySchedule>([]);
   const [autoNoShowDays, setAutoNoShowDays] = useState<number>(AUTO_NO_SHOW_DAYS.DEFAULT);
 
+  const draftFrom = (data: Clinic) => {
+    const stored =
+      data.latitude && data.longitude
+        ? parseCoordinates(`${data.latitude}, ${data.longitude}`)
+        : null;
+
+    return {
+      nameAr: data.name.ar,
+      nameEn: data.name.en,
+      phone: data.phone ?? "",
+      email: data.email ?? "",
+      address: data.address ?? "",
+      location: stored ? `${stored.latitude}, ${stored.longitude}` : "",
+      currency: isCurrency(data.currency) ? data.currency : CURRENCIES[0],
+      country: isPhoneCountry(data.country) ? data.country : DEFAULT_PHONE_COUNTRY,
+      workingHours: data.workingHours,
+      autoNoShowDays: appointmentSettings(data.settings).autoNoShowDays,
+    };
+  };
+
+  const applyDraft = (draft: ReturnType<typeof draftFrom>): void => {
+    setNameAr(draft.nameAr);
+    setNameEn(draft.nameEn);
+    setPhone(draft.phone);
+    setEmail(draft.email);
+    setAddress(draft.address);
+    setLocation(draft.location);
+    setCurrency(draft.currency);
+    setCountry(draft.country);
+    setWorkingHours(draft.workingHours);
+    setAutoNoShowDays(draft.autoNoShowDays);
+  };
+
   useEffect(() => {
     const data = clinic.data;
 
@@ -93,23 +128,25 @@ export function ClinicPage(): JSX.Element {
       return;
     }
 
-    setNameAr(data.name.ar);
-    setNameEn(data.name.en);
-    setPhone(data.phone ?? "");
-    setEmail(data.email ?? "");
-    setAddress(data.address ?? "");
-    const stored =
-      data.latitude && data.longitude
-        ? parseCoordinates(`${data.latitude}, ${data.longitude}`)
-        : null;
-
-    setLocation(stored ? `${stored.latitude}, ${stored.longitude}` : "");
-    setCurrency(isCurrency(data.currency) ? data.currency : CURRENCIES[0]);
-    setCountry(isPhoneCountry(data.country) ? data.country : DEFAULT_PHONE_COUNTRY);
-    setWorkingHours(data.workingHours);
-    setAutoNoShowDays(appointmentSettings(data.settings).autoNoShowDays);
+    applyDraft(draftFrom(data));
     setClinicTimeZone(data);
   }, [clinic.data]);
+
+  const dirty =
+    clinic.data !== undefined &&
+    JSON.stringify(draftFrom(clinic.data)) !==
+      JSON.stringify({
+        nameAr,
+        nameEn,
+        phone,
+        email,
+        address,
+        location,
+        currency,
+        country,
+        workingHours,
+        autoNoShowDays,
+      });
 
   const pin = parseCoordinates(location);
   const shortLink = pin === null && isShortMapLink(location);
@@ -194,7 +231,7 @@ export function ClinicPage(): JSX.Element {
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section
           data-testid="clinic-details"
           className="border border-line rounded-card bg-surface shadow-card p-4"
@@ -350,7 +387,7 @@ export function ClinicPage(): JSX.Element {
                 <Select
                   id="clinic-currency"
                   data-testid="clinic-field-currency"
-                  className="w-56"
+                  className="w-full sm:w-56"
                   value={currency}
                   disabled={!canEdit}
                   options={CURRENCIES.map((code) => ({
@@ -372,7 +409,7 @@ export function ClinicPage(): JSX.Element {
                 <Select
                   id="clinic-country"
                   data-testid="clinic-field-country"
-                  className="w-56"
+                  className="w-full sm:w-56"
                   value={country}
                   disabled={!canEdit}
                   options={PHONE_COUNTRIES.map((entry) => ({
@@ -463,6 +500,16 @@ export function ClinicPage(): JSX.Element {
 
         <AboutSection />
       </div>
+      {canEdit && (
+        <UnsavedChanges
+          data-testid="clinic-unsaved"
+          dirty={dirty}
+          saving={updateClinic.isPending}
+          invalid={!form.isValid}
+          onSave={() => void save()}
+          onDiscard={() => clinic.data && applyDraft(draftFrom(clinic.data))}
+        />
+      )}
     </div>
   );
 }

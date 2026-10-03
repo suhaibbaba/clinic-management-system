@@ -42,6 +42,7 @@ const SHIPPED: Record<TranslationLanguage, Record<string, string>> = {
 
 const KEYS = Object.keys(SHIPPED.ar);
 const sectionOf = (key: string): string => key.split(".")[0] ?? "";
+import { useLeaveGuard } from "@web/shared/hooks/use-leave-guard";
 const SECTIONS = [...new Set(KEYS.map(sectionOf))].sort();
 
 const GROUPS: readonly Group[] = (() => {
@@ -233,6 +234,8 @@ export function TranslationsPage(): JSX.Element {
     },
   ];
 
+  const leaveGuard = useLeaveGuard(pending.length > 0, "translations-leave", ["view"]);
+
   const submit = async (): Promise<void> => {
     try {
       await save.mutateAsync({
@@ -361,6 +364,7 @@ export function TranslationsPage(): JSX.Element {
           </div>
         </div>
       )}
+      {leaveGuard}
     </div>
   );
 }

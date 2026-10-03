@@ -15,6 +15,7 @@ import { SettlementSection } from "@web/modules/doctors/components/settlement-se
 import { errorToast } from "@web/shared/lib/api-error";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
+import { UnsavedChanges } from "@web/shared/components/unsaved-changes";
 
 export function DoctorPage(): JSX.Element {
   const { t, i18n } = useTranslation();
@@ -55,6 +56,7 @@ export function DoctorPage(): JSX.Element {
   const canEdit = canEditAnySchedule(can) || isOwn;
   const clinicHours = clinic.data?.workingHours ?? [];
   const fits = weekFitsWithin(schedule, clinicHours);
+  const dirty = JSON.stringify(schedule) !== JSON.stringify(doctor.data.weeklySchedule);
 
   const save = async (): Promise<void> => {
     try {
@@ -139,6 +141,16 @@ export function DoctorPage(): JSX.Element {
             doctorName={personName(doctor.data.user.name, i18n.language)}
           />
         </div>
+      )}
+      {canEdit && (
+        <UnsavedChanges
+          data-testid="doctor-unsaved"
+          dirty={dirty}
+          saving={updateSchedule.isPending}
+          invalid={!fits}
+          onSave={() => void save()}
+          onDiscard={() => setSchedule(doctor.data.weeklySchedule)}
+        />
       )}
     </div>
   );

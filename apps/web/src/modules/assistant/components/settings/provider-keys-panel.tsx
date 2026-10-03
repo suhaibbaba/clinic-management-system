@@ -13,6 +13,7 @@ import { formatDateTime } from "@web/shared/lib/format";
 import { PROVIDER_KEY_GROUPS } from "@web/modules/assistant/constants";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
+import { UnsavedChanges } from "@web/shared/components/unsaved-changes";
 
 export function ProviderKeysPanel(): JSX.Element {
   const { t } = useTranslation();
@@ -51,6 +52,24 @@ export function ProviderKeysPanel(): JSX.Element {
   return (
     <div ref={form.formRef} data-testid="assistant-keys" className="flex flex-col gap-4">
       {dialog}
+      {encryptionAvailable && (
+        <UnsavedChanges
+          data-testid="assistant-keys-unsaved"
+          dirty={Object.keys(allEntered).length > 0}
+          saving={save.isPending}
+          invalid={!form.isValid}
+          watchParams={["view", "tab"]}
+          onSave={() => {
+            if (form.check()) {
+              submit(allEntered);
+            }
+          }}
+          onDiscard={() => {
+            setTyped({});
+            form.reset();
+          }}
+        />
+      )}
       {!encryptionAvailable && (
         <p
           role="note"

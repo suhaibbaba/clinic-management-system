@@ -17,6 +17,7 @@ import { outboundErrorKey } from "@web/modules/assistant/lib/messages";
 import { useAutomationSettings, useSaveAutomationSettings } from "@web/modules/assistant/queries";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
+import { UnsavedChanges } from "@web/shared/components/unsaved-changes";
 
 export function AutomationRulesPanel(): JSX.Element {
   const { t } = useTranslation();
@@ -68,6 +69,20 @@ export function AutomationRulesPanel(): JSX.Element {
         });
       }}
     >
+      <UnsavedChanges
+        data-testid="assistant-rules-unsaved"
+        dirty={JSON.stringify(draft) !== JSON.stringify(settings.data)}
+        saving={save.isPending}
+        invalid={!form.isValid}
+        watchParams={["view", "tab"]}
+        onSave={() => form.formRef.current?.requestSubmit()}
+        onDiscard={() => {
+          if (settings.data) {
+            setDraft(settings.data);
+            form.reset();
+          }
+        }}
+      />
       {AI_AUTOMATION_RULES.map((rule) => {
         const current = draft.rules[rule];
 

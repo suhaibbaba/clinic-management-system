@@ -77,7 +77,12 @@
     "deleteForever": "Delete for Good",
     "noMatches": "No matches",
     "continue": "Continue",
-    "reload": "Reload"
+    "reload": "Reload",
+    "discard": "Discard",
+    "unsavedChanges": "Unsaved Changes",
+    "leave": "Leave",
+    "leaveUnsavedTitle": "Leave Without Saving?",
+    "leaveUnsavedBody": "The changes you haven’t saved on this page will be lost."
   },
   "pagination": {
     "goToPage": "Page {{page}}",

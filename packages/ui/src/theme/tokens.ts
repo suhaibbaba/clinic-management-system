@@ -39,6 +39,7 @@ export type ShadowToken =
   | "card-hover"
   | "nav-active"
   | "float"
+  | "glass"
   | "drawer"
   | "now"
   | "pill"

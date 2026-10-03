@@ -77,7 +77,12 @@
     "deleteForever": "حذف نهائي",
     "noMatches": "لا توجد نتائج",
     "continue": "متابعة",
-    "reload": "إعادة التحميل"
+    "reload": "إعادة التحميل",
+    "discard": "تجاهل",
+    "unsavedChanges": "تغييرات غير محفوظة",
+    "leave": "مغادرة",
+    "leaveUnsavedTitle": "المغادرة دون حفظ؟",
+    "leaveUnsavedBody": "ستضيع التغييرات التي لم تُحفظ في هذه الصفحة."
   },
   "pagination": {
     "goToPage": "الصفحة {{page}}",

@@ -15,6 +15,7 @@ import { actionRefusalKey } from "@web/modules/assistant/lib/messages";
 import { useActionsSettings, useSaveActionsSettings } from "@web/modules/assistant/queries";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
+import { UnsavedChanges } from "@web/shared/components/unsaved-changes";
 
 export function ActionsPanel(): JSX.Element {
   const { t } = useTranslation();
@@ -65,6 +66,20 @@ export function ActionsPanel(): JSX.Element {
         });
       }}
     >
+      <UnsavedChanges
+        data-testid="assistant-actions-unsaved"
+        dirty={JSON.stringify(draft) !== JSON.stringify(settings.data)}
+        saving={save.isPending}
+        invalid={!form.isValid}
+        watchParams={["view", "tab"]}
+        onSave={() => form.formRef.current?.requestSubmit()}
+        onDiscard={() => {
+          if (settings.data) {
+            setDraft(settings.data);
+            form.reset();
+          }
+        }}
+      />
       <Card className="flex flex-col divide-y divide-line p-0">
         {AI_ACTION_TOOLS.map((tool) => {
           const floor = AI_ACTION_BASE_TIER[tool];
