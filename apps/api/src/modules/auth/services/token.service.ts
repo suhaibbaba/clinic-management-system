@@ -8,7 +8,7 @@ import { type Env } from "@api/config/env.schema";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { refreshTokens } from "@api/database/schema";
 import { UserRow, IssuedRefreshToken } from "@api/modules/auth/lib/token";
-import { REFRESH_TOKEN_BYTES } from "@api/modules/auth/constants";
+import { REFRESH_TOKEN_BYTES, SESSION_REFRESH_TTL_HOURS } from "@api/modules/auth/constants";
 
 @Injectable()
 export class TokenService {
@@ -45,11 +45,15 @@ export class TokenService {
     return a.length === b.length && timingSafeEqual(a, b);
   }
 
-  async issueRefreshToken(user: Pick<UserRow, "id" | "clinicId">): Promise<IssuedRefreshToken> {
+  async issueRefreshToken(
+    user: Pick<UserRow, "id" | "clinicId">,
+    persistent: boolean,
+  ): Promise<IssuedRefreshToken> {
     const token = randomBytes(REFRESH_TOKEN_BYTES).toString("base64url");
-    const expiresAt = new Date(
-      Date.now() + this.config.get("JWT_REFRESH_TTL_DAYS", { infer: true }) * 24 * 60 * 60 * 1000,
-    );
+    const lifetimeMs = persistent
+      ? this.config.get("JWT_REFRESH_TTL_DAYS", { infer: true }) * 24 * 60 * 60 * 1000
+      : SESSION_REFRESH_TTL_HOURS * 60 * 60 * 1000;
+    const expiresAt = new Date(Date.now() + lifetimeMs);
 
     const [row] = await this.db
       .insert(refreshTokens)
@@ -58,6 +62,7 @@ export class TokenService {
         userId: user.id,
         tokenHash: this.digest(token),
         expiresAt,
+        persistent,
         createdBy: user.id,
         updatedBy: user.id,
       })

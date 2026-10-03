@@ -1,6 +1,6 @@
 import { AUTH_ERROR, USER_ROLE, type UserRole } from "@clinic/shared";
-import { eq, sql } from "drizzle-orm";
-import { loginCodes, loginThrottles, users } from "@api/database/schema";
+import { desc, eq, sql } from "drizzle-orm";
+import { loginCodes, loginThrottles, refreshTokens, users } from "@api/database/schema";
 import { REFRESH_COOKIE_NAME } from "@api/modules/auth/lib/refresh-cookie";
 import { loginThrottleKey } from "@api/modules/auth/lib/login-throttle";
 import { EMAIL_PROVIDER } from "@api/modules/email/constants";
@@ -46,6 +46,8 @@ describe("Auth (e2e)", () => {
         sameSite?: string;
         secure?: boolean;
         path?: string;
+        maxAge?: number;
+        expires?: Date;
       }[]
     ).find((cookie) => cookie.name === REFRESH_COOKIE_NAME);
 
@@ -337,6 +339,101 @@ describe("Auth (e2e)", () => {
 
       expect(refreshCookie(cleared)?.path).toBe(refreshCookie(loggedIn)?.path);
       expect(refreshCookie(cleared)?.sameSite).toBe(refreshCookie(loggedIn)?.sameSite);
+    });
+  });
+
+  describe("remember me", () => {
+    const HOUR_MS = 60 * 60 * 1000;
+
+    const latestRefreshRow = async (role: UserRole) => {
+      const [row] = await context.db
+        .select({ expiresAt: refreshTokens.expiresAt, persistent: refreshTokens.persistent })
+        .from(refreshTokens)
+        .where(eq(refreshTokens.userId, clinic.userIds[role]))
+        .orderBy(desc(refreshTokens.createdAt))
+        .limit(1);
+
+      return row;
+    };
+
+    const loginRemembering = (rememberMe: boolean) =>
+      context.app.inject({
+        method: "POST",
+        url: "/auth/login",
+        payload: {
+          identifier: clinic.phones[USER_ROLE.TECHNICIAN],
+          password: TEST_PASSWORD,
+          rememberMe,
+        },
+      });
+
+    it("keeps the session for a month when nothing is said", async () => {
+      const response = await login(clinic.phones[USER_ROLE.TECHNICIAN]);
+
+      expect(refreshCookie(response)?.maxAge).toBe(30 * 24 * 60 * 60);
+      const row = await latestRefreshRow(USER_ROLE.TECHNICIAN);
+      expect(row?.persistent).toBe(true);
+      expect(row!.expiresAt.getTime() - Date.now()).toBeGreaterThan(29 * 24 * HOUR_MS);
+    });
+
+    it("sets a cookie that ends with the browser and a token that lasts hours when declined", async () => {
+      const response = await loginRemembering(false);
+
+      expect(response.statusCode).toBe(200);
+      const cookie = refreshCookie(response);
+      expect(cookie?.value).toBeTruthy();
+      expect(cookie?.maxAge).toBeUndefined();
+      expect(cookie?.expires).toBeUndefined();
+
+      const row = await latestRefreshRow(USER_ROLE.TECHNICIAN);
+      expect(row?.persistent).toBe(false);
+      expect(row!.expiresAt.getTime() - Date.now()).toBeLessThanOrEqual(12 * HOUR_MS);
+    });
+
+    it("keeps a declined session short through every rotation", async () => {
+      const loggedIn = await loginRemembering(false);
+
+      const refreshed = await context.app.inject({
+        method: "POST",
+        url: "/auth/refresh",
+        headers: withCookie(refreshCookie(loggedIn)?.value ?? ""),
+        payload: {},
+      });
+
+      expect(refreshed.statusCode).toBe(200);
+      expect(refreshed.json().persistent).toBeUndefined();
+      expect(refreshCookie(refreshed)?.maxAge).toBeUndefined();
+      const row = await latestRefreshRow(USER_ROLE.TECHNICIAN);
+      expect(row?.persistent).toBe(false);
+      expect(row!.expiresAt.getTime() - Date.now()).toBeLessThanOrEqual(12 * HOUR_MS);
+    });
+
+    it("keeps a remembered session for a month through a rotation", async () => {
+      const loggedIn = await loginRemembering(true);
+
+      const refreshed = await context.app.inject({
+        method: "POST",
+        url: "/auth/refresh",
+        headers: withCookie(refreshCookie(loggedIn)?.value ?? ""),
+        payload: {},
+      });
+
+      expect(refreshCookie(refreshed)?.maxAge).toBe(30 * 24 * 60 * 60);
+      expect((await latestRefreshRow(USER_ROLE.TECHNICIAN))?.persistent).toBe(true);
+    });
+
+    it("refuses a remember-me that is not a boolean", async () => {
+      const response = await context.app.inject({
+        method: "POST",
+        url: "/auth/login",
+        payload: {
+          identifier: clinic.phones[USER_ROLE.TECHNICIAN],
+          password: TEST_PASSWORD,
+          rememberMe: "no",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 

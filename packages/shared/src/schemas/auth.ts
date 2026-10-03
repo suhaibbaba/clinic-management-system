@@ -7,9 +7,12 @@ export const PASSWORD_MAX_LENGTH = 200;
 
 export const passwordSchema = z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH);
 
+export const rememberMeSchema = z.boolean().optional();
+
 export const loginSchema = z.object({
   identifier: z.string().trim().min(3).max(255),
   password: passwordSchema,
+  rememberMe: rememberMeSchema,
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 
@@ -44,6 +47,7 @@ export type RequestLoginCodeInput = z.infer<typeof requestLoginCodeSchema>;
 export const verifyLoginCodeSchema = z.object({
   email: loginCodeEmailSchema,
   code: z.string().trim().length(LOGIN_CODE_LENGTH).regex(/^\d+$/),
+  rememberMe: rememberMeSchema,
 });
 export type VerifyLoginCodeInput = z.infer<typeof verifyLoginCodeSchema>;
 
@@ -59,6 +63,11 @@ export const googleCallbackQuerySchema = z.object({
 });
 export type GoogleCallbackQuery = z.infer<typeof googleCallbackQuerySchema>;
 
+export const googleStartQuerySchema = z.object({
+  remember: z.enum(["0", "1"]).optional(),
+});
+export type GoogleStartQuery = z.infer<typeof googleStartQuerySchema>;
+
 export const PASSKEY_NAME_MAX_LENGTH = 60;
 
 const webAuthnResponseSchema = z.looseObject({
@@ -71,6 +80,7 @@ const webAuthnResponseSchema = z.looseObject({
 export const verifyPasskeyLoginSchema = z.object({
   challengeId: z.uuid(),
   response: webAuthnResponseSchema,
+  rememberMe: rememberMeSchema,
 });
 export type VerifyPasskeyLoginInput = z.infer<typeof verifyPasskeyLoginSchema>;
 
@@ -137,6 +147,7 @@ export type AuthTokens = z.infer<typeof authTokensSchema>;
 
 export interface IssuedSession extends AuthTokens {
   readonly refreshToken: string;
+  readonly persistent: boolean;
 }
 
 export const loginResponseSchema = authTokensSchema.extend({

@@ -16,6 +16,8 @@ export const ARGON2_OPTIONS = {
 
 export const REFRESH_TOKEN_BYTES = 32;
 
+export const SESSION_REFRESH_TTL_HOURS = 12;
+
 export const LOGIN_CODE_TTL_MINUTES = 10;
 
 export const LOGIN_CODE_MAX_ATTEMPTS = 5;

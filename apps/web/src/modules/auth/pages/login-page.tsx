@@ -17,6 +17,8 @@ import { authApi } from "@web/shared/api/auth";
 import { useAuthMethods } from "@web/modules/auth/queries";
 import { useClinicLogo } from "@web/shared/hooks/use-clinic-logo";
 import { ellipsis } from "@web/i18n/ellipsis";
+import { RememberMeSwitch } from "@web/modules/auth/components/remember-me-switch";
+import { useRememberMe } from "@web/modules/auth/hooks/use-remember-me";
 
 interface LocationState {
   from?: string;
@@ -36,6 +38,7 @@ export function LoginPage(): JSX.Element {
     codedMessageKey(returnedError) ?? (returnedError ? "errors.auth.googleFailed" : null),
   );
   const [passkeyBusy, setPasskeyBusy] = useState(false);
+  const [rememberMe, setRememberMe] = useRememberMe();
 
   const {
     register,
@@ -66,7 +69,7 @@ export function LoginPage(): JSX.Element {
     setPasskeyBusy(true);
 
     try {
-      await loginWithPasskey();
+      await loginWithPasskey(rememberMe);
       goOn();
     } catch (error) {
       if (!isPasskeyCancelled(error)) {
@@ -86,7 +89,7 @@ export function LoginPage(): JSX.Element {
       setFormErrorKey(null);
 
       try {
-        await login(values);
+        await login({ ...values, rememberMe });
         goOn();
       } catch (error) {
         setFormErrorKey(
@@ -160,6 +163,8 @@ export function LoginPage(): JSX.Element {
             />
           </FormField>
 
+          <RememberMeSwitch checked={rememberMe} onCheckedChange={setRememberMe} />
+
           {formErrorKey !== null && (
             <p
               role="alert"
@@ -204,7 +209,7 @@ export function LoginPage(): JSX.Element {
                 icon={<Icon name="google" />}
                 data-testid="login-google"
                 className="flex-1"
-                onClick={() => window.location.assign(authApi.googleSignInUrl())}
+                onClick={() => window.location.assign(authApi.googleSignInUrl(rememberMe))}
               >
                 {t("auth.googleLink")}
               </Button>

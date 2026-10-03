@@ -66,7 +66,7 @@ export class AuthService {
 
     await this.loginThrottle.clear(input.identifier);
 
-    return this.startSession(user);
+    return this.startSession(user, input.rememberMe ?? true);
   }
 
   async loginWithCode(input: VerifyLoginCodeInput): Promise<LoginResponse & IssuedSession> {
@@ -81,7 +81,7 @@ export class AuthService {
 
     await this.loginThrottle.clear(input.email);
 
-    return this.startSession(user);
+    return this.startSession(user, input.rememberMe ?? true);
   }
 
   async loginWithPasskey(input: VerifyPasskeyLoginInput): Promise<LoginResponse & IssuedSession> {
@@ -91,10 +91,13 @@ export class AuthService {
       throw new UnauthorizedException(AUTH_ERROR.PASSKEY_INVALID);
     }
 
-    return this.startSession(user);
+    return this.startSession(user, input.rememberMe ?? true);
   }
 
-  async loginWithGoogle(email: string): Promise<LoginResponse & IssuedSession> {
+  async loginWithGoogle(
+    email: string,
+    persistent: boolean,
+  ): Promise<LoginResponse & IssuedSession> {
     const [user] = await this.db
       .select()
       .from(users)
@@ -105,7 +108,7 @@ export class AuthService {
       throw new UnauthorizedException(AUTH_ERROR.GOOGLE_NO_ACCOUNT);
     }
 
-    return this.startSession(user);
+    return this.startSession(user, persistent);
   }
 
   async refresh(presentedToken: string): Promise<IssuedSession> {
@@ -132,12 +135,13 @@ export class AuthService {
       throw new UnauthorizedException("Invalid refresh token");
     }
 
-    const issued = await this.tokenService.issueRefreshToken(user);
+    const issued = await this.tokenService.issueRefreshToken(user, stored.persistent);
     await this.tokenService.revoke(stored.id, issued.id);
 
     return {
       accessToken: await this.tokenService.createAccessToken(user),
       refreshToken: issued.token,
+      persistent: stored.persistent,
       expiresIn: this.tokenService.accessTokenTtlSeconds,
     };
   }
@@ -185,20 +189,24 @@ export class AuthService {
     await this.tokenService.revokeAllForUser(actor.id);
   }
 
-  private async startSession(user: UserRow): Promise<LoginResponse & IssuedSession> {
+  private async startSession(
+    user: UserRow,
+    persistent: boolean,
+  ): Promise<LoginResponse & IssuedSession> {
     await this.db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
 
-    const tokens = await this.issueTokens(user);
+    const tokens = await this.issueTokens(user, persistent);
 
     return { ...tokens, user: await this.toProfile(user) };
   }
 
-  private async issueTokens(user: UserRow): Promise<IssuedSession> {
-    const issued = await this.tokenService.issueRefreshToken(user);
+  private async issueTokens(user: UserRow, persistent: boolean): Promise<IssuedSession> {
+    const issued = await this.tokenService.issueRefreshToken(user, persistent);
 
     return {
       accessToken: await this.tokenService.createAccessToken(user),
       refreshToken: issued.token,
+      persistent,
       expiresIn: this.tokenService.accessTokenTtlSeconds,
     };
   }

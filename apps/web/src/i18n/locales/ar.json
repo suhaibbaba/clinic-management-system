@@ -166,7 +166,8 @@
     "codeChangeEmail": "تغيير البريد الإلكتروني",
     "withPassword": "الدخول بكلمة المرور",
     "passkeyLink": "Passkey",
-    "googleLink": "Google"
+    "googleLink": "Google",
+    "rememberMe": "تذكّرني"
   },
   "users": {
     "activate": "تفعيل",

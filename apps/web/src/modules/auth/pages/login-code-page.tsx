@@ -22,6 +22,8 @@ import { useClinicLogo } from "@web/shared/hooks/use-clinic-logo";
 import { useCountdown } from "@web/modules/auth/hooks/use-countdown";
 import { LOGIN_CODE_RESEND_SECONDS } from "@web/modules/auth/constants";
 import { ellipsis } from "@web/i18n/ellipsis";
+import { RememberMeSwitch } from "@web/modules/auth/components/remember-me-switch";
+import { useRememberMe } from "@web/modules/auth/hooks/use-remember-me";
 
 interface LocationState {
   from?: string;
@@ -38,6 +40,7 @@ export function LoginCodePage(): JSX.Element {
   const [email, setEmail] = useState<string | null>(null);
   const [formErrorKey, setFormErrorKey] = useState<string | null>(null);
   const resend = useCountdown();
+  const [rememberMe, setRememberMe] = useRememberMe();
 
   const emailForm = useForm<RequestLoginCodeInput>({
     mode: "onTouched",
@@ -80,7 +83,7 @@ export function LoginCodePage(): JSX.Element {
       setFormErrorKey(null);
 
       try {
-        await loginWithCode(values);
+        await loginWithCode({ ...values, rememberMe });
         void navigate(from ?? "/", { replace: true });
       } catch (error) {
         setFormErrorKey(
@@ -213,6 +216,8 @@ export function LoginCodePage(): JSX.Element {
                   {...codeField}
                 />
               </FormField>
+
+              <RememberMeSwitch checked={rememberMe} onCheckedChange={setRememberMe} />
 
               {formErrorKey !== null && (
                 <p

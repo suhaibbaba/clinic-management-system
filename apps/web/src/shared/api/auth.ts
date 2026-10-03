@@ -32,7 +32,8 @@ export const authApi = {
 
   methods: (): Promise<AuthMethods> => apiRequest("/auth/methods"),
 
-  googleSignInUrl: (): string => apiUrl("/auth/google"),
+  googleSignInUrl: (rememberMe: boolean): string =>
+    apiUrl(rememberMe ? "/auth/google" : "/auth/google?remember=0"),
 
   passkeyOptions: (): Promise<PasskeyChallenge<PublicKeyCredentialRequestOptionsJSON>> =>
     apiRequest("/auth/passkey/options", { method: "POST", body: {} }),

@@ -5,7 +5,7 @@ import { AUTH_ERROR } from "@clinic/shared";
 import { type FastifyReply, type FastifyRequest } from "fastify";
 import { Public } from "@api/common/decorators/public.decorator";
 import { type Env } from "@api/config/env.schema";
-import { GoogleCallbackQueryDto } from "@api/modules/auth/dto/auth.dto";
+import { GoogleCallbackQueryDto, GoogleStartQueryDto } from "@api/modules/auth/dto/auth.dto";
 import { setRefreshCookie } from "@api/modules/auth/lib/refresh-cookie";
 import {
   setGoogleStateCookie,
@@ -25,8 +25,8 @@ export class GoogleAuthController {
   @Public()
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Get()
-  start(@Res() reply: FastifyReply): FastifyReply {
-    const started = this.google.begin();
+  start(@Query() query: GoogleStartQueryDto, @Res() reply: FastifyReply): FastifyReply {
+    const started = this.google.begin(query.remember !== "0");
 
     if (!started) {
       return reply.redirect(this.failure(AUTH_ERROR.GOOGLE_FAILED), 302);
@@ -53,8 +53,11 @@ export class GoogleAuthController {
     }
 
     try {
-      const { refreshToken } = await this.authService.loginWithGoogle(identity.email);
-      setRefreshCookie(reply, this.config, refreshToken);
+      const { refreshToken, persistent } = await this.authService.loginWithGoogle(
+        identity.email,
+        identity.persistent,
+      );
+      setRefreshCookie(reply, this.config, refreshToken, persistent);
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         return reply.redirect(this.failure(AUTH_ERROR.GOOGLE_NO_ACCOUNT), 302);

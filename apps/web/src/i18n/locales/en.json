@@ -166,7 +166,8 @@
     "codeChangeEmail": "Use a different email",
     "withPassword": "Sign in with a password",
     "passkeyLink": "Passkey",
-    "googleLink": "Google"
+    "googleLink": "Google",
+    "rememberMe": "Remember me"
   },
   "users": {
     "activate": "Activate",

@@ -27,14 +27,14 @@ export class GoogleAuthService {
     return this.credentials() !== undefined;
   }
 
-  begin(): { url: string; cookie: string } | undefined {
+  begin(persistent: boolean): { url: string; cookie: string } | undefined {
     const credentials = this.credentials();
 
     if (!credentials) {
       return undefined;
     }
 
-    const state = newGoogleOAuthState();
+    const state = newGoogleOAuthState(persistent);
 
     return {
       url: googleAuthorizeUrl(credentials.clientId, this.redirectUri(), state),
@@ -45,7 +45,7 @@ export class GoogleAuthService {
   async finish(
     query: GoogleCallbackQuery,
     cookie: string | undefined,
-  ): Promise<GoogleIdentity | undefined> {
+  ): Promise<(GoogleIdentity & { readonly persistent: boolean }) | undefined> {
     const credentials = this.credentials();
     const expected = parseGoogleOAuthState(cookie);
 
@@ -81,9 +81,12 @@ export class GoogleAuthService {
 
       const { id_token: idToken } = (await response.json()) as { id_token?: unknown };
 
-      return typeof idToken === "string"
-        ? googleIdentityFromTokenEndpoint(idToken, credentials.clientId)
-        : undefined;
+      const identity =
+        typeof idToken === "string"
+          ? googleIdentityFromTokenEndpoint(idToken, credentials.clientId)
+          : undefined;
+
+      return identity && { ...identity, persistent: expected.persistent };
     } catch (error) {
       this.logger.warn(`Could not reach Google to finish a sign-in: ${String(error)}`);
       return undefined;
