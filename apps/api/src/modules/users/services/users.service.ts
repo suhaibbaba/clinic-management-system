@@ -12,7 +12,6 @@ import {
   ALLOWED_USER_PHOTO_MIME_TYPES,
   AUDIT_ACTION,
   MAX_USER_PHOTO_BYTES,
-  USER_ROLE,
   type ConfirmUserPhotoInput,
   type CreateUserInput,
   type ListUsersQuery,
@@ -33,6 +32,7 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import { doctors, users } from "@api/database/schema";
 import { StorageService } from "@api/modules/storage/services/storage.service";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import { USERS_ENTITY } from "@api/common/constants/audit-entities";
 import {
   safeColumns,
@@ -55,6 +55,7 @@ export class UsersService implements OnModuleInit {
     private readonly auditSnapshots: AuditSnapshotRegistry,
     private readonly auditService: AuditService,
     private readonly storage: StorageService,
+    private readonly permissions: PermissionsService,
   ) {}
 
   onModuleInit(): void {
@@ -163,10 +164,10 @@ export class UsersService implements OnModuleInit {
 
     if (
       id === actor.id &&
-      actor.role !== USER_ROLE.ADMIN &&
       ((input.role !== undefined && input.role !== existing.role) ||
         (input.isActive !== undefined && input.isActive !== existing.isActive) ||
-        (input.joinedOn !== undefined && input.joinedOn !== existing.joinedOn))
+        (input.joinedOn !== undefined && input.joinedOn !== existing.joinedOn)) &&
+      !(await this.permissions.can(actor, "users.update"))
     ) {
       throw new ForbiddenException("Only an administrator changes a role, status or joining date");
     }

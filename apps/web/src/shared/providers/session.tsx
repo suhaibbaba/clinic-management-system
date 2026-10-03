@@ -2,7 +2,6 @@ import type {
   AuthenticatedUserProfile,
   LoginInput,
   LoginResponse,
-  UserRole,
   VerifyLoginCodeInput,
 } from "@clinic/shared";
 import {
@@ -32,7 +31,6 @@ interface SessionValue {
   readonly loginWithPasskey: (rememberMe: boolean) => Promise<void>;
   readonly logout: () => Promise<void>;
   readonly refreshProfile: () => Promise<void>;
-  readonly hasRole: (...roles: UserRole[]) => boolean;
   readonly can: Can;
 }
 
@@ -140,7 +138,6 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
       loginWithPasskey,
       logout,
       refreshProfile,
-      hasRole: (...roles: UserRole[]) => (user ? roles.includes(user.role) : false),
       can: (capability: string) => granted.has(capability),
     }),
     [status, user, login, loginWithCode, loginWithPasskey, logout, refreshProfile, granted],

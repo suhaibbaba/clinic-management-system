@@ -1,9 +1,4 @@
-import {
-  LEDGER_ENTRY_KIND,
-  USER_ROLE,
-  type PatientView,
-  type StatementEntry,
-} from "@clinic/shared";
+import { LEDGER_ENTRY_KIND, type PatientView, type StatementEntry } from "@clinic/shared";
 import { dayBounds } from "@web/shared/lib/dates";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
@@ -26,6 +21,7 @@ import {
   useToast,
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
+import { canDeletePayment } from "@web/shared/permissions/billing";
 import { downloadStatement, openReceipt } from "@web/modules/billing/lib/documents";
 import { Money } from "@web/shared/components/money";
 import { canRecordPayment, canReversePayment } from "@web/shared/permissions/billing";
@@ -48,9 +44,9 @@ interface AccountTabProps {
 
 export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element {
   const { t } = useTranslation();
-  const { user, can } = useSession();
+  const { can } = useSession();
   const toast = useToast();
-  const isAdmin = user?.role === USER_ROLE.ADMIN;
+  const mayDelete = canDeletePayment(can);
   const deletePayment = useDeletePayment();
   const { confirm, dialog } = useConfirm("statement-confirm-delete");
 
@@ -218,7 +214,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
                 {t("billing.reverse")}
               </MenuItem>
             )}
-            {isAdmin && !entry.isReversed && (
+            {mayDelete && !entry.isReversed && (
               <MenuItem
                 icon="trash"
                 tone="danger"

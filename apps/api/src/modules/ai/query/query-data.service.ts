@@ -60,10 +60,6 @@ export class QueryDataService implements OnModuleInit, OnApplicationShutdown {
   }
 
   async run(actor: AuthenticatedUser, sql: string): Promise<QueryResult> {
-    if (actor.role === USER_ROLE.VISITING_DOCTOR) {
-      throw new ToolRefusal(AI_TOOL_ERROR.QUERY_NOT_PERMITTED);
-    }
-
     let guarded: ReturnType<typeof guardQuery>;
 
     try {

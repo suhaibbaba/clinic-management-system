@@ -330,8 +330,9 @@ export function AssistantPage(): JSX.Element {
 
 function TurnError({ code, onRetry }: { code: AiErrorCode; onRetry: () => void }): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
-  const toKeys = isKeyFailure(code) && canReachNavItem(ASSISTANT_SETTINGS_PATH, user?.role);
+  const { user, can } = useSession();
+  const toKeys =
+    isKeyFailure(code) && canReachNavItem(ASSISTANT_SETTINGS_PATH, user ? can : undefined);
 
   return (
     <ChatBubble

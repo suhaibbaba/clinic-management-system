@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { USER_ROLE, type UserRole } from "@clinic/shared";
+import { RULE } from "@clinic/shared";
 import { eq, exists, or, sql, type SQL } from "drizzle-orm";
 import { type PgColumn } from "drizzle-orm/pg-core";
 import {
@@ -10,12 +10,14 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { appointments, doctors, patients, performedProcedures } from "@api/database/schema";
 import { PatientRow } from "@api/modules/patients/lib/patient-access";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 
 @Injectable()
 export class PatientAccessService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly scope: ClinicScopeService,
+    private readonly permissions: PermissionsService,
   ) {}
 
   async requirePatient(actor: AuthenticatedUser, patientId: string): Promise<PatientRow> {
@@ -67,7 +69,7 @@ export class PatientAccessService {
   ): Promise<TRow> {
     const row = await this.scope.findOneOrFail<TRow>(table, actor.clinicId, id);
 
-    if (actor.role === USER_ROLE.VISITING_DOCTOR) {
+    if (!(await this.seesAllPatients(actor))) {
       await this.requirePatientId(actor, row.patientId);
     }
 
@@ -78,7 +80,7 @@ export class PatientAccessService {
     actor: AuthenticatedUser,
     patientIdColumn: PgColumn,
   ): Promise<SQL | undefined> {
-    if (actor.role !== USER_ROLE.VISITING_DOCTOR) {
+    if (await this.seesAllPatients(actor)) {
       return undefined;
     }
 
@@ -122,13 +124,15 @@ export class PatientAccessService {
     );
   }
 
-  static seesClinicalData(role: UserRole): boolean {
-    return (
-      role === USER_ROLE.ADMIN || role === USER_ROLE.DOCTOR || role === USER_ROLE.VISITING_DOCTOR
-    );
+  seesAllPatients(actor: AuthenticatedUser): Promise<boolean> {
+    return this.permissions.can(actor, RULE.PATIENTS_ALL);
   }
 
-  static seesFinancialData(role: UserRole): boolean {
-    return role !== USER_ROLE.TECHNICIAN && role !== USER_ROLE.VISITING_DOCTOR;
+  seesClinicalData(actor: AuthenticatedUser): Promise<boolean> {
+    return this.permissions.can(actor, RULE.PATIENTS_CLINICAL);
+  }
+
+  seesFinancialData(actor: AuthenticatedUser): Promise<boolean> {
+    return this.permissions.can(actor, RULE.PATIENTS_FINANCIAL);
   }
 }

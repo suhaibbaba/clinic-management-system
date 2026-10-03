@@ -986,8 +986,8 @@
       "declineNotifies": "This text is sent to the patient as a message.",
       "declined": "Request Closed",
       "online": "Urgent Request",
-      "urgentCount_one": "{{count}} urgent",
-      "urgentCount_other": "{{count}} urgent",
+      "urgentCount_one": "{{count}} Urgent",
+      "urgentCount_other": "{{count}} Urgents",
       "statuses": {
         "contacted": "Called Back"
       }
@@ -1624,7 +1624,8 @@
         "noShow": "Mark a No-Show",
         "remove": "Delete an Appointment",
         "start": "Start an Appointment",
-        "update": "Edit an Appointment"
+        "update": "Edit an Appointment",
+        "allCalendars": "Manage Every Doctor's Calendar"
       },
       "attachments": {
         "findOne": "Open an Attachment",
@@ -1660,7 +1661,8 @@
         "remove": "Delete a Doctor",
         "update": "Edit a Doctor",
         "updateSchedule": "Edit a Doctor’s Weekly Hours",
-        "createVisiting": "Add a Visiting Doctor"
+        "createVisiting": "Add a Visiting Doctor",
+        "allSchedules": "Change Any Doctor's Weekly Hours"
       },
       "inventory": {
         "adjust": "Correct an Item's Quantity",
@@ -1701,7 +1703,8 @@
         "removeAttachment": "Delete a Lab Order Attachment",
         "return": "Return Work to the Lab",
         "send": "Send an Order to the Lab",
-        "update": "Edit a Lab Order"
+        "update": "Edit a Lab Order",
+        "setPrice": "Set the Price of Lab Work"
       },
       "lab-payments": {
         "create": "Record a Payment to a Lab",
@@ -1734,7 +1737,8 @@
         "create": "Add a Note",
         "list": "See the Notes",
         "remove": "Delete a Note",
-        "update": "Edit a Note"
+        "update": "Edit a Note",
+        "manageAll": "Edit or Delete Others' Notes"
       },
       "patient-attachments": {
         "list": "See a Patient's Attachments",
@@ -1748,7 +1752,12 @@
       "patients": {
         "create": "Add a Patient",
         "remove": "Delete a Patient",
-        "update": "Edit a Patient's File"
+        "update": "Edit a Patient's File",
+        "list": "See the Patient List",
+        "findOne": "Open a Patient File",
+        "clinical": "See Medical Details",
+        "financial": "See Balances and Payments",
+        "all": "See Every Patient, Not Only Assigned Ones"
       },
       "payments": {
         "create": "Record a Payment",
@@ -1756,7 +1765,8 @@
         "list": "See the Payments",
         "receipt": "Print a Receipt",
         "remove": "Delete a Payment",
-        "reverse": "Reverse a Payment"
+        "reverse": "Reverse a Payment",
+        "viewDeleted": "See Deleted Payments"
       },
       "pending-bookings": {
         "confirm": "Accept an online booking",
@@ -1777,7 +1787,8 @@
       "procedure-catalog": {
         "create": "Add a procedure to the price list",
         "remove": "Delete a procedure from the price list",
-        "update": "Edit a Procedure's Price"
+        "update": "Edit a Procedure's Price",
+        "details": "See the Full Treatment Catalog"
       },
       "procedures": {
         "create": "Record a Treatment",
@@ -1863,6 +1874,9 @@
       },
       "staff-payments": {
         "reverse": "Reverse a Payment to Staff"
+      },
+      "dashboard": {
+        "overdue": "See Overdue Balances on the Dashboard"
       }
     },
     "hints": {

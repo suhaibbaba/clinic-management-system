@@ -30,6 +30,7 @@ export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 
   @Get()
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN)
   list(
     @CurrentUser() actor: AuthenticatedUser,
     @Query() query: ListPatientsQueryDto,
@@ -38,6 +39,7 @@ export class PatientsController {
   }
 
   @Get(":id")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN)
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,

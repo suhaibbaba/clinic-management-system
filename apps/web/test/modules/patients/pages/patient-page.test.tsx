@@ -119,8 +119,18 @@ describe("Patient page", () => {
       expect(await findChart()).toBeInTheDocument();
     });
 
-    it("redirects a technician away from the patient file", async () => {
-      await renderPatientPage(USER_ROLE.TECHNICIAN);
+    it("redirects a reader the clinic has not let open a patient file", async () => {
+      await renderPatientPage(USER_ROLE.TECHNICIAN, {
+        "GET /me": {
+          status: 200,
+          body: makeProfile({
+            role: USER_ROLE.TECHNICIAN,
+            capabilities: SHIPPED_CAPABILITIES[USER_ROLE.TECHNICIAN].filter(
+              (capability) => capability !== "patients.findOne",
+            ),
+          }),
+        },
+      });
 
       expect(
         await screen.findByRole("region", { name: ar.dashboard.schedule.title }),

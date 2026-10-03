@@ -15,6 +15,22 @@ Authoritative spec for authorization. Every endpoint must map to a row here befo
 
 Users belong to one clinic and have exactly one role (v1). `admin` implicitly passes every role check within their clinic.
 
+**Every permission is a capability a clinic can change.** The matrix below is the shipped default. Each endpoint is a capability, and so is each data rule below (`RULE` in `packages/shared`); the Permissions page grants or withdraws any of them per role. The sidebar and the route guards follow the same capabilities, so a page appears the moment its list capability is granted.
+
+| Rule capability | Decides | Default roles (admin always) |
+|---|---|---|
+| `patients.list` / `patients.findOne` | The patient list and a patient file | doctor, visiting doctor, receptionist, technician |
+| `patients.clinical` | Medical fields, the chart and prices, clinical timeline entries | doctor, visiting doctor |
+| `patients.financial` | Balances, the balance filter and sort, payment and charge timeline entries | doctor, receptionist |
+| `patients.all` | Every patient; without it, only assigned patients (the visiting doctor rule) | doctor, receptionist, technician |
+| `procedure-catalog.details` | The full catalog; without it, names and prices only | doctor, visiting doctor, technician |
+| `appointments.allCalendars` | Every doctor's calendar, lab orders, time off and extra hours; without it, one's own | receptionist, technician |
+| `lab-orders.setPrice` | Setting the price of lab work | receptionist, technician |
+| `doctors.allSchedules` | Changing any doctor's weekly hours; without it, one's own | — |
+| `notes.manageAll` | Editing or deleting another person's note | — |
+| `payments.viewDeleted` | Deleted payments in the statement | — |
+| `dashboard.overdue` | The overdue balances widget | receptionist |
+
 ## Global rules
 
 1. **Clinic scoping:** every authenticated request is scoped to the user's `clinic_id`. Cross-clinic access is impossible regardless of role. Applied automatically in a base query helper — never rely on the client sending `clinic_id`.

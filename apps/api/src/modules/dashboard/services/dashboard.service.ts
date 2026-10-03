@@ -2,12 +2,13 @@ import { Injectable } from "@nestjs/common";
 import {
   APPOINTMENT_STATUS,
   DASHBOARD_SCHEDULE_LIMIT,
-  USER_ROLE,
+  RULE,
   type DashboardSummary,
 } from "@clinic/shared";
 import { AppointmentAccessService } from "@api/modules/appointments/services/appointment-access.service";
 import { AppointmentsService } from "@api/modules/appointments/services/appointments.service";
 import { OverdueService } from "@api/modules/billing/services/overdue.service";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 
 @Injectable()
@@ -16,13 +17,15 @@ export class DashboardService {
     private readonly appointments: AppointmentsService,
     private readonly access: AppointmentAccessService,
     private readonly overdue: OverdueService,
+    private readonly permissions: PermissionsService,
   ) {}
 
   async summary(actor: AuthenticatedUser): Promise<DashboardSummary> {
     const date = await this.appointments.localToday(actor.clinicId);
 
     const ownDoctorId = await this.access.ownDoctorId(actor);
-    const unmatchedDoctor = actor.role === USER_ROLE.DOCTOR && ownDoctorId === null;
+    const unmatchedDoctor =
+      ownDoctorId === null && !(await this.access.seesAllCalendars(actor));
 
     const today = unmatchedDoctor
       ? undefined
@@ -52,7 +55,7 @@ export class DashboardService {
   }
 
   private async pendingBookings(actor: AuthenticatedUser): Promise<number | undefined> {
-    if (actor.role !== USER_ROLE.ADMIN && actor.role !== USER_ROLE.RECEPTIONIST) {
+    if (!(await this.permissions.can(actor, "pending-bookings.list"))) {
       return undefined;
     }
 
@@ -68,7 +71,7 @@ export class DashboardService {
   private async overdueTotal(
     actor: AuthenticatedUser,
   ): Promise<{ total: string; patients: number } | undefined> {
-    if (actor.role !== USER_ROLE.ADMIN && actor.role !== USER_ROLE.RECEPTIONIST) {
+    if (!(await this.permissions.can(actor, RULE.OVERDUE_WIDGET))) {
       return undefined;
     }
 

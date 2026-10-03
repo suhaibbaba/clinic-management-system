@@ -13,6 +13,7 @@ import {
   type InventoryItemRow,
   type LabOrderRow,
   type PatientView,
+  RULE,
 } from "@clinic/shared";
 import { and, eq, inArray, isNull, max } from "drizzle-orm";
 import { z } from "zod";
@@ -26,7 +27,6 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import { visits } from "@api/database/schema";
 import { InventoryReportsService } from "@api/modules/inventory/services/inventory-reports.service";
 import { LabOrdersService } from "@api/modules/labs/services/lab-orders.service";
-import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { PatientsService } from "@api/modules/patients/services/patients.service";
 import { TimelineService } from "@api/modules/patients/services/timeline.service";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
@@ -466,7 +466,7 @@ export class AiToolsService {
     actor: AuthenticatedUser,
     patients: readonly PatientView[],
   ): Promise<Map<string, string>> {
-    if (patients.length === 0 || !PatientAccessService.seesClinicalData(actor.role)) {
+    if (patients.length === 0 || !(await this.permissions.can(actor, RULE.PATIENTS_CLINICAL))) {
       return new Map();
     }
 

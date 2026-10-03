@@ -4,10 +4,8 @@ import {
   type PatientClinicalView,
   type PatientPublicView,
   type PatientView,
-  type UserRole,
 } from "@clinic/shared";
 import type { PatientRow } from "@api/modules/patients/lib/patient-access";
-import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 
 const isProfileIncomplete = (row: PatientRow): boolean => missingProfileFields(row).length > 0;
 
@@ -50,10 +48,8 @@ export function toPublicView(row: PatientRow): PatientPublicView {
   };
 }
 
-export function toRoleView(row: PatientRow, role: UserRole, balance?: Money): PatientView {
-  const view = PatientAccessService.seesClinicalData(role)
-    ? toClinicalView(row)
-    : toPublicView(row);
+export function toRoleView(row: PatientRow, clinical: boolean, balance?: Money): PatientView {
+  const view = clinical ? toClinicalView(row) : toPublicView(row);
 
   return balance === undefined ? view : { ...view, balance };
 }

@@ -42,10 +42,10 @@ export function AppLayout(): JSX.Element {
   const logoUrl = useClinicLogo(user?.clinicId, user?.clinic.logoUrl);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [actionSlot] = useState(createPageActionSlot);
-  const searchable = canReachNavItem(PATIENTS_PATH, user?.role);
+  const searchable = canReachNavItem(PATIENTS_PATH, user ? can : undefined);
 
-  const groups = visibleNavGroups(user?.role);
-  const settings = visibleSettingsItems(user?.role);
+  const groups = visibleNavGroups(user ? can : undefined);
+  const settings = visibleSettingsItems(user ? can : undefined);
 
   const pendingBookings = usePendingBookingsCount(seesPendingBookings(can));
   const badges = { pendingBookings } as const;

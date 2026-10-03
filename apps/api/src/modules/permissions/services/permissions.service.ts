@@ -5,6 +5,7 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import { roleCapabilities } from "@api/database/schema";
 import { CapabilityRegistry } from "@api/modules/permissions/services/capability-registry.service";
 import { Grants } from "@api/modules/permissions/lib/permissions";
+import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 
 @Injectable()
 export class PermissionsService {
@@ -28,6 +29,10 @@ export class PermissionsService {
     }
 
     return this.registry.get(capability)?.defaultRoles.includes(role) ?? false;
+  }
+
+  can(actor: AuthenticatedUser, capability: string): Promise<boolean> {
+    return this.allows(actor.clinicId, actor.role, capability);
   }
 
   async matrix(clinicId: string, role: UserRole): Promise<Record<string, boolean>> {

@@ -6,6 +6,7 @@ import {
   type Paginated,
   type PatientBalance,
   type Statement,
+  RULE,
 } from "@clinic/shared";
 import { DocumentsService } from "@api/modules/billing/services/documents.service";
 import { LedgerService } from "@api/modules/billing/services/ledger.service";
@@ -20,6 +21,7 @@ import {
   StatementQueryDto,
   ListOverdueQueryDto,
 } from "@api/modules/billing/dto/billing.dto";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 
 @Controller("patients/:patientId")
 @Roles(USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST)
@@ -28,6 +30,7 @@ export class PatientBillingController {
     private readonly ledger: LedgerService,
     private readonly documents: DocumentsService,
     private readonly patientAccess: PatientAccessService,
+    private readonly permissions: PermissionsService,
   ) {}
 
   @AiTool({
@@ -58,7 +61,7 @@ export class PatientBillingController {
     await this.patientAccess.requirePatientId(actor, params.patientId);
 
     return this.ledger.statementFor(actor.clinicId, params.patientId, query, {
-      includeDeleted: actor.role === USER_ROLE.ADMIN,
+      includeDeleted: await this.permissions.can(actor, RULE.DELETED_PAYMENTS),
     });
   }
 

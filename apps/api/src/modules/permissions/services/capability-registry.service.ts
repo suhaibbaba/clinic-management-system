@@ -7,6 +7,7 @@ import { ROLES_KEY } from "@api/common/decorators/roles.decorator";
 import { IS_PUBLIC_KEY } from "@api/common/decorators/public.decorator";
 import { Capability, scopeOf } from "@api/modules/permissions/lib/capability-registry";
 import { joinPath, METHOD_NAMES } from "@api/common/lib/routes";
+import { RULE_CAPABILITIES } from "@api/modules/permissions/lib/rules";
 
 @Injectable()
 export class CapabilityRegistry implements OnApplicationBootstrap {
@@ -17,7 +18,11 @@ export class CapabilityRegistry implements OnApplicationBootstrap {
     private readonly discovery: DiscoveryService,
     private readonly scanner: MetadataScanner,
     private readonly reflector: Reflector,
-  ) {}
+  ) {
+    for (const capability of RULE_CAPABILITIES) {
+      this.byKey.set(capability.key, capability);
+    }
+  }
 
   onApplicationBootstrap(): void {
     for (const wrapper of this.discovery.getControllers()) {

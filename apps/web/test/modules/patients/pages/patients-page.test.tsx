@@ -239,7 +239,7 @@ describe("Patients list", () => {
       await renderList(USER_ROLE.RECEPTIONIST, {
         "GET /me": {
           status: 200,
-          body: makeProfile({ role: USER_ROLE.RECEPTIONIST, capabilities: ["patients.update"] }),
+          body: makeProfile({ role: USER_ROLE.RECEPTIONIST, capabilities: ["patients.list", "patients.update"] }),
         },
       });
 

@@ -37,7 +37,7 @@ export function NotificationBell(): JSX.Element {
   const mayStock = can("inventory.alerts");
   const alerts = useInventoryAlerts(mayStock);
 
-  const seesMoney = user !== null && canSeeBilling(user.role);
+  const seesMoney = user !== null && canSeeBilling(can);
   const owing = usePatients({ page: 1, limit: 1, hasBalance: true }, { enabled: seesMoney });
 
   const stock = alerts.data

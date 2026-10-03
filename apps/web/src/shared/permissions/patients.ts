@@ -1,8 +1,7 @@
-import { USER_ROLE, type UserRole } from "@clinic/shared";
+import { RULE } from "@clinic/shared";
 import type { Can } from "@web/shared/providers/session";
 
-const isClinical = (role: UserRole): boolean =>
-  role === USER_ROLE.ADMIN || role === USER_ROLE.DOCTOR || role === USER_ROLE.VISITING_DOCTOR;
+const isClinical = (can: Can): boolean => can(RULE.PATIENTS_CLINICAL);
 
 export const canViewChart = isClinical;
 
@@ -26,15 +25,7 @@ export const canEditPatient = (can: Can): boolean => can("patients.update");
 
 export const canDeletePatient = (can: Can): boolean => can("patients.remove");
 
-export const PATIENT_FILE_ROLES = [
-  USER_ROLE.ADMIN,
-  USER_ROLE.DOCTOR,
-  USER_ROLE.VISITING_DOCTOR,
-  USER_ROLE.RECEPTIONIST,
-] as const;
-
-export const canOpenPatientFile = (role: UserRole | undefined): boolean =>
-  role !== undefined && (PATIENT_FILE_ROLES as readonly UserRole[]).includes(role);
+export const canOpenPatientFile = (can: Can): boolean => can("patients.findOne");
 
 export const canDeleteVisit = (can: Can): boolean => can("visits.remove");
 

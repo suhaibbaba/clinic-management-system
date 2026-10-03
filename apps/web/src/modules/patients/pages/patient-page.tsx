@@ -58,7 +58,7 @@ export function PatientPage(): JSX.Element {
 
   const role = user?.role;
   const tabs = PATIENT_TABS.filter((tab) =>
-    tab.clinical ? role && canViewChart(role) : role && canSeeBilling(role),
+    tab.clinical ? role && canViewChart(can) : role && canSeeBilling(can),
   );
 
   const [activeTab, setActiveTab] = useTabParam<TabId>(
@@ -214,7 +214,7 @@ export function PatientPage(): JSX.Element {
                 </dd>
               </div>
 
-              {role && canSeeBilling(role) && <PatientBalanceCard patientId={id} />}
+              {role && canSeeBilling(can) && <PatientBalanceCard patientId={id} />}
             </dl>
           </>
         )}

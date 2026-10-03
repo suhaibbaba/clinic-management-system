@@ -5,17 +5,24 @@ import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { doctors } from "@api/database/schema";
-import { HAS_OWN_CALENDAR, NO_DOCTOR_ID } from "@api/modules/appointments/constants";
+import { NO_DOCTOR_ID } from "@api/modules/appointments/constants";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
+import { RULE } from "@clinic/shared";
 
 @Injectable()
 export class AppointmentAccessService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly scope: ClinicScopeService,
+    private readonly permissions: PermissionsService,
   ) {}
 
+  async seesAllCalendars(actor: AuthenticatedUser): Promise<boolean> {
+    return this.permissions.can(actor, RULE.ALL_CALENDARS);
+  }
+
   async ownDoctorId(actor: AuthenticatedUser): Promise<string | null> {
-    if (!HAS_OWN_CALENDAR.includes(actor.role)) {
+    if (await this.seesAllCalendars(actor)) {
       return null;
     }
 
@@ -29,7 +36,7 @@ export class AppointmentAccessService {
   }
 
   async calendarScope(actor: AuthenticatedUser): Promise<string | null> {
-    if (!HAS_OWN_CALENDAR.includes(actor.role)) {
+    if (await this.seesAllCalendars(actor)) {
       return null;
     }
 
@@ -37,7 +44,7 @@ export class AppointmentAccessService {
   }
 
   async requireOwnCalendar(actor: AuthenticatedUser, doctorId: string): Promise<void> {
-    if (!HAS_OWN_CALENDAR.includes(actor.role)) {
+    if (await this.seesAllCalendars(actor)) {
       return;
     }
 
@@ -49,7 +56,7 @@ export class AppointmentAccessService {
   }
 
   async readableFilter(actor: AuthenticatedUser, doctorColumn: PgColumn): Promise<SQL | undefined> {
-    if (!HAS_OWN_CALENDAR.includes(actor.role)) {
+    if (await this.seesAllCalendars(actor)) {
       return undefined;
     }
 

@@ -49,12 +49,12 @@ export function AssistantView({
 }
 
 function useReachable(): (href: string) => boolean {
-  const { user } = useSession();
+  const { user, can } = useSession();
 
   return (href) => {
     const item = activeNavItem(href.split("?")[0] ?? href);
 
-    return item !== undefined && canReachNavItem(item.to, user?.role);
+    return item !== undefined && canReachNavItem(item.to, user ? can : undefined);
   };
 }
 

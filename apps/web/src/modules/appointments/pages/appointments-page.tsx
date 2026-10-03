@@ -122,7 +122,7 @@ export function AppointmentsPage(): JSX.Element {
   >();
 
   const role = user?.role;
-  const wholeClinic = role ? seesWholeClinic(role) : true;
+  const wholeClinic = role ? seesWholeClinic(can) : true;
   const mayBook = canBookAppointment(can);
   const mayManageQueue = canManageWaitingList(can);
 

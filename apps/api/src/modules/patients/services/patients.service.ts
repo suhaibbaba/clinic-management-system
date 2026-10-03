@@ -53,7 +53,7 @@ export class PatientsService implements OnModuleInit {
       filters.push(eq(patients.gender, query.gender));
     }
 
-    if (query.hasBalance && PatientAccessService.seesFinancialData(actor.role)) {
+    if (query.hasBalance && (await this.access.seesFinancialData(actor))) {
       filters.push(LedgerService.owesFilter(actor.clinicId, patients.id));
     }
 
@@ -97,7 +97,7 @@ export class PatientsService implements OnModuleInit {
     const { limit, offset } = toLimitOffset(query);
     const balance = LedgerService.balanceOf(actor.clinicId, patients.id);
     const byBalance =
-      query.sort === "balance" && PatientAccessService.seesFinancialData(actor.role)
+      query.sort === "balance" && (await this.access.seesFinancialData(actor))
         ? query.dir === "asc"
           ? asc(balance)
           : desc(balance)
@@ -121,15 +121,16 @@ export class PatientsService implements OnModuleInit {
         .where(where),
     ]);
 
-    const balances = PatientAccessService.seesFinancialData(actor.role)
+    const balances = (await this.access.seesFinancialData(actor))
       ? await this.ledger.balancesFor(
           actor.clinicId,
           rows.map((row) => row.id),
         )
       : new Map<string, Money>();
+    const clinical = await this.access.seesClinicalData(actor);
 
     return toPaginated(
-      rows.map((row) => toRoleView(row, actor.role, balances.get(row.id))),
+      rows.map((row) => toRoleView(row, clinical, balances.get(row.id))),
       totals?.value ?? 0,
       query,
     );
@@ -137,17 +138,17 @@ export class PatientsService implements OnModuleInit {
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<PatientView> {
     const row = await this.access.requirePatient(actor, id);
-    const balance = PatientAccessService.seesFinancialData(actor.role)
+    const balance = (await this.access.seesFinancialData(actor))
       ? (await this.ledger.balanceFor(actor.clinicId, row.id)).balance
       : undefined;
 
-    return toRoleView(row, actor.role, balance);
+    return toRoleView(row, await this.access.seesClinicalData(actor), balance);
   }
 
   async create(actor: AuthenticatedUser, input: CreatePatientInput): Promise<PatientView> {
     const row = await this.registration.insertPatient(this.db, actor, input);
 
-    return toRoleView(row, actor.role);
+    return toRoleView(row, await this.access.seesClinicalData(actor));
   }
 
   async update(
@@ -193,7 +194,7 @@ export class PatientsService implements OnModuleInit {
       throw new Error("Failed to update patient");
     }
 
-    return toRoleView(row, actor.role);
+    return toRoleView(row, await this.access.seesClinicalData(actor));
   }
 
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {

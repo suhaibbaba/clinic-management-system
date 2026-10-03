@@ -31,7 +31,7 @@ export function TreatmentPlansTab({
   patient: PatientClinicalView | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { user, can } = useSession();
   const clinic = useClinic();
   const catalog = useProcedureCatalog();
   const treatments = usePatientProcedures(patientId);
@@ -39,7 +39,7 @@ export function TreatmentPlansTab({
   const [filter, setFilter] = useTabParam<TreatmentFilter>("status", TREATMENT_FILTERS, "all");
   const [printing, setPrinting] = useState(false);
 
-  const showPrices = user ? canSeePrices(user.role) : false;
+  const showPrices = user ? canSeePrices(can) : false;
 
   if (showSkeleton) {
     return <TreatmentPlanSkeleton showPrices={showPrices} />;

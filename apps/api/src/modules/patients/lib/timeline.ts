@@ -1,7 +1,6 @@
 import {
   type TimelineEntryType,
-  type UserRole,
-  USER_ROLE,
+  RULE,
   TIMELINE_ENTRY_TYPE,
   type TimelineEntry,
 } from "@clinic/shared";
@@ -14,39 +13,17 @@ export interface TimelineRow extends Record<string, unknown> {
   readonly detail: Record<string, unknown>;
 }
 
-export function allowedTypes(role: UserRole): TimelineEntryType[] {
-  switch (role) {
-    case USER_ROLE.ADMIN:
-    case USER_ROLE.DOCTOR:
-      return [
-        TIMELINE_ENTRY_TYPE.VISIT,
-        TIMELINE_ENTRY_TYPE.PROCEDURE,
-        TIMELINE_ENTRY_TYPE.ATTACHMENT,
-        TIMELINE_ENTRY_TYPE.PRESCRIPTION,
-        TIMELINE_ENTRY_TYPE.APPOINTMENT,
-        TIMELINE_ENTRY_TYPE.PAYMENT,
-        TIMELINE_ENTRY_TYPE.CHARGE,
-        TIMELINE_ENTRY_TYPE.LAB_ORDER,
-        TIMELINE_ENTRY_TYPE.SUPPLY,
-      ];
-    case USER_ROLE.VISITING_DOCTOR:
-      return [
-        TIMELINE_ENTRY_TYPE.VISIT,
-        TIMELINE_ENTRY_TYPE.PROCEDURE,
-        TIMELINE_ENTRY_TYPE.ATTACHMENT,
-        TIMELINE_ENTRY_TYPE.PRESCRIPTION,
-        TIMELINE_ENTRY_TYPE.APPOINTMENT,
-      ];
-    case USER_ROLE.RECEPTIONIST:
-      return [
-        TIMELINE_ENTRY_TYPE.APPOINTMENT,
-        TIMELINE_ENTRY_TYPE.PAYMENT,
-        TIMELINE_ENTRY_TYPE.CHARGE,
-      ];
-    default:
-      return [];
-  }
-}
+export const TIMELINE_TYPE_CAPABILITY: Readonly<Record<TimelineEntryType, string>> = {
+  [TIMELINE_ENTRY_TYPE.VISIT]: RULE.PATIENTS_CLINICAL,
+  [TIMELINE_ENTRY_TYPE.PROCEDURE]: RULE.PATIENTS_CLINICAL,
+  [TIMELINE_ENTRY_TYPE.ATTACHMENT]: RULE.PATIENTS_CLINICAL,
+  [TIMELINE_ENTRY_TYPE.PRESCRIPTION]: RULE.PATIENTS_CLINICAL,
+  [TIMELINE_ENTRY_TYPE.APPOINTMENT]: "appointments.list",
+  [TIMELINE_ENTRY_TYPE.PAYMENT]: RULE.PATIENTS_FINANCIAL,
+  [TIMELINE_ENTRY_TYPE.CHARGE]: RULE.PATIENTS_FINANCIAL,
+  [TIMELINE_ENTRY_TYPE.LAB_ORDER]: "lab-orders.list",
+  [TIMELINE_ENTRY_TYPE.SUPPLY]: "inventory.list",
+};
 
 export function toTimelineEntry(row: TimelineRow): TimelineEntry {
   return {

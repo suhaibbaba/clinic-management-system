@@ -1,4 +1,4 @@
-import { USER_ROLE, type SupplierSummary } from "@clinic/shared";
+import { type SupplierSummary } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -20,7 +20,7 @@ import {
 import { useSession } from "@web/shared/providers/session";
 import { Money } from "@web/shared/components/money";
 import { useClinic } from "@web/shared/queries/clinic";
-import { canManageSuppliers } from "@web/shared/permissions/inventory";
+import { canDeleteSupplier, canManageSuppliers } from "@web/shared/permissions/inventory";
 import { useDeleteSupplier, useSuppliers } from "@web/modules/inventory/queries";
 import { SupplierFormModal } from "@web/modules/inventory/components/supplier-form-modal";
 import { SupplierStatementPanel } from "@web/modules/inventory/components/supplier-statement";
@@ -30,7 +30,7 @@ import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
 export function SuppliersPage(): JSX.Element {
   const { t } = useTranslation();
-  const { user, can } = useSession();
+  const { can } = useSession();
   const clinic = useClinic();
   const toast = useToast();
   const remove = useDeleteSupplier();
@@ -49,7 +49,7 @@ export function SuppliersPage(): JSX.Element {
   });
 
   const mayManage = canManageSuppliers(can);
-  const mayDelete = user?.role === USER_ROLE.ADMIN;
+  const mayDelete = canDeleteSupplier(can);
 
   const askDelete = (supplier: SupplierSummary): void =>
     confirm({

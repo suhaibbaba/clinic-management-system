@@ -133,7 +133,7 @@ export function DashboardPage(): JSX.Element {
             rows={data?.schedule ?? []}
             isLoading={summary.isPending}
             isRefreshing={isRefreshing}
-            linkPatients={canOpenPatientFile(user?.role)}
+            linkPatients={user !== null && canOpenPatientFile(can)}
           />
         </div>
 

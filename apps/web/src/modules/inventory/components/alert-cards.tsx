@@ -19,8 +19,8 @@ export function InventoryAlertCards({
   readonly onShowExpiring: () => void;
 }): JSX.Element | null {
   const { t } = useTranslation();
-  const { user } = useSession();
-  const alerts = useInventoryAlerts(seesInventory(user?.role));
+  const { user, can } = useSession();
+  const alerts = useInventoryAlerts(user !== null && seesInventory(can));
 
   if (!alerts.data) {
     return null;

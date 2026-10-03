@@ -1,5 +1,6 @@
 import { ConflictException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import {
+  RULE,
   type CreateProcedureCatalogItemInput,
   type ListProcedureCatalogQuery,
   type Paginated,
@@ -13,6 +14,7 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { procedureCatalog, specialties } from "@api/database/schema";
 import { LookupsService } from "@api/modules/lookups/services/lookups.service";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import { PROCEDURE_CATALOG_ENTITY } from "@api/common/constants/audit-entities";
 import {
   toCatalogItem,
@@ -28,6 +30,7 @@ export class ProcedureCatalogService implements OnModuleInit {
     private readonly lookups: LookupsService,
     private readonly scope: ClinicScopeService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly permissions: PermissionsService,
   ) {}
 
   onModuleInit(): void {
@@ -75,16 +78,20 @@ export class ProcedureCatalogService implements OnModuleInit {
         .from(procedureCatalog)
         .where(where),
     ]);
+    const details = await this.permissions.can(actor, RULE.CATALOG_DETAILS);
 
     return toPaginated(
-      rows.map((row) => toRoleView(row, actor.role)),
+      rows.map((row) => toRoleView(row, details)),
       totals?.value ?? 0,
       query,
     );
   }
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<CatalogView> {
-    return toRoleView(await this.requireRow(actor.clinicId, id), actor.role);
+    return toRoleView(
+      await this.requireRow(actor.clinicId, id),
+      await this.permissions.can(actor, RULE.CATALOG_DETAILS),
+    );
   }
 
   async requirePriced(clinicId: string, id: string): Promise<CatalogRow> {
@@ -119,7 +126,7 @@ export class ProcedureCatalogService implements OnModuleInit {
       throw new Error("Failed to create catalog item");
     }
 
-    return toRoleView(row, actor.role);
+    return toRoleView(row, await this.permissions.can(actor, RULE.CATALOG_DETAILS));
   }
 
   async update(
@@ -157,7 +164,7 @@ export class ProcedureCatalogService implements OnModuleInit {
       throw new Error("Failed to update catalog item");
     }
 
-    return toRoleView(row, actor.role);
+    return toRoleView(row, await this.permissions.can(actor, RULE.CATALOG_DETAILS));
   }
 
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
