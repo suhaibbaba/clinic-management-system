@@ -43,7 +43,6 @@ export function NavDrawer({
           className={cn(
             "fixed inset-y-0 start-0 z-50 flex w-[86%] max-w-[320px] flex-col rail:hidden",
             "bg-rail shadow-drawer",
-            "rounded-e-card",
             "data-[state=open]:animate-[drawer-in_220ms_cubic-bezier(0.32,0.72,0,1)]",
             "data-[state=closed]:animate-[drawer-out_180ms_ease-in]",
           )}
