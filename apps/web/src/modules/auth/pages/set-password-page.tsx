@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, FormField, Icon, PasswordInput, PersonName } from "@clinic/ui";
 import { Logo } from "@web/shared/components/brand/logo";
+import { LanguageSwitch } from "@web/shared/components/language-switch";
 import { authApi } from "@web/shared/api/auth";
 import { BRANDING_SCOPE, useClinicBranding } from "@web/shared/queries/clinic";
 import { errorMessageKey } from "@web/shared/lib/api-error";
@@ -52,6 +53,8 @@ export function SetPasswordPage({ purpose }: { purpose: "activate" | "reset" }):
       className="flex min-h-full items-center justify-center px-4 py-12"
     >
       <div className="w-full max-w-md border border-line rounded-card bg-surface p-8 shadow-card">
+        <LanguageSwitch className="mb-4 flex justify-end" />
+
         <Logo
           size="login"
           src={logoUrl}
@@ -90,7 +93,7 @@ export function SetPasswordPage({ purpose }: { purpose: "activate" | "reset" }):
 
             <form
               data-testid="set-password-form"
-              className="mt-6 flex flex-col gap-4"
+              className="mt-4 flex flex-col gap-4"
               onSubmit={onSubmit}
               noValidate
             >

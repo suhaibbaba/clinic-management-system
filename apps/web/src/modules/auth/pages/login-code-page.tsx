@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Button, FormField, Icon, Input, PersonName } from "@clinic/ui";
 import { Logo } from "@web/shared/components/brand/logo";
+import { LanguageSwitch } from "@web/shared/components/language-switch";
 import { authApi } from "@web/shared/api/auth";
 import { ApiError, errorMessageKey } from "@web/shared/lib/api-error";
 import { useSession } from "@web/shared/providers/session";
@@ -110,6 +111,8 @@ export function LoginCodePage(): JSX.Element {
       className="flex min-h-full items-center justify-center px-4 py-12"
     >
       <div className="w-full max-w-md border border-line rounded-card bg-surface p-8 shadow-card">
+        <LanguageSwitch className="mb-4 flex justify-end" />
+
         <Logo
           size="login"
           src={logoUrl}
@@ -134,7 +137,7 @@ export function LoginCodePage(): JSX.Element {
 
             <form
               data-testid="login-code-email-form"
-              className="mt-6 flex flex-col gap-4"
+              className="mt-4 flex flex-col gap-4"
               onSubmit={onRequest}
               noValidate
             >
@@ -188,7 +191,7 @@ export function LoginCodePage(): JSX.Element {
 
             <form
               data-testid="login-code-verify-form"
-              className="mt-6 flex flex-col gap-4"
+              className="mt-4 flex flex-col gap-4"
               onSubmit={onVerify}
               noValidate
             >

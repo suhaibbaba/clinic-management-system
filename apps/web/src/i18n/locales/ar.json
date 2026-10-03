@@ -153,7 +153,7 @@
     "forgotSubmit": "أرسل الرابط",
     "forgotSent": "إذا كان لهذا الحساب بريد مسجّل فقد أُرسل الرابط إليه.",
     "forgotLink": "نسيت كلمة المرور؟",
-    "codeLink": "الدخول برمز عبر البريد الإلكتروني",
+    "codeLink": "رمز البريد",
     "codeTitle": "الدخول برمز",
     "codeSubtitle": "أدخل بريدك الإلكتروني وسنرسل لك رمزاً من ٦ أرقام.",
     "codeEmail": "البريد الإلكتروني",
@@ -165,8 +165,8 @@
     "codeResendIn": "يمكنك طلب رمز جديد بعد {{seconds}} ثانية",
     "codeChangeEmail": "تغيير البريد الإلكتروني",
     "withPassword": "الدخول بكلمة المرور",
-    "passkeyLink": "الدخول بمفتاح المرور",
-    "googleLink": "الدخول عبر Google"
+    "passkeyLink": "Passkey",
+    "googleLink": "Google"
   },
   "users": {
     "activate": "تفعيل",

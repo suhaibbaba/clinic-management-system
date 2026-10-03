@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import { Logo } from "@web/shared/components/brand/logo";
+import { LanguageSwitch } from "@web/shared/components/language-switch";
 import { useClinicBranding, BRANDING_SCOPE } from "@web/shared/queries/clinic";
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button, FormField, Icon, Input, PasswordInput, PersonName } from "@clinic/ui";
@@ -104,6 +105,8 @@ export function LoginPage(): JSX.Element {
       className="flex min-h-full items-center justify-center px-4 py-12"
     >
       <div className="w-full max-w-md border border-line rounded-card bg-surface p-8 shadow-card">
+        <LanguageSwitch className="mb-4 flex justify-end" />
+
         <Logo
           size="login"
           src={logoUrl}
@@ -125,7 +128,7 @@ export function LoginPage(): JSX.Element {
 
         <form
           data-testid="login-form"
-          className="mt-6 flex flex-col gap-4"
+          className="mt-4 flex flex-col gap-4"
           onSubmit={onSubmit}
           noValidate
         >
@@ -178,41 +181,46 @@ export function LoginPage(): JSX.Element {
             {isSubmitting ? ellipsis(t("auth.submitting")) : t("auth.submit")}
           </Button>
 
-          {browserSupportsWebAuthn() && (
+          <div data-part="login-alternatives" className="flex flex-wrap gap-2">
+            {browserSupportsWebAuthn() && (
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={<Icon name="passkey" />}
+                data-testid="login-passkey"
+                isLoading={passkeyBusy}
+                aria-disabled={passkeyBusy || undefined}
+                className="flex-1"
+                onClick={() => void onPasskey()}
+              >
+                {t("auth.passkeyLink")}
+              </Button>
+            )}
+
+            {methods.data?.google && (
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={<Icon name="google" />}
+                data-testid="login-google"
+                className="flex-1"
+                onClick={() => window.location.assign(authApi.googleSignInUrl())}
+              >
+                {t("auth.googleLink")}
+              </Button>
+            )}
+
             <Button
               variant="secondary"
-              icon={<Icon name="key" />}
-              data-testid="login-passkey"
-              isLoading={passkeyBusy}
-              aria-disabled={passkeyBusy || undefined}
-              className="w-full"
-              onClick={() => void onPasskey()}
+              size="sm"
+              icon={<Icon name="mail" />}
+              data-testid="login-code-link"
+              className="flex-1"
+              onClick={() => void navigate("/login/code", { state: location.state })}
             >
-              {t("auth.passkeyLink")}
+              {t("auth.codeLink")}
             </Button>
-          )}
-
-          {methods.data?.google && (
-            <Button
-              variant="secondary"
-              icon={<Icon name="google" />}
-              data-testid="login-google"
-              className="w-full"
-              onClick={() => window.location.assign(authApi.googleSignInUrl())}
-            >
-              {t("auth.googleLink")}
-            </Button>
-          )}
-
-          <Button
-            variant="secondary"
-            icon={<Icon name="mail" />}
-            data-testid="login-code-link"
-            className="w-full"
-            onClick={() => void navigate("/login/code", { state: location.state })}
-          >
-            {t("auth.codeLink")}
-          </Button>
+          </div>
 
           <Link
             to="/forgot-password"

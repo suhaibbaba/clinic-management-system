@@ -153,7 +153,7 @@
     "forgotSubmit": "Send the link",
     "forgotSent": "If that account has an email address on file, the link has been sent to it.",
     "forgotLink": "Forgotten your password?",
-    "codeLink": "Sign in with an email code",
+    "codeLink": "Email code",
     "codeTitle": "Sign in with a code",
     "codeSubtitle": "Enter your email address and we will send you a 6-digit code.",
     "codeEmail": "Email address",
@@ -165,8 +165,8 @@
     "codeResendIn": "You can ask for a new code in {{seconds}} seconds",
     "codeChangeEmail": "Use a different email",
     "withPassword": "Sign in with a password",
-    "passkeyLink": "Sign in with a passkey",
-    "googleLink": "Sign in with Google"
+    "passkeyLink": "Passkey",
+    "googleLink": "Google"
   },
   "users": {
     "activate": "Activate",
