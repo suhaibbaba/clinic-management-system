@@ -1997,7 +1997,7 @@
       "settlement-treatments": "تسوية المعالجات",
       "payroll": "الرواتب",
       "payroll-adjustments": "إضافات وخصومات الرواتب",
-      "staff-payments": "دفعات الكادر",
+      "staff-payments": "دفعات الموظفين",
       "doctor-extra-hours": "الأطباء",
       "translations": "نصوص الواجهة"
     },
@@ -2536,7 +2536,7 @@
     "employees_other": "{{count}} موظف",
     "remainingCaption": "المتبقي: {{amount}}",
     "visitingShares": "حصص الأطباء الزائرين",
-    "staffCost": "تكلفة الكادر",
+    "staffCost": "تكلفة الموظفين",
     "staffCostCaption": "الرواتب المستحقة وحصص الأطباء الزائرين",
     "empty": "لا موظفين في هذا الشهر"
   }
