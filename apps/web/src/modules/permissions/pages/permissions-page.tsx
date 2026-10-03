@@ -53,6 +53,13 @@ export function PermissionsPage(): JSX.Element {
 
   const shown = useMemo(() => filterSections(sections, query), [sections, query]);
   const searching = query.trim() !== "";
+  const [openedFor, setOpenedFor] = useState("");
+
+  if (openedFor !== query && permissions.data) {
+    setOpenedFor(query);
+    setOpen(new Set(searching ? shown.map((section) => section.id) : []));
+  }
+
   const allOpen = shown.length > 0 && shown.every((section) => open.has(section.id));
 
   const toggleSection = (id: string): void => {
@@ -110,7 +117,7 @@ export function PermissionsPage(): JSX.Element {
           clearLabel={t("common.clear")}
         />
 
-        {!searching && shown.length > 0 && (
+        {shown.length > 0 && (
           <Button
             data-testid="permissions-expand-all"
             variant="secondary"
@@ -141,7 +148,7 @@ export function PermissionsPage(): JSX.Element {
               key={section.id}
               section={section}
               allows={allows}
-              expanded={searching || open.has(section.id)}
+              expanded={open.has(section.id)}
               onToggle={() => toggleSection(section.id)}
               onChange={(role, row, allowed) => void toggle(role, row.keys, allowed)}
             />
