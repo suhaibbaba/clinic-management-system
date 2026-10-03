@@ -1,11 +1,12 @@
-import { useEffect, useState, type JSX } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
+import { flushSync } from "react-dom";
 import { useTranslation } from "react-i18next";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useSearchParams } from "react-router-dom";
 import { Logo } from "@web/shared/components/brand/logo";
 import { BackLink } from "@web/app/layout/back-link";
 import { NavDrawer } from "@web/app/layout/nav-drawer";
 import { createPageActionSlot, PageActionSlotProvider } from "@clinic/ui/lib/page-action-slot";
-import { useIsCompactLayout } from "@clinic/ui/lib/use-media-query";
+import { useIsCompactLayout, useIsMobile } from "@clinic/ui/lib/use-media-query";
 import { PageErrorBoundary } from "@web/shared/components/page-error-boundary";
 import { PullToRefresh } from "@web/shared/components/pwa/pull-to-refresh";
 import { NotificationBell } from "@web/app/layout/notification-bell";
@@ -41,6 +42,10 @@ export function AppLayout(): JSX.Element {
   const { pathname } = useLocation();
   const logoUrl = useClinicLogo(user?.clinicId, user?.clinic.logoUrl);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [params] = useSearchParams();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchField = useRef<HTMLInputElement>(null);
+  const searchToggle = useRef<HTMLButtonElement>(null);
   const [actionSlot] = useState(createPageActionSlot);
   const searchable = canReachNavItem(PATIENTS_PATH, user ? can : undefined);
 
@@ -52,6 +57,7 @@ export function AppLayout(): JSX.Element {
 
   useEffect(() => {
     setDrawerOpen(false);
+    setSearchOpen(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -79,15 +85,34 @@ export function AppLayout(): JSX.Element {
   const isCompact = useIsCompactLayout();
   const workspace = isWorkspacePath(pathname);
 
+  const isMobile = useIsMobile();
+  const listQuery = pathname === PATIENTS_PATH && (params.get("q") ?? "") !== "";
+  const searchShown = !isMobile || searchOpen || listQuery;
+
+  const openSearch = (): void => {
+    flushSync(() => setSearchOpen(true));
+    searchField.current?.focus();
+  };
+
+  const closeSearch = (): void => {
+    if (!isMobile || !searchOpen) {
+      return;
+    }
+
+    setSearchOpen(false);
+    searchToggle.current?.focus();
+  };
+
   const topBar = (
     <header
       data-testid="app-topbar"
       data-variant={workspace ? "flat" : undefined}
       className={cn(
-        "flex min-h-[70px] flex-wrap items-center gap-3.5",
+        "flex min-h-[70px] flex-wrap items-center gap-x-3.5",
+        "max-md:content-start",
         workspace
           ? "px-4 py-3 rail:px-6"
-          : "rounded-card border border-line bg-surface px-4 py-3 shadow-card",
+          : "rounded-field border border-line bg-surface px-4 py-3 shadow-card",
       )}
     >
       <Button
@@ -100,8 +125,59 @@ export function AppLayout(): JSX.Element {
         icon={<Icon name="menu" />}
         aria-label={t("nav.menu")}
       />
-      {searchable && <TopSearch />}
-      <div data-testid="app-topbar-actions" className="ms-auto flex items-center gap-[9px]">
+      <div className="flex min-w-0 flex-1 basis-0 md:hidden">
+        <Link
+          to={DASHBOARD_PATH}
+          aria-label={t("nav.backToDashboard")}
+          data-testid="app-topbar-brand"
+          className="block max-w-full rounded-control"
+        >
+          <Logo
+            size="bar"
+            src={logoUrl}
+            name={user?.clinic.name}
+            alt={t("app.title")}
+            className="mx-0 [&_img]:object-left rtl:[&_img]:object-right"
+          />
+        </Link>
+      </div>
+      {searchable && (
+        <div
+          id="app-topbar-search"
+          data-testid="app-topbar-search"
+          data-state={searchShown ? "open" : "closed"}
+          inert={!searchShown}
+          className={cn(
+            "order-last grid basis-full transition-[grid-template-rows] duration-200 ease-out",
+            searchShown ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+            "md:order-none md:flex md:min-w-0 md:flex-1 md:basis-auto",
+          )}
+        >
+          <div className="-mx-1 min-h-0 overflow-hidden md:m-0 md:flex md:flex-1 md:overflow-visible">
+            <div className="flex px-1 pt-3 pb-1 md:flex-1 md:p-0">
+              <TopSearch fieldRef={searchField} onDismiss={closeSearch} />
+            </div>
+          </div>
+        </div>
+      )}
+      <div
+        data-testid="app-topbar-actions"
+        className="ms-auto flex shrink-0 items-center gap-[9px]"
+      >
+        {searchable && (
+          <Button
+            ref={searchToggle}
+            variant="secondary"
+            size="sm"
+            data-testid="app-search-toggle"
+            className="md:hidden"
+            aria-expanded={searchShown}
+            aria-controls="app-topbar-search"
+            aria-label={t(searchShown ? "nav.closeSearch" : "nav.openSearch")}
+            icon={<Icon name={searchShown ? "x" : "search"} />}
+            onClick={() => (searchShown ? closeSearch() : openSearch())}
+          />
+        )}
         <NotificationBell />
         <span className="contents" ref={(host) => void host?.appendChild(actionSlot)} />
       </div>

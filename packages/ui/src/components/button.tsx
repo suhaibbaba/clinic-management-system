@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, JSX, ReactNode } from "react";
+import type { ButtonHTMLAttributes, JSX, ReactNode, Ref } from "react";
 import { Icon } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
 import { parts, type PartAttrs, type TestIdProps } from "@ui/lib/testid";
@@ -12,6 +12,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, Te
   isLoading?: boolean | undefined;
   icon?: ReactNode | undefined;
   iconPosition?: "start" | "end" | undefined;
+  ref?: Ref<HTMLButtonElement> | undefined;
 }
 
 const VARIANTS: Record<ButtonVariant, string> = {

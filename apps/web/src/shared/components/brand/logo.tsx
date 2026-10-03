@@ -4,10 +4,11 @@ import { Img } from "@clinic/ui/components/img";
 import { usePersonName } from "@clinic/ui/components/person-name";
 import { cn } from "@clinic/ui/lib/cn";
 
-export type LogoSize = "chrome" | "print" | "login";
+export type LogoSize = "chrome" | "bar" | "print" | "login";
 
 const SIZES: Record<LogoSize, { readonly width: number; readonly height: number }> = {
   chrome: { width: 212, height: 56 },
+  bar: { width: 160, height: 44 },
   print: { width: 160, height: 60 },
   login: { width: 200, height: 80 },
 };

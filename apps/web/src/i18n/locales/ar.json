@@ -124,7 +124,9 @@
     "skipToContent": "تخطَّ إلى المحتوى",
     "sidebar": "الشريط الجانبي",
     "back": "رجوع إلى {{to}}",
-    "payroll": "الرواتب"
+    "payroll": "الرواتب",
+    "openSearch": "فتح البحث",
+    "closeSearch": "إغلاق البحث"
   },
   "roles": {
     "admin": "مدير",
@@ -2008,13 +2010,7 @@
     "search": "ابحث في الصلاحيات",
     "expandAll": "فتح الكل",
     "collapseAll": "إغلاق الكل",
-    "noMatch": "لا توجد صلاحية تطابق البحث",
-    "count_zero": "لا صلاحيات",
-    "count_one": "صلاحية واحدة",
-    "count_two": "صلاحيتان",
-    "count_few": "{{count}} صلاحيات",
-    "count_many": "{{count}} صلاحية",
-    "count_other": "{{count}} صلاحية"
+    "noMatch": "لا توجد صلاحية تطابق البحث"
   },
   "notifications": {
     "pendingBookings": "حجوزات إلكترونية بانتظار الرد",
