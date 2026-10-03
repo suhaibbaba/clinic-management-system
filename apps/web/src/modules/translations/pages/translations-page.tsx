@@ -17,7 +17,6 @@ import {
   usePageParams,
   type Column,
 } from "@clinic/ui";
-import { cn } from "@clinic/ui/lib/cn";
 import ar from "@web/i18n/locales/ar.json";
 import en from "@web/i18n/locales/en.json";
 import { useSaveTranslations, useTranslationOverrides } from "@web/modules/translations/queries";
@@ -42,6 +41,7 @@ const SHIPPED: Record<TranslationLanguage, Record<string, string>> = {
 
 const KEYS = Object.keys(SHIPPED.ar);
 const sectionOf = (key: string): string => key.split(".")[0] ?? "";
+import { UnsavedChanges } from "@web/shared/components/unsaved-changes";
 const SECTIONS = [...new Set(KEYS.map(sectionOf))].sort();
 
 const GROUPS: readonly Group[] = (() => {
@@ -253,7 +253,7 @@ export function TranslationsPage(): JSX.Element {
   };
 
   return (
-    <div data-testid="translations-page" className="flex flex-col gap-5 pb-24">
+    <div data-testid="translations-page" className="flex flex-col gap-5">
       <PageHeader
         data-testid="translations-header"
         title="translations.title"
@@ -327,40 +327,15 @@ export function TranslationsPage(): JSX.Element {
         }
       />
 
-      {pending.length > 0 && (
-        <div
-          data-testid="translations-footer"
-          className={cn(
-            "fixed inset-x-0 bottom-0 z-30 border-t border-line",
-            "bg-surface/80 backdrop-blur-md supports-[backdrop-filter]:bg-surface/70",
-          )}
-        >
-          <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3">
-            <span className="text-value text-ink">
-              {t("translations.pending", { count: pending.length })}
-            </span>
-
-            <span className="ms-auto flex items-center gap-2">
-              <Button
-                variant="secondary"
-                data-testid="translations-cancel"
-                disabled={save.isPending}
-                onClick={() => setDrafts({})}
-              >
-                {t("common.cancel")}
-              </Button>
-              <Button
-                icon={<Icon name="check" />}
-                data-testid="translations-save"
-                isLoading={save.isPending}
-                onClick={() => void submit()}
-              >
-                {t("translations.save")}
-              </Button>
-            </span>
-          </div>
-        </div>
-      )}
+      <UnsavedChanges
+        data-testid="translations-unsaved"
+        dirty={pending.length > 0}
+        saving={save.isPending}
+        count={pending.length}
+        watchParams={["view"]}
+        onSave={() => void submit()}
+        onDiscard={() => setDrafts({})}
+      />
     </div>
   );
 }

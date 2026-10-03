@@ -1,6 +1,7 @@
-import { LEDGER_ENTRY_KIND, type PatientView, type StatementEntry } from "@clinic/shared";
+import { LEDGER_ENTRY_KIND, type StatementEntry } from "@clinic/shared";
 import { dayBounds } from "@web/shared/lib/dates";
 import { useMemo, useState, type JSX } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Badge,
@@ -22,7 +23,7 @@ import {
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
 import { canDeletePayment } from "@web/shared/permissions/billing";
-import { downloadStatement, openReceipt } from "@web/modules/billing/lib/documents";
+import { openReceipt, printStatement } from "@web/modules/billing/lib/documents";
 import { Money } from "@web/shared/components/money";
 import { canRecordPayment, canReversePayment } from "@web/shared/permissions/billing";
 import { PaymentModal } from "@web/modules/billing/components/payment-modal";
@@ -39,10 +40,9 @@ const receiptLabel = (receiptNumber: number | null): string =>
 
 interface AccountTabProps {
   patientId: string;
-  patient: PatientView | undefined;
 }
 
-export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element {
+export function AccountTab({ patientId }: AccountTabProps): JSX.Element {
   const { t } = useTranslation();
   const { can } = useSession();
   const toast = useToast();
@@ -67,8 +67,22 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
     });
   const clinic = useClinic();
 
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
+  const [params, setParams] = useSearchParams();
+  const from = params.get("from") ?? "";
+  const to = params.get("to") ?? "";
+
+  const setPeriod = (nextFrom: string, nextTo: string): void =>
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        if (nextFrom) next.set("from", nextFrom);
+        else next.delete("from");
+        if (nextTo) next.set("to", nextTo);
+        else next.delete("to");
+        return next;
+      },
+      { replace: true },
+    );
   const [paying, setPaying] = useState(false);
   const [reversing, setReversing] = useState<StatementEntry | null>(null);
 
@@ -265,19 +279,17 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
             </Button>
           )}
           <Button
-            icon={<Icon name="file" />}
+            icon={<Icon name="print" />}
             variant="secondary"
-            data-testid="account-download-statement"
-            onClick={() =>
-              void print(() => downloadStatement(patientId, patient?.fileNumber ?? "", query))
-            }
+            data-testid="account-print-statement"
+            onClick={() => void print(() => printStatement(patientId, query))}
           >
-            {t("billing.downloadStatement")}
+            {t("billing.printStatement")}
           </Button>
         </div>
       </Card>
 
-      <Card data-testid="account-filters" className="flex flex-wrap items-end gap-3">
+      <div data-testid="account-filters" className="flex flex-wrap items-end gap-3">
         <label className="flex w-full flex-col gap-1 text-label text-ink-muted sm:w-auto">
           {t("billing.period")}
           <DateRangePicker
@@ -286,10 +298,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
             className="w-full sm:w-64"
             label={t("billing.period")}
             value={{ from, to }}
-            onChange={(range) => {
-              setFrom(range.from);
-              setTo(range.to);
-            }}
+            onChange={(range) => setPeriod(range.from, range.to)}
           />
         </label>
         {(from || to) && (
@@ -297,15 +306,12 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
             icon={<Icon name="reset" />}
             variant="ghost"
             data-testid="account-reset-period"
-            onClick={() => {
-              setFrom("");
-              setTo("");
-            }}
+            onClick={() => setPeriod("", "")}
           >
-            {t("common.reset")}
+            {t("billing.clearPeriod")}
           </Button>
         )}
-      </Card>
+      </div>
 
       <Table
         data-testid="statement-table"

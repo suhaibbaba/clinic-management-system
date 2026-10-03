@@ -13,6 +13,7 @@ import { formatDateTime } from "@web/shared/lib/format";
 import { PROVIDER_KEY_GROUPS } from "@web/modules/assistant/constants";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
+import { UnsavedChanges } from "@web/shared/components/unsaved-changes";
 
 export function ProviderKeysPanel(): JSX.Element {
   const { t } = useTranslation();
@@ -51,6 +52,25 @@ export function ProviderKeysPanel(): JSX.Element {
   return (
     <div ref={form.formRef} data-testid="assistant-keys" className="flex flex-col gap-4">
       {dialog}
+      {encryptionAvailable && (
+        <UnsavedChanges
+          data-testid="assistant-keys-unsaved"
+          dirty={Object.keys(allEntered).length > 0}
+          count={Object.keys(allEntered).length}
+          saving={save.isPending}
+          invalid={!form.isValid}
+          watchParams={["view", "tab"]}
+          onSave={() => {
+            if (form.check()) {
+              submit(allEntered);
+            }
+          }}
+          onDiscard={() => {
+            setTyped({});
+            form.reset();
+          }}
+        />
+      )}
       {!encryptionAvailable && (
         <p
           role="note"
@@ -63,15 +83,7 @@ export function ProviderKeysPanel(): JSX.Element {
       )}
 
       {PROVIDER_KEY_GROUPS.map((group) => {
-        const entered = Object.fromEntries(
-          group.kinds.flatMap((kind) => {
-            const value = typed[kind]?.trim();
-
-            return value ? [[kind, value]] : [];
-          }),
-        ) as UpdateClinicSecretsInput;
         const anySet = group.kinds.some((kind) => secrets.data.secrets[kind]?.set);
-        const groupValid = group.kinds.every((kind) => !(kind in keyErrors));
 
         return (
           <Card
@@ -157,23 +169,6 @@ export function ProviderKeysPanel(): JSX.Element {
                   {t("assistantSettings.keys.clear")}
                 </Button>
               )}
-              <Button
-                data-testid={`assistant-keys-${group.id}-save`}
-                disabled={
-                  !encryptionAvailable || save.isPending || Object.keys(entered).length === 0
-                }
-                {...(!groupValid && { "aria-disabled": true })}
-                onClick={() => {
-                  if (!groupValid) {
-                    form.check();
-                    return;
-                  }
-
-                  submit(entered);
-                }}
-              >
-                {t("common.save")}
-              </Button>
             </div>
           </Card>
         );

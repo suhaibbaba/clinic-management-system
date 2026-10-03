@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type JSX } from "react";
-import { flushSync } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useSearchParams } from "react-router-dom";
 import { Logo } from "@web/shared/components/brand/logo";
@@ -44,7 +43,6 @@ export function AppLayout(): JSX.Element {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [params] = useSearchParams();
   const [searchOpen, setSearchOpen] = useState(false);
-  const searchField = useRef<HTMLInputElement>(null);
   const searchToggle = useRef<HTMLButtonElement>(null);
   const [actionSlot] = useState(createPageActionSlot);
   const searchable = canReachNavItem(PATIENTS_PATH, user ? can : undefined);
@@ -89,10 +87,7 @@ export function AppLayout(): JSX.Element {
   const listQuery = pathname === PATIENTS_PATH && (params.get("q") ?? "") !== "";
   const searchShown = !isMobile || searchOpen || listQuery;
 
-  const openSearch = (): void => {
-    flushSync(() => setSearchOpen(true));
-    searchField.current?.focus();
-  };
+  const openSearch = (): void => setSearchOpen(true);
 
   const closeSearch = (): void => {
     if (!isMobile || !searchOpen) {
@@ -155,7 +150,7 @@ export function AppLayout(): JSX.Element {
         >
           <div className="-mx-1 min-h-0 overflow-hidden md:m-0 md:flex md:flex-1 md:overflow-visible">
             <div className="flex px-1 pt-3 pb-1 md:flex-1 md:p-0">
-              <TopSearch fieldRef={searchField} onDismiss={closeSearch} />
+              <TopSearch onDismiss={closeSearch} />
             </div>
           </div>
         </div>

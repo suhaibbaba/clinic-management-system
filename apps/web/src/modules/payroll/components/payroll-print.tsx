@@ -16,11 +16,11 @@ export function PayrollPrint({
 
   return (
     <div data-testid="payroll-print" className="print-sheet" dir="rtl" lang="ar">
-      <PrintLetterhead clinic={clinic} />
-
-      <h2 className="print-title">
-        {t("payroll.printTitle")} — {formatMonth(payroll.month)}
-      </h2>
+      <PrintLetterhead
+        clinic={clinic}
+        title={t("payroll.printTitle")}
+        details={[formatMonth(payroll.month)]}
+      />
 
       <table className="print-table">
         <thead>

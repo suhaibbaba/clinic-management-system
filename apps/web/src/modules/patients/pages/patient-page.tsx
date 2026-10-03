@@ -269,7 +269,7 @@ export function PatientPage(): JSX.Element {
         )}
         {activeTab === "prescriptions" && <PrescriptionsTab patientId={id} />}
         {activeTab === "timeline" && <TimelineTab patientId={id} />}
-        {activeTab === "billing" && <AccountTab patientId={id} patient={patient.data} />}
+        {activeTab === "billing" && <AccountTab patientId={id} />}
       </TabPanel>
     </div>
   );

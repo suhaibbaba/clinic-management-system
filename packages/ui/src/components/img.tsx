@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties, type JSX, type ReactNode } from "react";
+import { useState, type CSSProperties, type JSX, type ReactNode } from "react";
 import { Icon } from "@ui/components/icon";
 import { Skeleton } from "@ui/components/skeleton";
 import { cn } from "@ui/lib/cn";
@@ -41,9 +41,17 @@ export function Img({
   "data-testid": testId,
   ...sizing
 }: ImgProps): JSX.Element {
-  const [state, setState] = useState<ImgState>("loading");
+  const [settled, setSettled] = useState<{ readonly src: string; readonly state: ImgState }>({
+    src: "",
+    state: "loading",
+  });
+  const state: ImgState = settled.src === src ? settled.state : "loading";
 
-  useEffect(() => setState("loading"), [src]);
+  const settle = (next: ImgState): void => {
+    if (src && !(settled.src === src && settled.state === next)) {
+      setSettled({ src, state: next });
+    }
+  };
 
   const box: CSSProperties =
     sizing.aspectRatio === undefined
@@ -67,8 +75,13 @@ export function Img({
           {...testid(testId, "file")}
           src={src}
           alt={alt}
-          onLoad={() => setState("loaded")}
-          onError={() => setState("failed")}
+          ref={(image) => {
+            if (image?.complete && image.naturalWidth > 0) {
+              settle("loaded");
+            }
+          }}
+          onLoad={() => settle("loaded")}
+          onError={() => settle("failed")}
           {...(priority
             ? { loading: "eager" as const, fetchPriority: "high" as const }
             : { loading: "lazy" as const })}

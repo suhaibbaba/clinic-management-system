@@ -1,11 +1,14 @@
 import { LetterheadService, type Letterhead } from "@api/modules/billing/pdf/letterhead.service";
+import { PDFDocument } from "pdf-lib";
 import { RtlPdf } from "@api/modules/billing/pdf/pdf-builder";
 
 describe("the printed letterhead", () => {
   const clinic = (over: Partial<Letterhead> = {}): Letterhead => ({
     name: "عيادة النور",
+    otherName: "Al Nour Clinic",
     address: "دمشق، المزة",
     phone: "+963110000000",
+    email: "info@alnour.test",
     currency: "ILS",
     language: "ar",
     timeZone: "Asia/Damascus",
@@ -43,6 +46,30 @@ describe("the printed letterhead", () => {
       subtitle: "#000056",
       logo: null,
     });
+  });
+
+  it("carries the clinic's other name, its email and when the sheet was printed", async () => {
+    const { pdf, calls } = capture();
+
+    await service.draw(pdf, clinic(), "كشف حساب");
+
+    expect(calls[0]).toMatchObject({ otherName: "Al Nour Clinic", email: "info@alnour.test" });
+    expect(calls[0]?.issued).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
+    expect(calls[0]?.printed).toMatch(/^طُبع في \u2066\d{2}\/\d{2}\/\d{4} · .+\u2069$/);
+  });
+
+  it("keeps the letterhead on every page of a long document", async () => {
+    const pdf = await RtlPdf.create();
+
+    await service.draw(pdf, clinic(), "كشف حساب");
+    pdf.footer((page, total) => `${page}/${total}`);
+    for (let line = 0; line < 120; line += 1) {
+      pdf.text(`سطر ${line}`);
+    }
+
+    const bytes = await pdf.save();
+    expect(bytes.subarray(0, 5).toString("latin1")).toBe("%PDF-");
+    expect((await PDFDocument.load(bytes)).getPageCount()).toBeGreaterThan(1);
   });
 
   it("passes the uploaded logo through when there is one", async () => {

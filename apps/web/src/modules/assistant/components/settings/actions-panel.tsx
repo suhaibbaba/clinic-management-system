@@ -9,12 +9,14 @@ import {
 } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, FormField, Input, SegmentedControl, Switch, useToast } from "@clinic/ui";
+import { Card, FormField, Input, SegmentedControl, Switch, useToast } from "@clinic/ui";
 import { Skeleton } from "@clinic/ui/components/skeleton";
 import { actionRefusalKey } from "@web/modules/assistant/lib/messages";
 import { useActionsSettings, useSaveActionsSettings } from "@web/modules/assistant/queries";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
+import { UnsavedChanges } from "@web/shared/components/unsaved-changes";
+import { countChanges } from "@web/shared/lib/changes";
 
 export function ActionsPanel(): JSX.Element {
   const { t } = useTranslation();
@@ -65,6 +67,21 @@ export function ActionsPanel(): JSX.Element {
         });
       }}
     >
+      <UnsavedChanges
+        data-testid="assistant-actions-unsaved"
+        dirty={countChanges(settings.data, draft) > 0}
+        count={countChanges(settings.data, draft)}
+        saving={save.isPending}
+        invalid={!form.isValid}
+        watchParams={["view", "tab"]}
+        onSave={() => form.formRef.current?.requestSubmit()}
+        onDiscard={() => {
+          if (settings.data) {
+            setDraft(settings.data);
+            form.reset();
+          }
+        }}
+      />
       <Card className="flex flex-col divide-y divide-line p-0">
         {AI_ACTION_TOOLS.map((tool) => {
           const floor = AI_ACTION_BASE_TIER[tool];
@@ -134,17 +151,6 @@ export function ActionsPanel(): JSX.Element {
           </FormField>
         </div>
       </Card>
-
-      <div className="flex justify-end">
-        <Button
-          type="submit"
-          data-testid="assistant-actions-save"
-          {...(!form.isValid && { "aria-disabled": true })}
-          isLoading={save.isPending}
-        >
-          {t("common.save")}
-        </Button>
-      </div>
     </form>
   );
 }

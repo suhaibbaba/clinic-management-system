@@ -1,7 +1,9 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { clinicScheduleSettings, documentSettings, personName } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-import type { DocumentLanguage } from "@api/modules/billing/pdf/document-strings";
+import { documentStrings, type DocumentLanguage } from "@api/modules/billing/pdf/document-strings";
+import { documentDate, documentDateTime } from "@api/modules/billing/pdf/document-format";
+import { isolateLtr } from "@api/modules/billing/pdf/arabic-text";
 import type { RtlPdf } from "@api/modules/billing/pdf/pdf-builder";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics } from "@api/database/schema";
@@ -10,8 +12,10 @@ import { type FetchedObject } from "@api/common/types/storage";
 
 export interface Letterhead {
   readonly name: string;
+  readonly otherName: string;
   readonly address: string;
   readonly phone: string;
+  readonly email: string;
   readonly currency: string;
   readonly language: DocumentLanguage;
   readonly timeZone: string;
@@ -31,6 +35,7 @@ export class LetterheadService {
         nameAr: clinics.nameAr,
         nameEn: clinics.nameEn,
         phone: clinics.phone,
+        email: clinics.email,
         address: clinics.address,
         currency: clinics.currency,
         settings: clinics.settings,
@@ -45,11 +50,16 @@ export class LetterheadService {
     }
 
     const language = documentSettings(row.settings).language;
+    const names = { ar: row.nameAr, en: row.nameEn };
+    const name = personName(names, language);
+    const otherName = personName(names, language === "ar" ? "en" : "ar");
 
     return {
-      name: personName({ ar: row.nameAr, en: row.nameEn }, language),
+      name,
+      otherName: otherName === name ? "" : otherName,
       address: row.address ?? "",
       phone: row.phone ?? "",
+      email: row.email ?? "",
       currency: row.currency,
       language,
       timeZone: clinicScheduleSettings(row.settings).timezone,
@@ -58,14 +68,20 @@ export class LetterheadService {
   }
 
   async draw(pdf: RtlPdf, clinic: Letterhead, title: string, subtitle?: string): Promise<void> {
+    const now = new Date().toISOString();
+
     pdf.title([title, subtitle, clinic.name].filter(Boolean).join(" — "));
     await pdf.letterhead({
       name: clinic.name,
+      otherName: clinic.otherName,
       address: clinic.address,
       phone: clinic.phone,
+      email: clinic.email,
       logo: clinic.logo,
       title,
       subtitle,
+      issued: documentDate(now, clinic.timeZone),
+      printed: `${documentStrings(clinic.language).common.printed} ${isolateLtr(documentDateTime(now, clinic.timeZone))}`,
     });
   }
 }

@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, type RenderResult } from "@testing-library/react";
 import type { LookupBundle } from "@clinic/shared";
 import type { ReactElement } from "react";
-import { MemoryRouter } from "react-router-dom";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { vi } from "vitest";
 import { ToastProvider } from "@clinic/ui";
 import { SessionProvider } from "@web/shared/providers/session";
@@ -39,18 +39,21 @@ export function renderWithProviders(
     });
   }
 
+  const page = withSession ? (
+    <SessionProvider>
+      <DocumentTitleProvider>{ui}</DocumentTitleProvider>
+    </SessionProvider>
+  ) : (
+    ui
+  );
+  const router = createMemoryRouter([{ path: "*", element: page }], {
+    initialEntries: [route],
+  });
+
   const tree = (
     <QueryClientProvider client={client}>
       <ToastProvider>
-        <MemoryRouter initialEntries={[route]}>
-          {withSession ? (
-            <SessionProvider>
-              <DocumentTitleProvider>{ui}</DocumentTitleProvider>
-            </SessionProvider>
-          ) : (
-            ui
-          )}
-        </MemoryRouter>
+        <RouterProvider router={router} />
       </ToastProvider>
     </QueryClientProvider>
   );

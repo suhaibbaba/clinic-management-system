@@ -23,7 +23,6 @@
     "all": "الكل",
     "none": "لا يوجد",
     "optional": "اختياري",
-    "reset": "إعادة تعيين",
     "delete": "حذف",
     "placeholders": {
       "identifier": "09XXXXXXXX",
@@ -78,7 +77,25 @@
     "deleteForever": "حذف نهائي",
     "noMatches": "لا توجد نتائج",
     "continue": "متابعة",
-    "reload": "إعادة التحميل"
+    "reload": "إعادة التحميل",
+    "discard": "تجاهل",
+    "unsavedChanges": "تغييرات غير محفوظة",
+    "leave": "مغادرة",
+    "leaveUnsavedTitle": "المغادرة دون حفظ؟",
+    "leaveUnsavedBody": "ستضيع التغييرات التي لم تُحفظ في هذه الصفحة.",
+    "unsavedCount_zero": "لا تغييرات غير محفوظة",
+    "unsavedCount_one": "تغيير واحد غير محفوظ",
+    "unsavedCount_two": "تغييران غير محفوظين",
+    "unsavedCount_few": "{{count}} تغييرات غير محفوظة",
+    "unsavedCount_many": "{{count}} تغييرًا غير محفوظ",
+    "unsavedCount_other": "{{count}} تغيير غير محفوظ",
+    "discardChanges_zero": "تجاهل التغييرات؟",
+    "discardChanges_one": "تجاهل تغيير واحد؟",
+    "discardChanges_two": "تجاهل التغييرين؟",
+    "discardChanges_few": "تجاهل {{count}} تغييرات؟",
+    "discardChanges_many": "تجاهل {{count}} تغييرًا؟",
+    "discardChanges_other": "تجاهل {{count}} تغيير؟",
+    "discardChangesBody": "تعود كل الحقول إلى آخر قيمة محفوظة."
   },
   "pagination": {
     "goToPage": "الصفحة {{page}}",
@@ -883,7 +900,7 @@
     "reason": "سبب الإلغاء",
     "confirmReversal": "تأكيد الإلغاء",
     "paymentReversed": "تم تسجيل القيد العكسي",
-    "downloadStatement": "تنزيل كشف الحساب",
+    "printStatement": "طباعة كشف الحساب",
     "openingBalance": "رصيد أول المدة",
     "empty": "لا توجد حركات مالية",
     "emptyHint": "تظهر هنا الأعمال المنفَّذة والدفعات المسجَّلة.",
@@ -910,7 +927,8 @@
       "kept": "تبقى ظاهرة للمدير في كشف الحساب مع اسم من حذفها، ويُسجَّل الحذف في سجل التدقيق"
     },
     "entryMenu": "خيارات القيد",
-    "balanceAfter": "الرصيد بعد هذه الدفعة: {{amount}}"
+    "balanceAfter": "الرصيد بعد هذه الدفعة: {{amount}}",
+    "clearPeriod": "مسح الفترة"
   },
   "appointments": {
     "title": "المواعيد",
@@ -2010,7 +2028,8 @@
     "search": "ابحث في الصلاحيات",
     "expandAll": "فتح الكل",
     "collapseAll": "إغلاق الكل",
-    "noMatch": "لا توجد صلاحية تطابق البحث"
+    "noMatch": "لا توجد صلاحية تطابق البحث",
+    "saved": "تم حفظ الصلاحيات"
   },
   "notifications": {
     "pendingBookings": "حجوزات إلكترونية بانتظار الرد",
@@ -2037,7 +2056,6 @@
     "searchPlaceholder": "ابحث بالنص أو بالمفتاح",
     "section": "القسم",
     "changedOnly": "المعدّلة فقط ({{count}})",
-    "save": "حفظ",
     "saved": "تم حفظ النص",
     "empty": "لا توجد نصوص مطابقة",
     "emptyHint": "جرّب كلمة أخرى أو غيّر القسم",
@@ -2046,7 +2064,6 @@
     "original": "الأصل",
     "arabic": "العربية",
     "english": "الإنجليزية",
-    "pending": "{{count}} تعديل غير محفوظ",
     "usedIn_zero": "غير مستخدم",
     "usedIn_one": "مستخدم في مكان واحد",
     "usedIn_two": "مستخدم في مكانين",
@@ -2535,5 +2552,9 @@
     "staffCost": "تكلفة الموظفين",
     "staffCostCaption": "الرواتب المستحقة وحصص الأطباء الزائرين",
     "empty": "لا موظفين في هذا الشهر"
+  },
+  "print": {
+    "printed": "طُبع في {{at}}",
+    "page": "صفحة {{page}} من {{total}}"
   }
 }

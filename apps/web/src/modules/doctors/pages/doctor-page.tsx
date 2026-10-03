@@ -2,7 +2,7 @@ import { personName, type WeeklySchedule } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useParams } from "react-router-dom";
-import { Badge, Button, Icon, PageHeader, PersonName, useToast } from "@clinic/ui";
+import { Badge, PageHeader, PersonName, useToast } from "@clinic/ui";
 import { WorkingHours } from "@web/shared/components/working-hours";
 import { weekFitsWithin } from "@web/shared/lib/week";
 import { SkeletonForm } from "@clinic/ui/components/skeleton";
@@ -15,6 +15,8 @@ import { SettlementSection } from "@web/modules/doctors/components/settlement-se
 import { errorToast } from "@web/shared/lib/api-error";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
+import { UnsavedChanges } from "@web/shared/components/unsaved-changes";
+import { countChanges } from "@web/shared/lib/changes";
 
 export function DoctorPage(): JSX.Element {
   const { t, i18n } = useTranslation();
@@ -55,6 +57,7 @@ export function DoctorPage(): JSX.Element {
   const canEdit = canEditAnySchedule(can) || isOwn;
   const clinicHours = clinic.data?.workingHours ?? [];
   const fits = weekFitsWithin(schedule, clinicHours);
+  const changes = countChanges(doctor.data.weeklySchedule, schedule);
 
   const save = async (): Promise<void> => {
     try {
@@ -71,19 +74,6 @@ export function DoctorPage(): JSX.Element {
         data-testid="doctor-header"
         title="doctors.pageTitle"
         subtitle="doctors.pageSubtitle"
-        actions={
-          canEdit ? (
-            <Button
-              icon={<Icon name="check" />}
-              data-testid="doctor-save-schedule"
-              disabled={!fits}
-              isLoading={updateSchedule.isPending}
-              onClick={() => void save()}
-            >
-              {t("common.save")}
-            </Button>
-          ) : undefined
-        }
       />
 
       <div className="flex flex-wrap items-center gap-3">
@@ -139,6 +129,17 @@ export function DoctorPage(): JSX.Element {
             doctorName={personName(doctor.data.user.name, i18n.language)}
           />
         </div>
+      )}
+      {canEdit && (
+        <UnsavedChanges
+          data-testid="doctor-unsaved"
+          dirty={changes > 0}
+          count={changes}
+          saving={updateSchedule.isPending}
+          invalid={!fits}
+          onSave={() => void save()}
+          onDiscard={() => setSchedule(doctor.data.weeklySchedule)}
+        />
       )}
     </div>
   );

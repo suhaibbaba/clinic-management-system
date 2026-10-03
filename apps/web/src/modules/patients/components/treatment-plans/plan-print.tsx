@@ -33,11 +33,7 @@ export function PlanPrint({
 
   return (
     <div data-testid="plan-print" className="print-sheet" dir="rtl" lang="ar">
-      <PrintLetterhead clinic={clinic} />
-
-      <h2 data-testid="plan-print-title" className="print-title">
-        {t("treatmentPlans.printTitle")}
-      </h2>
+      <PrintLetterhead clinic={clinic} title={t("treatmentPlans.printTitle")} />
 
       <dl data-testid="plan-print-meta" className="print-meta">
         <div>
