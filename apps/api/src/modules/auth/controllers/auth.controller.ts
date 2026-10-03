@@ -67,8 +67,8 @@ export class AuthController {
     @Body() body: LoginDto,
     @Res({ passthrough: true }) reply: FastifyReply,
   ): Promise<LoginResponse> {
-    const { refreshToken, ...response } = await this.authService.login(body);
-    setRefreshCookie(reply, this.config, refreshToken);
+    const { refreshToken, persistent, ...response } = await this.authService.login(body);
+    setRefreshCookie(reply, this.config, refreshToken, persistent);
 
     return response;
   }
@@ -89,8 +89,8 @@ export class AuthController {
     @Body() body: VerifyLoginCodeDto,
     @Res({ passthrough: true }) reply: FastifyReply,
   ): Promise<LoginResponse> {
-    const { refreshToken, ...response } = await this.authService.loginWithCode(body);
-    setRefreshCookie(reply, this.config, refreshToken);
+    const { refreshToken, persistent, ...response } = await this.authService.loginWithCode(body);
+    setRefreshCookie(reply, this.config, refreshToken, persistent);
 
     return response;
   }
@@ -111,8 +111,8 @@ export class AuthController {
     @Body() body: VerifyPasskeyLoginDto,
     @Res({ passthrough: true }) reply: FastifyReply,
   ): Promise<LoginResponse> {
-    const { refreshToken, ...response } = await this.authService.loginWithPasskey(body);
-    setRefreshCookie(reply, this.config, refreshToken);
+    const { refreshToken, persistent, ...response } = await this.authService.loginWithPasskey(body);
+    setRefreshCookie(reply, this.config, refreshToken, persistent);
 
     return response;
   }
@@ -132,8 +132,8 @@ export class AuthController {
       throw new BadRequestException("Missing refresh token");
     }
 
-    const { refreshToken, ...tokens } = await this.authService.refresh(presented);
-    setRefreshCookie(reply, this.config, refreshToken);
+    const { refreshToken, persistent, ...tokens } = await this.authService.refresh(presented);
+    setRefreshCookie(reply, this.config, refreshToken, persistent);
 
     return tokens;
   }

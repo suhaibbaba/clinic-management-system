@@ -69,7 +69,7 @@ export function PasskeysSection(): JSX.Element {
               data-testid={`profile-passkey-${passkey.id}`}
               className="flex items-center gap-3 py-2.5"
             >
-              <Icon name="key" className="shrink-0 text-ink-muted" />
+              <Icon name="passkey" className="shrink-0 text-ink-muted" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-value font-medium text-ink">{passkey.name}</p>
                 <p className="text-meta text-ink-muted">

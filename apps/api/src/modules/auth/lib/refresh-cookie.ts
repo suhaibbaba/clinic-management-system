@@ -60,10 +60,13 @@ export function setRefreshCookie(
   reply: FastifyReply,
   config: ConfigService<Env, true>,
   token: string,
+  persistent: boolean,
 ): void {
   reply.setCookie(REFRESH_COOKIE_NAME, token, {
     ...refreshCookieOptions(reply, config),
-    maxAge: config.get("JWT_REFRESH_TTL_DAYS", { infer: true }) * 24 * 60 * 60,
+    ...(persistent && {
+      maxAge: config.get("JWT_REFRESH_TTL_DAYS", { infer: true }) * 24 * 60 * 60,
+    }),
   });
 }
 

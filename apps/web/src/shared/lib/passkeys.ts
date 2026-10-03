@@ -2,13 +2,14 @@ import { startAuthentication, startRegistration } from "@simplewebauthn/browser"
 import type { LoginResponse, Passkey, VerifyPasskeyLoginInput } from "@clinic/shared";
 import { authApi } from "@web/shared/api/auth";
 
-export async function signInWithPasskey(): Promise<LoginResponse> {
+export async function signInWithPasskey(rememberMe: boolean): Promise<LoginResponse> {
   const { challengeId, options } = await authApi.passkeyOptions();
   const response = await startAuthentication({ optionsJSON: options });
 
   return authApi.verifyPasskey({
     challengeId,
     response: response as unknown as VerifyPasskeyLoginInput["response"],
+    rememberMe,
   });
 }
 

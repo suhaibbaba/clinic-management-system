@@ -54,6 +54,7 @@ import {
   Upload,
   User,
   UserPlus,
+  UserRoundKey,
   Users,
   X,
   XCircle,
@@ -103,6 +104,7 @@ export type IconName =
   | "money"
   | "more-vertical"
   | "package"
+  | "passkey"
   | "phone"
   | "plus"
   | "print"
@@ -187,6 +189,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   message: MessageSquare,
   money: CreditCard,
   package: Package,
+  passkey: UserRoundKey,
   phone: Phone,
   plus: Plus,
   print: Printer,

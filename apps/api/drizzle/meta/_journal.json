@@ -393,6 +393,13 @@
       "when": 1790848601591,
       "tag": "0055_passkeys",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1791042407465,
+      "tag": "0056_refresh_token_persistent",
+      "breakpoints": true
     }
   ]
 }

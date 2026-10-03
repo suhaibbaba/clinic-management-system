@@ -1,0 +1,1 @@
+ALTER TABLE "refresh_tokens" ADD COLUMN "persistent" boolean DEFAULT true NOT NULL;

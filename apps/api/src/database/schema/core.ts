@@ -173,6 +173,7 @@ export const refreshTokens = pgTable(
       .references(() => users.id),
     tokenHash: text("token_hash").notNull(),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    persistent: boolean("persistent").notNull().default(true),
     revokedAt: timestamp("revoked_at", { withTimezone: true }),
     replacedByTokenId: uuid("replaced_by_token_id"),
     ...auditColumns,

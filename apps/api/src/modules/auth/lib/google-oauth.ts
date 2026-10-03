@@ -5,6 +5,7 @@ import { GOOGLE_AUTHORIZE_URL, GOOGLE_ISSUERS } from "@api/modules/auth/constant
 export interface GoogleOAuthState {
   readonly state: string;
   readonly verifier: string;
+  readonly persistent: boolean;
 }
 
 export interface GoogleIdentity {
@@ -19,21 +20,24 @@ const idTokenClaimsSchema = z.object({
   email_verified: z.union([z.literal(true), z.literal("true")]),
 });
 
-export function newGoogleOAuthState(): GoogleOAuthState {
+export function newGoogleOAuthState(persistent: boolean): GoogleOAuthState {
   return {
     state: randomBytes(24).toString("base64url"),
     verifier: randomBytes(48).toString("base64url"),
+    persistent,
   };
 }
 
 export function serializeGoogleOAuthState(value: GoogleOAuthState): string {
-  return `${value.state}.${value.verifier}`;
+  return `${value.state}.${value.verifier}.${value.persistent ? "1" : "0"}`;
 }
 
 export function parseGoogleOAuthState(cookie: string | undefined): GoogleOAuthState | undefined {
-  const [state, verifier, ...rest] = cookie?.split(".") ?? [];
+  const [state, verifier, remember, ...rest] = cookie?.split(".") ?? [];
 
-  return state && verifier && rest.length === 0 ? { state, verifier } : undefined;
+  return state && verifier && (remember === "1" || remember === "0") && rest.length === 0
+    ? { state, verifier, persistent: remember === "1" }
+    : undefined;
 }
 
 export function sameGoogleState(expected: string, given: string): boolean {

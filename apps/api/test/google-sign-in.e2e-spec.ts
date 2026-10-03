@@ -23,6 +23,7 @@ function idToken(claims: Record<string, unknown>): string {
 interface Cookie {
   name: string;
   value: string;
+  maxAge?: number;
 }
 
 describe("Google sign-in (e2e)", () => {
@@ -74,8 +75,8 @@ describe("Google sign-in (e2e)", () => {
       }),
     );
 
-  const start = async () => {
-    const response = await context.app.inject({ method: "GET", url: "/auth/google" });
+  const start = async (query = "") => {
+    const response = await context.app.inject({ method: "GET", url: `/auth/google${query}` });
     const location = new URL(response.headers.location as string);
     const cookie = (response.cookies as Cookie[]).find((c) => c.name === GOOGLE_STATE_COOKIE);
 
@@ -138,6 +139,39 @@ describe("Google sign-in (e2e)", () => {
     const [url, init] = fetchSpy.mock.calls[0] as [string, { body: URLSearchParams }];
     expect(url).toBe(GOOGLE_TOKEN_URL);
     expect(init.body.get("code_verifier")).toBe(cookie?.value.split(".")[1]);
+  });
+
+  it("signs in for this browser session only when asked not to remember", async () => {
+    const { location, cookie } = await start("?remember=0");
+    const email = (
+      await context.db
+        .select({ email: users.email })
+        .from(users)
+        .where(eq(users.id, clinic.userIds[USER_ROLE.RECEPTIONIST]))
+    )[0]?.email;
+    googleAnswers({ id_token: idToken({ email }) });
+
+    const response = await callback(`code=abc&state=${location.searchParams.get("state")}`, cookie);
+
+    const refresh = (response.cookies as Cookie[]).find((c) => c.name === REFRESH_COOKIE_NAME);
+    expect(refresh?.value).toBeTruthy();
+    expect(refresh?.maxAge).toBeUndefined();
+  });
+
+  it("remembers the browser by default", async () => {
+    const { location, cookie } = await start();
+    const email = (
+      await context.db
+        .select({ email: users.email })
+        .from(users)
+        .where(eq(users.id, clinic.userIds[USER_ROLE.RECEPTIONIST]))
+    )[0]?.email;
+    googleAnswers({ id_token: idToken({ email }) });
+
+    const response = await callback(`code=abc&state=${location.searchParams.get("state")}`, cookie);
+
+    const refresh = (response.cookies as Cookie[]).find((c) => c.name === REFRESH_COOKIE_NAME);
+    expect(refresh?.maxAge).toBeGreaterThan(0);
   });
 
   it("refuses a callback whose state does not match the browser's", async () => {
