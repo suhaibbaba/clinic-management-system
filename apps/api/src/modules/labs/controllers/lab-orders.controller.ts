@@ -108,7 +108,7 @@ export class LabOrdersController {
       "Order work from a lab for a patient: lab, work type, teeth (FDI), shade, instructions as dictated. Its steps afterwards are set_lab_order_status. Waits on a card.",
   })
   @Post()
-  @Roles(USER_ROLE.DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(LAB_ORDERS_ENTITY, AUDIT_ACTION.CREATE)
   create(
     @CurrentUser() actor: AuthenticatedUser,
@@ -140,7 +140,7 @@ export class LabOrdersController {
   }
 
   @Patch(":id/ready")
-  @Roles(USER_ROLE.TECHNICIAN)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(LAB_ORDERS_ENTITY, AUDIT_ACTION.UPDATE)
   ready(
     @CurrentUser() actor: AuthenticatedUser,
@@ -150,7 +150,7 @@ export class LabOrdersController {
   }
 
   @Patch(":id/receive")
-  @Roles(USER_ROLE.TECHNICIAN)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(LAB_ORDERS_ENTITY, AUDIT_ACTION.UPDATE)
   receive(
     @CurrentUser() actor: AuthenticatedUser,
@@ -160,7 +160,7 @@ export class LabOrdersController {
   }
 
   @Patch(":id/fit")
-  @Roles(USER_ROLE.DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(LAB_ORDERS_ENTITY, AUDIT_ACTION.UPDATE)
   fit(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<LabOrderRow> {
     return this.orders.changeStatus(actor, params.id, LAB_ORDER_STATUS.FITTED);

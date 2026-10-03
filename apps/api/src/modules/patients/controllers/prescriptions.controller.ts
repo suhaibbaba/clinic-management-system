@@ -35,6 +35,7 @@ export class PrescriptionsController {
     description: "Prescriptions, filtered by patient or visit. Clinical.",
   })
   @Get()
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN)
   list(
     @CurrentUser() actor: AuthenticatedUser,
     @Query() query: ListPrescriptionsQueryDto,
@@ -47,6 +48,7 @@ export class PrescriptionsController {
     description: "One prescription in full. Clinical.",
   })
   @Get(":id")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN)
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,

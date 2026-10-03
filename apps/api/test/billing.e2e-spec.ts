@@ -2,6 +2,7 @@ import {
   PAYMENT_ERROR,
   PAYMENT_METHOD,
   PERFORMED_PROCEDURE_STATUS,
+  RULE,
   USER_ROLE,
   type Paginated,
   type PatientBalance,
@@ -12,6 +13,7 @@ import {
 import { and, eq, isNull } from "drizzle-orm";
 import { PDFDocument } from "pdf-lib";
 import { charges } from "@api/database/schema";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import {
   createPatient,
   procedurePayload,
@@ -30,6 +32,7 @@ describe("Billing", () => {
   let doctorToken: string;
   let receptionistToken: string;
   let technicianToken: string;
+  let visitingToken: string;
 
   beforeAll(async () => {
     context = await createTestContext();
@@ -39,6 +42,17 @@ describe("Billing", () => {
     doctorToken = await context.login(clinic.phones[USER_ROLE.DOCTOR]);
     receptionistToken = await context.login(clinic.phones[USER_ROLE.RECEPTIONIST]);
     technicianToken = await context.login(clinic.phones[USER_ROLE.TECHNICIAN]);
+    visitingToken = await context.login(clinic.phones[USER_ROLE.VISITING_DOCTOR]);
+
+    await context.app
+      .get(PermissionsService)
+      .set(
+        clinic.id,
+        USER_ROLE.TECHNICIAN,
+        RULE.PATIENTS_FINANCIAL,
+        false,
+        clinic.userIds[USER_ROLE.ADMIN],
+      );
 
     fixtures = await seedClinicFixtures(context, clinic, adminToken);
   });
@@ -165,7 +179,7 @@ describe("Billing", () => {
       expect((await balanceOf(patientId)).balance).toBe("90.00");
     });
 
-    it("rides along in the patient header, and never for a technician", async () => {
+    it("rides along in the patient header, and never for a role without balances", async () => {
       const patientId = await newPatient();
       await recordProcedure(patientId, { price: "120.00" });
 
@@ -432,20 +446,20 @@ describe("Billing", () => {
       expect(removal.statusCode).toBe(403);
     });
 
-    it("keeps a technician away from the money entirely", async () => {
+    it("keeps a visiting doctor away from the money entirely", async () => {
       const patientId = await newPatient();
 
       const attempts = await Promise.all([
-        context.app.inject({ method: "GET", url: "/payments", headers: auth(technicianToken) }),
+        context.app.inject({ method: "GET", url: "/payments", headers: auth(visitingToken) }),
         context.app.inject({
           method: "GET",
           url: `/patients/${patientId}/balance`,
-          headers: auth(technicianToken),
+          headers: auth(visitingToken),
         }),
         context.app.inject({
           method: "GET",
           url: "/billing/overdue",
-          headers: auth(technicianToken),
+          headers: auth(visitingToken),
         }),
       ]);
 
@@ -571,7 +585,7 @@ describe("Billing", () => {
       expect(page.items.every((item) => Number(item.balance ?? "0") > 0)).toBe(true);
     });
 
-    it("is ignored for a technician, whose responses carry no money at all", async () => {
+    it("is ignored for a role without balances, whose responses carry no money", async () => {
       const owing = await newPatient();
       await recordProcedure(owing, { price: "90.00" });
 

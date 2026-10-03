@@ -39,6 +39,7 @@ export class PaymentsController {
       "Payments, by patient, newest first, with receipt numbers; a row with reversesId is a reversal. Use to find the payment to reverse.",
   })
   @Get()
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   list(
     @CurrentUser() actor: AuthenticatedUser,
     @Query() query: ListPaymentsQueryDto,
@@ -51,11 +52,13 @@ export class PaymentsController {
     description: "One payment with its receipt number and method.",
   })
   @Get(":id")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   findOne(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<Payment> {
     return this.payments.findOne(actor, params.id);
   }
 
   @Get(":id/receipt")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Header("Content-Type", "application/pdf")
   @Header("Content-Disposition", 'inline; filename="receipt.pdf"')
   receipt(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<Buffer> {
@@ -63,7 +66,7 @@ export class PaymentsController {
   }
 
   @Post()
-  @Roles(USER_ROLE.RECEPTIONIST)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(PAYMENTS_ENTITY, AUDIT_ACTION.CREATE)
   create(
     @CurrentUser() actor: AuthenticatedUser,

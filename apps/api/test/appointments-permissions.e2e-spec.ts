@@ -201,16 +201,16 @@ describe("Appointments permission boundaries (e2e)", () => {
       ).toBe(200);
     });
 
-    it("keeps the appointment list from a technician, who reads the calendar only", async () => {
-      expect((await read(USER_ROLE.TECHNICIAN, "/appointments")).statusCode).toBe(403);
+    it("gives a technician every doctor's appointments, as the front desk sees them", async () => {
+      expect((await read(USER_ROLE.TECHNICIAN, "/appointments")).statusCode).toBe(200);
       expect(
-        (await read(USER_ROLE.TECHNICIAN, `/appointments/${ownAppointmentId}`)).statusCode,
-      ).toBe(403);
+        (await read(USER_ROLE.TECHNICIAN, `/appointments/${otherDoctorAppointmentId}`)).statusCode,
+      ).toBe(200);
     });
   });
 
   describe("writing appointments", () => {
-    it("refuses a technician creating one", async () => {
+    it("lets a technician book one", async () => {
       const response = await context.app.inject({
         method: "POST",
         url: "/appointments",
@@ -224,10 +224,10 @@ describe("Appointments permission boundaries (e2e)", () => {
         },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(201);
     });
 
-    it("refuses a technician moving one", async () => {
+    it("lets a technician move one", async () => {
       const response = await context.app.inject({
         method: "PATCH",
         url: `/appointments/${ownAppointmentId}`,
@@ -235,7 +235,7 @@ describe("Appointments permission boundaries (e2e)", () => {
         payload: { durationMinutes: 45 },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(200);
     });
 
     it("lets a doctor manage their own calendar", async () => {
@@ -349,7 +349,7 @@ describe("Appointments permission boundaries (e2e)", () => {
       entryId = (response.json() as { id: string }).id;
     });
 
-    it("is readable by a doctor but not writable", async () => {
+    it("is readable and writable by a doctor", async () => {
       const read = await context.app.inject({
         method: "GET",
         url: "/waiting-list",
@@ -363,17 +363,17 @@ describe("Appointments permission boundaries (e2e)", () => {
         headers: auth(tokens[USER_ROLE.DOCTOR]),
         payload: { patientId, priority: "normal" },
       });
-      expect(write.statusCode).toBe(403);
+      expect(write.statusCode).toBe(201);
     });
 
-    it("is closed to a technician entirely", async () => {
+    it("is open to a technician, as to a doctor", async () => {
       const response = await context.app.inject({
         method: "GET",
         url: "/waiting-list",
         headers: auth(tokens[USER_ROLE.TECHNICIAN]),
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(200);
     });
 
     it("promotes an entry into a booking and closes it", async () => {

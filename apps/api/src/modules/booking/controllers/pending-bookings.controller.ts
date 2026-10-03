@@ -25,6 +25,7 @@ export class PendingBookingsController {
   ) {}
 
   @Get()
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   list(
     @CurrentUser() actor: AuthenticatedUser,
     @Query() query: PendingQueryDto,
@@ -36,6 +37,7 @@ export class PendingBookingsController {
   }
 
   @Patch(":id/confirm")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   confirm(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
@@ -44,6 +46,7 @@ export class PendingBookingsController {
   }
 
   @Patch(":id/reject")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   reject(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,

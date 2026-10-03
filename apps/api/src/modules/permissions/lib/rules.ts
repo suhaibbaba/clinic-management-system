@@ -14,8 +14,16 @@ const rule = (
 });
 
 export const RULE_CAPABILITIES: readonly Capability[] = [
-  rule(RULE.PATIENTS_CLINICAL, "patients", [USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR]),
-  rule(RULE.PATIENTS_FINANCIAL, "patients", [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST]),
+  rule(RULE.PATIENTS_CLINICAL, "patients", [
+    USER_ROLE.DOCTOR,
+    USER_ROLE.VISITING_DOCTOR,
+    USER_ROLE.TECHNICIAN,
+  ]),
+  rule(RULE.PATIENTS_FINANCIAL, "patients", [
+    USER_ROLE.DOCTOR,
+    USER_ROLE.TECHNICIAN,
+    USER_ROLE.RECEPTIONIST,
+  ]),
   rule(RULE.PATIENTS_ALL, "patients", [
     USER_ROLE.DOCTOR,
     USER_ROLE.RECEPTIONIST,
@@ -31,5 +39,9 @@ export const RULE_CAPABILITIES: readonly Capability[] = [
   rule(RULE.ALL_SCHEDULES, "doctors", []),
   rule(RULE.ALL_NOTES, "notes", []),
   rule(RULE.DELETED_PAYMENTS, "payments", []),
-  rule(RULE.OVERDUE_WIDGET, "billing", [USER_ROLE.RECEPTIONIST]),
+  rule(RULE.OVERDUE_WIDGET, "billing", [
+    USER_ROLE.DOCTOR,
+    USER_ROLE.TECHNICIAN,
+    USER_ROLE.RECEPTIONIST,
+  ]),
 ];

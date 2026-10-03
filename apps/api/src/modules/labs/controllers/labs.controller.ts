@@ -76,7 +76,7 @@ export class LabsController {
     description: "Add a lab to the directory. Waits on a card.",
   })
   @Post()
-  @Roles(USER_ROLE.TECHNICIAN)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(LABS_ENTITY, AUDIT_ACTION.CREATE)
   create(@CurrentUser() actor: AuthenticatedUser, @Body() body: CreateLabDto): Promise<Lab> {
     return this.labs.create(actor, body);
@@ -87,7 +87,7 @@ export class LabsController {
     description: "Change a lab's contact details, or switch it off. Waits on a card.",
   })
   @Patch(":id")
-  @Roles(USER_ROLE.TECHNICIAN)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(LABS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
     @CurrentUser() actor: AuthenticatedUser,
@@ -131,7 +131,7 @@ export class LabsController {
     description: "Add a work type with its price to a lab's list. Waits on a card.",
   })
   @Post(":labId/work-types")
-  @Roles(USER_ROLE.TECHNICIAN)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(LAB_WORK_TYPES_ENTITY, AUDIT_ACTION.CREATE)
   createWorkType(
     @CurrentUser() actor: AuthenticatedUser,
@@ -146,7 +146,7 @@ export class LabsController {
     description: "Change a work type's name or price. Waits on a card.",
   })
   @Patch("work-types/:id")
-  @Roles(USER_ROLE.TECHNICIAN)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(LAB_WORK_TYPES_ENTITY, AUDIT_ACTION.UPDATE)
   updateWorkType(
     @CurrentUser() actor: AuthenticatedUser,

@@ -97,7 +97,14 @@ describe("Sidebar navigation", () => {
     [USER_ROLE.VISITING_DOCTOR, [ar.nav.dashboard, ar.nav.patients, ar.nav.appointments]],
     [
       USER_ROLE.TECHNICIAN,
-      [ar.nav.dashboard, ar.nav.assistant, ar.nav.patients, ar.nav.labs, ar.nav.inventory],
+      [
+        ar.nav.dashboard,
+        ar.nav.assistant,
+        ar.nav.patients,
+        ar.nav.appointments,
+        ar.nav.labs,
+        ar.nav.inventory,
+      ],
     ],
     [
       USER_ROLE.RECEPTIONIST,
@@ -234,7 +241,6 @@ describe("The current row", () => {
 
 describe("Route guards", () => {
   it.each([
-    [USER_ROLE.TECHNICIAN, "/appointments"],
     [USER_ROLE.RECEPTIONIST, `/inventory/items/${ITEM_ID}`],
     [USER_ROLE.RECEPTIONIST, "/labs"],
     [USER_ROLE.RECEPTIONIST, "/users"],

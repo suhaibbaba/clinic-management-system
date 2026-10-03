@@ -4,6 +4,7 @@ import { VIEW_CAPABILITIES } from "@api/modules/ai/query/catalogue";
 import {
   AI_TOOL_ERROR,
   CLINIC_MODULE,
+  RULE,
   USER_ROLE,
   type AiTableView,
   type AiToolError,
@@ -57,7 +58,7 @@ export class QueryDataService implements OnModuleInit, OnApplicationShutdown {
       resource: "reports",
       method: "GET",
       path: "/ai/query",
-      defaultRoles: [USER_ROLE.ADMIN, USER_ROLE.DOCTOR],
+      defaultRoles: [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN],
       module: CLINIC_MODULE.ASSISTANT,
     });
   }
@@ -67,6 +68,10 @@ export class QueryDataService implements OnModuleInit, OnApplicationShutdown {
   }
 
   async run(actor: AuthenticatedUser, sql: string): Promise<QueryResult> {
+    if (!(await this.permissions.allows(actor.clinicId, actor.role, RULE.PATIENTS_ALL))) {
+      throw new ToolRefusal(AI_TOOL_ERROR.QUERY_NOT_PERMITTED);
+    }
+
     let guarded: ReturnType<typeof guardQuery>;
 
     try {

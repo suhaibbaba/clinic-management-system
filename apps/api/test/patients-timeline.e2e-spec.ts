@@ -192,10 +192,10 @@ describe("Patient timeline (e2e)", () => {
     expect((response.json() as { items: Entry[] }).items).toEqual([]);
   });
 
-  it("refuses a technician entirely", async () => {
+  it("gives a technician the whole timeline, as a doctor", async () => {
     const response = await timeline(USER_ROLE.TECHNICIAN);
 
-    expect(response.statusCode).toBe(403);
+    expect(response.statusCode).toBe(200);
   });
 
   it("never reaches another clinic", async () => {

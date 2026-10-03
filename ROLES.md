@@ -22,8 +22,8 @@ Users belong to one clinic and have exactly one role (v1). `admin` implicitly pa
 | Rule capability | Decides | Default roles (admin always) |
 |---|---|---|
 | `patients.list` / `patients.findOne` | The patient list and a patient file | doctor, visiting doctor, receptionist, technician |
-| `patients.clinical` | Medical fields, the chart and prices, clinical timeline entries | doctor, visiting doctor |
-| `patients.financial` | Balances, the balance filter and sort, payment and charge timeline entries | doctor, receptionist |
+| `patients.clinical` | Medical fields, the chart and prices, clinical timeline entries | doctor, visiting doctor, technician |
+| `patients.financial` | Balances, the balance filter and sort, payment and charge timeline entries | doctor, technician, receptionist |
 | `patients.all` | Every patient; without it, only assigned patients (the visiting doctor rule) | doctor, receptionist, technician |
 | `procedure-catalog.details` | The full catalog; without it, names and prices only | doctor, visiting doctor, technician |
 | `appointments.allCalendars` | Every doctor's calendar, lab orders, time off and extra hours; without it, one's own | receptionist, technician |
@@ -31,7 +31,7 @@ Users belong to one clinic and have exactly one role (v1). `admin` implicitly pa
 | `doctors.allSchedules` | Changing any doctor's weekly hours; without it, one's own | — |
 | `notes.manageAll` | Editing or deleting another person's note | — |
 | `payments.viewDeleted` | Deleted payments in the statement | — |
-| `dashboard.overdue` | The overdue balances widget | receptionist |
+| `dashboard.overdue` | The overdue balances widget | doctor, technician, receptionist |
 
 ## Global rules
 
@@ -45,6 +45,8 @@ Users belong to one clinic and have exactly one role (v1). `admin` implicitly pa
 ## Permission matrix
 
 Legend: **C** create · **R** read · **U** update · **D** soft-delete · — none
+
+Shipped defaults, each changeable per clinic on the Permissions page. Doctor and technician share the clinic's working rights; a technician does not write prescriptions or visits, or change a doctor's hours. Admin alone keeps users, payroll and settlements, clinic settings and closures, lists and the treatment catalog, permissions, translations, the audit log, the assistant's settings and keys, every soft-delete and every money reversal.
 
 ### Core
 | Resource | admin | doctor | technician | receptionist |
@@ -61,54 +63,55 @@ Legend: **C** create · **R** read · **U** update · **D** soft-delete · — n
 ### Patients
 | Resource | admin | doctor | technician | receptionist |
 |---|---|---|---|---|
-| Patient basic info (name, phone, dob, address) | CRUD | CRU | R | CRU |
-| Medical history & allergies | CRUD | CRU | R (allergy flags only) | — |
-| Visits (complaint, exam, diagnosis) | CRUD (D blocked while payments cover its charges) | CRU | — | — |
-| Treatments (planned, in progress, done, cancelled) & chart marks | CRUD | CRUD (D blocked while payments cover its charge) | R (lab-linked only) | — |
-| Attachments / X-rays | CRUD | CRU | R (lab-linked only) | — |
-| Prescriptions | CRUD | CRUD | — | — |
-| Patient timeline (full) | R | R | — | R (financial + appointment entries only) |
+| Patient basic info (name, phone, dob, address) | CRUD | CRU | CRU | CRU |
+| Medical history & allergies | CRUD | CRU | CRU | — |
+| Visits (complaint, exam, diagnosis) | CRUD (D blocked while payments cover its charges) | CRU | R | — |
+| Treatments (planned, in progress, done, cancelled) & chart marks | CRUD | CRUD (D blocked while payments cover its charge) | CRUD (as doctor) | — |
+| Attachments / X-rays | CRUD | CRU | CRU | — |
+| Prescriptions | CRUD | CRUD | R | — |
+| Patient timeline (full) | R | R | R | R (financial + appointment entries only) |
 
 ### Billing
 | Resource | admin | doctor | technician | receptionist |
 |---|---|---|---|---|
-| Charges (from procedures) | CRUD | CR (own patients) | — | R (amounts only) |
-| Discounts | CRU | CR (with reason) | — | — |
-| Payments & receipts | CRUD | R | — | CR (cannot update/delete) |
-| Patient balance & statement | R | R (own patients) | — | R |
-| Overdue balances list | R | — | — | R |
+| Charges (from procedures) | CRUD | CR | CR | R (amounts only) |
+| Discounts | CRU | CR (with reason) | CR (with reason) | — |
+| Payments & receipts | CRUD | CR | CR | CR (cannot update/delete) |
+| Patient balance & statement | R | R | R | R |
+| Overdue balances list | R | R | R | R |
 | Clinic expenses | CRUD | — | — | — |
 
 ### Appointments & booking
 | Resource | admin | doctor | technician | receptionist |
 |---|---|---|---|---|
 | Calendar (all doctors) | R | R (own) | R | R |
-| Appointments | CRUD | CRU (own) | — | CRUD |
-| Waiting list | CRUD | R | — | CRUD |
+| Appointments | CRUD | CRU (own) | CRU | CRU |
+| Waiting list | CRUD | CRU | CRU | CRU |
+| Online booking requests | RU (confirm, reject) | RU | RU | RU |
 | Booking settings (rules, windows) | CRU | — | — | R |
 | Public slot listing + create booking | — | — | — | — (public endpoints, rate-limited, OTP) |
 
 ### Labs
 | Resource | admin | doctor | technician | receptionist |
 |---|---|---|---|---|
-| Labs directory & prices | CRUD | R | CRU | — |
-| Lab orders | CRUD | CRU (create/edit own; not financial fields) | RU (status transitions, receiving) | — |
-| Lab payments | CRUD | — | CR | — |
+| Labs directory & prices | CRUD | CRU | CRU | — |
+| Lab orders | CRUD | CRU (own; every transition; not the price) | CRU (every transition and the price) | — |
+| Lab payments | CRUD (reversal admin only) | CR | CR | — |
 | Lab balances & statements | R | R | R | — |
 
 ### Inventory
 | Resource | admin | doctor | technician | receptionist |
 |---|---|---|---|---|
-| Items & suppliers | CRUD | R | CRU | — |
-| Stock movements: purchase | CRUD | — | CR | — |
+| Items & suppliers | CRUD | CRU | CRU | — |
+| Stock movements: purchase | CRUD | CR | CR | — |
 | Stock movements: consume | CRUD | CR | CR | — |
-| Stock movements: adjust (with reason) | CRUD | — | CR | — |
+| Stock movements: adjust (with reason) | CRUD | CR | CR | — |
 | Alerts (low stock, expiry) | R | R | R | — |
 
 ### Reports
 | Report | admin | doctor | technician | receptionist |
 |---|---|---|---|---|
-| Dashboard (full) | R | R (own KPIs) | R (labs+stock widgets) | R (appointments+today's cash) |
+| Dashboard (full) | R | R (own KPIs, overdue) | R (whole clinic, overdue) | R (appointments, overdue, today's cash) |
 | Revenue / expenses / profit | R | R (own revenue only) | — | — |
 | Patients & balances | R | R (own) | — | R |
 | Appointments & attendance | R | R (own) | — | R |

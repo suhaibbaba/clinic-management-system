@@ -7,16 +7,16 @@ const stepsFor = (status: Parameters<typeof availableSteps>[0], role: UserRole) 
   availableSteps(status, canFor(role)).map((step) => step.step);
 
 describe("availableSteps", () => {
-  it("offers a technician the lab-side moves and never the fitting", () => {
+  it("offers a technician every move, the fitting included", () => {
     expect(stepsFor(LAB_ORDER_STATUS.DRAFT, USER_ROLE.TECHNICIAN)).toEqual(["send", "cancel"]);
     expect(stepsFor(LAB_ORDER_STATUS.SENT, USER_ROLE.TECHNICIAN)).toEqual(["ready", "cancel"]);
     expect(stepsFor(LAB_ORDER_STATUS.READY, USER_ROLE.TECHNICIAN)).toEqual(["receive"]);
-    expect(stepsFor(LAB_ORDER_STATUS.RECEIVED, USER_ROLE.TECHNICIAN)).toEqual([]);
+    expect(stepsFor(LAB_ORDER_STATUS.RECEIVED, USER_ROLE.TECHNICIAN)).toEqual(["fit"]);
   });
 
-  it("offers a doctor the fitting and never the receiving", () => {
+  it("offers a doctor the receiving as well as the fitting", () => {
     expect(stepsFor(LAB_ORDER_STATUS.RECEIVED, USER_ROLE.DOCTOR)).toEqual(["fit"]);
-    expect(stepsFor(LAB_ORDER_STATUS.READY, USER_ROLE.DOCTOR)).toEqual([]);
+    expect(stepsFor(LAB_ORDER_STATUS.READY, USER_ROLE.DOCTOR)).toEqual(["receive"]);
   });
 
   it("lets an admin make any move the status allows", () => {

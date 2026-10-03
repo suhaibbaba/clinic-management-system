@@ -22,7 +22,7 @@ export class MedicalHistoriesController {
       "A patient's medical history: conditions, medications, allergies. Clinical — for a role that may read it. Returns the record.",
   })
   @Get("medical-history")
-  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN)
   get(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: PatientIdParamDto,
@@ -36,7 +36,7 @@ export class MedicalHistoriesController {
       "Update a patient's medical history with what the user said, word for word. Waits on a card.",
   })
   @Patch("medical-history")
-  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(MEDICAL_HISTORIES_ENTITY, AUDIT_ACTION.UPDATE, { entityIdSource: "patient" })
   update(
     @CurrentUser() actor: AuthenticatedUser,

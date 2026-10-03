@@ -162,7 +162,7 @@ describe("Patient clinical records (e2e)", () => {
       expect(list.statusCode).toBe(403);
     });
 
-    it("gives a technician an empty page — only lab-linked rows are theirs", async () => {
+    it("gives a technician the treatments, as a doctor", async () => {
       const list = await context.app.inject({
         method: "GET",
         url: `/performed-procedures?patientId=${patientId}`,
@@ -170,7 +170,7 @@ describe("Patient clinical records (e2e)", () => {
       });
 
       expect(list.statusCode).toBe(200);
-      expect((list.json() as { items: unknown[] }).items).toHaveLength(0);
+      expect((list.json() as { items: unknown[] }).items.length).toBeGreaterThan(0);
     });
   });
 

@@ -1,4 +1,4 @@
-import { AI_TOOL_ERROR, USER_ROLE } from "@clinic/shared";
+import { AI_TOOL_ERROR, RULE, USER_ROLE } from "@clinic/shared";
 import type { Sql } from "postgres";
 import { QueryDataService } from "@api/modules/ai/query/query-data.service";
 import { ToolRefusal } from "@api/modules/ai/tools/ai-tool";
@@ -71,8 +71,8 @@ describe("a query Postgres stops", () => {
 });
 
 describe("who may read what through a query", () => {
-  it("refuses a visiting doctor outright, whose views would ignore their assignments", async () => {
-    const { service: query } = recording(() => true, null);
+  it("refuses whoever may not see every patient, since the views ignore assignments", async () => {
+    const { service: query } = recording((capability) => capability !== RULE.PATIENTS_ALL, null);
 
     await expect(
       query.run({ ...ACTOR, role: USER_ROLE.VISITING_DOCTOR }, "SELECT id FROM ai_read.patients"),

@@ -36,6 +36,7 @@ export class VisitsController {
       "Visits, filtered by patient, doctor or dates. Clinical. Use for visit questions; for a patient's whole story use get_patient_summary.",
   })
   @Get()
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN)
   list(
     @CurrentUser() actor: AuthenticatedUser,
     @Query() query: ListVisitsQueryDto,
@@ -48,6 +49,7 @@ export class VisitsController {
     description: "One visit in full: complaint, examination, diagnosis, notes. Clinical.",
   })
   @Get(":id")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN)
   findOne(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<Visit> {
     return this.visitsService.findOne(actor, params.id);
   }

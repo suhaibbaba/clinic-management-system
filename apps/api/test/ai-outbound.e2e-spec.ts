@@ -34,6 +34,7 @@ const ROLES = [
   USER_ROLE.DOCTOR,
   USER_ROLE.RECEPTIONIST,
   USER_ROLE.TECHNICIAN,
+  USER_ROLE.VISITING_DOCTOR,
 ] as const;
 
 interface Fixture {
@@ -223,9 +224,9 @@ describe("Outbound messages (e2e)", () => {
     it("refuses the roles that do not hold ai-outbound.send", async () => {
       const proposal = await draft(main, USER_ROLE.ADMIN);
 
-      for (const role of [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN] as const) {
-        expect((await post(main.tokens[role], proposal.id, "send")).statusCode).toBe(403);
-      }
+      expect(
+        (await post(main.tokens[USER_ROLE.VISITING_DOCTOR], proposal.id, "send")).statusCode,
+      ).toBe(403);
     });
 
     it("takes the button away with the permission", async () => {

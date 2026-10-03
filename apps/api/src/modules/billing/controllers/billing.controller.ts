@@ -39,6 +39,7 @@ export class PatientBillingController {
       "One patient's balance: charged, paid, owed, computed from the ledger. Use get_patient_summary for the whole file.",
   })
   @Get("balance")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   async balance(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: PatientIdParamDto,
@@ -53,6 +54,7 @@ export class PatientBillingController {
     description: "One patient's statement over dates: every charge and payment, in order.",
   })
   @Get("statement")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   async statement(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: PatientIdParamDto,
@@ -66,6 +68,7 @@ export class PatientBillingController {
   }
 
   @Get("statement.pdf")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Header("Content-Type", "application/pdf")
   @Header("Content-Disposition", 'inline; filename="statement.pdf"')
   statementPdf(
@@ -87,7 +90,7 @@ export class BillingController {
       "Patients with an overdue balance, the largest first. Use for who owes; to message them use draft_bulk_message.",
   })
   @Get("overdue")
-  @Roles(USER_ROLE.RECEPTIONIST)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   list(
     @CurrentUser() actor: AuthenticatedUser,
     @Query() query: ListOverdueQueryDto,

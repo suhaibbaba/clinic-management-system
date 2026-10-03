@@ -36,6 +36,7 @@ export class PatientAttachmentsController {
   constructor(private readonly attachments: AttachmentsService) {}
 
   @Get()
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN)
   list(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: PatientIdParamDto,
@@ -45,6 +46,7 @@ export class PatientAttachmentsController {
   }
 
   @Post("presign-upload")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN)
   presignUpload(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: PatientIdParamDto,
@@ -54,6 +56,7 @@ export class PatientAttachmentsController {
   }
 
   @Post("confirm")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(ATTACHMENTS_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: "response" })
   confirmUpload(
     @CurrentUser() actor: AuthenticatedUser,
@@ -70,6 +73,7 @@ export class AttachmentsController {
   constructor(private readonly attachments: AttachmentsService) {}
 
   @Get(":id")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN)
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,

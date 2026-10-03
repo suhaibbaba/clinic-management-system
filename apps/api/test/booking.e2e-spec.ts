@@ -634,7 +634,7 @@ describe("Public booking (e2e)", () => {
   });
 
   describe("pending confirmations", () => {
-    it("lists what strangers booked, for reception and admin only", async () => {
+    it("lists what strangers booked, for the staff who answer them", async () => {
       const appointmentId = appointmentIdOf(await held());
 
       const forReception = await context.app.inject({
@@ -665,6 +665,16 @@ describe("Public booking (e2e)", () => {
             method: "GET",
             url: "/appointments/pending-confirmation",
             headers: auth(doctorToken),
+          })
+        ).statusCode,
+      ).toBe(200);
+
+      expect(
+        (
+          await context.app.inject({
+            method: "GET",
+            url: "/appointments/pending-confirmation",
+            headers: auth(await context.login(clinic.phones[USER_ROLE.VISITING_DOCTOR])),
           })
         ).statusCode,
       ).toBe(403);
@@ -740,13 +750,13 @@ describe("Public booking (e2e)", () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it("is closed to a doctor, like the list itself", async () => {
+    it("is closed to a visiting doctor, like the list itself", async () => {
       const appointmentId = appointmentIdOf(await held());
 
       const response = await context.app.inject({
         method: "PATCH",
         url: `/appointments/pending-confirmation/${appointmentId}/confirm`,
-        headers: auth(doctorToken),
+        headers: auth(await context.login(clinic.phones[USER_ROLE.VISITING_DOCTOR])),
       });
 
       expect(response.statusCode).toBe(403);

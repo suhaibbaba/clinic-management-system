@@ -135,13 +135,13 @@ describe("Data rules a clinic can grant (e2e)", () => {
     });
   });
 
-  it("puts the overdue widget on a doctor's dashboard once the clinic allows it", async () => {
-    expect((await get(USER_ROLE.DOCTOR, "/dashboard/summary")).json()).not.toHaveProperty(
+  it("takes the overdue widget off a doctor's dashboard once the clinic withdraws it", async () => {
+    expect((await get(USER_ROLE.DOCTOR, "/dashboard/summary")).json()).toHaveProperty(
       "overdueTotal",
     );
 
-    await withGrant(USER_ROLE.DOCTOR, RULE.OVERDUE_WIDGET, true, async () => {
-      expect((await get(USER_ROLE.DOCTOR, "/dashboard/summary")).json()).toHaveProperty(
+    await withGrant(USER_ROLE.DOCTOR, RULE.OVERDUE_WIDGET, false, async () => {
+      expect((await get(USER_ROLE.DOCTOR, "/dashboard/summary")).json()).not.toHaveProperty(
         "overdueTotal",
       );
     });
