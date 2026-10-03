@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties, type JSX } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties, type JSX, type Ref } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Icon, Ltr, SearchField } from "@clinic/ui";
@@ -9,7 +9,12 @@ import { useDebounced } from "@web/shared/hooks/use-debounced";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { PATIENTS_PATH, SEARCH_MIN_TERM, SEARCH_SUGGESTIONS } from "@web/shared/constants/layout";
 
-export function TopSearch(): JSX.Element {
+export interface TopSearchProps {
+  readonly fieldRef?: Ref<HTMLInputElement> | undefined;
+  readonly onDismiss?: (() => void) | undefined;
+}
+
+export function TopSearch({ fieldRef, onDismiss }: TopSearchProps): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -91,6 +96,7 @@ export function TopSearch(): JSX.Element {
       }}
     >
       <SearchField
+        ref={fieldRef}
         data-testid="top-search-field"
         label={t("nav.search")}
         placeholder={ellipsis(t("nav.searchPlaceholder"))}
@@ -103,11 +109,13 @@ export function TopSearch(): JSX.Element {
         onClear={() => {
           write("");
           setOpen(false);
+          onDismiss?.();
         }}
         onFocus={() => setOpen(true)}
         onKeyDown={(event) => {
           if (event.key === "Escape") {
-            setOpen(false);
+            if (showing && term !== "") setOpen(false);
+            else onDismiss?.();
           }
           if (event.key === "ArrowDown" && showing) {
             event.preventDefault();

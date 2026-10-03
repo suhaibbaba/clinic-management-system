@@ -124,7 +124,9 @@
     "skipToContent": "Skip to Content",
     "sidebar": "Sidebar",
     "back": "Back to {{to}}",
-    "payroll": "Payroll"
+    "payroll": "Payroll",
+    "openSearch": "Open Search",
+    "closeSearch": "Close Search"
   },
   "roles": {
     "admin": "Admin",
@@ -1964,9 +1966,7 @@
     "search": "Search permissions",
     "expandAll": "Expand All",
     "collapseAll": "Collapse All",
-    "noMatch": "No permission matches your search",
-    "count_one": "{{count}} permission",
-    "count_other": "{{count}} permissions"
+    "noMatch": "No permission matches your search"
   },
   "notifications": {
     "pendingBookings": "Online Bookings Awaiting an Answer",
