@@ -12,3 +12,11 @@ export const RULE = {
 } as const;
 
 export type Rule = (typeof RULE)[keyof typeof RULE];
+
+export const CLINIC_MODULE = {
+  ASSISTANT: "assistant",
+} as const;
+
+export const CLINIC_MODULES = Object.values(CLINIC_MODULE);
+
+export type ClinicModule = (typeof CLINIC_MODULE)[keyof typeof CLINIC_MODULE];

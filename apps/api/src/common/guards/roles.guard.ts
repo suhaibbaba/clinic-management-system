@@ -36,6 +36,12 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException("Insufficient role");
     }
 
+    const capability = this.registry.keyFor(context.getHandler(), context.getClass());
+
+    if (!(await this.permissions.available(user.clinicId, capability))) {
+      throw new ForbiddenException("This module is not enabled for the clinic");
+    }
+
     if (user.role === USER_ROLE.ADMIN) {
       return true;
     }
@@ -45,8 +51,6 @@ export class RolesGuard implements CanActivate {
     if (selfParam && params?.[selfParam] === user.id) {
       return true;
     }
-
-    const capability = this.registry.keyFor(context.getHandler(), context.getClass());
 
     if (await this.permissions.allows(user.clinicId, user.role, capability)) {
       return true;

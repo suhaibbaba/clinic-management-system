@@ -1,8 +1,5 @@
 import { procedureCatalog } from "@api/database/schema";
-import {
-  type ProcedureCatalogItem,
-  type ProcedureCatalogPriceView,
-} from "@clinic/shared";
+import { type ProcedureCatalogItem, type ProcedureCatalogPriceView } from "@clinic/shared";
 
 export type CatalogRow = typeof procedureCatalog.$inferSelect;
 

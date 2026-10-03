@@ -400,6 +400,13 @@
       "when": 1791042407465,
       "tag": "0056_refresh_token_persistent",
       "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1791048180644,
+      "tag": "0057_clinic_modules",
+      "breakpoints": true
     }
   ]
 }

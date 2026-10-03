@@ -484,7 +484,7 @@ describe("Outbound messages (e2e)", () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it("stays the admin's even when the matrix grants it to somebody else", async () => {
+    it("follows the matrix like every other capability", async () => {
       const permissions = context.app.get(PermissionsService);
       const admin = main.clinic.userIds[USER_ROLE.ADMIN];
 
@@ -501,7 +501,7 @@ describe("Outbound messages (e2e)", () => {
           [CLINIC_SECRET_KIND.OPENAI_API_KEY]: KEY,
         });
 
-        expect(response.statusCode).toBe(403);
+        expect(response.statusCode).toBe(200);
       } finally {
         await permissions.set(
           main.clinic.id,

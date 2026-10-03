@@ -5,7 +5,11 @@ import { type UserRole } from "@clinic/shared";
 import { CAPABILITY_KEY } from "@api/common/decorators/capability.decorator";
 import { ROLES_KEY } from "@api/common/decorators/roles.decorator";
 import { IS_PUBLIC_KEY } from "@api/common/decorators/public.decorator";
-import { Capability, scopeOf } from "@api/modules/permissions/lib/capability-registry";
+import {
+  Capability,
+  MODULE_OF_RESOURCE,
+  scopeOf,
+} from "@api/modules/permissions/lib/capability-registry";
 import { joinPath, METHOD_NAMES } from "@api/common/lib/routes";
 import { RULE_CAPABILITIES } from "@api/modules/permissions/lib/rules";
 
@@ -64,12 +68,15 @@ export class CapabilityRegistry implements OnApplicationBootstrap {
           String(this.reflector.get<string>(PATH_METADATA, handler) ?? ""),
         );
 
+        const resource = path.split("/")[1] ?? "root";
+
         this.byKey.set(key, {
           key,
-          resource: path.split("/")[1] ?? "root",
+          resource,
           method: METHOD_NAMES[methodCode] ?? "GET",
           path,
           defaultRoles: [...declared],
+          module: MODULE_OF_RESOURCE[resource],
         });
       }
     }

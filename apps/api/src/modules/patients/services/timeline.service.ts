@@ -12,7 +12,11 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
-import { TIMELINE_TYPE_CAPABILITY, TimelineRow, toTimelineEntry } from "@api/modules/patients/lib/timeline";
+import {
+  TIMELINE_TYPE_CAPABILITY,
+  TimelineRow,
+  toTimelineEntry,
+} from "@api/modules/patients/lib/timeline";
 
 @Injectable()
 export class TimelineService {

@@ -1,7 +1,13 @@
 import { Inject, Injectable, type OnApplicationShutdown, type OnModuleInit } from "@nestjs/common";
 import { AppointmentAccessService } from "@api/modules/appointments/services/appointment-access.service";
 import { VIEW_CAPABILITIES } from "@api/modules/ai/query/catalogue";
-import { AI_TOOL_ERROR, USER_ROLE, type AiTableView, type AiToolError } from "@clinic/shared";
+import {
+  AI_TOOL_ERROR,
+  CLINIC_MODULE,
+  USER_ROLE,
+  type AiTableView,
+  type AiToolError,
+} from "@clinic/shared";
 import type { Sql } from "postgres";
 import {
   guardQuery,
@@ -52,6 +58,7 @@ export class QueryDataService implements OnModuleInit, OnApplicationShutdown {
       method: "GET",
       path: "/ai/query",
       defaultRoles: [USER_ROLE.ADMIN, USER_ROLE.DOCTOR],
+      module: CLINIC_MODULE.ASSISTANT,
     });
   }
 

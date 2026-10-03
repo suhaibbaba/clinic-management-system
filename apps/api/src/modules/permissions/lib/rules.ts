@@ -1,7 +1,11 @@
 import { RULE, USER_ROLE } from "@clinic/shared";
 import { type Capability } from "@api/modules/permissions/lib/capability-registry";
 
-const rule = (key: string, resource: string, defaultRoles: Capability["defaultRoles"]): Capability => ({
+const rule = (
+  key: string,
+  resource: string,
+  defaultRoles: Capability["defaultRoles"],
+): Capability => ({
   key,
   resource,
   method: "RULE",

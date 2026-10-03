@@ -24,8 +24,7 @@ export class DashboardService {
     const date = await this.appointments.localToday(actor.clinicId);
 
     const ownDoctorId = await this.access.ownDoctorId(actor);
-    const unmatchedDoctor =
-      ownDoctorId === null && !(await this.access.seesAllCalendars(actor));
+    const unmatchedDoctor = ownDoctorId === null && !(await this.access.seesAllCalendars(actor));
 
     const today = unmatchedDoctor
       ? undefined
