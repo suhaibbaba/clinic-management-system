@@ -19,20 +19,13 @@
     background: var(--color-paper);
   }
 
-  body * {
-    visibility: hidden;
+  body:has(> .print-root) > :not(.print-root) {
+    display: none !important;
   }
 
-  .print-root,
-  .print-root * {
-    visibility: visible;
-  }
-
-  .print-root {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+  .print-root img {
+    opacity: 1 !important;
+    transition: none !important;
   }
 
   .print-sheet {

@@ -32,6 +32,8 @@ import { errorToast } from "@web/shared/lib/api-error";
 import { todayIso } from "@web/shared/lib/dates";
 import { formatDate, formatMonth, moneyText } from "@web/shared/lib/format";
 import { useClinic } from "@web/shared/queries/clinic";
+import { PrintRoot } from "@web/shared/components/print-root";
+import { usePrint } from "@web/shared/hooks/use-print";
 
 export function PayrollPage(): JSX.Element {
   const { t } = useTranslation();
@@ -52,7 +54,7 @@ export function PayrollPage(): JSX.Element {
   const [paying, setPaying] = useState<PayrollLine | null>(null);
   const [detailsFor, setDetailsFor] = useState<PayrollLine | null>(null);
   const [closing, setClosing] = useState(false);
-  const [printing, setPrinting] = useState(false);
+  const { printing, print } = usePrint();
 
   const data = payroll.data;
   const isClosed = data?.closedAt !== null && data?.closedAt !== undefined;
@@ -66,11 +68,6 @@ export function PayrollPage(): JSX.Element {
       },
       { replace: true },
     );
-
-  const print = (): void => {
-    setPrinting(true);
-    requestAnimationFrame(() => window.print());
-  };
 
   const columns: Column<PayrollLine>[] = [
     {
@@ -320,9 +317,9 @@ export function PayrollPage(): JSX.Element {
       />
 
       {printing && data && (
-        <div className="print-root">
+        <PrintRoot>
           <PayrollPrint payroll={data} clinic={clinic.data} />
-        </div>
+        </PrintRoot>
       )}
     </div>
   );

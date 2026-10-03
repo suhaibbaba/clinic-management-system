@@ -1,5 +1,5 @@
 import { PERFORMED_PROCEDURE_STATUS, type PatientClinicalView } from "@clinic/shared";
-import { useState, type JSX } from "react";
+import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -20,6 +20,8 @@ import { TreatmentsPanel } from "@web/modules/patients/components/treatments/tre
 import { summarizeTreatments } from "@web/modules/patients/lib/treatments/treatments";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { TREATMENT_FILTERS } from "@web/modules/patients/constants";
+import { PrintRoot } from "@web/shared/components/print-root";
+import { usePrint } from "@web/shared/hooks/use-print";
 
 type TreatmentFilter = (typeof TREATMENT_FILTERS)[number];
 
@@ -37,7 +39,7 @@ export function TreatmentPlansTab({
   const treatments = usePatientProcedures(patientId);
   const showSkeleton = useDelayedLoading(treatments.isPending);
   const [filter, setFilter] = useTabParam<TreatmentFilter>("status", TREATMENT_FILTERS, "all");
-  const [printing, setPrinting] = useState(false);
+  const { printing, print } = usePrint();
 
   const showPrices = user ? canSeePrices(can) : false;
 
@@ -69,11 +71,6 @@ export function TreatmentPlansTab({
       treatment.status === PERFORMED_PROCEDURE_STATUS.IN_PROGRESS,
   );
   const currency = clinic.data?.currency ?? "";
-
-  const print = (): void => {
-    setPrinting(true);
-    requestAnimationFrame(() => window.print());
-  };
 
   return (
     <div data-testid="treatment-plan-tab" className="flex flex-col gap-4">
@@ -149,7 +146,7 @@ export function TreatmentPlansTab({
       />
 
       {printing && (
-        <div data-testid="treatment-plan-print-root" className="print-root">
+        <PrintRoot data-testid="treatment-plan-print-root">
           <PlanPrint
             treatments={quoted}
             clinic={clinic.data}
@@ -157,7 +154,7 @@ export function TreatmentPlansTab({
             fileNumber={patient?.fileNumber ?? ""}
             catalog={catalog.data ?? []}
           />
-        </div>
+        </PrintRoot>
       )}
     </div>
   );
