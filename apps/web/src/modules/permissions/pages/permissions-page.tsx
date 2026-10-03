@@ -1,37 +1,17 @@
 import { type UserRole } from "@clinic/shared";
-import { useMemo, type JSX } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Card,
-  EmptyState,
-  Icon,
-  PageHeader,
-  SegmentedControl,
-  Switch,
-  useTabParam,
-  useToast,
-} from "@clinic/ui";
+import { useSearchParams } from "react-router-dom";
+import { Button, EmptyState, Icon, PageHeader, SearchField, useToast } from "@clinic/ui";
 import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { usePermissions, useUpdateRolePermission } from "@web/modules/permissions/queries";
+import { PermissionSectionCard } from "@web/modules/permissions/components/permission-section-card";
+import { buildSections, filterSections } from "@web/modules/permissions/lib/permission-sections";
+import { useDebounced } from "@web/shared/hooks/use-debounced";
 import { errorToast } from "@web/shared/lib/api-error";
 import { ellipsis } from "@web/i18n/ellipsis";
-import {
-  EDITABLE_ROLES,
-  FOLDED_CAPABILITIES,
-  PAIRED_CAPABILITIES,
-  ROLE_TABS,
-} from "@web/modules/permissions/constants";
 
-interface Permission {
-  readonly keys: readonly string[];
-  readonly label: string;
-}
-
-interface Section {
-  readonly title: string;
-  hint: string;
-  readonly permissions: Permission[];
-}
+type Allows = Readonly<Record<string, boolean>>;
 
 export function PermissionsPage(): JSX.Element {
   const { t, i18n } = useTranslation();
@@ -39,42 +19,56 @@ export function PermissionsPage(): JSX.Element {
   const permissions = usePermissions();
   const update = useUpdateRolePermission();
   const { showSkeleton } = useQueryLoading(permissions);
+  const [params, setParams] = useSearchParams();
 
-  const [role, setRole] = useTabParam<UserRole>("role", ROLE_TABS, EDITABLE_ROLES[0]);
+  const query = params.get("q") ?? "";
+  const [search, setSearch] = useState(query);
+  const debounced = useDebounced(search);
+  const [open, setOpen] = useState<ReadonlySet<string>>(new Set());
 
-  const current = permissions.data?.roles.find((entry) => entry.role === role);
-  const locked = current?.locked ?? false;
+  useEffect(() => {
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        if (debounced.trim() === "") next.delete("q");
+        else next.set("q", debounced);
+        return next;
+      },
+      { replace: true },
+    );
+  }, [debounced, setParams]);
 
-  const sections = useMemo<Section[]>(() => {
-    const byTitle = new Map<string, Section>();
-
-    for (const capability of permissions.data?.capabilities ?? []) {
-      if (FOLDED_CAPABILITIES.has(capability.key)) {
-        continue;
-      }
-
-      const title = t(`permissions.resources.${capability.resource}`, {
-        defaultValue: capability.resource,
-      });
-      const section = byTitle.get(title) ?? { title, hint: "", permissions: [] };
-      const paired = PAIRED_CAPABILITIES[capability.key];
-
-      section.hint ||= t(`permissions.hints.${capability.resource}`, { defaultValue: "" });
-      section.permissions.push({
-        keys: paired ? [capability.key, paired] : [capability.key],
-        label: t(`permissions.capabilities.${capability.key}`, { defaultValue: capability.key }),
-      });
-      byTitle.set(title, section);
+  const allows = useMemo(() => {
+    const map = new Map<UserRole, Allows>();
+    for (const entry of permissions.data?.roles ?? []) {
+      map.set(entry.role, entry.allows);
     }
+    return map;
+  }, [permissions.data]);
 
-    for (const section of byTitle.values()) {
-      section.permissions.sort((a, b) => a.label.localeCompare(b.label, i18n.language));
-    }
+  const sections = useMemo(
+    () => buildSections(permissions.data?.capabilities ?? [], t, i18n.language),
+    [permissions.data, t, i18n.language],
+  );
 
-    return [...byTitle.values()].sort((a, b) => a.title.localeCompare(b.title, i18n.language));
-  }, [permissions.data, t, i18n.language]);
+  const shown = useMemo(() => filterSections(sections, query), [sections, query]);
+  const searching = query.trim() !== "";
+  const allOpen = shown.length > 0 && shown.every((section) => open.has(section.id));
 
-  const toggle = async (keys: readonly string[], allowed: boolean): Promise<void> => {
+  const toggleSection = (id: string): void => {
+    setOpen((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggle = async (
+    role: UserRole,
+    keys: readonly string[],
+    allowed: boolean,
+  ): Promise<void> => {
     try {
       for (const capability of keys) {
         await update.mutateAsync({ role, capability, allowed });
@@ -92,27 +86,43 @@ export function PermissionsPage(): JSX.Element {
         subtitle="permissions.subtitle"
       />
 
-      <p data-testid="permissions-intro" className="text-value text-ink-muted">
+      <p data-testid="permissions-intro" className="max-w-(--form-max) text-value text-ink-muted">
         {t("permissions.intro")}
       </p>
 
-      <SegmentedControl
-        data-testid="permissions-role"
-        label={t("permissions.role")}
-        value={role}
-        onChange={setRole}
-        options={ROLE_TABS.map((value) => ({ value, label: t(`roles.${value}`) }))}
-      />
+      <p
+        data-testid="permissions-admin-locked"
+        className="flex items-start gap-2 rounded-panel border border-primary-200 bg-primary-50 px-3.5 py-2.5 text-value text-primary-900"
+      >
+        <Icon name="lock" className="mt-0.5 size-4 shrink-0" />
+        {t("permissions.adminLocked")}
+      </p>
 
-      {locked && (
-        <p
-          data-testid="permissions-admin-locked"
-          className="flex items-center gap-2 rounded-panel border border-primary-200 bg-primary-50 px-3.5 py-2.5 text-value text-primary-900"
-        >
-          <Icon name="lock" className="size-4 shrink-0" />
-          {t("permissions.adminLocked")}
-        </p>
-      )}
+      <div data-testid="permissions-toolbar" className="flex flex-wrap items-center gap-3">
+        <SearchField
+          data-testid="permissions-search"
+          className="min-w-0 flex-1 md:max-w-(--field-max)"
+          label={t("permissions.search")}
+          placeholder={t("permissions.search")}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          onClear={() => setSearch("")}
+          clearLabel={t("common.clear")}
+        />
+
+        {!searching && shown.length > 0 && (
+          <Button
+            data-testid="permissions-expand-all"
+            variant="secondary"
+            icon={<Icon name={allOpen ? "chevron-up" : "chevron-down"} />}
+            onClick={() =>
+              setOpen(allOpen ? new Set() : new Set(shown.map((section) => section.id)))
+            }
+          >
+            {t(allOpen ? "permissions.collapseAll" : "permissions.expandAll")}
+          </Button>
+        )}
+      </div>
 
       {showSkeleton && <p className="text-value text-ink-muted">{ellipsis(t("common.loading"))}</p>}
 
@@ -120,35 +130,24 @@ export function PermissionsPage(): JSX.Element {
         <EmptyState icon="alert" data-testid="permissions-error" title="errors.unknown" />
       )}
 
-      {!showSkeleton &&
-        current &&
-        sections.map((section) => (
-          <Card key={section.title} data-testid={`permissions-section-${section.title}`}>
-            <h2 className="text-heading font-medium text-ink">{section.title}</h2>
-            {section.hint && <p className="mt-0.5 text-meta text-ink-muted">{section.hint}</p>}
+      {!showSkeleton && permissions.data && shown.length === 0 && (
+        <EmptyState icon="search" data-testid="permissions-empty" title="permissions.noMatch" />
+      )}
 
-            <ul className="mt-3 grid gap-x-8 lg:grid-cols-2">
-              {section.permissions.map((permission) => (
-                <li
-                  key={permission.keys[0]}
-                  data-testid={`permission-${permission.keys[0] ?? ""}`}
-                  className="flex items-center justify-between gap-4 border-t border-line py-2"
-                >
-                  <span className="min-w-0 truncate text-value text-ink">{permission.label}</span>
-
-                  <Switch
-                    data-testid={`permission-switch-${permission.keys[0] ?? ""}`}
-                    checked={permission.keys.every((key) => current.allows[key])}
-                    disabled={locked}
-                    onCheckedChange={(next) => void toggle(permission.keys, next)}
-                    label={permission.label}
-                    hideLabel
-                  />
-                </li>
-              ))}
-            </ul>
-          </Card>
-        ))}
+      {!showSkeleton && permissions.data && (
+        <div className="flex flex-col gap-3">
+          {shown.map((section) => (
+            <PermissionSectionCard
+              key={section.id}
+              section={section}
+              allows={allows}
+              expanded={searching || open.has(section.id)}
+              onToggle={() => toggleSection(section.id)}
+              onChange={(role, row, allowed) => void toggle(role, row.keys, allowed)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

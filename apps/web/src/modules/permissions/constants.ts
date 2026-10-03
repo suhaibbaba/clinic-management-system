@@ -1,4 +1,4 @@
-import { USER_ROLE, type UserRole } from "@clinic/shared";
+import { USER_ROLE } from "@clinic/shared";
 
 export const EDITABLE_ROLES = [
   USER_ROLE.DOCTOR,
@@ -6,8 +6,6 @@ export const EDITABLE_ROLES = [
   USER_ROLE.RECEPTIONIST,
   USER_ROLE.TECHNICIAN,
 ] as const;
-
-export const ROLE_TABS: readonly UserRole[] = [...EDITABLE_ROLES, USER_ROLE.ADMIN];
 
 export const PAIRED_CAPABILITIES: Record<string, string> = {
   "patient-attachments.presignUpload": "patient-attachments.confirmUpload",

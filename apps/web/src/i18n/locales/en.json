@@ -1957,9 +1957,16 @@
       "doctor-extra-hours": "Doctors",
       "translations": "Interface Text"
     },
-    "role": "Role",
     "subtitle": "What each role is able to do",
-    "title": "Permissions"
+    "title": "Permissions",
+    "permission": "Permission",
+    "cell": "{{role}}: {{permission}}",
+    "search": "Search permissions",
+    "expandAll": "Expand All",
+    "collapseAll": "Collapse All",
+    "noMatch": "No permission matches your search",
+    "count_one": "{{count}} permission",
+    "count_other": "{{count}} permissions"
   },
   "notifications": {
     "pendingBookings": "Online Bookings Awaiting an Answer",
