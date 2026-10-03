@@ -75,11 +75,6 @@ export function UsersPage(): JSX.Element {
   });
   const updateUser = useUpdateUser();
 
-  const formUser =
-    formUserId === null
-      ? null
-      : ((query.data?.items ?? []).find((row) => row.id === formUserId) ?? null);
-
   const remove = async (): Promise<void> => {
     if (!deleting) {
       return;
@@ -351,7 +346,7 @@ export function UsersPage(): JSX.Element {
         data-testid="user-form-modal"
         open={formOpen}
         onOpenChange={setFormOpen}
-        user={formUser}
+        userId={formUserId}
       />
       <ResetPasswordModal
         data-testid="reset-password-modal"

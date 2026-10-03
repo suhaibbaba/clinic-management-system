@@ -54,11 +54,8 @@ export function PasskeysSection(): JSX.Element {
   );
 
   return (
-    <section
-      data-testid="profile-passkeys"
-      className="border border-line rounded-card bg-surface shadow-card p-4 lg:col-span-2"
-    >
-      <h2 className="text-heading font-medium text-ink">{t("profile.passkeys.title")}</h2>
+    <div data-testid="profile-passkeys">
+      <h3 className="text-value font-semibold text-ink">{t("profile.passkeys.title")}</h3>
       <p className="mt-1 text-value text-ink-muted">{t("profile.passkeys.subtitle")}</p>
 
       {passkeys.data && passkeys.data.length > 0 ? (
@@ -151,6 +148,6 @@ export function PasskeysSection(): JSX.Element {
       )}
 
       {dialog}
-    </section>
+    </div>
   );
 }

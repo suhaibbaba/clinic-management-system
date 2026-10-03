@@ -461,46 +461,61 @@ describe("Auth (e2e)", () => {
     });
   });
 
-  describe("change password", () => {
-    it("changes the password and revokes existing sessions", async () => {
-      const phone = clinic.phones[USER_ROLE.TECHNICIAN];
-      const loggedIn = await login(phone);
-      const session = loggedIn.json();
-      const sessionToken = refreshCookie(loggedIn)?.value ?? "";
-      const newPassword = "RotatedPassword456!";
+  describe("a password link to yourself", () => {
+    let sent: OutboundEmail[];
 
-      const changed = await context.app.inject({
-        method: "POST",
-        url: "/me/change-password",
-        headers: auth(session.accessToken),
-        payload: { currentPassword: TEST_PASSWORD, newPassword },
-      });
-
-      expect(changed.statusCode).toBe(204);
-
-      expect((await login(phone)).statusCode).toBe(401);
-      expect((await login(phone, newPassword)).statusCode).toBe(200);
-
-      const refreshAfterChange = await context.app.inject({
-        method: "POST",
-        url: "/auth/refresh",
-        headers: withCookie(sessionToken),
-        payload: {},
-      });
-      expect(refreshAfterChange.statusCode).toBe(401);
+    beforeEach(() => {
+      sent = [];
+      jest
+        .spyOn(context.app.get<EmailProvider>(EMAIL_PROVIDER), "send")
+        .mockImplementation((email) => {
+          sent.push(email);
+          return Promise.resolve();
+        });
     });
 
-    it("rejects a wrong current password", async () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    const sendReset = async (role: UserRole, id: string) =>
+      context.app.inject({
+        method: "POST",
+        url: `/users/${id}/send-password-reset`,
+        headers: auth(await context.login(clinic.phones[role])),
+        payload: {},
+      });
+
+    it("emails anybody a link to their own address", async () => {
+      const [row] = await context.db
+        .select({ email: users.email })
+        .from(users)
+        .where(eq(users.id, clinic.userIds[USER_ROLE.TECHNICIAN]));
+
+      const response = await sendReset(USER_ROLE.TECHNICIAN, clinic.userIds[USER_ROLE.TECHNICIAN]);
+
+      expect(response.statusCode).toBe(204);
+      expect(sent.map((email) => email.to)).toEqual([row?.email]);
+    });
+
+    it("sends nothing for a colleague's account", async () => {
+      const response = await sendReset(USER_ROLE.TECHNICIAN, clinic.userIds[USER_ROLE.DOCTOR]);
+
+      expect(response.statusCode).toBe(403);
+      expect(sent).toEqual([]);
+    });
+
+    it("no longer changes a password on /me", async () => {
       const token = await context.login(clinic.phones[USER_ROLE.RECEPTIONIST]);
 
       const response = await context.app.inject({
         method: "POST",
         url: "/me/change-password",
         headers: auth(token),
-        payload: { currentPassword: "WrongCurrent1", newPassword: "Whatever12345" },
+        payload: { currentPassword: TEST_PASSWORD, newPassword: "Whatever12345" },
       });
 
-      expect(response.statusCode).toBe(401);
+      expect(response.statusCode).toBe(404);
     });
   });
 

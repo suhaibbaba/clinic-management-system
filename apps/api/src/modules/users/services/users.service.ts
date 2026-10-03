@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   type OnModuleInit,
@@ -11,6 +12,7 @@ import {
   ALLOWED_USER_PHOTO_MIME_TYPES,
   AUDIT_ACTION,
   MAX_USER_PHOTO_BYTES,
+  USER_ROLE,
   type ConfirmUserPhotoInput,
   type CreateUserInput,
   type ListUsersQuery,
@@ -157,6 +159,16 @@ export class UsersService implements OnModuleInit {
 
     if (input.role !== undefined && input.role !== existing.role) {
       assertNotDoctorRole(input.role);
+    }
+
+    if (
+      id === actor.id &&
+      actor.role !== USER_ROLE.ADMIN &&
+      ((input.role !== undefined && input.role !== existing.role) ||
+        (input.isActive !== undefined && input.isActive !== existing.isActive) ||
+        (input.joinedOn !== undefined && input.joinedOn !== existing.joinedOn))
+    ) {
+      throw new ForbiddenException("Only an administrator changes a role, status or joining date");
     }
 
     if (id === actor.id) {

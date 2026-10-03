@@ -467,16 +467,16 @@
     "period": "Period"
   },
   "profile": {
+    "passwordLinkHint": "We'll email you a link that opens a secure page where you choose the new password.",
+    "passwordNoEmail": "Add an email address to your account to get a password link, or ask the administrator.",
+    "sendPasswordLink": "Email me a link",
+    "passwordLinkSent": "Link sent to {{email}}",
     "changePassword": "Change password",
-    "currentPassword": "Current password",
+    "signIn": "Signing in",
     "details": "My details",
     "edit": "Edit my details",
-    "identifierHint": "You sign in with this, so change it knowingly.",
-    "newPassword": "New password",
-    "passwordChanged": "Password changed, please sign in again",
     "subtitle": "Your details and password",
     "title": "My account",
-    "updated": "Your details were saved",
     "passkeys": {
       "title": "Passkeys",
       "subtitle": "Sign in with your fingerprint, face or device PIN instead of a password. Add one on each device you use.",
@@ -513,7 +513,6 @@
       "invalidEmail": "Invalid email address",
       "invalidPhone": "Not a valid phone number",
       "passwordMin": "Password must be at least 8 characters",
-      "passwordSame": "The new password must differ from the current one",
       "yearOutOfRange": "That year is not right — use a date between 1900 and 2100",
       "dateInFuture": "This date cannot be in the future",
       "dateInPast": "This date cannot be in the past"

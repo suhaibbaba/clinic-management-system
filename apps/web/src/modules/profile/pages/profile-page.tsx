@@ -1,62 +1,46 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { changePasswordSchema, personName, type ChangePasswordInput } from "@clinic/shared";
+import { personName } from "@clinic/shared";
 import { useState, type JSX } from "react";
-import { useForm } from "react-hook-form";
-import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import {
   Avatar,
   Badge,
   Button,
   EmailLink,
-  FormField,
   Icon,
   PageHeader,
-  PasswordInput,
   PersonName,
   PhoneLink,
   useToast,
 } from "@clinic/ui";
-import { authApi } from "@web/shared/api/auth";
-import { ProfileFormModal } from "@web/modules/profile/components/profile-form-modal";
+import { sendPasswordReset } from "@web/shared/api/users";
+import { UserFormModal } from "@web/modules/users/components/user-form-modal";
 import { PasskeysSection } from "@web/modules/profile/components/passkeys-section";
 import { useSession } from "@web/shared/providers/session";
-import { ApiError, errorMessageKey } from "@web/shared/lib/api-error";
+import { errorToast } from "@web/shared/lib/api-error";
 
 export function ProfilePage(): JSX.Element {
   const { t, i18n } = useTranslation();
   const toast = useToast();
-  const { user, logout } = useSession();
+  const { user } = useSession();
   const [editing, setEditing] = useState(false);
+  const [sendingLink, setSendingLink] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting, isValid },
-  } = useForm<ChangePasswordInput>({
-    mode: "onTouched",
-    resolver: zodResolver(changePasswordSchema),
-    defaultValues: { currentPassword: "", newPassword: "" },
-  });
+  const sendLink = async (): Promise<void> => {
+    if (!user?.email || sendingLink) {
+      return;
+    }
 
-  const onSubmit = handleSubmit(
-    async (values) => {
-      try {
-        await authApi.changePassword(values);
-        reset();
-        toast.success("profile.passwordChanged");
-        await logout();
-      } catch (error) {
-        toast.error(
-          error instanceof ApiError && error.statusCode === 401
-            ? "auth.invalidCredentials"
-            : errorMessageKey(error),
-        );
-      }
-    },
-    () => revealFirstError(),
-  );
+    setSendingLink(true);
+
+    try {
+      await sendPasswordReset(user.id);
+      toast.success("profile.passwordLinkSent", { email: user.email });
+    } catch (error) {
+      toast.error(...errorToast(error));
+    } finally {
+      setSendingLink(false);
+    }
+  };
 
   return (
     <div data-testid="profile-page" className="flex flex-col gap-5">
@@ -78,11 +62,11 @@ export function ProfilePage(): JSX.Element {
       />
 
       {user && (
-        <ProfileFormModal
+        <UserFormModal
           data-testid="profile-form-modal"
           open={editing}
           onOpenChange={setEditing}
-          user={user}
+          userId={user.id}
         />
       )}
 
@@ -144,69 +128,34 @@ export function ProfilePage(): JSX.Element {
         </section>
 
         <section
-          data-testid="profile-password"
+          data-testid="profile-sign-in"
           className="border border-line rounded-card bg-surface shadow-card p-4"
         >
-          <h2 className="text-heading font-medium text-ink">{t("profile.changePassword")}</h2>
+          <h2 className="text-heading font-medium text-ink">{t("profile.signIn")}</h2>
 
-          <form
-            data-testid="profile-password-form"
-            className="mt-3 flex flex-col gap-4"
-            onSubmit={onSubmit}
-            noValidate
-          >
-            <FormField
-              label="profile.currentPassword"
-              htmlFor="current-password"
-              error={errors.currentPassword}
-              errorKey={errors.currentPassword ? "errors.validation.passwordMin" : undefined}
-            >
-              <PasswordInput
-                placeholder={t("common.placeholders.password")}
-                id="current-password"
-                data-testid="profile-field-current-password"
-                autoComplete="current-password"
-                hasError={errors.currentPassword !== undefined}
-                {...register("currentPassword")}
-              />
-            </FormField>
-
-            <FormField
-              label="profile.newPassword"
-              htmlFor="new-password"
-              error={errors.newPassword}
-              errorKey={
-                errors.newPassword?.type === "custom"
-                  ? "errors.validation.passwordSame"
-                  : errors.newPassword
-                    ? "errors.validation.passwordMin"
-                    : undefined
-              }
-            >
-              <PasswordInput
-                placeholder={t("common.placeholders.password")}
-                id="new-password"
-                data-testid="profile-field-new-password"
-                autoComplete="new-password"
-                hasError={errors.newPassword !== undefined}
-                {...register("newPassword")}
-              />
-            </FormField>
+          <div data-testid="profile-password" className="mt-3">
+            <h3 className="text-value font-semibold text-ink">{t("profile.changePassword")}</h3>
+            <p className="mt-1 text-label text-ink-muted">
+              {t(user?.email ? "profile.passwordLinkHint" : "profile.passwordNoEmail")}
+            </p>
 
             <Button
-              icon={<Icon name="key" />}
-              type="submit"
-              aria-disabled={!isValid || isSubmitting || undefined}
-              data-testid="profile-change-password"
-              isLoading={isSubmitting}
-              className="self-start"
+              icon={<Icon name="mail" />}
+              variant="secondary"
+              data-testid="profile-send-password-link"
+              isLoading={sendingLink}
+              aria-disabled={!user?.email || sendingLink || undefined}
+              className="mt-3"
+              onClick={() => void sendLink()}
             >
-              {t("profile.changePassword")}
+              {t("profile.sendPasswordLink")}
             </Button>
-          </form>
-        </section>
+          </div>
 
-        <PasskeysSection />
+          <div className="mt-4 border-t border-line pt-4">
+            <PasskeysSection />
+          </div>
+        </section>
       </div>
     </div>
   );

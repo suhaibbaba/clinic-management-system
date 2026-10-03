@@ -32,7 +32,7 @@ Legend: **C** create · **R** read · **U** update · **D** soft-delete · — n
 | Resource | admin | doctor | technician | receptionist |
 |---|---|---|---|---|
 | Clinic settings, templates | CRUD | R | R | R |
-| Users & roles | CRUD | — | — | — |
+| Users & roles | CRUD | own RU¹ | own RU¹ | own RU¹ |
 | Doctors & schedules | CRUD | R (own U: schedule) | R | R |
 | Doctor time off | CRUD | R (own CRUD) | R | R |
 | Clinic closures | CRUD | R | R | R |
@@ -113,6 +113,8 @@ Everything a `doctor` may do on a patient's clinical record, scoped by global ru
 A visiting doctor is a contractor, not staff. Only `admin` creates one, from the Doctors page (`POST /doctors/visiting`): the account and its `doctors` row together, with a specialty, a default appointment length, optional working days and the clinic's share, and without a password. Without working days they are bookable any time the clinic is open. They are never offered on the public booking page. The users screen may not create or assign the role. The admin activates the account later by invitation or by setting a password.
 
 **Settlement.** Only `admin` sees and changes a visiting doctor's settlement (`/doctors/:id/settlement`, `/settlement-treatments/:id`, `/doctors/:id/payouts`, `/doctor-payouts/:id/reverse`): per done treatment, price after discount − materials = net; the clinic takes its percentage of the net (the doctor's default, or a per-treatment override, down to 0) and the rest is the doctor's. Materials default to linked lab work plus stock used, and can be overridden (0 included). Payments to the doctor are an append-only ledger corrected by reversal. The clinic's share is never serialized on the doctor record.
+
+**Own account.**¹ Every signed-in user, a visiting doctor included, reads and edits their own account through the same routes the admin uses (`GET`/`PATCH /users/:id`, `/users/:id/photo*`, `POST /users/:id/send-password-reset` on their own id): name, phone, email and photo, and a password link to their own email, which opens the secure set-password page. There is no in-app password change. A role, status or joining date is the admin's; changing your own is a 403. Another user's account is a 403 unless the clinic grants the capability.
 
 **Payroll.** Only `admin` sees or changes pay (`/payroll/*`, `/payroll-adjustments/:id/reverse`, `/staff-payments/:id/reverse`). Every staff member except a visiting doctor has a monthly salary that applies from a month onward (a raise is a new row; earlier months keep theirs) and a joining date, never in the future; they appear from the month they joined. Per month: salary + extras − cuts = due; due − paid = remaining. Extras, cuts and payments are append-only and corrected by reversal. Closing a month freezes its salaries, extras and cuts; payments and their reversals still go through. One `staff_payments` ledger holds both salaries and visiting-doctor settlements, and the month's staff cost is salaries due plus visiting-doctor shares.
 

@@ -21,6 +21,7 @@ import { Audit } from "@api/common/decorators/audit.decorator";
 import { AccountInvitationsService } from "@api/modules/email/services/account-invitations.service";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
+import { OrSelf } from "@api/common/decorators/or-self.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { USERS_ENTITY } from "@api/common/constants/audit-entities";
 import { UsersService } from "@api/modules/users/services/users.service";
@@ -51,6 +52,7 @@ export class UsersController {
   }
 
   @Get(":id")
+  @OrSelf()
   findOne(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<User> {
     return this.usersService.findOne(actor, params.id);
   }
@@ -62,6 +64,7 @@ export class UsersController {
   }
 
   @Patch(":id")
+  @OrSelf()
   @Audit(USERS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
     @CurrentUser() actor: AuthenticatedUser,
@@ -81,6 +84,7 @@ export class UsersController {
   }
 
   @Post(":id/send-password-reset")
+  @OrSelf()
   @HttpCode(HttpStatus.NO_CONTENT)
   async sendPasswordReset(
     @CurrentUser() actor: AuthenticatedUser,
@@ -100,6 +104,7 @@ export class UsersController {
   }
 
   @Post(":id/photo/presign")
+  @OrSelf()
   @HttpCode(HttpStatus.OK)
   presignPhoto(
     @CurrentUser() actor: AuthenticatedUser,
@@ -110,6 +115,7 @@ export class UsersController {
   }
 
   @Post(":id/photo")
+  @OrSelf()
   @HttpCode(HttpStatus.OK)
   @Audit(USERS_ENTITY, AUDIT_ACTION.UPDATE)
   confirmPhoto(
@@ -121,6 +127,7 @@ export class UsersController {
   }
 
   @Delete(":id/photo")
+  @OrSelf()
   @Audit(USERS_ENTITY, AUDIT_ACTION.UPDATE)
   removePhoto(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<User> {
     return this.usersService.removePhoto(actor, params.id);
