@@ -472,9 +472,8 @@
     "sendPasswordLink": "Email me a link",
     "passwordLinkSent": "Link sent to {{email}}",
     "changePassword": "Change password",
-    "signIn": "Signing in",
+    "signIn": "Sign in",
     "details": "My details",
-    "edit": "Edit my details",
     "subtitle": "Your details and password",
     "title": "My account",
     "passkeys": {

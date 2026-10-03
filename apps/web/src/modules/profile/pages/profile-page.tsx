@@ -44,22 +44,7 @@ export function ProfilePage(): JSX.Element {
 
   return (
     <div data-testid="profile-page" className="flex flex-col gap-5">
-      <PageHeader
-        data-testid="profile-header"
-        title="profile.title"
-        subtitle="profile.subtitle"
-        {...(user && {
-          primaryAction: (
-            <Button
-              icon={<Icon name="edit" />}
-              data-testid="profile-edit"
-              onClick={() => setEditing(true)}
-            >
-              {t("profile.edit")}
-            </Button>
-          ),
-        })}
-      />
+      <PageHeader data-testid="profile-header" title="profile.title" subtitle="profile.subtitle" />
 
       {user && (
         <UserFormModal
@@ -75,7 +60,21 @@ export function ProfilePage(): JSX.Element {
           data-testid="profile-details"
           className="border border-line rounded-card bg-surface shadow-card p-4"
         >
-          <h2 className="text-heading font-medium text-ink">{t("profile.details")}</h2>
+          <div className="flex items-center gap-2 border-b border-line pb-3">
+            <Icon name="user" size="md" className="text-ink-muted" />
+            <h2 className="flex-1 text-heading font-medium text-ink">{t("profile.details")}</h2>
+            {user && (
+              <Button
+                icon={<Icon name="edit" />}
+                variant="secondary"
+                size="sm"
+                data-testid="profile-edit"
+                onClick={() => setEditing(true)}
+              >
+                {t("common.edit")}
+              </Button>
+            )}
+          </div>
 
           <div className="mt-3 flex items-center gap-3">
             <Avatar
@@ -131,7 +130,10 @@ export function ProfilePage(): JSX.Element {
           data-testid="profile-sign-in"
           className="border border-line rounded-card bg-surface shadow-card p-4"
         >
-          <h2 className="text-heading font-medium text-ink">{t("profile.signIn")}</h2>
+          <div className="flex items-center gap-2">
+            <Icon name="lock" size="md" className="text-ink-muted" />
+            <h2 className="text-heading font-medium text-ink">{t("profile.signIn")}</h2>
+          </div>
 
           <div data-testid="profile-password" className="mt-3">
             <h3 className="text-value font-semibold text-ink">{t("profile.changePassword")}</h3>

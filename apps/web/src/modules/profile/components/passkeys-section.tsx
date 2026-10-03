@@ -55,7 +55,10 @@ export function PasskeysSection(): JSX.Element {
 
   return (
     <div data-testid="profile-passkeys">
-      <h3 className="text-value font-semibold text-ink">{t("profile.passkeys.title")}</h3>
+      <h3 className="flex items-center gap-2 text-value font-semibold text-ink">
+        <Icon name="passkey" className="text-ink-muted" />
+        {t("profile.passkeys.title")}
+      </h3>
       <p className="mt-1 text-value text-ink-muted">{t("profile.passkeys.subtitle")}</p>
 
       {passkeys.data && passkeys.data.length > 0 ? (
