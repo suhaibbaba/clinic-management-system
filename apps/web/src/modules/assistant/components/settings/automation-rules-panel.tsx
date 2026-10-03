@@ -11,13 +11,14 @@ import {
 } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, FormField, Icon, Input, SegmentedControl, useToast } from "@clinic/ui";
+import { Card, FormField, Icon, Input, SegmentedControl, useToast } from "@clinic/ui";
 import { Skeleton } from "@clinic/ui/components/skeleton";
 import { outboundErrorKey } from "@web/modules/assistant/lib/messages";
 import { useAutomationSettings, useSaveAutomationSettings } from "@web/modules/assistant/queries";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { UnsavedChanges } from "@web/shared/components/unsaved-changes";
+import { countChanges } from "@web/shared/lib/changes";
 
 export function AutomationRulesPanel(): JSX.Element {
   const { t } = useTranslation();
@@ -71,7 +72,8 @@ export function AutomationRulesPanel(): JSX.Element {
     >
       <UnsavedChanges
         data-testid="assistant-rules-unsaved"
-        dirty={JSON.stringify(draft) !== JSON.stringify(settings.data)}
+        dirty={countChanges(settings.data, draft) > 0}
+        count={countChanges(settings.data, draft)}
         saving={save.isPending}
         invalid={!form.isValid}
         watchParams={["view", "tab"]}
@@ -187,17 +189,6 @@ export function AutomationRulesPanel(): JSX.Element {
           </FormField>
         </div>
       </Card>
-
-      <div className="flex justify-end">
-        <Button
-          type="submit"
-          data-testid="assistant-rules-save"
-          {...(!form.isValid && { "aria-disabled": true })}
-          isLoading={save.isPending}
-        >
-          {t("common.save")}
-        </Button>
-      </div>
     </form>
   );
 }

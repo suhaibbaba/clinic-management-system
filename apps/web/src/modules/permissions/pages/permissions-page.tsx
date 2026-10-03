@@ -10,6 +10,7 @@ import { buildSections, filterSections } from "@web/modules/permissions/lib/perm
 import { useDebounced } from "@web/shared/hooks/use-debounced";
 import { errorToast } from "@web/shared/lib/api-error";
 import { ellipsis } from "@web/i18n/ellipsis";
+import { UnsavedChanges } from "@web/shared/components/unsaved-changes";
 
 type Allows = Readonly<Record<string, boolean>>;
 
@@ -38,13 +39,29 @@ export function PermissionsPage(): JSX.Element {
     );
   }, [debounced, setParams]);
 
-  const allows = useMemo(() => {
+  const [drafts, setDrafts] = useState<Readonly<Record<string, boolean>>>({});
+
+  const saved = useMemo(() => {
     const map = new Map<UserRole, Allows>();
     for (const entry of permissions.data?.roles ?? []) {
       map.set(entry.role, entry.allows);
     }
     return map;
   }, [permissions.data]);
+
+  const pending = Object.entries(drafts).flatMap(([id, allowed]) => {
+    const [role, capability] = id.split("|") as [UserRole, string];
+    return saved.get(role)?.[capability] === allowed ? [] : [{ role, capability, allowed }];
+  });
+
+  const allows = useMemo(() => {
+    const map = new Map<UserRole, Allows>(saved);
+    for (const [id, allowed] of Object.entries(drafts)) {
+      const [role, capability] = id.split("|") as [UserRole, string];
+      map.set(role, { ...map.get(role), [capability]: allowed });
+    }
+    return map;
+  }, [saved, drafts]);
 
   const sections = useMemo(
     () => buildSections(permissions.data?.capabilities ?? [], t, i18n.language),
@@ -71,15 +88,19 @@ export function PermissionsPage(): JSX.Element {
     });
   };
 
-  const toggle = async (
-    role: UserRole,
-    keys: readonly string[],
-    allowed: boolean,
-  ): Promise<void> => {
+  const toggle = (role: UserRole, keys: readonly string[], allowed: boolean): void =>
+    setDrafts((current) => ({
+      ...current,
+      ...Object.fromEntries(keys.map((capability) => [`${role}|${capability}`, allowed])),
+    }));
+
+  const save = async (): Promise<void> => {
     try {
-      for (const capability of keys) {
-        await update.mutateAsync({ role, capability, allowed });
+      for (const change of pending) {
+        await update.mutateAsync(change);
       }
+      setDrafts({});
+      toast.success("permissions.saved");
     } catch (error) {
       toast.error(...errorToast(error));
     }
@@ -150,11 +171,20 @@ export function PermissionsPage(): JSX.Element {
               allows={allows}
               expanded={open.has(section.id)}
               onToggle={() => toggleSection(section.id)}
-              onChange={(role, row, allowed) => void toggle(role, row.keys, allowed)}
+              onChange={(role, row, allowed) => toggle(role, row.keys, allowed)}
             />
           ))}
         </div>
       )}
+      <UnsavedChanges
+        data-testid="permissions-unsaved"
+        dirty={pending.length > 0}
+        count={pending.length}
+        saving={update.isPending}
+        watchParams={["view"]}
+        onSave={() => void save()}
+        onDiscard={() => setDrafts({})}
+      />
     </div>
   );
 }

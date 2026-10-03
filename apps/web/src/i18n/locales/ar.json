@@ -82,7 +82,20 @@
     "unsavedChanges": "تغييرات غير محفوظة",
     "leave": "مغادرة",
     "leaveUnsavedTitle": "المغادرة دون حفظ؟",
-    "leaveUnsavedBody": "ستضيع التغييرات التي لم تُحفظ في هذه الصفحة."
+    "leaveUnsavedBody": "ستضيع التغييرات التي لم تُحفظ في هذه الصفحة.",
+    "unsavedCount_zero": "لا تغييرات غير محفوظة",
+    "unsavedCount_one": "تغيير واحد غير محفوظ",
+    "unsavedCount_two": "تغييران غير محفوظين",
+    "unsavedCount_few": "{{count}} تغييرات غير محفوظة",
+    "unsavedCount_many": "{{count}} تغييرًا غير محفوظ",
+    "unsavedCount_other": "{{count}} تغيير غير محفوظ",
+    "discardChanges_zero": "تجاهل التغييرات؟",
+    "discardChanges_one": "تجاهل تغيير واحد؟",
+    "discardChanges_two": "تجاهل التغييرين؟",
+    "discardChanges_few": "تجاهل {{count}} تغييرات؟",
+    "discardChanges_many": "تجاهل {{count}} تغييرًا؟",
+    "discardChanges_other": "تجاهل {{count}} تغيير؟",
+    "discardChangesBody": "تعود كل الحقول إلى آخر قيمة محفوظة."
   },
   "pagination": {
     "goToPage": "الصفحة {{page}}",
@@ -2015,7 +2028,8 @@
     "search": "ابحث في الصلاحيات",
     "expandAll": "فتح الكل",
     "collapseAll": "إغلاق الكل",
-    "noMatch": "لا توجد صلاحية تطابق البحث"
+    "noMatch": "لا توجد صلاحية تطابق البحث",
+    "saved": "تم حفظ الصلاحيات"
   },
   "notifications": {
     "pendingBookings": "حجوزات إلكترونية بانتظار الرد",
@@ -2042,7 +2056,6 @@
     "searchPlaceholder": "ابحث بالنص أو بالمفتاح",
     "section": "القسم",
     "changedOnly": "المعدّلة فقط ({{count}})",
-    "save": "حفظ",
     "saved": "تم حفظ النص",
     "empty": "لا توجد نصوص مطابقة",
     "emptyHint": "جرّب كلمة أخرى أو غيّر القسم",
@@ -2051,7 +2064,6 @@
     "original": "الأصل",
     "arabic": "العربية",
     "english": "الإنجليزية",
-    "pending": "{{count}} تعديل غير محفوظ",
     "usedIn_zero": "غير مستخدم",
     "usedIn_one": "مستخدم في مكان واحد",
     "usedIn_two": "مستخدم في مكانين",

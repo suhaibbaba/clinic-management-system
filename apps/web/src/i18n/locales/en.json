@@ -82,7 +82,12 @@
     "unsavedChanges": "Unsaved Changes",
     "leave": "Leave",
     "leaveUnsavedTitle": "Leave Without Saving?",
-    "leaveUnsavedBody": "The changes you haven’t saved on this page will be lost."
+    "leaveUnsavedBody": "The changes you haven’t saved on this page will be lost.",
+    "unsavedCount_one": "{{count}} Unsaved Change",
+    "unsavedCount_other": "{{count}} Unsaved Changes",
+    "discardChanges_one": "Discard 1 Change?",
+    "discardChanges_other": "Discard {{count}} Changes?",
+    "discardChangesBody": "Every field goes back to its last saved value."
   },
   "pagination": {
     "goToPage": "Page {{page}}",
@@ -1971,7 +1976,8 @@
     "search": "Search permissions",
     "expandAll": "Expand All",
     "collapseAll": "Collapse All",
-    "noMatch": "No permission matches your search"
+    "noMatch": "No permission matches your search",
+    "saved": "Permissions saved"
   },
   "notifications": {
     "pendingBookings": "Online Bookings Awaiting an Answer",
@@ -1998,7 +2004,6 @@
     "searchPlaceholder": "Search by text or key",
     "section": "Section",
     "changedOnly": "Changed Only ({{count}})",
-    "save": "Save",
     "saved": "Text Saved",
     "empty": "No text matches",
     "emptyHint": "Try another word, or a different section",
@@ -2007,7 +2012,6 @@
     "original": "Original",
     "arabic": "Arabic",
     "english": "English",
-    "pending": "{{count}} unsaved change",
     "usedIn_one": "Used in {{count}} Place",
     "usedIn_other": "Used in {{count}} Places",
     "mixed": "Worded Differently in Some Places"

@@ -58,6 +58,7 @@ import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { CLINIC_APP_ICON_LABELS, CLINIC_LOGO_LABELS } from "@web/modules/clinic/constants";
+import { countChanges } from "@web/shared/lib/changes";
 
 const isCurrency = (value: string): value is Currency =>
   (CURRENCIES as readonly string[]).includes(value);
@@ -132,21 +133,19 @@ export function ClinicPage(): JSX.Element {
     setClinicTimeZone(data);
   }, [clinic.data]);
 
-  const dirty =
-    clinic.data !== undefined &&
-    JSON.stringify(draftFrom(clinic.data)) !==
-      JSON.stringify({
-        nameAr,
-        nameEn,
-        phone,
-        email,
-        address,
-        location,
-        currency,
-        country,
-        workingHours,
-        autoNoShowDays,
-      });
+  const current = {
+    nameAr,
+    nameEn,
+    phone,
+    email,
+    address,
+    location,
+    currency,
+    country,
+    workingHours,
+    autoNoShowDays,
+  };
+  const changes = clinic.data ? countChanges(draftFrom(clinic.data), current) : 0;
 
   const pin = parseCoordinates(location);
   const shortLink = pin === null && isShortMapLink(location);
@@ -216,19 +215,6 @@ export function ClinicPage(): JSX.Element {
         data-testid="clinic-header"
         title="clinic.title"
         subtitle={canEdit ? "clinic.subtitle" : "clinic.readOnly"}
-        actions={
-          canEdit ? (
-            <Button
-              icon={<Icon name="check" />}
-              data-testid="clinic-save"
-              isLoading={updateClinic.isPending}
-              {...(!form.isValid && { "aria-disabled": true })}
-              onClick={() => void save()}
-            >
-              {t("common.save")}
-            </Button>
-          ) : undefined
-        }
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -503,7 +489,8 @@ export function ClinicPage(): JSX.Element {
       {canEdit && (
         <UnsavedChanges
           data-testid="clinic-unsaved"
-          dirty={dirty}
+          dirty={changes > 0}
+          count={changes}
           saving={updateClinic.isPending}
           invalid={!form.isValid}
           onSave={() => void save()}
