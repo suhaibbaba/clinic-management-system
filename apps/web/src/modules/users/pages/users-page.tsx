@@ -184,6 +184,7 @@ export function UsersPage(): JSX.Element {
         key: "actions",
         header: "common.actions",
         actions: true,
+        besideTitleOnMobile: true,
         render: (row) => (
           <RowMenu label={t("users.rowMenu")} data-testid="user-menu">
             {can("users.update") && (

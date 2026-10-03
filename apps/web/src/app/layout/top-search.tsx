@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties, type JSX, type Ref } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Icon, Ltr, SearchField } from "@clinic/ui";
@@ -10,11 +10,10 @@ import { ellipsis } from "@web/i18n/ellipsis";
 import { PATIENTS_PATH, SEARCH_MIN_TERM, SEARCH_SUGGESTIONS } from "@web/shared/constants/layout";
 
 export interface TopSearchProps {
-  readonly fieldRef?: Ref<HTMLInputElement> | undefined;
   readonly onDismiss?: (() => void) | undefined;
 }
 
-export function TopSearch({ fieldRef, onDismiss }: TopSearchProps): JSX.Element {
+export function TopSearch({ onDismiss }: TopSearchProps): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -96,7 +95,6 @@ export function TopSearch({ fieldRef, onDismiss }: TopSearchProps): JSX.Element 
       }}
     >
       <SearchField
-        ref={fieldRef}
         data-testid="top-search-field"
         label={t("nav.search")}
         placeholder={ellipsis(t("nav.searchPlaceholder"))}
