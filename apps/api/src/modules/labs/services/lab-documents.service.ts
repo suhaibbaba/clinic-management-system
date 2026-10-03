@@ -78,19 +78,19 @@ export class LabDocumentsService {
 
     pdf.infoGrid(
       [
-        { label: strings.workType, value: row.workTypeName ?? "—" },
+        { label: strings.workType, value: row.workTypeName ?? "--" },
         {
           label: strings.teeth,
-          value: row.order.teeth.length > 0 ? row.order.teeth.join(" · ") : "—",
+          value: row.order.teeth.length > 0 ? row.order.teeth.join(" · ") : "--",
           ltr: true,
         },
-        { label: strings.material, value: row.order.material ?? "—", ltr: true },
-        { label: strings.shade, value: row.order.shade ?? "—", ltr: true },
+        { label: strings.material, value: row.order.material ?? "--", ltr: true },
+        { label: strings.shade, value: row.order.shade ?? "--", ltr: true },
         {
           label: strings.expected,
           value: row.order.expectedAt
             ? documentDate(row.order.expectedAt.toISOString(), zone)
-            : "—",
+            : "--",
           ltr: true,
         },
       ],

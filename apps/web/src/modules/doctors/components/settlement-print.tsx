@@ -19,9 +19,7 @@ export function SettlementPrint({
 
   return (
     <div data-testid="settlement-print" className="print-sheet" dir="rtl" lang="ar">
-      <PrintLetterhead clinic={clinic} />
-
-      <h2 className="print-title">{t("doctors.settlement.printTitle")}</h2>
+      <PrintLetterhead clinic={clinic} title={t("doctors.settlement.printTitle")} />
 
       <dl className="print-meta">
         <div>

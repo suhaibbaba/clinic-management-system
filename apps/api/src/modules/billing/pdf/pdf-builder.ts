@@ -28,11 +28,21 @@ export const INK: Colour = [0.114, 0.157, 0.188];
 export const MUTED: Colour = [0.38, 0.44, 0.49];
 export const HAIRLINE: Colour = [0.87, 0.89, 0.91];
 export const BAND: Colour = [0.953, 0.961, 0.969];
-export const ACCENT: Colour = [0.184, 0.345, 0.471];
-export const ACCENT_BAND: Colour = [0.918, 0.941, 0.957];
+export const ACCENT: Colour = [0.106, 0.435, 0.592];
+export const ACCENT_BAND: Colour = [0.945, 0.969, 0.98];
+export const ACCENT_DEEP: Colour = [0.055, 0.239, 0.333];
+export const ACCENT_MID: Colour = [0.082, 0.357, 0.49];
+export const ACCENT_RULE: Colour = [0.784, 0.875, 0.925];
+export const INK_SOFT: Colour = [0.239, 0.302, 0.345];
 
 export const A4 = { width: 595.28, height: 841.89 } as const;
 export const MARGIN = 42;
+
+const LOGO_HEIGHT = 46;
+const LOGO_MAX_WIDTH = 112;
+const RUNNING_LOGO_HEIGHT = 22;
+const FOOTER_LINE = 44;
+const FOOTER_STRIP = 4.5;
 
 export interface Cell {
   readonly text: string;
@@ -70,10 +80,19 @@ interface TextOptions {
 }
 
 const ELLIPSIS = "…";
+const EMPTY_CELL = "--";
+
+interface Brand {
+  readonly name: string;
+  readonly title: string;
+  readonly printed: string;
+  readonly logo: PDFImage | undefined;
+}
 
 export class RtlPdf {
   private readonly pages: PDFPage[] = [];
   private footerLabel: ((page: number, total: number) => string) | null = null;
+  private brand: Brand | null = null;
 
   private constructor(
     private readonly doc: PDFDocument,
@@ -337,14 +356,19 @@ export class RtlPdf {
     this.cursor -= amount;
   }
 
+  private get floor(): number {
+    return Math.max(this.margin + 18, this.brand ? FOOTER_LINE + 14 : 0);
+  }
+
   ensure(height: number, onBreak?: () => void): void {
-    if (this.cursor - height >= this.margin + 18) {
+    if (this.cursor - height >= this.floor) {
       return;
     }
 
     this.page = this.doc.addPage([this.page.getWidth(), this.page.getHeight()]);
     this.pages.push(this.page);
     this.cursor = this.page.getHeight() - this.margin;
+    this.runningHeader();
     onBreak?.();
   }
 
@@ -384,98 +408,192 @@ export class RtlPdf {
 
   async letterhead(options: {
     name: string;
+    otherName: string;
     address: string;
     phone: string;
+    email: string;
     logo: { bytes: Buffer; mime: string } | null;
     title: string;
     subtitle?: string | undefined;
+    issued: string;
+    printed: string;
   }): Promise<void> {
     const top = this.cursor;
-    const logoHeight = 40;
-    let offset = 0;
-
-    const embedded = options.logo
+    const logo = options.logo
       ? await this.embedImage(options.logo.bytes, options.logo.mime)
       : undefined;
-    if (embedded) {
-      const width = Math.min(embedded.width * (logoHeight / embedded.height), 120);
-      const height = embedded.height * (width / embedded.width);
-      this.page.drawImage(embedded, {
+    this.brand = { name: options.name, title: options.title, printed: options.printed, logo };
+
+    let offset = 0;
+    if (logo) {
+      const width = Math.min(logo.width * (LOGO_HEIGHT / logo.height), LOGO_MAX_WIDTH);
+      const height = logo.height * (width / logo.width);
+      this.page.drawImage(logo, {
         x: this.xFor(width, "start"),
-        y: top - (logoHeight + height) / 2,
+        y: top - (LOGO_HEIGHT + height) / 2,
         width,
         height,
       });
-      offset = width + 12;
+      const divider = this.pageDir === "rtl" ? this.right - width - 12 : this.left + width + 12;
+      this.page.drawLine({
+        start: { x: divider, y: top - 2 },
+        end: { x: divider, y: top - LOGO_HEIGHT + 2 },
+        thickness: 0.75,
+        color: rgb(...ACCENT_RULE),
+      });
+      offset = width + 24;
     }
 
+    const meta = [options.subtitle, options.issued].filter((line): line is string => !!line);
     const titleRoom = Math.max(
-      this.widthOf(options.title, 17, "bold"),
-      options.subtitle ? this.widthOf(options.subtitle, 10, "medium", "ltr") : 0,
+      this.widthOf(options.title, 16, "bold"),
+      ...meta.map((line) => this.widthOf(line, 9, "medium", "ltr")),
     );
-    const nameWidth = this.width - offset - titleRoom - 32;
-    const nameLines = this.wrap(options.name, nameWidth, { size: 14, weight: "bold", lines: 2 });
-    let y = top - 14;
+    const startX = (width: number): number =>
+      this.pageDir === "rtl" ? this.right - offset - width : this.left + offset;
+    const nameWidth = this.width - offset - titleRoom - 24;
+    const nameLines = this.wrap(options.name, nameWidth, { size: 15, weight: "bold", lines: 2 });
+    let y = top - 17;
     for (const line of nameLines) {
-      const width = this.widthOf(line, 14, "bold");
       this.drawLine(line, {
-        size: 14,
+        size: 15,
         weight: "bold",
-        x: this.pageDir === "rtl" ? this.right - offset - width : this.left + offset,
+        colour: ACCENT_DEEP,
+        x: startX(this.widthOf(line, 15, "bold")),
         y,
       });
-      y -= 18;
+      y -= 19;
+    }
+    if (options.otherName) {
+      const dir = autoDirection(options.otherName, this.pageDir);
+      const line = this.clip(options.otherName, nameWidth, { size: 9, weight: "medium", dir });
+      this.drawLine(line, {
+        size: 9,
+        weight: "medium",
+        colour: ACCENT_MID,
+        dir,
+        x: startX(this.widthOf(line, 9, "medium", dir)),
+        y: y + 5,
+      });
+      y -= 13;
     }
 
-    const contact: { text: string; dir: TextDirection }[] = [
-      ...(options.address ? [{ text: options.address, dir: this.pageDir }] : []),
-      ...(options.phone ? [{ text: options.phone, dir: "ltr" as const }] : []),
-    ];
-    for (const entry of contact) {
-      for (const line of this.wrap(entry.text, nameWidth, {
-        size: 8.5,
-        dir: entry.dir,
-        lines: 2,
-      })) {
-        const width = this.widthOf(line, 8.5, "regular", entry.dir);
-        this.drawLine(line, {
-          size: 8.5,
-          colour: MUTED,
-          dir: entry.dir,
-          x: this.pageDir === "rtl" ? this.right - offset - width : this.left + offset,
-          y: y + 4,
-        });
-        y -= 11;
-      }
-    }
-
-    const titleWidth = this.widthOf(options.title, 17, "bold");
     this.drawLine(options.title, {
-      size: 17,
+      size: 16,
       weight: "bold",
       colour: ACCENT,
-      x: this.xFor(titleWidth, "end"),
+      x: this.xFor(this.widthOf(options.title, 16, "bold"), "end"),
       y: top - 16,
     });
-    if (options.subtitle) {
-      const width = this.widthOf(options.subtitle, 10, "medium", "ltr");
-      this.drawLine(options.subtitle, {
-        size: 10,
-        weight: "medium",
-        colour: MUTED,
+    meta.forEach((line, index) => {
+      this.drawLine(line, {
+        size: 9,
+        weight: index === 0 ? "medium" : "regular",
+        colour: index === 0 ? INK : MUTED,
         dir: "ltr",
-        x: this.xFor(width, "end"),
-        y: top - 32,
+        x: this.xFor(this.widthOf(line, 9, index === 0 ? "medium" : "regular", "ltr"), "end"),
+        y: top - 31 - index * 12,
       });
+    });
+
+    this.cursor = Math.min(y + 5, top - LOGO_HEIGHT, top - 31 - meta.length * 12) - 12;
+    this.contactRow([
+      { text: options.address, dir: this.pageDir },
+      { text: options.phone, dir: "ltr" },
+      { text: options.email, dir: "ltr" },
+    ]);
+    this.brandRule(60, 2.2);
+    this.cursor -= 18;
+  }
+
+  private contactRow(items: readonly { text: string; dir: TextDirection }[]): void {
+    const size = 8.5;
+    const gap = 14;
+    let used = 0;
+
+    for (const item of items.filter((entry) => entry.text !== "")) {
+      const text = this.clip(item.text, this.width, { size, dir: item.dir });
+      const width = this.widthOf(text, size, "regular", item.dir);
+
+      if (used > 0 && used + gap + width > this.width) {
+        this.cursor -= size + 5;
+        used = 0;
+      }
+
+      const from = used === 0 ? 0 : used + gap;
+      this.drawLine(text, {
+        size,
+        colour: INK_SOFT,
+        dir: item.dir,
+        x: this.pageDir === "rtl" ? this.right - from - width : this.left + from,
+        y: this.cursor - size,
+      });
+      used = from + width;
     }
 
-    this.cursor = Math.min(y, top - logoHeight) - 8;
+    this.cursor -= size + 10;
+  }
+
+  private brandRule(bar: number, thickness: number): void {
+    const barFrom = this.pageDir === "rtl" ? this.right - bar : this.left;
     this.page.drawLine({
       start: { x: this.left, y: this.cursor },
       end: { x: this.right, y: this.cursor },
-      thickness: 1.2,
+      thickness: 0.75,
+      color: rgb(...ACCENT_RULE),
+    });
+    this.page.drawRectangle({
+      x: barFrom,
+      y: this.cursor - thickness / 2,
+      width: bar,
+      height: thickness,
       color: rgb(...ACCENT),
     });
+  }
+
+  private runningHeader(): void {
+    if (!this.brand) {
+      return;
+    }
+
+    const top = this.cursor;
+    let offset = 0;
+    if (this.brand.logo) {
+      const logo = this.brand.logo;
+      const width = Math.min(logo.width * (RUNNING_LOGO_HEIGHT / logo.height), 60);
+      const height = logo.height * (width / logo.width);
+      this.page.drawImage(logo, {
+        x: this.xFor(width, "start"),
+        y: top - (RUNNING_LOGO_HEIGHT + height) / 2,
+        width,
+        height,
+      });
+      offset = width + 10;
+    }
+
+    const titleWidth = this.widthOf(this.brand.title, 10, "bold");
+    const name = this.clip(this.brand.name, this.width - offset - titleWidth - 24, {
+      size: 10,
+      weight: "bold",
+    });
+    const nameWidth = this.widthOf(name, 10, "bold");
+    this.drawLine(name, {
+      size: 10,
+      weight: "bold",
+      colour: ACCENT_DEEP,
+      x: this.pageDir === "rtl" ? this.right - offset - nameWidth : this.left + offset,
+      y: top - 15,
+    });
+    this.drawLine(this.brand.title, {
+      size: 10,
+      weight: "bold",
+      colour: ACCENT,
+      x: this.xFor(titleWidth, "end"),
+      y: top - 15,
+    });
+
+    this.cursor = top - RUNNING_LOGO_HEIGHT - 8;
+    this.brandRule(36, 1.6);
     this.cursor -= 16;
   }
 
@@ -629,7 +747,9 @@ export class RtlPdf {
     header();
 
     for (const row of rows) {
-      const cells = row.map((cell): Cell => (typeof cell === "string" ? { text: cell } : cell));
+      const cells = row
+        .map((cell): Cell => (typeof cell === "string" ? { text: cell } : cell))
+        .map((cell) => (cell.text.trim() === "" ? { ...cell, text: EMPTY_CELL } : cell));
       const laid = cells.map((cell, index) => {
         const column = columns[index];
         const room = (widths[index] ?? 0) - pad * 2;
@@ -823,22 +943,74 @@ export class RtlPdf {
   }
 
   async save(): Promise<Buffer> {
-    if (this.footerLabel) {
-      this.pages.forEach((page, index) => {
-        const text = this.footerLabel?.(index + 1, this.pages.length) ?? "";
-        const current = this.page;
-        this.page = page;
-        const width = this.widthOf(text, 8);
+    const current = this.page;
+
+    this.pages.forEach((page, index) => {
+      this.page = page;
+
+      if (this.brand) {
+        this.brandFooter(index + 1);
+      } else if (this.footerLabel) {
+        const text = this.footerLabel(index + 1, this.pages.length);
         this.drawLine(text, {
           size: 8,
           colour: MUTED,
-          x: this.xFor(width, "centre"),
+          x: this.xFor(this.widthOf(text, 8), "centre"),
           y: this.margin / 2,
         });
-        this.page = current;
+      }
+    });
+
+    this.page = current;
+
+    return Buffer.from(await this.doc.save());
+  }
+
+  private brandFooter(page: number): void {
+    if (!this.brand) {
+      return;
+    }
+
+    this.page.drawLine({
+      start: { x: this.left, y: FOOTER_LINE },
+      end: { x: this.right, y: FOOTER_LINE },
+      thickness: 0.75,
+      color: rgb(...ACCENT_RULE),
+    });
+
+    const label = this.footerLabel?.(page, this.pages.length) ?? "";
+    const room = this.width - (label ? this.widthOf(label, 8.5, "medium") + 24 : 0);
+    const name = this.clip(this.brand.name, room, { size: 8.5, weight: "medium" });
+    const printed = this.clip(this.brand.printed, room, { size: 8 });
+    this.drawLine(name, {
+      size: 8.5,
+      weight: "medium",
+      colour: INK_SOFT,
+      x: this.xFor(this.widthOf(name, 8.5, "medium"), "start"),
+      y: FOOTER_LINE - 14,
+    });
+    this.drawLine(printed, {
+      size: 8,
+      colour: MUTED,
+      x: this.xFor(this.widthOf(printed, 8), "start"),
+      y: FOOTER_LINE - 26,
+    });
+    if (label) {
+      this.drawLine(label, {
+        size: 8.5,
+        weight: "medium",
+        colour: ACCENT_DEEP,
+        x: this.xFor(this.widthOf(label, 8.5, "medium"), "end"),
+        y: FOOTER_LINE - 20,
       });
     }
 
-    return Buffer.from(await this.doc.save());
+    this.page.drawRectangle({
+      x: 0,
+      y: 0,
+      width: this.page.getWidth(),
+      height: FOOTER_STRIP,
+      color: rgb(...ACCENT),
+    });
   }
 }

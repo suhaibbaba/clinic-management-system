@@ -52,7 +52,7 @@ export class InventoryDocumentsService {
           line.quantity,
           line.minQuantity,
           { text: line.suggested, weight: "bold" as const },
-          line.supplierName ?? "—",
+          line.supplierName ?? "--",
         ]),
       );
 

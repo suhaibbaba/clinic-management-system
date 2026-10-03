@@ -1,4 +1,4 @@
-import { LEDGER_ENTRY_KIND, type PatientView, type StatementEntry } from "@clinic/shared";
+import { LEDGER_ENTRY_KIND, type StatementEntry } from "@clinic/shared";
 import { dayBounds } from "@web/shared/lib/dates";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
@@ -22,7 +22,7 @@ import {
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
 import { canDeletePayment } from "@web/shared/permissions/billing";
-import { downloadStatement, openReceipt } from "@web/modules/billing/lib/documents";
+import { openReceipt, printStatement } from "@web/modules/billing/lib/documents";
 import { Money } from "@web/shared/components/money";
 import { canRecordPayment, canReversePayment } from "@web/shared/permissions/billing";
 import { PaymentModal } from "@web/modules/billing/components/payment-modal";
@@ -39,10 +39,9 @@ const receiptLabel = (receiptNumber: number | null): string =>
 
 interface AccountTabProps {
   patientId: string;
-  patient: PatientView | undefined;
 }
 
-export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element {
+export function AccountTab({ patientId }: AccountTabProps): JSX.Element {
   const { t } = useTranslation();
   const { can } = useSession();
   const toast = useToast();
@@ -265,14 +264,12 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
             </Button>
           )}
           <Button
-            icon={<Icon name="file" />}
+            icon={<Icon name="print" />}
             variant="secondary"
-            data-testid="account-download-statement"
-            onClick={() =>
-              void print(() => downloadStatement(patientId, patient?.fileNumber ?? "", query))
-            }
+            data-testid="account-print-statement"
+            onClick={() => void print(() => printStatement(patientId, query))}
           >
-            {t("billing.downloadStatement")}
+            {t("billing.printStatement")}
           </Button>
         </div>
       </Card>

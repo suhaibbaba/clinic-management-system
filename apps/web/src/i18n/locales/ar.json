@@ -883,7 +883,7 @@
     "reason": "سبب الإلغاء",
     "confirmReversal": "تأكيد الإلغاء",
     "paymentReversed": "تم تسجيل القيد العكسي",
-    "downloadStatement": "تنزيل كشف الحساب",
+    "printStatement": "طباعة كشف الحساب",
     "openingBalance": "رصيد أول المدة",
     "empty": "لا توجد حركات مالية",
     "emptyHint": "تظهر هنا الأعمال المنفَّذة والدفعات المسجَّلة.",
@@ -2535,5 +2535,9 @@
     "staffCost": "تكلفة الموظفين",
     "staffCostCaption": "الرواتب المستحقة وحصص الأطباء الزائرين",
     "empty": "لا موظفين في هذا الشهر"
+  },
+  "print": {
+    "printed": "طُبع في {{at}}",
+    "page": "صفحة {{page}} من {{total}}"
   }
 }

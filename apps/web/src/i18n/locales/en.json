@@ -859,7 +859,7 @@
     "reason": "Reason",
     "confirmReversal": "Confirm reversal",
     "paymentReversed": "Reversing Entry Recorded",
-    "downloadStatement": "Download Statement",
+    "printStatement": "Print Statement",
     "openingBalance": "Opening Balance",
     "empty": "No ledger entries",
     "emptyHint": "Completed work and recorded payments appear here.",
@@ -2467,5 +2467,9 @@
     "staffCost": "Staff Cost",
     "staffCostCaption": "Salaries due plus visiting doctor shares",
     "empty": "No employees this month"
+  },
+  "print": {
+    "printed": "Printed {{at}}",
+    "page": "Page {{page}} of {{total}}"
   }
 }
