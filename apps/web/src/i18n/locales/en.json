@@ -1625,7 +1625,9 @@
         "remove": "Delete an Appointment",
         "start": "Start an Appointment",
         "update": "Edit an Appointment",
-        "allCalendars": "Manage Every Doctor's Calendar"
+        "allCalendars": "Manage Every Doctor's Calendar",
+        "list": "See the Appointments",
+        "findOne": "Open an Appointment"
       },
       "attachments": {
         "findOne": "Open an Attachment",
@@ -1704,7 +1706,8 @@
         "return": "Return Work to the Lab",
         "send": "Send an Order to the Lab",
         "update": "Edit a Lab Order",
-        "setPrice": "Set the Price of Lab Work"
+        "setPrice": "Set the Price of Lab Work",
+        "stages": "See Lab Order Counts by Stage"
       },
       "lab-payments": {
         "create": "Record a Payment to a Lab",
@@ -1877,6 +1880,16 @@
       },
       "dashboard": {
         "overdue": "See Overdue Balances on the Dashboard"
+      },
+      "doctor-extra-hours": {
+        "create": "Add Extra Hours for a Doctor",
+        "remove": "Delete a Doctor’s Extra Hours"
+      },
+      "translations": {
+        "list": "See Changed Interface Text",
+        "upsert": "Change an Interface Text",
+        "save": "Save Interface Text Changes",
+        "reset": "Restore an Interface Text to Its Default"
       }
     },
     "hints": {
@@ -1901,7 +1914,12 @@
       "treatment-plans": "The Treatment plans tab of a patient’s file: building a plan and its items, and turning an item into a treatment done.",
       "users": "The Users screen: staff accounts, and sending an activation invitation or a password reset link.",
       "visits": "The Visits tab of a patient’s file: recording a visit and what happened in it.",
-      "waiting-list": "The waiting list inside the Appointments screen: who is waiting for a free slot, calling them, and turning an entry into an appointment."
+      "waiting-list": "The waiting list inside the Appointments screen: who is waiting for a free slot, calling them, and turning an entry into an appointment.",
+      "translations": "The Interface Text screen: changing the wording the clinic sees, and restoring the original.",
+      "payroll": "The Payroll screen: staff salaries, the monthly payroll, paying a salary and closing a month.",
+      "payroll-adjustments": "Extras and cuts added to an employee’s month on the Payroll screen, and reversing one entered by mistake.",
+      "staff-payments": "Salary payments recorded on the Payroll screen, and reversing one entered by mistake.",
+      "settlement-treatments": "A visiting doctor’s settlement: the materials and the doctor’s share on each treatment."
     },
     "intro": "Every line here is one action in the app. Switch it off and its button leaves that role’s screens and the action is refused if attempted; switch it back whenever you like. What you change belongs to this clinic alone.",
     "resources": {
@@ -1935,7 +1953,9 @@
       "settlement-treatments": "Treatment Settlement",
       "payroll": "Payroll",
       "payroll-adjustments": "Payroll Extras and Cuts",
-      "staff-payments": "Staff Payments"
+      "staff-payments": "Staff Payments",
+      "doctor-extra-hours": "Doctors",
+      "translations": "Interface Text"
     },
     "role": "Role",
     "subtitle": "What each role is able to do",
