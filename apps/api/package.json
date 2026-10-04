@@ -6,7 +6,8 @@
   "main": "dist/main.js",
   "files": [
     "dist",
-    "drizzle"
+    "drizzle",
+    "scripts/clinic-module.mjs"
   ],
   "scripts": {
     "build": "nest build && tsc-alias -p tsconfig.build.json",

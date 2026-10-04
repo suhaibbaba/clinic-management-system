@@ -385,6 +385,11 @@ curl -s https://clinic-sandbox.organza-moda.com/api/health
 dc exec postgres \
   psql -U "$(grep -E '^POSTGRES_USER=' .env | cut -d= -f2)" \
        -d "$(grep -E '^POSTGRES_DB=' .env | cut -d= -f2)"
+
+# Paid modules per clinic (the vendor's switch, never a screen).
+dc exec api node scripts/clinic-module.mjs list
+dc exec api node scripts/clinic-module.mjs enable abu-obeid assistant
+dc exec api node scripts/clinic-module.mjs disable abu-obeid assistant
 ```
 
 The alias is only for this section's brevity; the commands elsewhere are written
