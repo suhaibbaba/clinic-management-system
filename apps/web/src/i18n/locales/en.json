@@ -383,6 +383,24 @@
       "notifyNote": "Cancelling sends every patient a message and cannot be undone.",
       "title_one": "There is 1 appointment in this period",
       "title_other": "There are {{count}} appointments in this period"
+    },
+    "extraHours": {
+      "title": "Extra Hours",
+      "about": "Specific days the doctor works outside their schedule, such as a visit by request or an evening session.",
+      "add": "Add Hours",
+      "empty": "No extra hours",
+      "emptyHint": "Add a day and a time to make the doctor bookable then.",
+      "date": "Day",
+      "reason": "Reason",
+      "reasonPlaceholder": "e.g. Visit at the clinic's request",
+      "pastDate": "Hours cannot be added on a day that has passed",
+      "endAfterStart": "The end must be after the start",
+      "added": "Hours Added",
+      "removed": "Hours Removed",
+      "confirmRemove": {
+        "title": "Remove the extra hours on {{date}}?",
+        "consequence": "The doctor will no longer be bookable in these hours. Appointments already booked in them stay as they are."
+      }
     }
   },
   "clinic": {
