@@ -171,6 +171,7 @@ describe("Patients (e2e)", () => {
 
     it("strips the clinical fields for a receptionist", async () => {
       const publicFields = [
+        "assignedDoctorId",
         "dateOfBirth",
         "fileNumber",
         "firstName",

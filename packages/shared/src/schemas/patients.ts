@@ -39,6 +39,7 @@ export const patientClinicalViewSchema = z.object({
   emergencyContactName: z.string().nullable(),
   emergencyContactPhone: z.string().nullable(),
   notes: z.string().nullable(),
+  assignedDoctorId: z.uuid().nullable(),
   profileIncomplete: z.boolean(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
@@ -57,6 +58,7 @@ export const patientPublicViewSchema = patientClinicalViewSchema
     phone: true,
     whatsapp: true,
     dateOfBirth: true,
+    assignedDoctorId: true,
     profileIncomplete: true,
   })
   .extend({ balance: signedMoneySchema.optional() });
@@ -82,6 +84,7 @@ const patientWritableFields = {
   emergencyContactName: z.string().trim().max(160).nullish(),
   emergencyContactPhone: phoneSchema.nullish(),
   notes: z.string().trim().max(2000).nullish(),
+  assignedDoctorId: uuidSchema.nullish(),
 };
 
 export const createPatientSchema = z.object(patientWritableFields);

@@ -92,11 +92,13 @@ export const patients = pgTable(
     emergencyContactName: text("emergency_contact_name"),
     emergencyContactPhone: text("emergency_contact_phone"),
     notes: text("notes"),
+    assignedDoctorId: uuid("assigned_doctor_id").references(() => doctors.id),
     ...auditColumns,
     ...softDeleteColumn,
   },
   (table) => [
     index("patients_clinic_idx").on(table.clinicId),
+    index("patients_assigned_doctor_idx").on(table.clinicId, table.assignedDoctorId),
     uniqueIndex("patients_file_number_uniq").on(table.clinicId, table.fileNumber).where(liveRows),
     index("patients_clinic_phone_idx").on(table.clinicId, table.phone),
   ],

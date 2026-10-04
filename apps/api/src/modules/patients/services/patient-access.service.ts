@@ -1,7 +1,7 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { RULE } from "@clinic/shared";
-import { eq, exists, or, sql, type SQL } from "drizzle-orm";
-import { type PgColumn } from "drizzle-orm/pg-core";
+import { and, eq, exists, isNull, or, sql, type SQL } from "drizzle-orm";
+import { alias, type PgColumn } from "drizzle-orm/pg-core";
 import {
   ClinicScopeService,
   type ClinicScopedTable,
@@ -11,6 +11,8 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import { appointments, doctors, patients, performedProcedures } from "@api/database/schema";
 import { PatientRow } from "@api/modules/patients/lib/patient-access";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
+
+const assigned = alias(patients, "assigned_patient");
 
 @Injectable()
 export class PatientAccessService {
@@ -98,6 +100,19 @@ export class PatientAccessService {
       exists(
         this.db
           .select({ present: sql`1` })
+          .from(assigned)
+          .where(
+            and(
+              eq(assigned.clinicId, actor.clinicId),
+              isNull(assigned.deletedAt),
+              eq(assigned.id, patientIdColumn),
+              eq(assigned.assignedDoctorId, own.id),
+            ),
+          ),
+      ),
+      exists(
+        this.db
+          .select({ present: sql`1` })
           .from(appointments)
           .where(
             this.scope.where(
@@ -122,6 +137,25 @@ export class PatientAccessService {
           ),
       ),
     );
+  }
+
+  async requireDoctor(
+    actor: AuthenticatedUser,
+    doctorId: string | null | undefined,
+  ): Promise<void> {
+    if (!doctorId) {
+      return;
+    }
+
+    const [row] = await this.db
+      .select({ id: doctors.id })
+      .from(doctors)
+      .where(this.scope.where(doctors, actor.clinicId, eq(doctors.id, doctorId)))
+      .limit(1);
+
+    if (!row) {
+      throw new BadRequestException("Doctor not found in this clinic");
+    }
   }
 
   seesAllPatients(actor: AuthenticatedUser): Promise<boolean> {

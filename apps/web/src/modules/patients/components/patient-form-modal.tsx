@@ -20,8 +20,11 @@ import {
   Modal,
   PhoneInput,
   Select,
+  usePersonName,
   useToast,
 } from "@clinic/ui";
+import { doctorOptionLabel } from "@web/shared/lib/doctor-label";
+import { useDoctors } from "@web/shared/queries/doctors";
 import { useCreatePatient, useUpdatePatient } from "@web/modules/patients/queries";
 import { errorToast } from "@web/shared/lib/api-error";
 import { ellipsis } from "@web/i18n/ellipsis";
@@ -48,6 +51,14 @@ export function PatientFormModal({
   const editing = patient !== undefined;
   const createPatient = useCreatePatient();
   const updatePatient = useUpdatePatient(patient?.id ?? "");
+  const displayName = usePersonName();
+  const doctors = useDoctors({ limit: 100 });
+  const doctorChoices = (doctors.data?.items ?? [])
+    .filter((doctor) => doctor.user.isActive || doctor.id === patient?.assignedDoctorId)
+    .map((doctor) => ({
+      value: doctor.id,
+      label: doctorOptionLabel(doctor, displayName(doctor.user.name), t),
+    }));
 
   const {
     register,
@@ -85,6 +96,7 @@ export function PatientFormModal({
             nationalId: patient.nationalId,
             emergencyContactName: patient.emergencyContactName,
             emergencyContactPhone: patient.emergencyContactPhone,
+            assignedDoctorId: patient.assignedDoctorId,
           }
         : { firstName: "", middleName: "", lastName: "", phone: "" },
     );
@@ -291,6 +303,31 @@ export function PatientFormModal({
                   value: gender,
                   label: t(`patients.${gender}`),
                 }))}
+                value={field.value ?? ""}
+                onBlur={field.onBlur}
+                onChange={(event) => field.onChange(event.target.value || null)}
+              />
+            )}
+          />
+        </FormField>
+
+        <FormField
+          label="patients.assignedDoctor"
+          htmlFor="patient-assigned-doctor"
+          error={errors.assignedDoctorId}
+          hint="patients.assignedDoctorHint"
+          optional
+        >
+          <Controller
+            name="assignedDoctorId"
+            control={control}
+            render={({ field }) => (
+              <Select
+                id="patient-assigned-doctor"
+                data-testid="patient-field-assigned-doctor"
+                placeholder={t("common.none")}
+                searchable={doctorChoices.length > 8}
+                options={doctorChoices}
                 value={field.value ?? ""}
                 onBlur={field.onBlur}
                 onChange={(event) => field.onChange(event.target.value || null)}

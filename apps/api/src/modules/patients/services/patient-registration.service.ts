@@ -15,6 +15,7 @@ import { type PatientRow } from "@api/modules/patients/lib/patient-access";
 import { toPublicView } from "@api/modules/patients/lib/patient-view";
 import { PATIENTS_ENTITY } from "@api/common/constants/audit-entities";
 import { PatientRef, isUniqueViolation } from "@api/modules/patients/lib/patient-registration";
+import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { FILE_NUMBER_ATTEMPTS, FILE_NUMBER_WIDTH } from "@api/modules/patients/constants";
 
 @Injectable()
@@ -23,6 +24,7 @@ export class PatientRegistrationService {
     @Inject(DATABASE) private readonly db: Database,
     private readonly scope: ClinicScopeService,
     private readonly audit: AuditService,
+    private readonly access: PatientAccessService,
   ) {}
 
   async withPatient<TResult>(
@@ -107,6 +109,8 @@ export class PatientRegistrationService {
     actor: AuthenticatedUser,
     input: CreatePatientInput,
   ): Promise<PatientRow> {
+    await this.access.requireDoctor(actor, input.assignedDoctorId);
+
     for (let attempt = 0; attempt < FILE_NUMBER_ATTEMPTS; attempt += 1) {
       const fileNumber = await this.nextFileNumber(executor, actor.clinicId, attempt);
 
@@ -130,6 +134,7 @@ export class PatientRegistrationService {
               emergencyContactName: input.emergencyContactName ?? null,
               emergencyContactPhone: input.emergencyContactPhone ?? null,
               notes: input.notes ?? null,
+              assignedDoctorId: input.assignedDoctorId ?? null,
               createdBy: actor.id,
               updatedBy: actor.id,
             })

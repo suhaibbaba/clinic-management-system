@@ -659,7 +659,9 @@
       "title": "Delete the file of “{{name}}”?",
       "consequence": "It leaves every list and search; its medical and financial records are kept."
     },
-    "deleted": "The patient's file was deleted"
+    "deleted": "The patient's file was deleted",
+    "assignedDoctor": "Treating Doctor",
+    "assignedDoctorHint": "The doctor who follows this patient. It can be changed later."
   },
   "chart": {
     "title": "Tooth Chart",

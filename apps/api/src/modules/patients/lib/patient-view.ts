@@ -27,6 +27,7 @@ export function toClinicalView(row: PatientRow): PatientClinicalView {
     emergencyContactName: row.emergencyContactName,
     emergencyContactPhone: row.emergencyContactPhone,
     notes: row.notes,
+    assignedDoctorId: row.assignedDoctorId,
     profileIncomplete: isProfileIncomplete(row),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -44,6 +45,7 @@ export function toPublicView(row: PatientRow): PatientPublicView {
     phone: row.phone,
     whatsapp: row.whatsapp,
     dateOfBirth: row.dateOfBirth,
+    assignedDoctorId: row.assignedDoctorId,
     profileIncomplete: isProfileIncomplete(row),
   };
 }

@@ -8,6 +8,7 @@ import {
   Icon,
   Ltr,
   MenuItem,
+  PersonName,
   PhoneLink,
   RowMenu,
   TabPanel,
@@ -36,6 +37,7 @@ import { VisitsTab } from "@web/modules/patients/pages/visits-tab";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { errorToast } from "@web/shared/lib/api-error";
 import { whatsAppNumber } from "@web/shared/lib/whatsapp";
+import { useDoctors } from "@web/shared/queries/doctors";
 import { PATIENT_TABS, PATIENT_TAB_PARAMS } from "@web/modules/patients/constants";
 
 const ChartTab = lazyPage(async () => ({
@@ -69,6 +71,10 @@ export function PatientPage(): JSX.Element {
   );
 
   const patient = usePatient(id);
+  const doctors = useDoctors({ limit: 100 });
+  const assignedDoctor = doctors.data?.items.find(
+    (doctor) => doctor.id === patient.data?.assignedDoctorId,
+  );
   const [editing, setEditing] = useState(false);
   const [booking, setBooking] = useState(false);
   const showSkeleton = useDelayedLoading(patient.isPending);
@@ -180,7 +186,7 @@ export function PatientPage(): JSX.Element {
 
             <dl
               data-testid="patient-summary"
-              className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line pt-4 lg:grid-cols-4"
+              className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line pt-4 lg:grid-cols-5"
             >
               <div className="min-w-0">
                 <dt className="text-value text-ink-muted">{t("patients.fileNumber")}</dt>
@@ -199,6 +205,16 @@ export function PatientPage(): JSX.Element {
                   {patient.data.dateOfBirth
                     ? t("patients.years", { count: ageInYears(patient.data.dateOfBirth) })
                     : "—"}
+                </dd>
+              </div>
+
+              <div className="min-w-0">
+                <dt className="text-value text-ink-muted">{t("patients.assignedDoctor")}</dt>
+                <dd
+                  data-testid="patient-assigned-doctor"
+                  className="mt-0.5 truncate text-value text-ink"
+                >
+                  {assignedDoctor ? <PersonName name={assignedDoctor.user.name} /> : "—"}
                 </dd>
               </div>
 
