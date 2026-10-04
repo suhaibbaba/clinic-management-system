@@ -1,5 +1,5 @@
 import type { Availability } from "@clinic/shared";
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@clinic/ui";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
@@ -40,7 +40,14 @@ export function SlotPicker({
 
   if (!availability || availability.slots.length === 0) {
     return (
-      <Hint icon="calendar">{t(`appointments.slots.${availability?.closedReason ?? "none"}`)}</Hint>
+      <Hint icon="calendar">
+        {t(`appointments.slots.${availability?.closedReason ?? "none"}`)}
+        {availability?.closedNote && (
+          <span data-testid="slot-picker-note" className="block text-ink-subtle">
+            {availability.closedNote}
+          </span>
+        )}
+      </Hint>
     );
   }
 
@@ -90,14 +97,14 @@ export function SlotPicker({
   );
 }
 
-function Hint({ icon, children }: { icon: "info" | "calendar"; children: string }) {
+function Hint({ icon, children }: { icon: "info" | "calendar"; children: ReactNode }) {
   return (
     <p
       data-testid="slot-picker-hint"
       className="flex items-center gap-2 rounded-control bg-inset px-3 py-2.5 text-label text-ink-muted"
     >
-      <Icon name={icon} className="size-4" />
-      {children}
+      <Icon name={icon} className="size-4 shrink-0" />
+      <span>{children}</span>
     </p>
   );
 }

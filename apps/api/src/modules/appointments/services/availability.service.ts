@@ -118,7 +118,7 @@ export class AvailabilityService {
 
     return {
       timeZone,
-      clinicRanges,
+      clinicRanges: mergeRanges([...clinicRanges, ...extra]),
       doctorRanges: mergeRanges([
         ...(onCall ? clinicRanges : rangesFor(doctor.weeklySchedule, weekday)),
         ...extra,

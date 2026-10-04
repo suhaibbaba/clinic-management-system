@@ -2,10 +2,13 @@ import type {
   ClinicClosure,
   ClinicClosureResult,
   CreateClinicClosureInput,
+  CreateDoctorExtraHoursInput,
   CreateDoctorTimeOffInput,
+  DoctorExtraHours,
   DoctorTimeOff,
   DoctorTimeOffResult,
   ListClinicClosuresQuery,
+  ListDoctorExtraHoursQuery,
   ListDoctorTimeOffQuery,
   Paginated,
   ScheduleConflictOptions,
@@ -65,4 +68,20 @@ export const timeOffApi = {
     apiRequest(`/doctor-time-off/${id}`, { method: "PATCH", body, query: options(choice) }),
 
   remove: (id: string): Promise<void> => apiRequest(`/doctor-time-off/${id}`, { method: "DELETE" }),
+};
+
+export const extraHoursApi = {
+  list: (
+    doctorId: string,
+    query: Partial<ListDoctorExtraHoursQuery> = {},
+  ): Promise<Paginated<DoctorExtraHours>> =>
+    apiRequest(`/doctors/${doctorId}/extra-hours`, {
+      query: { page: query.page, limit: query.limit, from: query.from, to: query.to },
+    }),
+
+  create: (doctorId: string, body: CreateDoctorExtraHoursInput): Promise<DoctorExtraHours> =>
+    apiRequest(`/doctors/${doctorId}/extra-hours`, { method: "POST", body }),
+
+  remove: (id: string): Promise<void> =>
+    apiRequest(`/doctor-extra-hours/${id}`, { method: "DELETE" }),
 };

@@ -1,5 +1,6 @@
-import { Inject, Injectable, type OnModuleInit } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import {
+  localDate,
   type CreateDoctorExtraHoursInput,
   type DoctorExtraHours,
   type ListDoctorExtraHoursQuery,
@@ -12,6 +13,7 @@ import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
+import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
 import { doctorExtraHours, doctors } from "@api/database/schema";
 import { DOCTOR_EXTRA_HOURS_ENTITY } from "@api/common/constants/audit-entities";
 import { toDoctorExtraHours, ExtraHoursRow } from "@api/modules/schedule/lib/doctor-extra-hours";
@@ -77,6 +79,10 @@ export class DoctorExtraHoursService implements OnModuleInit {
   ): Promise<DoctorExtraHours> {
     await this.scope.findOneOrFail(doctors, actor.clinicId, doctorId);
     await this.access.requireOwnCalendar(actor, doctorId);
+
+    if (input.date < localDate(new Date(), await clinicTimeZone(this.db, actor.clinicId))) {
+      throw new BadRequestException("Extra hours cannot be given on a past date");
+    }
 
     const [created] = await this.db
       .insert(doctorExtraHours)

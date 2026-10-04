@@ -10,6 +10,7 @@ import { useSession } from "@web/shared/providers/session";
 import { canEditAnySchedule, canSeeSettlement } from "@web/shared/permissions/doctors";
 import { useClinic } from "@web/shared/queries/clinic";
 import { useDoctor, useUpdateDoctorSchedule } from "@web/modules/doctors/queries";
+import { ExtraHoursPanel } from "@web/modules/schedule/components/extra-hours-panel";
 import { TimeOffPanel } from "@web/modules/schedule/components/time-off-panel";
 import { SettlementSection } from "@web/modules/doctors/components/settlement-section";
 import { errorToast } from "@web/shared/lib/api-error";
@@ -119,6 +120,13 @@ export function DoctorPage(): JSX.Element {
           className="border border-line rounded-card bg-surface shadow-card p-4"
         >
           <TimeOffPanel doctorId={id} canEdit={canEdit} />
+        </section>
+
+        <section
+          data-testid="doctor-extra-hours"
+          className="border border-line rounded-card bg-surface shadow-card p-4"
+        >
+          <ExtraHoursPanel doctorId={id} canEdit={canEdit} />
         </section>
       </div>
 

@@ -962,7 +962,9 @@
       "fully_booked": "Fully booked",
       "chooseDoctorAndDate": "Choose a doctor and a date to see the times",
       "taken": "Taken",
-      "day_over": "The day is over"
+      "day_over": "The day is over",
+      "clinic_closure": "The clinic is on holiday this day",
+      "doctor_time_off": "This doctor is on leave this day"
     },
     "kpi": {
       "today": "Today's Appointments",

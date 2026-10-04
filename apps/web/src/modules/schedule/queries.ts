@@ -4,21 +4,25 @@ import {
   type ClinicClosureResult,
   type ConflictingAppointment,
   type CreateClinicClosureInput,
+  type CreateDoctorExtraHoursInput,
   type CreateDoctorTimeOffInput,
+  type DoctorExtraHours,
   type DoctorTimeOff,
   type DoctorTimeOffResult,
   type ListClinicClosuresQuery,
+  type ListDoctorExtraHoursQuery,
   type ListDoctorTimeOffQuery,
   type Paginated,
   type ScheduleConflictOptions,
 } from "@clinic/shared";
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { AVAILABILITY_KEY, CALENDAR_KEY } from "@web/shared/constants/query-keys";
-import { closuresApi, timeOffApi } from "@web/modules/schedule/api";
+import { closuresApi, extraHoursApi, timeOffApi } from "@web/modules/schedule/api";
 import { ApiError } from "@web/shared/lib/api-error";
 
 const CLOSURES_KEY = "clinic-closures";
 const TIME_OFF_KEY = "doctor-time-off";
+const EXTRA_HOURS_KEY = "doctor-extra-hours";
 
 export function useClinicClosures(
   query: Partial<ListClinicClosuresQuery> = {},
@@ -47,7 +51,7 @@ function useInvalidateSchedule(): () => Promise<void> {
 
   return async () => {
     await Promise.all(
-      [CLOSURES_KEY, TIME_OFF_KEY, CALENDAR_KEY, AVAILABILITY_KEY].map((key) =>
+      [CLOSURES_KEY, TIME_OFF_KEY, EXTRA_HOURS_KEY, CALENDAR_KEY, AVAILABILITY_KEY].map((key) =>
         queryClient.invalidateQueries({ queryKey: [key] }),
       ),
     );
@@ -100,6 +104,37 @@ export function useDeleteTimeOff() {
 
   return useMutation({
     mutationFn: (id: string) => timeOffApi.remove(id),
+    onSuccess: invalidate,
+  });
+}
+
+export function useDoctorExtraHours(
+  doctorId: string | undefined,
+  query: Partial<ListDoctorExtraHoursQuery> = {},
+): UseQueryResult<Paginated<DoctorExtraHours>> {
+  return useQuery({
+    queryKey: [EXTRA_HOURS_KEY, doctorId, query],
+    queryFn: () => extraHoursApi.list(doctorId ?? "", query),
+    enabled: doctorId !== undefined,
+    placeholderData: (previous) => previous,
+  });
+}
+
+export function useCreateExtraHours() {
+  const invalidate = useInvalidateSchedule();
+
+  return useMutation({
+    mutationFn: ({ doctorId, body }: { doctorId: string; body: CreateDoctorExtraHoursInput }) =>
+      extraHoursApi.create(doctorId, body),
+    onSuccess: invalidate,
+  });
+}
+
+export function useDeleteExtraHours() {
+  const invalidate = useInvalidateSchedule();
+
+  return useMutation({
+    mutationFn: (id: string) => extraHoursApi.remove(id),
     onSuccess: invalidate,
   });
 }
