@@ -4,6 +4,7 @@ import type {
   Attachment,
   ConfirmAttachmentUploadInput,
   CreatePatientInput,
+  CreateProcedureCatalogItemInput,
   CreatePerformedProcedureInput,
   CreatePrescriptionInput,
   CreateVisitInput,
@@ -20,6 +21,7 @@ import type {
   UpdatePatientInput,
   UpdatePerformedProcedureInput,
   UpdatePrescriptionInput,
+  UpdateProcedureCatalogItemInput,
   UpdateVisitInput,
   Visit,
 } from "@clinic/shared";
@@ -70,6 +72,25 @@ export const patientsApi = {
         query: { page, limit: PAGE_LIMIT, isActive: true },
       }),
     ),
+
+  priceList: (): Promise<ProcedureCatalogItem[]> =>
+    fetchAllPages((page) =>
+      apiRequest<Paginated<ProcedureCatalogItem>>("/procedure-catalog", {
+        query: { page, limit: PAGE_LIMIT },
+      }),
+    ),
+
+  createCatalogItem: (body: CreateProcedureCatalogItemInput): Promise<ProcedureCatalogItem> =>
+    apiRequest("/procedure-catalog", { method: "POST", body }),
+
+  updateCatalogItem: (
+    id: string,
+    body: UpdateProcedureCatalogItemInput,
+  ): Promise<ProcedureCatalogItem> =>
+    apiRequest(`/procedure-catalog/${id}`, { method: "PATCH", body }),
+
+  removeCatalogItem: (id: string): Promise<void> =>
+    apiRequest(`/procedure-catalog/${id}`, { method: "DELETE" }),
 
   attachment: (id: string): Promise<Attachment> => apiRequest(`/attachments/${id}`),
 

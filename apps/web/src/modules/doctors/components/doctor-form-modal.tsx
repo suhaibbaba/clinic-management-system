@@ -26,7 +26,8 @@ import {
 } from "@clinic/ui";
 import { WorkingHours } from "@web/shared/components/working-hours";
 import { useClinic } from "@web/shared/queries/clinic";
-import { useCreateDoctor, useSpecialties, useUpdateDoctor } from "@web/modules/doctors/queries";
+import { useCreateDoctor, useUpdateDoctor } from "@web/modules/doctors/queries";
+import { useSpecialties } from "@web/shared/queries/specialties";
 import { useUsers } from "@web/shared/queries/users";
 import { errorToast } from "@web/shared/lib/api-error";
 import { REQUIRED, schemaErrors } from "@web/shared/lib/form-errors";

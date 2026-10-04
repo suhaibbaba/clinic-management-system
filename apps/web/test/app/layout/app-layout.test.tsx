@@ -9,6 +9,7 @@ import {
   makeCalendarFeed,
   makeClinic,
   makeDashboardSummary,
+  makeLookupBundle,
   makeProfile,
   paginated,
   SHIPPED_CAPABILITIES,
@@ -77,6 +78,7 @@ describe("Sidebar navigation", () => {
       ar.nav.clinic,
       ar.nav.users,
       ar.nav.payroll,
+      ar.nav.priceList,
       ar.nav.lists,
       ar.nav.settingsPage,
     ]);
@@ -258,6 +260,10 @@ describe("Route guards", () => {
     [USER_ROLE.VISITING_DOCTOR, "/payroll"],
     [USER_ROLE.RECEPTIONIST, "/payroll"],
     [USER_ROLE.TECHNICIAN, "/payroll"],
+    [USER_ROLE.DOCTOR, "/clinic/prices"],
+    [USER_ROLE.VISITING_DOCTOR, "/clinic/prices"],
+    [USER_ROLE.RECEPTIONIST, "/clinic/prices"],
+    [USER_ROLE.TECHNICIAN, "/clinic/prices"],
   ])("redirects %s away from %s and onto the dashboard", async (role, route) => {
     await renderAs(role, route);
 
@@ -278,6 +284,30 @@ describe("Route guards follow the grants", () => {
       screen.queryByRole("region", { name: ar.dashboard.schedule.title }),
     ).not.toBeInTheDocument();
     expect(within(nav()).getByRole("link", { name: ar.nav.users })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+});
+
+describe("The price list follows its grants", () => {
+  it("opens for a role granted to edit prices, and appears in its sidebar", async () => {
+    mockApi({
+      ...handlers(USER_ROLE.DOCTOR, [
+        ...SHIPPED_CAPABILITIES[USER_ROLE.DOCTOR],
+        "procedure-catalog.update",
+      ]),
+      "GET /procedure-catalog": { status: 200, body: paginated([]) },
+      "GET /specialties": { status: 200, body: paginated([]) },
+      "GET /lookups": { status: 200, body: makeLookupBundle() },
+    });
+    authTokens.clear();
+    renderWithProviders(<AppRoutes />, { route: "/clinic/prices" });
+
+    expect(
+      await screen.findByRole("heading", { name: ar.priceList.title, level: 1 }),
+    ).toBeInTheDocument();
+    expect(within(nav()).getByRole("link", { name: ar.nav.priceList })).toHaveAttribute(
       "aria-current",
       "page",
     );

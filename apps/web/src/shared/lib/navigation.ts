@@ -34,6 +34,7 @@ export const PAGE_CAPABILITIES = {
   doctor: ["doctors.updateSchedule"],
   payroll: ["payroll.month"],
   lists: ["lookups.create"],
+  priceList: ["procedure-catalog.create", "procedure-catalog.update"],
   settings: Object.values(SETTINGS_VIEW_CAPABILITIES),
 } as const satisfies Record<string, readonly string[]>;
 
@@ -102,6 +103,12 @@ export const NAV_SETTINGS: NavGroup = {
       label: "nav.payroll",
       capabilities: PAGE_CAPABILITIES.payroll,
       icon: "money",
+    },
+    {
+      to: "/clinic/prices",
+      label: "nav.priceList",
+      capabilities: PAGE_CAPABILITIES.priceList,
+      icon: "coins",
     },
     {
       to: "/clinic/lists",

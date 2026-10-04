@@ -8,14 +8,11 @@ import type {
   DoctorSettlement,
   SettlementQuery,
   UpdateTreatmentSettlementInput,
-  Paginated,
-  Specialty,
   UpdateDoctorInput,
   WeeklySchedule,
 } from "@clinic/shared";
 import { doctorsApi } from "@web/modules/doctors/api";
 
-const SPECIALTIES_KEY = "specialties";
 const SETTLEMENT_KEY = "doctor-settlement";
 
 export function useDoctor(id: string | undefined): UseQueryResult<Doctor> {
@@ -24,10 +21,6 @@ export function useDoctor(id: string | undefined): UseQueryResult<Doctor> {
     queryFn: () => doctorsApi.get(id ?? ""),
     enabled: id !== undefined,
   });
-}
-
-export function useSpecialties(): UseQueryResult<Paginated<Specialty>> {
-  return useQuery({ queryKey: [SPECIALTIES_KEY], queryFn: () => doctorsApi.specialties() });
 }
 
 export function useCreateDoctor() {

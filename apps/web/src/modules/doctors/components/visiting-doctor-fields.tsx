@@ -3,7 +3,7 @@ import { Controller, type UseFormRegister } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { FormField, Input, PhoneInput, QuantityInput, Select } from "@clinic/ui";
 import { WorkingHours } from "@web/shared/components/working-hours";
-import { useSpecialties } from "@web/modules/doctors/queries";
+import { useSpecialties } from "@web/shared/queries/specialties";
 import { StaffNameFields, type StaffNameValues } from "@web/shared/components/staff-name-fields";
 import { VISITING_DOCTOR_FORM_ID } from "@web/modules/doctors/constants";
 import type { VisitingDoctorForm } from "@web/modules/doctors/hooks/use-visiting-doctor-form";

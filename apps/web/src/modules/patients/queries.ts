@@ -10,6 +10,7 @@ import type {
   Attachment,
   ConfirmAttachmentUploadInput,
   CreatePatientInput,
+  CreateProcedureCatalogItemInput,
   CreatePerformedProcedureInput,
   CreatePrescriptionInput,
   CreateVisitInput,
@@ -24,6 +25,7 @@ import type {
   TimelineEntry,
   UpdatePatientInput,
   UpdatePerformedProcedureInput,
+  UpdateProcedureCatalogItemInput,
   UpdateVisitInput,
   Visit,
 } from "@clinic/shared";
@@ -94,6 +96,46 @@ export function usePatientProcedures(id: string): UseQueryResult<PerformedProced
 
 export function useProcedureCatalog(): UseQueryResult<ProcedureCatalogItem[]> {
   return useQuery({ queryKey: [CATALOG_KEY], queryFn: () => patientsApi.catalog() });
+}
+
+export function usePriceList(): UseQueryResult<ProcedureCatalogItem[]> {
+  return useQuery({ queryKey: [CATALOG_KEY, "all"], queryFn: () => patientsApi.priceList() });
+}
+
+function useInvalidateCatalog(): () => Promise<void> {
+  const queryClient = useQueryClient();
+
+  return async () => {
+    await queryClient.invalidateQueries({ queryKey: [CATALOG_KEY] });
+  };
+}
+
+export function useCreateCatalogItem() {
+  const invalidate = useInvalidateCatalog();
+
+  return useMutation({
+    mutationFn: (body: CreateProcedureCatalogItemInput) => patientsApi.createCatalogItem(body),
+    onSuccess: invalidate,
+  });
+}
+
+export function useUpdateCatalogItem() {
+  const invalidate = useInvalidateCatalog();
+
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: UpdateProcedureCatalogItemInput }) =>
+      patientsApi.updateCatalogItem(id, body),
+    onSuccess: invalidate,
+  });
+}
+
+export function useRemoveCatalogItem() {
+  const invalidate = useInvalidateCatalog();
+
+  return useMutation({
+    mutationFn: (id: string) => patientsApi.removeCatalogItem(id),
+    onSuccess: invalidate,
+  });
 }
 
 export function useAttachment(id: string, enabled: boolean): UseQueryResult<Attachment> {

@@ -135,7 +135,8 @@
     "back": "Back to {{to}}",
     "payroll": "Payroll",
     "openSearch": "Open Search",
-    "closeSearch": "Close Search"
+    "closeSearch": "Close Search",
+    "priceList": "Price List"
   },
   "roles": {
     "admin": "Admin",
@@ -1567,6 +1568,39 @@
     "rowMenu": "More Options",
     "moveUp": "Move Up",
     "moveDown": "Move Down"
+  },
+  "priceList": {
+    "title": "Price List",
+    "subtitle": "The procedures the clinic offers and what each is charged at. The price fills in when a treatment is recorded, and can be changed there for one patient.",
+    "add": "Add Procedure",
+    "newTitle": "New Procedure",
+    "editTitle": "Edit Procedure",
+    "name": "Procedure Name",
+    "code": "Code",
+    "codeHint": "A short abbreviation that identifies the procedure, such as RCT",
+    "price": "Default Price",
+    "specialty": "Specialty",
+    "pickSpecialty": "Choose a Specialty",
+    "outcome": "Chart Outcome",
+    "outcomeHint": "The tooth state the procedure draws once it is done",
+    "noOutcome": "None",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "activate": "Activate Procedure",
+    "deactivate": "Deactivate Procedure",
+    "rowMenu": "Procedure Options",
+    "searchPlaceholder": "Search by name or code",
+    "empty": "No procedures in the price list yet",
+    "emptyHint": "Add the first procedure and its price to offer it when recording a treatment.",
+    "noMatch": "No procedure matches the search",
+    "created": "Procedure Added",
+    "updated": "Procedure Saved",
+    "deleted": "Procedure Deleted",
+    "confirmDelete": {
+      "title": "Delete “{{name}}” from the price list?",
+      "consequence": "It will no longer be offered when recording a treatment. Treatments already recorded keep their prices."
+    }
   },
   "dashboard": {
     "calendar": {

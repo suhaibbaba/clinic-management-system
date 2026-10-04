@@ -9,8 +9,6 @@ import type {
   SettlementQuery,
   SettlementTermsInput,
   UpdateTreatmentSettlementInput,
-  Paginated,
-  Specialty,
   UpdateDoctorInput,
   UpdateDoctorScheduleInput,
 } from "@clinic/shared";
@@ -49,7 +47,4 @@ export const doctorsApi = {
 
   reversePayment: (paymentId: string, reason: string): Promise<StaffPayment> =>
     apiRequest(`/staff-payments/${paymentId}/reverse`, { method: "POST", body: { reason } }),
-
-  specialties: (): Promise<Paginated<Specialty>> =>
-    apiRequest("/specialties", { query: { limit: 100 } }),
 };
