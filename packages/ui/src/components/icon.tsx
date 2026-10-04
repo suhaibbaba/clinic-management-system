@@ -41,6 +41,7 @@ import {
   Phone,
   Plus,
   Printer,
+  ReceiptText,
   RotateCcw,
   Search,
   Send,
@@ -108,6 +109,7 @@ export type IconName =
   | "phone"
   | "plus"
   | "print"
+  | "receipt"
   | "send"
   | "sparkles"
   | "stop"
@@ -193,6 +195,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   phone: Phone,
   plus: Plus,
   print: Printer,
+  receipt: ReceiptText,
   key: KeyRound,
   send: Send,
   reset: RotateCcw,

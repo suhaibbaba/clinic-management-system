@@ -863,7 +863,7 @@
     "reason": "Reason",
     "confirmReversal": "Confirm reversal",
     "paymentReversed": "Reversing Entry Recorded",
-    "printStatement": "Print Statement",
+    "statementDocument": "Statement",
     "openingBalance": "Opening Balance",
     "empty": "No ledger entries",
     "emptyHint": "Completed work and recorded payments appear here.",

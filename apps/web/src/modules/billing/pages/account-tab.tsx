@@ -281,7 +281,8 @@ export function AccountTab({ patientId, recipient }: AccountTabProps): JSX.Eleme
           )}
           <DocumentActions
             data-testid="account-print-statement"
-            label={t("billing.printStatement")}
+            label={t("billing.statementDocument")}
+            icon="receipt"
             source={statementSource(
               patientId,
               query,

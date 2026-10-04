@@ -895,7 +895,7 @@
     "reason": "سبب الإلغاء",
     "confirmReversal": "تأكيد الإلغاء",
     "paymentReversed": "تم تسجيل القيد العكسي",
-    "printStatement": "طباعة كشف الحساب",
+    "statementDocument": "كشف حساب",
     "openingBalance": "رصيد أول المدة",
     "empty": "لا توجد حركات مالية",
     "emptyHint": "تظهر هنا الأعمال المنفَّذة والدفعات المسجَّلة.",
