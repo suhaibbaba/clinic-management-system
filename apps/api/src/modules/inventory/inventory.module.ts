@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { NotificationsModule } from "@api/modules/notifications/notifications.module";
 import { AuditModule } from "@api/modules/audit/audit.module";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { DatabaseModule } from "@api/database/database.module";
@@ -12,7 +13,7 @@ import { SuppliersController } from "@api/modules/inventory/controllers/supplier
 import { SuppliersService } from "@api/modules/inventory/services/suppliers.service";
 
 @Module({
-  imports: [DatabaseModule, AuditModule],
+  imports: [NotificationsModule, DatabaseModule, AuditModule],
   controllers: [InventoryController, SuppliersController],
   providers: [
     ClinicScopeService,

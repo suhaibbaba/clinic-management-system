@@ -1,27 +1,19 @@
 import { PERFORMED_PROCEDURE_STATUS, type PatientClinicalView } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Button,
-  EmptyState,
-  Icon,
-  Money,
-  SegmentedControl,
-  StatCard,
-  useTabParam,
-} from "@clinic/ui";
+import { EmptyState, Money, SegmentedControl, StatCard, useTabParam } from "@clinic/ui";
 import { Skeleton, SkeletonKpi, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/shared/providers/session";
 import { useClinic } from "@web/shared/queries/clinic";
 import { canSeePrices } from "@web/shared/permissions/patients";
-import { usePatientProcedures, useProcedureCatalog } from "@web/modules/patients/queries";
-import { PlanPrint } from "@web/modules/patients/components/treatment-plans/plan-print";
+import { usePatientProcedures } from "@web/modules/patients/queries";
+import { treatmentPlanSource } from "@web/modules/patients/lib/documents";
+import { DocumentActions } from "@web/shared/components/document-actions";
+import { whatsAppNumber } from "@web/shared/lib/whatsapp";
 import { TreatmentsPanel } from "@web/modules/patients/components/treatments/treatments-panel";
 import { summarizeTreatments } from "@web/modules/patients/lib/treatments/treatments";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { TREATMENT_FILTERS } from "@web/modules/patients/constants";
-import { PrintRoot } from "@web/shared/components/print-root";
-import { usePrint } from "@web/shared/hooks/use-print";
 
 type TreatmentFilter = (typeof TREATMENT_FILTERS)[number];
 
@@ -35,11 +27,9 @@ export function TreatmentPlansTab({
   const { t } = useTranslation();
   const { user, can } = useSession();
   const clinic = useClinic();
-  const catalog = useProcedureCatalog();
   const treatments = usePatientProcedures(patientId);
   const showSkeleton = useDelayedLoading(treatments.isPending);
   const [filter, setFilter] = useTabParam<TreatmentFilter>("status", TREATMENT_FILTERS, "all");
-  const { printing, print } = usePrint();
 
   const showPrices = user ? canSeePrices(can) : false;
 
@@ -124,14 +114,16 @@ export function TreatmentPlansTab({
         />
 
         {quoted.length > 0 && (
-          <Button
-            variant="secondary"
-            icon={<Icon name="print" />}
+          <DocumentActions
             data-testid="treatment-plan-print"
-            onClick={print}
-          >
-            {t("treatmentPlans.print")}
-          </Button>
+            label={t("treatmentPlans.print")}
+            source={treatmentPlanSource(
+              patientId,
+              patient?.fileNumber,
+              patient ? whatsAppNumber(patient) : null,
+              can("patient-documents.sendTreatmentPlan"),
+            )}
+          />
         )}
       </div>
 
@@ -144,18 +136,6 @@ export function TreatmentPlansTab({
         showTotal={false}
         layout="grid"
       />
-
-      {printing && (
-        <PrintRoot data-testid="treatment-plan-print-root">
-          <PlanPrint
-            treatments={quoted}
-            clinic={clinic.data}
-            patientName={patient?.fullName ?? ""}
-            fileNumber={patient?.fileNumber ?? ""}
-            catalog={catalog.data ?? []}
-          />
-        </PrintRoot>
-      )}
     </div>
   );
 }

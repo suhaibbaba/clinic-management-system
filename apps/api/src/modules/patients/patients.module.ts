@@ -1,4 +1,7 @@
 import { Module } from "@nestjs/common";
+import { NotificationsModule } from "@api/modules/notifications/notifications.module";
+import { PatientDocumentsController } from "@api/modules/patients/controllers/patient-documents.controller";
+import { PatientDocumentsService } from "@api/modules/patients/services/patient-documents.service";
 import { BillingModule } from "@api/modules/billing/billing.module";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import {
@@ -26,7 +29,7 @@ import { VisitsController } from "@api/modules/patients/controllers/visits.contr
 import { VisitsService } from "@api/modules/patients/services/visits.service";
 
 @Module({
-  imports: [BillingModule],
+  imports: [BillingModule, NotificationsModule],
   controllers: [
     PatientsController,
     MedicalHistoriesController,
@@ -38,6 +41,7 @@ import { VisitsService } from "@api/modules/patients/services/visits.service";
     TimelineController,
     PrescriptionsController,
     ProcedureCatalogController,
+    PatientDocumentsController,
   ],
   providers: [
     ClinicScopeService,
@@ -52,6 +56,7 @@ import { VisitsService } from "@api/modules/patients/services/visits.service";
     TimelineService,
     PrescriptionsService,
     ProcedureCatalogService,
+    PatientDocumentsService,
   ],
   exports: [
     PatientAccessService,

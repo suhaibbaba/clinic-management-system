@@ -440,6 +440,12 @@ export const updateClinicSecretsSchema = z
       .regex(/^[a-z0-9_]{1,512}$/)
       .nullable()
       .optional(),
+    [CLINIC_SECRET_KIND.WHATSAPP_DOCUMENT_TEMPLATE_NAME]: z
+      .string()
+      .trim()
+      .regex(/^[a-z0-9_]{1,512}$/)
+      .nullable()
+      .optional(),
   })
   .strict();
 export type UpdateClinicSecretsInput = z.infer<typeof updateClinicSecretsSchema>;

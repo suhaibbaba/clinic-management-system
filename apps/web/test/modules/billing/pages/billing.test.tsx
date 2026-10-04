@@ -15,6 +15,7 @@ import {
   makeStatementEntry,
   paginated,
   PATIENT_ID,
+  SHIPPED_CAPABILITIES,
 } from "@test/helpers/fixtures";
 import { mockApi, renderWithProviders, type MockResponse } from "@test/helpers/render";
 
@@ -153,12 +154,46 @@ describe("Billing", () => {
     });
 
     it("offers a receptionist the receipt only — only an admin may correct a payment", async () => {
-      await renderAccountTab(USER_ROLE.RECEPTIONIST);
+      await renderAccountTab(USER_ROLE.RECEPTIONIST, {
+        "GET /document-delivery": { status: 200, body: { available: true } },
+      });
       await openEntryMenu();
 
-      expect(await screen.findByRole("menuitem", { name: ar.billing.receipt })).toBeVisible();
-      expect(screen.queryByRole("menuitem", { name: ar.billing.reverse })).not.toBeInTheDocument();
-      expect(screen.queryByRole("menuitem", { name: ar.common.delete })).not.toBeInTheDocument();
+      const menu = await screen.findByRole("menu");
+
+      expect(within(menu).getByText(ar.billing.receipt)).toBeVisible();
+      expect(
+        within(menu)
+          .getAllByRole("menuitem")
+          .map((item) => item.textContent?.trim()),
+      ).toEqual([ar.documents.print, ar.documents.whatsapp, ar.documents.download]);
+    });
+
+    it("leaves sending the receipt out for a role without the grant", async () => {
+      authTokens.clear();
+      mockApi({
+        ...handlers(USER_ROLE.RECEPTIONIST),
+        "GET /me": {
+          status: 200,
+          body: makeProfile({
+            role: USER_ROLE.RECEPTIONIST,
+            capabilities: SHIPPED_CAPABILITIES[USER_ROLE.RECEPTIONIST].filter(
+              (capability) => capability !== "payments.sendReceipt",
+            ),
+          }),
+        },
+      });
+      renderWithProviders(<AppRoutes />, { route: `/patients/${PATIENT_ID}` });
+      await userEvent.click(await screen.findByRole("tab", { name: ar.patients.tabs.billing }));
+      await openEntryMenu();
+
+      const menu = await screen.findByRole("menu");
+
+      expect(
+        within(menu)
+          .getAllByRole("menuitem")
+          .map((item) => item.textContent?.trim()),
+      ).toEqual([ar.documents.print, ar.documents.download]);
     });
 
     it("deletes a payment only after the confirmation", async () => {

@@ -12,6 +12,7 @@ import {
   Icon,
   Ltr,
   MenuItem,
+  MenuSeparator,
   NotePreview,
   PersonName,
   RowMenu,
@@ -23,7 +24,10 @@ import {
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
 import { canDeletePayment } from "@web/shared/permissions/billing";
-import { openReceipt, printStatement } from "@web/modules/billing/lib/documents";
+import { receiptSource, statementSource } from "@web/modules/billing/lib/documents";
+import { DocumentActions } from "@web/shared/components/document-actions";
+import { DocumentMenuItems } from "@web/shared/components/document-menu-items";
+import { useDocumentActions } from "@web/shared/hooks/use-document-actions";
 import { Money } from "@web/shared/components/money";
 import { canRecordPayment, canReversePayment } from "@web/shared/permissions/billing";
 import { PaymentModal } from "@web/modules/billing/components/payment-modal";
@@ -40,9 +44,10 @@ const receiptLabel = (receiptNumber: number | null): string =>
 
 interface AccountTabProps {
   patientId: string;
+  recipient?: string | null | undefined;
 }
 
-export function AccountTab({ patientId }: AccountTabProps): JSX.Element {
+export function AccountTab({ patientId, recipient }: AccountTabProps): JSX.Element {
   const { t } = useTranslation();
   const { can } = useSession();
   const toast = useToast();
@@ -106,13 +111,8 @@ export function AccountTab({ patientId }: AccountTabProps): JSX.Element {
   const { page, perPage, setPage, setPerPage } = usePageParams();
   const pageRows = newestFirst.slice((page - 1) * perPage, page * perPage);
 
-  const print = async (action: () => Promise<void>): Promise<void> => {
-    try {
-      await action();
-    } catch (error) {
-      toast.error(...errorToast(error));
-    }
-  };
+  const receipts = useDocumentActions("statement-receipt");
+  const maySendReceipts = can("payments.sendReceipt");
 
   const columns: readonly Column<StatementEntry>[] = [
     {
@@ -212,13 +212,13 @@ export function AccountTab({ patientId }: AccountTabProps): JSX.Element {
       render: (entry) =>
         entry.kind === LEDGER_ENTRY_KIND.PAYMENT && !entry.isReversal && !entry.deletedAt ? (
           <RowMenu label={t("billing.entryMenu")} data-testid={`statement-menu-${entry.id}`}>
-            <MenuItem
-              icon="print"
+            <DocumentMenuItems
+              actions={receipts}
+              source={receiptSource(entry.id, entry.receiptNumber, recipient, maySendReceipts)}
+              title={t("billing.receipt")}
               data-testid="statement-receipt"
-              onSelect={() => void print(() => openReceipt(entry.id))}
-            >
-              {t("billing.receipt")}
-            </MenuItem>
+            />
+            <MenuSeparator />
             {canReversePayment(can) && !entry.isReversed && (
               <MenuItem
                 icon="reset"
@@ -246,6 +246,7 @@ export function AccountTab({ patientId }: AccountTabProps): JSX.Element {
   return (
     <div data-testid="account-tab" className="flex flex-col gap-4">
       {dialog}
+      {receipts.dialog}
       <Card
         data-testid="account-balance-card"
         className="flex flex-wrap items-end justify-between gap-4"
@@ -278,14 +279,16 @@ export function AccountTab({ patientId }: AccountTabProps): JSX.Element {
               {t("billing.recordPayment")}
             </Button>
           )}
-          <Button
-            icon={<Icon name="print" />}
-            variant="secondary"
+          <DocumentActions
             data-testid="account-print-statement"
-            onClick={() => void print(() => printStatement(patientId, query))}
-          >
-            {t("billing.printStatement")}
-          </Button>
+            label={t("billing.printStatement")}
+            source={statementSource(
+              patientId,
+              query,
+              recipient,
+              can("patient-billing.sendStatement"),
+            )}
+          />
         </div>
       </Card>
 

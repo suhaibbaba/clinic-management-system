@@ -1,4 +1,19 @@
-import { Body, Controller, Get, Param, Post, Put } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+} from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
+import { SendDocumentDto } from "@api/modules/notifications/dto/document-delivery.dto";
+import { DocumentDeliveryService } from "@api/modules/notifications/services/document-delivery.service";
+import { PayrollDocumentsService } from "@api/modules/payroll/services/payroll-documents.service";
+
 import {
   AUDIT_ACTION,
   USER_ROLE,
@@ -31,7 +46,11 @@ import {
 @Controller("payroll")
 @Roles(USER_ROLE.ADMIN)
 export class PayrollController {
-  constructor(private readonly payroll: PayrollService) {}
+  constructor(
+    private readonly payroll: PayrollService,
+    private readonly documents: PayrollDocumentsService,
+    private readonly delivery: DocumentDeliveryService,
+  ) {}
 
   @Get("salaries/:id")
   salaries(
@@ -54,6 +73,32 @@ export class PayrollController {
   @Get(":month")
   month(@CurrentUser() actor: AuthenticatedUser, @Param() params: MonthParamDto): Promise<Payroll> {
     return this.payroll.payroll(actor, params.month);
+  }
+
+  @Get(":month/print")
+  @Header("Content-Type", "application/pdf")
+  @Header("Content-Disposition", 'inline; filename="payroll.pdf"')
+  monthPdf(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: MonthParamDto,
+  ): Promise<Buffer> {
+    return this.documents.month(actor, params.month);
+  }
+
+  @Post(":month/print/whatsapp")
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async sendMonth(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: MonthParamDto,
+    @Body() body: SendDocumentDto,
+  ): Promise<void> {
+    await this.delivery.send({
+      clinicId: actor.clinicId,
+      to: body.to,
+      kind: "payroll",
+      pdf: await this.documents.month(actor, params.month),
+    });
   }
 
   @Post(":month/adjustments")

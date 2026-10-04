@@ -25,7 +25,6 @@ import {
   type Column,
 } from "@clinic/ui";
 import { DoctorPayoutModal } from "@web/modules/doctors/components/doctor-payout-modal";
-import { SettlementPrint } from "@web/modules/doctors/components/settlement-print";
 import { SettlementTreatmentModal } from "@web/modules/doctors/components/settlement-treatment-modal";
 import {
   useReversePayout,
@@ -38,18 +37,20 @@ import { isIsoDate, todayIso } from "@web/shared/lib/dates";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { formatDate, moneyText } from "@web/shared/lib/format";
 import { useClinic } from "@web/shared/queries/clinic";
-import { PrintRoot } from "@web/shared/components/print-root";
-import { usePrint } from "@web/shared/hooks/use-print";
+import { DocumentActions } from "@web/shared/components/document-actions";
+import { useSession } from "@web/shared/providers/session";
+import { settlementSource } from "@web/modules/doctors/lib/documents";
 
 export function SettlementSection({
   doctorId,
-  doctorName,
+  doctorPhone,
 }: {
   readonly doctorId: string;
-  readonly doctorName: string;
+  readonly doctorPhone: string | null | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
+  const { can } = useSession();
   const clinic = useClinic();
   const currency = clinic.data?.currency;
   const [params, setParams] = useSearchParams();
@@ -67,7 +68,6 @@ export function SettlementSection({
   const [editing, setEditing] = useState<SettlementTreatment | null>(null);
   const [paying, setPaying] = useState(false);
   const [reversing, setReversing] = useState<StaffPayment | null>(null);
-  const { printing, print } = usePrint();
 
   const data = settlement.data;
   const terms = useFormErrors(
@@ -191,15 +191,20 @@ export function SettlementSection({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="secondary"
-            icon={<Icon name="print" />}
+          <DocumentActions
             data-testid="settlement-print"
-            aria-disabled={!data || undefined}
-            onClick={() => data && print()}
-          >
-            {t("doctors.settlement.print")}
-          </Button>
+            label={t("doctors.settlement.print")}
+            source={
+              data && valid
+                ? settlementSource(
+                    doctorId,
+                    { from, to },
+                    doctorPhone,
+                    can("doctor-settlements.sendSettlement"),
+                  )
+                : undefined
+            }
+          />
           <Button
             icon={<Icon name="money" />}
             data-testid="settlement-record-payout"
@@ -375,12 +380,6 @@ export function SettlementSection({
           }
         }}
       />
-
-      {printing && data && (
-        <PrintRoot>
-          <SettlementPrint settlement={data} clinic={clinic.data} doctorName={doctorName} />
-        </PrintRoot>
-      )}
     </section>
   );
 }

@@ -65,6 +65,9 @@ export const inventoryApi = {
   shoppingList: () => apiRequest<ShoppingList>("/inventory/shopping-list"),
 
   shoppingListPdf: (): Promise<Blob> => apiDownload("/inventory/shopping-list.pdf"),
+
+  sendShoppingList: (to: string): Promise<void> =>
+    apiRequest("/inventory/shopping-list/whatsapp", { method: "POST", body: { to } }),
 };
 
 export const suppliersApi = {

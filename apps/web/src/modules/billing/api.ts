@@ -32,4 +32,14 @@ export const billingApi = {
   deletePayment: (id: string): Promise<void> => apiRequest(`/payments/${id}`, { method: "DELETE" }),
 
   receiptPdf: (paymentId: string): Promise<Blob> => apiDownload(`/payments/${paymentId}/receipt`),
+
+  sendReceipt: (paymentId: string, to: string): Promise<void> =>
+    apiRequest(`/payments/${paymentId}/receipt/whatsapp`, { method: "POST", body: { to } }),
+
+  sendStatement: (patientId: string, query: StatementQuery, to: string): Promise<void> =>
+    apiRequest(`/patients/${patientId}/statement/whatsapp`, {
+      method: "POST",
+      query: { ...query },
+      body: { to },
+    }),
 };

@@ -111,6 +111,37 @@ export class ProceduresService implements OnModuleInit {
     );
   }
 
+  async planFor(actor: AuthenticatedUser, patientId: string): Promise<PerformedProcedure[]> {
+    await this.patientAccess.requirePatientId(actor, patientId);
+
+    if (!(await this.patientAccess.seesClinicalData(actor))) {
+      return [];
+    }
+
+    const rows = await this.db
+      .select()
+      .from(performedProcedures)
+      .where(
+        this.scope.where(
+          performedProcedures,
+          actor.clinicId,
+          eq(performedProcedures.patientId, patientId),
+          inArray(performedProcedures.status, [
+            PERFORMED_PROCEDURE_STATUS.PLANNED,
+            PERFORMED_PROCEDURE_STATUS.IN_PROGRESS,
+          ]),
+        ),
+      )
+      .orderBy(desc(performedProcedures.performedAt), desc(performedProcedures.createdAt));
+
+    const marks = await this.marksFor(
+      actor.clinicId,
+      rows.map((row) => row.id),
+    );
+
+    return rows.map((row) => toProcedure(row, marks.get(row.id) ?? []));
+  }
+
   async findOne(actor: AuthenticatedUser, id: string): Promise<PerformedProcedure> {
     const row = await this.patientAccess.requireRow<ProcedureRow>(actor, performedProcedures, id);
     const marks = await this.marksFor(actor.clinicId, [row.id]);

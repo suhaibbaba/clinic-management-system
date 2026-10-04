@@ -362,6 +362,7 @@ export const NOTIFICATION_TEMPLATE = {
   URGENT_SCHEDULED: "urgent_scheduled",
   URGENT_DECLINED: "urgent_declined",
   ASSISTANT_MESSAGE: "assistant_message",
+  DOCUMENT: "document",
 } as const satisfies Record<string, string>;
 export type NotificationTemplate = EnumValue<typeof NOTIFICATION_TEMPLATE>;
 
@@ -375,6 +376,7 @@ export const NOTIFICATION_TEMPLATES = [
   NOTIFICATION_TEMPLATE.URGENT_SCHEDULED,
   NOTIFICATION_TEMPLATE.URGENT_DECLINED,
   NOTIFICATION_TEMPLATE.ASSISTANT_MESSAGE,
+  NOTIFICATION_TEMPLATE.DOCUMENT,
 ] as const;
 
 export const NOTIFICATION_STATUS = {
@@ -979,6 +981,7 @@ export const CLINIC_SECRET_KIND = {
   WHATSAPP_ACCESS_TOKEN: "whatsapp_access_token",
   WHATSAPP_PHONE_NUMBER_ID: "whatsapp_phone_number_id",
   WHATSAPP_TEMPLATE_NAME: "whatsapp_template_name",
+  WHATSAPP_DOCUMENT_TEMPLATE_NAME: "whatsapp_document_template_name",
 } as const satisfies Record<string, string>;
 export type ClinicSecretKind = EnumValue<typeof CLINIC_SECRET_KIND>;
 
@@ -987,6 +990,7 @@ export const CLINIC_SECRET_KINDS = [
   CLINIC_SECRET_KIND.WHATSAPP_ACCESS_TOKEN,
   CLINIC_SECRET_KIND.WHATSAPP_PHONE_NUMBER_ID,
   CLINIC_SECRET_KIND.WHATSAPP_TEMPLATE_NAME,
+  CLINIC_SECRET_KIND.WHATSAPP_DOCUMENT_TEMPLATE_NAME,
 ] as const;
 
 export const CLINIC_SECRET_ERROR = {
@@ -998,6 +1002,12 @@ export const CLINICAL_DELETE_ERROR = {
   HAS_PAYMENTS: "has_payments",
 } as const satisfies Record<string, string>;
 export type ClinicalDeleteError = EnumValue<typeof CLINICAL_DELETE_ERROR>;
+
+export const DOCUMENT_SEND_ERROR = {
+  UNAVAILABLE: "document_send_unavailable",
+  FAILED: "document_send_failed",
+} as const satisfies Record<string, string>;
+export type DocumentSendError = EnumValue<typeof DOCUMENT_SEND_ERROR>;
 
 export const PAYMENT_ERROR = {
   EXCEEDS_BALANCE: "payment_exceeds_balance",

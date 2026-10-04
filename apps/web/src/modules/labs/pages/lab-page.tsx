@@ -22,7 +22,8 @@ import {
 import { useSession } from "@web/shared/providers/session";
 import { Money } from "@web/shared/components/money";
 import { useClinic } from "@web/shared/queries/clinic";
-import { downloadLabStatement } from "@web/modules/labs/lib/documents";
+import { labStatementSource } from "@web/modules/labs/lib/documents";
+import { DocumentActions } from "@web/shared/components/document-actions";
 import { LabFormModal } from "@web/modules/labs/components/lab-form-modal";
 import { LabOrdersTable } from "@web/modules/labs/components/lab-orders-table";
 import { LabPaymentModal } from "@web/modules/labs/components/lab-payment-modal";
@@ -149,7 +150,12 @@ export function LabPage(): JSX.Element {
       {tab === "orders" && <LabOrdersTab labId={id} />}
       {tab === "prices" && <PriceListTab labId={id} />}
       {tab === "statement" && (
-        <StatementTab labId={id} labName={lab.data?.name ?? ""} currency={currency} />
+        <StatementTab
+          labId={id}
+          labName={lab.data?.name ?? ""}
+          labPhone={lab.data?.phone}
+          currency={currency}
+        />
       )}
 
       {lab.data && (
@@ -297,12 +303,15 @@ function PriceListTab({ labId }: { readonly labId: string }): JSX.Element {
 function StatementTab({
   labId,
   labName,
+  labPhone,
   currency,
 }: {
   readonly labId: string;
   readonly labName: string;
+  readonly labPhone: string | null | undefined;
   readonly currency: string | undefined;
 }): JSX.Element {
+  const { can } = useSession();
   const { t } = useTranslation();
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -378,15 +387,19 @@ function StatementTab({
           }}
         />
 
-        <Button
-          variant="secondary"
-          className="ms-auto"
-          data-testid="lab-statement-print"
-          icon={<Icon name="print" />}
-          onClick={() => void downloadLabStatement(labId, labName, query)}
-        >
-          {t("labs.statement.print")}
-        </Button>
+        <div className="ms-auto">
+          <DocumentActions
+            data-testid="lab-statement-print"
+            label={t("labs.statement.print")}
+            source={labStatementSource(
+              labId,
+              labName,
+              query,
+              labPhone,
+              can("lab-ledger.sendStatement"),
+            )}
+          />
+        </div>
       </div>
 
       <Card data-testid="lab-statement-opening">

@@ -311,11 +311,7 @@
       "percentHint": "اتركه فارغًا لاستخدام نسبة الطبيب ({{percent}}%)، أو 0 بلا نسبة",
       "treatmentUpdated": "تم تحديث التسوية",
       "shareSaved": "تم حفظ نسبة العيادة",
-      "print": "طباعة الكشف",
-      "printTitle": "كشف تسوية طبيب زائر",
-      "total": "الإجمالي",
-      "signatureClinic": "توقيع العيادة",
-      "signatureDoctor": "توقيع الطبيب"
+      "print": "طباعة الكشف"
     },
     "kind": "نوع الطبيب",
     "kinds": {
@@ -591,6 +587,10 @@
       "alreadyClosed": "هذا الشهر مغلق مسبقًا",
       "notEmployee": "الطبيب الزائر ليس موظفًا؛ يُسوّى من صفحته",
       "futureMonth": "لا يمكن إغلاق شهر لم يبدأ بعد"
+    },
+    "document": {
+      "unavailable": "إرسال المستندات عبر WhatsApp غير مُفعّل في هذه العيادة. أضف قالب المستندات في إعدادات المساعد.",
+      "failed": "لم يقبل WhatsApp المستند. تحقق من الرقم وحاول مرة أخرى."
     }
   },
   "patients": {
@@ -811,15 +811,9 @@
   "treatmentPlans": {
     "empty": "لا توجد معالجات بعد",
     "loadFailed": "تعذّر تحميل الخطط العلاجية.",
-    "status": "الحالة",
-    "estimatedPrice": "السعر التقديري",
     "total": "الإجمالي التقديري",
     "remaining": "المتبقّي",
     "print": "طباعة",
-    "printTitle": "خطة علاجية",
-    "printDisclaimer": "الأسعار تقديرية وقابلة للتعديل حسب ما تستدعيه الحالة أثناء المعالجة.",
-    "signatureDoctor": "توقيع الطبيب",
-    "signaturePatient": "توقيع المريض",
     "filterByStatus": "الحالة",
     "progressCaption": "نُفّذ {{done}} من {{total}}",
     "about": "كل معالجات المريض في قائمة واحدة: المخطّطة وقيد التنفيذ والمنجزة والملغاة. تُحتسب الرسوم عند بدء المعالجة، والإجماليات محسوبة من المعالجات نفسها.",
@@ -1654,6 +1648,18 @@
       "consequence": "لن يظهر عند تسجيل علاج جديد. العلاجات المسجّلة سابقًا تبقى بأسعارها كما هي."
     }
   },
+  "documents": {
+    "print": "طباعة",
+    "whatsapp": "إرسال عبر WhatsApp",
+    "download": "تنزيل PDF",
+    "whatsappOff": "غير مُفعّل",
+    "sendTitle": "إرسال عبر WhatsApp",
+    "sendHint": "يصل الملف بصيغة PDF إلى هذا الرقم. يمكنك تغييره قبل الإرسال.",
+    "noRecipient": "لا يوجد رقم محفوظ لهذا المستند. اكتب الرقم الذي سيصله الملف.",
+    "to": "رقم WhatsApp",
+    "send": "إرسال",
+    "sent": "تم إرسال المستند"
+  },
   "dashboard": {
     "calendar": {
       "previous": "الشهر السابق",
@@ -2474,7 +2480,8 @@
         "openai_api_key": "مفتاح API",
         "whatsapp_access_token": "رمز الوصول (Access token)",
         "whatsapp_phone_number_id": "معرّف رقم الهاتف",
-        "whatsapp_template_name": "اسم القالب"
+        "whatsapp_template_name": "اسم القالب",
+        "whatsapp_document_template_name": "اسم قالب المستندات"
       }
     },
     "actions": {
@@ -2562,9 +2569,6 @@
     "reverseReason": "سبب العكس",
     "reversedDone": "تم العكس",
     "print": "طباعة كشف الرواتب",
-    "printTitle": "كشف الرواتب",
-    "total": "الإجمالي",
-    "signature": "توقيع الإدارة",
     "close": "إغلاق الشهر",
     "closeTitle": "إغلاق رواتب {{month}}؟",
     "closeLocks": "لا يمكن بعد الإغلاق تعديل رواتب هذا الشهر أو إضافاته أو خصوماته",
@@ -2586,9 +2590,5 @@
     "staffCost": "تكلفة الموظفين",
     "staffCostCaption": "الرواتب المستحقة وحصص الأطباء الزائرين",
     "empty": "لا موظفين في هذا الشهر"
-  },
-  "print": {
-    "printed": "طُبع في {{at}}",
-    "page": "صفحة {{page}} من {{total}}"
   }
 }

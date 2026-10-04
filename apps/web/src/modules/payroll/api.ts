@@ -7,10 +7,15 @@ import type {
   SalaryTermsInput,
   StaffPayment,
 } from "@clinic/shared";
-import { apiRequest } from "@web/shared/lib/api-client";
+import { apiDownload, apiRequest } from "@web/shared/lib/api-client";
 
 export const payrollApi = {
   month: (month: string): Promise<Payroll> => apiRequest(`/payroll/${month}`),
+
+  monthPdf: (month: string): Promise<Blob> => apiDownload(`/payroll/${month}/print`),
+
+  sendMonth: (month: string, to: string): Promise<void> =>
+    apiRequest(`/payroll/${month}/print/whatsapp`, { method: "POST", body: { to } }),
 
   salaries: (userId: string): Promise<SalaryTerm[]> => apiRequest(`/payroll/salaries/${userId}`),
 

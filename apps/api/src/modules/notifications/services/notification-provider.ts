@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { type Env } from "@api/config/env.schema";
 import {
   NotificationProvider,
+  OutboundDocument,
   OutboundMessage,
   whatsAppCredentials,
   toWhatsAppParameter,
@@ -86,6 +87,96 @@ export class WhatsAppNotificationProvider implements NotificationProvider {
     }
 
     return this.sendWith(credentials, message);
+  }
+
+  async sendDocumentWith(
+    credentials: WhatsAppCredentials,
+    document: OutboundDocument,
+  ): Promise<void> {
+    if (!credentials.documentTemplateName) {
+      throw new Error("No WhatsApp template for documents");
+    }
+
+    if (!document.to.trim().startsWith("+")) {
+      throw new Error("The number is not in international form");
+    }
+
+    const base = `https://graph.facebook.com/${this.config.get("WHATSAPP_API_VERSION", { infer: true })}/${encodeURIComponent(credentials.phoneNumberId)}`;
+    const authorization = `Bearer ${credentials.accessToken}`;
+
+    const upload = new FormData();
+    upload.append("messaging_product", "whatsapp");
+    upload.append("type", "application/pdf");
+    upload.append(
+      "file",
+      new Blob([new Uint8Array(document.pdf)], { type: "application/pdf" }),
+      document.filename,
+    );
+
+    const media = await this.call(`${base}/media`, { authorization }, upload);
+    const mediaId = (media as { id?: unknown }).id;
+
+    if (typeof mediaId !== "string") {
+      throw new Error("WhatsApp returned no media id");
+    }
+
+    await this.call(
+      `${base}/messages`,
+      { authorization, "content-type": "application/json" },
+      JSON.stringify({
+        messaging_product: "whatsapp",
+        to: document.to.replace(/\D/g, ""),
+        type: "template",
+        template: {
+          name: credentials.documentTemplateName,
+          language: { code: this.config.get("WHATSAPP_TEMPLATE_LANGUAGE", { infer: true }) },
+          components: [
+            {
+              type: "header",
+              parameters: [
+                { type: "document", document: { id: mediaId, filename: document.filename } },
+              ],
+            },
+            {
+              type: "body",
+              parameters: [{ type: "text", text: toWhatsAppParameter(document.caption) }],
+            },
+          ],
+        },
+      }),
+    );
+
+    this.logger.debug(`Delivered a document to ${document.to} over WhatsApp`);
+  }
+
+  private async call(
+    url: string,
+    headers: Record<string, string>,
+    body: FormData | string,
+  ): Promise<unknown> {
+    const controller = new AbortController();
+    const timeout = setTimeout(
+      () => controller.abort(),
+      this.config.get("NOTIFICATIONS_HTTP_TIMEOUT_MS", { infer: true }),
+    );
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body,
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const detail = await response.text().catch(() => "");
+        throw new Error(`WhatsApp responded ${response.status}: ${detail.slice(0, 200)}`);
+      }
+
+      return (await response.json()) as unknown;
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   async sendWith(credentials: WhatsAppCredentials, message: OutboundMessage): Promise<void> {

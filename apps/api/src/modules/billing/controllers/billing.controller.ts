@@ -1,4 +1,17 @@
-import { Controller, Get, Header, Param, Query } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+} from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
+import { SendDocumentDto } from "@api/modules/notifications/dto/document-delivery.dto";
+import { DocumentDeliveryService } from "@api/modules/notifications/services/document-delivery.service";
 import {
   USER_ROLE,
   type ListOverdueQuery,
@@ -29,6 +42,7 @@ export class PatientBillingController {
   constructor(
     private readonly ledger: LedgerService,
     private readonly documents: DocumentsService,
+    private readonly delivery: DocumentDeliveryService,
     private readonly patientAccess: PatientAccessService,
     private readonly permissions: PermissionsService,
   ) {}
@@ -77,6 +91,24 @@ export class PatientBillingController {
     @Query() query: StatementQueryDto,
   ): Promise<Buffer> {
     return this.documents.statement(actor, params.patientId, query);
+  }
+
+  @Post("statement/whatsapp")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async sendStatement(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: PatientIdParamDto,
+    @Query() query: StatementQueryDto,
+    @Body() body: SendDocumentDto,
+  ): Promise<void> {
+    await this.delivery.send({
+      clinicId: actor.clinicId,
+      to: body.to,
+      kind: "statement",
+      pdf: await this.documents.statement(actor, params.patientId, query),
+    });
   }
 }
 

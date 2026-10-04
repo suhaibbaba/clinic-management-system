@@ -12,7 +12,7 @@ import type {
   UpdateDoctorInput,
   UpdateDoctorScheduleInput,
 } from "@clinic/shared";
-import { apiRequest } from "@web/shared/lib/api-client";
+import { apiDownload, apiRequest } from "@web/shared/lib/api-client";
 
 export const doctorsApi = {
   list: listDoctors,
@@ -35,6 +35,16 @@ export const doctorsApi = {
 
   settlement: (id: string, query: SettlementQuery): Promise<DoctorSettlement> =>
     apiRequest(`/doctors/${id}/settlement`, { query }),
+
+  settlementPdf: (id: string, query: SettlementQuery): Promise<Blob> =>
+    apiDownload(`/doctors/${id}/settlement/print`, { ...query }),
+
+  sendSettlement: (id: string, query: SettlementQuery, to: string): Promise<void> =>
+    apiRequest(`/doctors/${id}/settlement/print/whatsapp`, {
+      method: "POST",
+      query: { ...query },
+      body: { to },
+    }),
 
   setTerms: (id: string, body: SettlementTermsInput): Promise<void> =>
     apiRequest(`/doctors/${id}/settlement-terms`, { method: "PUT", body }),

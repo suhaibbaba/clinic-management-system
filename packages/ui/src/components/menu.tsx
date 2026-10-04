@@ -49,6 +49,7 @@ export interface MenuItemProps extends TestIdProps {
   readonly onSelect?: (() => void) | undefined;
   readonly tone?: "default" | "danger" | undefined;
   readonly trailing?: ReactNode | undefined;
+  readonly unavailable?: boolean | undefined;
 }
 
 export function MenuItem({
@@ -57,13 +58,22 @@ export function MenuItem({
   onSelect,
   tone = "default",
   trailing,
+  unavailable = false,
   "data-testid": testId,
 }: MenuItemProps): JSX.Element {
   return (
     <DropdownMenuPrimitive.Item
       data-part="menu-item"
       {...testid(testId)}
-      {...(onSelect && { onSelect })}
+      aria-disabled={unavailable || undefined}
+      onSelect={(event) => {
+        if (unavailable) {
+          event.preventDefault();
+          return;
+        }
+
+        onSelect?.();
+      }}
       className={cn(
         "flex min-h-(--control-h) cursor-pointer select-none items-center gap-2 rounded-control px-3 py-2",
         "lg:min-h-(--control-h-sm)",
@@ -72,6 +82,7 @@ export function MenuItem({
           ? "text-danger-700 data-highlighted:bg-danger-50"
           : "text-ink data-highlighted:bg-inset",
         "data-disabled:cursor-not-allowed data-disabled:opacity-50",
+        "aria-disabled:cursor-not-allowed aria-disabled:text-ink-subtle",
       )}
     >
       <Icon name={icon} className={tone === "danger" ? "text-danger-600" : "text-ink-muted"} />

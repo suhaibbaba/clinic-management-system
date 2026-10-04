@@ -1,4 +1,6 @@
 import { Module } from "@nestjs/common";
+import { NotificationsModule } from "@api/modules/notifications/notifications.module";
+import { PayrollDocumentsService } from "@api/modules/payroll/services/payroll-documents.service";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import {
   DoctorSettlementsController,
@@ -14,6 +16,7 @@ import { PayrollService } from "@api/modules/payroll/services/payroll.service";
 import { StaffPaymentsService } from "@api/modules/payroll/services/staff-payments.service";
 
 @Module({
+  imports: [NotificationsModule],
   controllers: [
     DoctorSettlementsController,
     SettlementTreatmentsController,
@@ -21,6 +24,12 @@ import { StaffPaymentsService } from "@api/modules/payroll/services/staff-paymen
     PayrollAdjustmentsController,
     StaffPaymentsController,
   ],
-  providers: [ClinicScopeService, StaffPaymentsService, DoctorSettlementsService, PayrollService],
+  providers: [
+    ClinicScopeService,
+    StaffPaymentsService,
+    DoctorSettlementsService,
+    PayrollService,
+    PayrollDocumentsService,
+  ],
 })
 export class PayrollModule {}

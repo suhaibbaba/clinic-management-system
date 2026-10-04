@@ -91,6 +91,7 @@ export const envSchema = z.object({
   WHATSAPP_ACCESS_TOKEN: z.string().optional(),
   WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
   WHATSAPP_TEMPLATE_NAME: z.string().optional(),
+  WHATSAPP_DOCUMENT_TEMPLATE_NAME: z.string().optional(),
   WHATSAPP_TEMPLATE_LANGUAGE: z.string().min(2).default("ar"),
   WHATSAPP_API_VERSION: z
     .string()

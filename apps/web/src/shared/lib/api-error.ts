@@ -4,6 +4,7 @@ import {
   APPOINTMENT_TIMING_ERROR,
   AUTH_ERROR,
   CLINICAL_DELETE_ERROR,
+  DOCUMENT_SEND_ERROR,
   LAB_ORDER_ERROR,
   PAYMENT_ERROR,
   STOCK_ERROR,
@@ -55,6 +56,8 @@ const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [STOCK_ERROR.BELOW_ONE]: "errors.stock.belowOne",
   [PAYMENT_ERROR.EXCEEDS_BALANCE]: "errors.payment.exceedsBalance",
   [PAYMENT_ERROR.REVERSED]: "errors.payment.reversed",
+  [DOCUMENT_SEND_ERROR.UNAVAILABLE]: "errors.document.unavailable",
+  [DOCUMENT_SEND_ERROR.FAILED]: "errors.document.failed",
 };
 
 export function codedMessageKey(code: string | null | undefined): string | undefined {

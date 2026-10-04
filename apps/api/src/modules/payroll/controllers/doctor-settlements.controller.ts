@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   Param,
@@ -10,6 +11,10 @@ import {
   Put,
   Query,
 } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
+import { SendDocumentDto } from "@api/modules/notifications/dto/document-delivery.dto";
+import { DocumentDeliveryService } from "@api/modules/notifications/services/document-delivery.service";
+import { PayrollDocumentsService } from "@api/modules/payroll/services/payroll-documents.service";
 import { AUDIT_ACTION, USER_ROLE, type DoctorSettlement, type StaffPayment } from "@clinic/shared";
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
@@ -32,7 +37,11 @@ import {
 @Controller("doctors")
 @Roles(USER_ROLE.ADMIN)
 export class DoctorSettlementsController {
-  constructor(private readonly settlements: DoctorSettlementsService) {}
+  constructor(
+    private readonly settlements: DoctorSettlementsService,
+    private readonly documents: PayrollDocumentsService,
+    private readonly delivery: DocumentDeliveryService,
+  ) {}
 
   @Get(":id/settlement")
   settlement(
@@ -41,6 +50,34 @@ export class DoctorSettlementsController {
     @Query() query: SettlementQueryDto,
   ): Promise<DoctorSettlement> {
     return this.settlements.settlement(actor, params.id, query);
+  }
+
+  @Get(":id/settlement/print")
+  @Header("Content-Type", "application/pdf")
+  @Header("Content-Disposition", 'inline; filename="settlement.pdf"')
+  settlementPdf(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Query() query: SettlementQueryDto,
+  ): Promise<Buffer> {
+    return this.documents.settlement(actor, params.id, query);
+  }
+
+  @Post(":id/settlement/print/whatsapp")
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async sendSettlement(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Query() query: SettlementQueryDto,
+    @Body() body: SendDocumentDto,
+  ): Promise<void> {
+    await this.delivery.send({
+      clinicId: actor.clinicId,
+      to: body.to,
+      kind: "settlement",
+      pdf: await this.documents.settlement(actor, params.id, query),
+    });
   }
 
   @Put(":id/settlement-terms")

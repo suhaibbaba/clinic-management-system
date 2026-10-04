@@ -269,7 +269,12 @@ export function PatientPage(): JSX.Element {
         )}
         {activeTab === "prescriptions" && <PrescriptionsTab patientId={id} />}
         {activeTab === "timeline" && <TimelineTab patientId={id} />}
-        {activeTab === "billing" && <AccountTab patientId={id} />}
+        {activeTab === "billing" && (
+          <AccountTab
+            patientId={id}
+            recipient={patient.data ? whatsAppNumber(patient.data) : null}
+          />
+        )}
       </TabPanel>
     </div>
   );

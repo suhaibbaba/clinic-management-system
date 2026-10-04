@@ -1,6 +1,6 @@
 export { Avatar } from "@ui/components/avatar";
 export { Badge, Chip, type BadgeTone } from "@ui/components/badge";
-export { Button } from "@ui/components/button";
+export { Button, type ButtonVariant } from "@ui/components/button";
 export { Card } from "@ui/components/card";
 export { ChatBubble, type ChatAuthor } from "@ui/components/chat-bubble";
 export { ChatComposer } from "@ui/components/chat-composer";
@@ -11,7 +11,15 @@ export { EmailLink, PhoneLink, WhatsAppLink } from "@ui/components/contact-link"
 export { DatePicker } from "@ui/components/date-picker";
 export { DateRangePicker, type DateRange } from "@ui/components/date-range-picker";
 export { Drawer } from "@ui/components/drawer";
-export { Menu, MenuContent, MenuItem, MenuTrigger, RowMenu } from "@ui/components/menu";
+export {
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuLabel,
+  MenuSeparator,
+  MenuTrigger,
+  RowMenu,
+} from "@ui/components/menu";
 export { EmptyState } from "@ui/components/empty-state";
 export { EntityCard, EntityGrid } from "@ui/components/entity-card";
 export { FormField } from "@ui/components/form-field";

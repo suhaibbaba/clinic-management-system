@@ -25,7 +25,7 @@ import type {
   UpdateVisitInput,
   Visit,
 } from "@clinic/shared";
-import { apiRequest } from "@web/shared/lib/api-client";
+import { apiDownload, apiRequest } from "@web/shared/lib/api-client";
 
 const PAGE_LIMIT = 100;
 
@@ -91,6 +91,12 @@ export const patientsApi = {
 
   removeCatalogItem: (id: string): Promise<void> =>
     apiRequest(`/procedure-catalog/${id}`, { method: "DELETE" }),
+
+  treatmentPlanPdf: (patientId: string): Promise<Blob> =>
+    apiDownload(`/patients/${patientId}/treatment-plan.pdf`),
+
+  sendTreatmentPlan: (patientId: string, to: string): Promise<void> =>
+    apiRequest(`/patients/${patientId}/treatment-plan/whatsapp`, { method: "POST", body: { to } }),
 
   attachment: (id: string): Promise<Attachment> => apiRequest(`/attachments/${id}`),
 

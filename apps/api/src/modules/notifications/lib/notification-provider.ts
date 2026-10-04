@@ -10,6 +10,13 @@ export interface OutboundMessage {
   readonly body: string;
 }
 
+export interface OutboundDocument {
+  readonly to: string;
+  readonly pdf: Buffer;
+  readonly filename: string;
+  readonly caption: string;
+}
+
 export interface NotificationProvider {
   readonly name: string;
   send(message: OutboundMessage): Promise<void>;
@@ -19,9 +26,11 @@ export function whatsAppCredentials(config: ConfigService<Env, true>): WhatsAppC
   const accessToken = config.get("WHATSAPP_ACCESS_TOKEN", { infer: true });
   const phoneNumberId = config.get("WHATSAPP_PHONE_NUMBER_ID", { infer: true });
   const templateName = config.get("WHATSAPP_TEMPLATE_NAME", { infer: true });
+  const documentTemplateName =
+    config.get("WHATSAPP_DOCUMENT_TEMPLATE_NAME", { infer: true }) ?? null;
 
   return accessToken && phoneNumberId && templateName
-    ? { accessToken, phoneNumberId, templateName }
+    ? { accessToken, phoneNumberId, templateName, documentTemplateName }
     : null;
 }
 

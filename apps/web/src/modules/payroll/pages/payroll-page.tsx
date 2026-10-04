@@ -23,7 +23,6 @@ import {
   type AdjustmentTarget,
 } from "@web/modules/payroll/components/adjustment-modal";
 import { EmployeeMonthModal } from "@web/modules/payroll/components/employee-month-modal";
-import { PayrollPrint } from "@web/modules/payroll/components/payroll-print";
 import { SalaryModal } from "@web/modules/payroll/components/salary-modal";
 import { SalaryPaymentModal } from "@web/modules/payroll/components/salary-payment-modal";
 import { currentMonth, isMonth, shiftMonth } from "@web/modules/payroll/lib/months";
@@ -32,12 +31,14 @@ import { errorToast } from "@web/shared/lib/api-error";
 import { todayIso } from "@web/shared/lib/dates";
 import { formatDate, formatMonth, moneyText } from "@web/shared/lib/format";
 import { useClinic } from "@web/shared/queries/clinic";
-import { PrintRoot } from "@web/shared/components/print-root";
-import { usePrint } from "@web/shared/hooks/use-print";
+import { DocumentActions } from "@web/shared/components/document-actions";
+import { useSession } from "@web/shared/providers/session";
+import { payrollSource } from "@web/modules/payroll/lib/documents";
 
 export function PayrollPage(): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
+  const { can } = useSession();
   const clinic = useClinic();
   const currency = clinic.data?.currency;
   const [params, setParams] = useSearchParams();
@@ -54,7 +55,6 @@ export function PayrollPage(): JSX.Element {
   const [paying, setPaying] = useState<PayrollLine | null>(null);
   const [detailsFor, setDetailsFor] = useState<PayrollLine | null>(null);
   const [closing, setClosing] = useState(false);
-  const { printing, print } = usePrint();
 
   const data = payroll.data;
   const isClosed = data?.closedAt !== null && data?.closedAt !== undefined;
@@ -176,15 +176,11 @@ export function PayrollPage(): JSX.Element {
         title="payroll.title"
         subtitle="payroll.subtitle"
         actions={
-          <Button
-            variant="secondary"
-            icon={<Icon name="print" />}
+          <DocumentActions
             data-testid="payroll-print"
-            aria-disabled={!data || undefined}
-            onClick={() => data && print()}
-          >
-            {t("payroll.print")}
-          </Button>
+            label={t("payroll.print")}
+            source={data ? payrollSource(month, can("payroll.sendMonth")) : undefined}
+          />
         }
         primaryAction={
           !isClosed && data ? (
@@ -315,12 +311,6 @@ export function PayrollPage(): JSX.Element {
           }
         }}
       />
-
-      {printing && data && (
-        <PrintRoot>
-          <PayrollPrint payroll={data} clinic={clinic.data} />
-        </PrintRoot>
-      )}
     </div>
   );
 }

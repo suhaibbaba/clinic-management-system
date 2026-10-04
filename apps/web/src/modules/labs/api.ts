@@ -59,6 +59,13 @@ export const labsApi = {
   statementPdf: (labId: string, params: StatementQuery): Promise<Blob> =>
     apiDownload(`/labs/${labId}/statement.pdf`, { ...params }),
 
+  sendStatement: (labId: string, params: StatementQuery, to: string): Promise<void> =>
+    apiRequest(`/labs/${labId}/statement/whatsapp`, {
+      method: "POST",
+      query: { ...params },
+      body: { to },
+    }),
+
   payments: (labId: string, params: Partial<PaginationQuery> = {}) =>
     apiRequest<Paginated<LabPayment>>(`/labs/${labId}/payments${toQueryString(params)}`),
 
@@ -111,4 +118,7 @@ export const labOrdersApi = {
     apiRequest<void>(`/lab-orders/${id}/attachments/${attachmentId}`, { method: "DELETE" }),
 
   sheetPdf: (id: string): Promise<Blob> => apiDownload(`/lab-orders/${id}/print`),
+
+  sendSheet: (id: string, to: string): Promise<void> =>
+    apiRequest(`/lab-orders/${id}/print/whatsapp`, { method: "POST", body: { to } }),
 };

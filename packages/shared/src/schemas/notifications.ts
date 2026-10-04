@@ -7,7 +7,7 @@ import {
   NOTIFICATION_TEMPLATES,
   type NotificationTemplate,
 } from "@shared/enums";
-import { paginationQuerySchema, uuidSchema } from "@shared/schemas/common";
+import { paginationQuerySchema, phoneSchema, uuidSchema } from "@shared/schemas/common";
 
 export const notificationLogEntrySchema = z.object({
   id: uuidSchema,
@@ -56,6 +56,7 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: Record<NotificationTemplate, string
   [NOTIFICATION_TEMPLATE.URGENT_DECLINED]:
     "بخصوص طلبك العاجل في {clinic}: {reason}. للاستفسار تواصل معنا.",
   [NOTIFICATION_TEMPLATE.ASSISTANT_MESSAGE]: "{body}",
+  [NOTIFICATION_TEMPLATE.DOCUMENT]: "{document} من {clinic}.",
 };
 
 export function notificationSettings(settings: unknown): NotificationSettings {
@@ -80,3 +81,15 @@ export function notificationSettings(settings: unknown): NotificationSettings {
 export function renderTemplate(body: string, vars: Record<string, string>): string {
   return body.replaceAll(/\{(\w+)\}/g, (match, key: string) => vars[key] ?? match);
 }
+
+export const sendDocumentSchema = z.object({
+  to: phoneSchema,
+});
+
+export type SendDocumentInput = z.infer<typeof sendDocumentSchema>;
+
+export const documentDeliverySchema = z.object({
+  available: z.boolean(),
+});
+
+export type DocumentDelivery = z.infer<typeof documentDeliverySchema>;

@@ -14,11 +14,14 @@ import {
   type NotificationProvider,
 } from "@api/modules/notifications/lib/notification-provider";
 import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
+import { DocumentDeliveryController } from "@api/modules/notifications/controllers/document-delivery.controller";
+import { DocumentDeliveryService } from "@api/modules/notifications/services/document-delivery.service";
 import { RemindersScheduler } from "@api/modules/notifications/services/reminders.scheduler";
 import { SecretsModule } from "@api/modules/secrets/secrets.module";
 
 @Module({
   imports: [DatabaseModule, AppConfigModule, SecretsModule],
+  controllers: [DocumentDeliveryController],
   providers: [
     LogNotificationProvider,
     HttpNotificationProvider,
@@ -62,8 +65,9 @@ import { SecretsModule } from "@api/modules/secrets/secrets.module";
       },
     },
     NotificationsService,
+    DocumentDeliveryService,
     RemindersScheduler,
   ],
-  exports: [NotificationsService, RemindersScheduler],
+  exports: [NotificationsService, DocumentDeliveryService, RemindersScheduler],
 })
 export class NotificationsModule {}

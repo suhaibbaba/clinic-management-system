@@ -11,6 +11,9 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
+import { SendDocumentDto } from "@api/modules/notifications/dto/document-delivery.dto";
+import { DocumentDeliveryService } from "@api/modules/notifications/services/document-delivery.service";
 import {
   AUDIT_ACTION,
   LAB_ORDER_STATUS,
@@ -50,6 +53,7 @@ export class LabOrdersController {
     private readonly orders: LabOrdersService,
     private readonly attachments: LabOrderAttachmentsService,
     private readonly documents: LabDocumentsService,
+    private readonly delivery: DocumentDeliveryService,
   ) {}
 
   @AiTool({
@@ -100,6 +104,23 @@ export class LabOrdersController {
   @Header("Content-Disposition", 'inline; filename="lab-order.pdf"')
   print(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<Buffer> {
     return this.documents.orderSheet(actor, params.id);
+  }
+
+  @Post(":id/print/whatsapp")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async sendSheet(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Body() body: SendDocumentDto,
+  ): Promise<void> {
+    await this.delivery.send({
+      clinicId: actor.clinicId,
+      to: body.to,
+      kind: "labOrder",
+      pdf: await this.documents.orderSheet(actor, params.id),
+    });
   }
 
   @AiTool({

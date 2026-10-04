@@ -5,10 +5,14 @@ import {
   Get,
   Header,
   HttpCode,
+  HttpStatus,
   Param,
   Post,
   Query,
 } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
+import { SendDocumentDto } from "@api/modules/notifications/dto/document-delivery.dto";
+import { DocumentDeliveryService } from "@api/modules/notifications/services/document-delivery.service";
 import { AUDIT_ACTION, USER_ROLE, type Paginated, type Payment } from "@clinic/shared";
 import { DocumentsService } from "@api/modules/billing/services/documents.service";
 import { PAYMENTS_ENTITY } from "@api/common/constants/audit-entities";
@@ -31,6 +35,7 @@ export class PaymentsController {
   constructor(
     private readonly payments: PaymentsService,
     private readonly documents: DocumentsService,
+    private readonly delivery: DocumentDeliveryService,
   ) {}
 
   @AiTool({
@@ -63,6 +68,23 @@ export class PaymentsController {
   @Header("Content-Disposition", 'inline; filename="receipt.pdf"')
   receipt(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<Buffer> {
     return this.documents.receipt(actor, params.id);
+  }
+
+  @Post(":id/receipt/whatsapp")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async sendReceipt(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Body() body: SendDocumentDto,
+  ): Promise<void> {
+    await this.delivery.send({
+      clinicId: actor.clinicId,
+      to: body.to,
+      kind: "receipt",
+      pdf: await this.documents.receipt(actor, params.id),
+    });
   }
 
   @Post()

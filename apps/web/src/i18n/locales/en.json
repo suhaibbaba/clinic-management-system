@@ -303,11 +303,7 @@
       "percentHint": "Leave empty for the doctor's share ({{percent}}%), or 0 for none",
       "treatmentUpdated": "Settlement Updated",
       "shareSaved": "Clinic Share Saved",
-      "print": "Print Statement",
-      "printTitle": "Visiting Doctor Settlement",
-      "total": "Total",
-      "signatureClinic": "Clinic Signature",
-      "signatureDoctor": "Doctor Signature"
+      "print": "Print Statement"
     },
     "kind": "Doctor Type",
     "kinds": {
@@ -571,6 +567,10 @@
       "alreadyClosed": "This month is already closed",
       "notEmployee": "A visiting doctor is not an employee; settle them from their page",
       "futureMonth": "A month that has not started cannot be closed"
+    },
+    "document": {
+      "unavailable": "Sending documents on WhatsApp is not set up for this clinic. Add the document template in the assistant settings.",
+      "failed": "WhatsApp did not accept the document. Check the number and try again."
     }
   },
   "patients": {
@@ -783,15 +783,9 @@
   "treatmentPlans": {
     "empty": "No treatments yet",
     "loadFailed": "Could not load treatment plans.",
-    "status": "Status",
-    "estimatedPrice": "Estimated Price",
     "total": "Estimated Total",
     "remaining": "Remaining",
     "print": "Print",
-    "printTitle": "Treatment Plan",
-    "printDisclaimer": "Prices are estimates and may change as treatment requires.",
-    "signatureDoctor": "Doctor's Signature",
-    "signaturePatient": "Patient's Signature",
     "filterByStatus": "Filter by Status",
     "progressCaption": "{{done}} of {{total}} carried out",
     "about": "Every treatment for this patient in one list: planned, in progress, done and cancelled. A treatment is charged once work on it starts, and the totals are worked out from the treatments themselves.",
@@ -1602,6 +1596,18 @@
       "consequence": "It will no longer be offered when recording a treatment. Treatments already recorded keep their prices."
     }
   },
+  "documents": {
+    "print": "Print",
+    "whatsapp": "Send by WhatsApp",
+    "download": "Download PDF",
+    "whatsappOff": "Not set up",
+    "sendTitle": "Send by WhatsApp",
+    "sendHint": "The PDF goes to this number. You can change it before sending.",
+    "noRecipient": "No number is saved for this document. Enter the number it should go to.",
+    "to": "WhatsApp Number",
+    "send": "Send",
+    "sent": "Document Sent"
+  },
   "dashboard": {
     "calendar": {
       "previous": "Previous Month",
@@ -2410,7 +2416,8 @@
         "openai_api_key": "API Key",
         "whatsapp_access_token": "Access Token",
         "whatsapp_phone_number_id": "Phone Number ID",
-        "whatsapp_template_name": "Template Name"
+        "whatsapp_template_name": "Template Name",
+        "whatsapp_document_template_name": "Document Template Name"
       }
     },
     "actions": {
@@ -2490,9 +2497,6 @@
     "reverseReason": "Reason for reversing",
     "reversedDone": "Reversed",
     "print": "Print Payroll",
-    "printTitle": "Payroll",
-    "total": "Total",
-    "signature": "Management Signature",
     "close": "Close the Month",
     "closeTitle": "Close payroll for {{month}}?",
     "closeLocks": "After closing, this month's salaries, extras and cuts can no longer change",
@@ -2510,9 +2514,5 @@
     "staffCost": "Staff Cost",
     "staffCostCaption": "Salaries due plus visiting doctor shares",
     "empty": "No employees this month"
-  },
-  "print": {
-    "printed": "Printed {{at}}",
-    "page": "Page {{page}} of {{total}}"
   }
 }

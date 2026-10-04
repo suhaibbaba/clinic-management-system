@@ -18,10 +18,12 @@ import {
 import { useSession } from "@web/shared/providers/session";
 import { Money } from "@web/shared/components/money";
 import { useClinic } from "@web/shared/queries/clinic";
-import { openLabOrderSheet } from "@web/modules/labs/lib/documents";
+import { labOrderSource } from "@web/modules/labs/lib/documents";
+import { DocumentActions } from "@web/shared/components/document-actions";
 import { canCreateLabOrder } from "@web/shared/permissions/labs";
 import {
   useDeleteLabOrderAttachment,
+  useLab,
   useLabOrderAttachments,
   useLabOrderStep,
   useReturnLabOrder,
@@ -53,6 +55,7 @@ export function OrderDrawer({
   const toast = useToast();
   const navigate = useNavigate();
   const clinic = useClinic();
+  const lab = useLab(order?.labId ?? "");
 
   const step = useLabOrderStep();
   const returnToLab = useReturnLabOrder();
@@ -247,15 +250,11 @@ export function OrderDrawer({
           <Attachments orderId={order.id} />
 
           <div className="flex flex-wrap gap-2 border-t border-line pt-4">
-            <Button
-              variant="secondary"
-              size="sm"
-              icon={<Icon name="print" />}
+            <DocumentActions
               data-testid={`${testId}-print`}
-              onClick={() => void openLabOrderSheet(order.id)}
-            >
-              {t("labs.order.print")}
-            </Button>
+              label={t("labs.order.print")}
+              source={labOrderSource(order.id, lab.data?.phone, can("lab-orders.sendSheet"))}
+            />
 
             {order.status === LAB_ORDER_STATUS.DRAFT && canCreateLabOrder(can) && (
               <Button

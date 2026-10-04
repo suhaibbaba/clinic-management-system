@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { NotificationsModule } from "@api/modules/notifications/notifications.module";
 import { AppointmentsModule } from "@api/modules/appointments/appointments.module";
 import { AuditModule } from "@api/modules/audit/audit.module";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
@@ -20,7 +21,14 @@ import { PatientsModule } from "@api/modules/patients/patients.module";
 import { StorageModule } from "@api/modules/storage/storage.module";
 
 @Module({
-  imports: [DatabaseModule, AuditModule, StorageModule, AppointmentsModule, PatientsModule],
+  imports: [
+    NotificationsModule,
+    DatabaseModule,
+    AuditModule,
+    StorageModule,
+    AppointmentsModule,
+    PatientsModule,
+  ],
   controllers: [LabsController, LabOrdersController, LabLedgerController, LabPaymentsController],
   providers: [
     ClinicScopeService,

@@ -1,3 +1,4 @@
+import { type DocumentStrings } from "@api/modules/billing/pdf/document-strings";
 import {
   type NotificationTemplate,
   type NotificationChannel,
@@ -17,4 +18,13 @@ export interface SendResult {
   readonly id: string;
   readonly status: (typeof NOTIFICATION_STATUS)[keyof typeof NOTIFICATION_STATUS];
   readonly body: string;
+}
+
+export type DocumentKind = Exclude<keyof DocumentStrings, "common">;
+
+export interface SendDocument {
+  readonly clinicId: string;
+  readonly to: string;
+  readonly kind: DocumentKind;
+  readonly pdf: Buffer;
 }

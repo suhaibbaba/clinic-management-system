@@ -1,15 +1,27 @@
-import { presentBlob } from "@web/shared/lib/download";
 import type { StatementQuery } from "@clinic/shared";
 import { labOrdersApi, labsApi } from "@web/modules/labs/api";
+import type { DocumentSource } from "@web/shared/lib/document-source";
 
-export async function openLabOrderSheet(orderId: string): Promise<void> {
-  await presentBlob(await labOrdersApi.sheetPdf(orderId), `lab-order-${orderId}.pdf`, false);
-}
+export const labOrderSource = (
+  orderId: string,
+  recipient: string | null | undefined,
+  maySend: boolean,
+): DocumentSource => ({
+  load: () => labOrdersApi.sheetPdf(orderId),
+  filename: `lab-order-${orderId}.pdf`,
+  recipient,
+  send: maySend ? (to) => labOrdersApi.sendSheet(orderId, to) : undefined,
+});
 
-export async function downloadLabStatement(
+export const labStatementSource = (
   labId: string,
   labName: string,
   query: StatementQuery,
-): Promise<void> {
-  await presentBlob(await labsApi.statementPdf(labId, query), `lab-statement-${labName}.pdf`, true);
-}
+  recipient: string | null | undefined,
+  maySend: boolean,
+): DocumentSource => ({
+  load: () => labsApi.statementPdf(labId, query),
+  filename: `lab-statement-${labName}.pdf`,
+  recipient,
+  send: maySend ? (to) => labsApi.sendStatement(labId, query, to) : undefined,
+});

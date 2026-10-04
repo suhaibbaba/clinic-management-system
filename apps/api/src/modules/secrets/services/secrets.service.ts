@@ -134,14 +134,15 @@ export class SecretsService {
   }
 
   async whatsApp(clinicId: string): Promise<WhatsAppCredentials | null> {
-    const [accessToken, phoneNumberId, templateName] = await Promise.all([
+    const [accessToken, phoneNumberId, templateName, documentTemplateName] = await Promise.all([
       this.reveal(clinicId, CLINIC_SECRET_KIND.WHATSAPP_ACCESS_TOKEN),
       this.reveal(clinicId, CLINIC_SECRET_KIND.WHATSAPP_PHONE_NUMBER_ID),
       this.reveal(clinicId, CLINIC_SECRET_KIND.WHATSAPP_TEMPLATE_NAME),
+      this.reveal(clinicId, CLINIC_SECRET_KIND.WHATSAPP_DOCUMENT_TEMPLATE_NAME),
     ]);
 
     return accessToken && phoneNumberId && templateName
-      ? { accessToken, phoneNumberId, templateName }
+      ? { accessToken, phoneNumberId, templateName, documentTemplateName }
       : null;
   }
 

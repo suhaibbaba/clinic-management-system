@@ -1,4 +1,4 @@
-import { personName, type WeeklySchedule } from "@clinic/shared";
+import { type WeeklySchedule } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useParams } from "react-router-dom";
@@ -19,7 +19,7 @@ import { UnsavedChanges } from "@web/shared/components/unsaved-changes";
 import { countChanges } from "@web/shared/lib/changes";
 
 export function DoctorPage(): JSX.Element {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const toast = useToast();
   const { id } = useParams<{ id: string }>();
   const { user, can } = useSession();
@@ -124,10 +124,7 @@ export function DoctorPage(): JSX.Element {
 
       {doctor.data.isVisiting && canSeeSettlement(can) && (
         <div className="border border-line rounded-card bg-surface shadow-card p-4">
-          <SettlementSection
-            doctorId={id}
-            doctorName={personName(doctor.data.user.name, i18n.language)}
-          />
+          <SettlementSection doctorId={id} doctorPhone={doctor.data.user.phone} />
         </div>
       )}
       {canEdit && (

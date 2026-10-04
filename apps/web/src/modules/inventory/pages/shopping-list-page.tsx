@@ -1,8 +1,10 @@
 import { LOOKUP_LIST, type ShoppingListLine } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, EmptyState, Icon, Ltr, PageHeader, Table, type Column } from "@clinic/ui";
-import { inventoryApi } from "@web/modules/inventory/api";
+import { Badge, EmptyState, Ltr, PageHeader, Table, type Column } from "@clinic/ui";
+import { shoppingListSource } from "@web/modules/inventory/lib/documents";
+import { DocumentActions } from "@web/shared/components/document-actions";
+import { useSession } from "@web/shared/providers/session";
 import { useLookupLabels } from "@web/shared/queries/lookups";
 import { categoryTone } from "@web/modules/inventory/lib/display";
 import { useShoppingList } from "@web/modules/inventory/queries";
@@ -11,6 +13,7 @@ import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
 export function ShoppingListPage(): JSX.Element {
   const { t } = useTranslation();
+  const { can } = useSession();
   const categoryLabel = useLookupLabels(LOOKUP_LIST.ITEM_CATEGORY);
   const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const list = useShoppingList();
@@ -65,13 +68,6 @@ export function ShoppingListPage(): JSX.Element {
     },
   ];
 
-  const print = async (): Promise<void> => {
-    const url = URL.createObjectURL(await inventoryApi.shoppingListPdf());
-
-    window.open(url, "_blank", "noopener");
-    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-  };
-
   return (
     <div data-testid="shopping-list-page" className="flex flex-col gap-5">
       <PageHeader
@@ -79,14 +75,16 @@ export function ShoppingListPage(): JSX.Element {
         title="inventory.shoppingList.title"
         subtitle="inventory.shoppingList.subtitle"
         actions={
-          <Button
-            icon={<Icon name="print" />}
+          <DocumentActions
             data-testid="shopping-list-print"
-            disabled={(list.data?.lines.length ?? 0) === 0}
-            onClick={() => void print()}
-          >
-            {t("inventory.shoppingList.print")}
-          </Button>
+            variant="primary"
+            label={t("inventory.shoppingList.print")}
+            source={
+              (list.data?.lines.length ?? 0) > 0
+                ? shoppingListSource(can("inventory.sendShoppingList"))
+                : undefined
+            }
+          />
         }
       />
 

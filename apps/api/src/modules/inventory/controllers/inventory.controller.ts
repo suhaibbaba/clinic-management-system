@@ -11,6 +11,9 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
+import { SendDocumentDto } from "@api/modules/notifications/dto/document-delivery.dto";
+import { DocumentDeliveryService } from "@api/modules/notifications/services/document-delivery.service";
 import {
   AUDIT_ACTION,
   USER_ROLE,
@@ -55,6 +58,7 @@ export class InventoryController {
     private readonly movements: StockMovementsService,
     private readonly reports: InventoryReportsService,
     private readonly documents: InventoryDocumentsService,
+    private readonly delivery: DocumentDeliveryService,
   ) {}
 
   @Get("alerts")
@@ -80,6 +84,22 @@ export class InventoryController {
   @Header("Content-Disposition", 'inline; filename="shopping-list.pdf"')
   shoppingListPdf(@CurrentUser() actor: AuthenticatedUser): Promise<Buffer> {
     return this.documents.shoppingList(actor);
+  }
+
+  @Post("shopping-list/whatsapp")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async sendShoppingList(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Body() body: SendDocumentDto,
+  ): Promise<void> {
+    await this.delivery.send({
+      clinicId: actor.clinicId,
+      to: body.to,
+      kind: "shoppingList",
+      pdf: await this.documents.shoppingList(actor),
+    });
   }
 
   @AiTool({

@@ -1,4 +1,18 @@
-import { Body, Controller, Get, Header, Param, Patch, Post, Query } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
+import { SendDocumentDto } from "@api/modules/notifications/dto/document-delivery.dto";
+import { DocumentDeliveryService } from "@api/modules/notifications/services/document-delivery.service";
 import {
   AUDIT_ACTION,
   USER_ROLE,
@@ -31,6 +45,7 @@ export class LabLedgerController {
     private readonly ledger: LabLedgerService,
     private readonly payments: LabPaymentsService,
     private readonly documents: LabDocumentsService,
+    private readonly delivery: DocumentDeliveryService,
   ) {}
 
   @AiTool({
@@ -70,6 +85,24 @@ export class LabLedgerController {
     @Query() query: StatementQueryDto,
   ): Promise<Buffer> {
     return this.documents.statement(actor, params.labId, query);
+  }
+
+  @Post("statement/whatsapp")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async sendStatement(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: LabIdParamDto,
+    @Query() query: StatementQueryDto,
+    @Body() body: SendDocumentDto,
+  ): Promise<void> {
+    await this.delivery.send({
+      clinicId: actor.clinicId,
+      to: body.to,
+      kind: "labStatement",
+      pdf: await this.documents.statement(actor, params.labId, query),
+    });
   }
 
   @AiTool({
