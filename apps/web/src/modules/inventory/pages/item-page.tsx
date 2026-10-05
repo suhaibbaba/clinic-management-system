@@ -1,7 +1,7 @@
 import { LOOKUP_LIST, MOVEMENT_TYPE, type MovementType } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Badge,
   Button,
@@ -12,7 +12,9 @@ import {
   SegmentedControl,
   StatCard,
   StatRow,
+  useConfirm,
   useTabParam,
+  useToast,
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
 import { useLookupLabels } from "@web/shared/queries/lookups";
@@ -22,8 +24,9 @@ import { ItemFormModal } from "@web/modules/inventory/components/item-form-modal
 import { Quantity } from "@web/modules/inventory/components/quantity";
 import { ItemMovementsTab } from "@web/modules/inventory/pages/item-movements-tab";
 import { MovementModal } from "@web/modules/inventory/components/movement-modal";
-import { mayRecord, canManageInventory } from "@web/shared/permissions/inventory";
-import { useInventoryItem, useItemBatches } from "@web/modules/inventory/queries";
+import { canDeleteItem, canManageInventory, mayRecord } from "@web/shared/permissions/inventory";
+import { useDeleteItem, useInventoryItem, useItemBatches } from "@web/modules/inventory/queries";
+import { errorToast } from "@web/shared/lib/api-error";
 import { formatDate } from "@web/shared/lib/format";
 import { Skeleton, SkeletonKpi } from "@clinic/ui/components/skeleton";
 import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
@@ -58,6 +61,36 @@ export function ItemPage(): JSX.Element {
   const buttons = allowed.filter((type) => type !== MOVEMENT_TYPE.ADJUST);
   const menuActions = isMobile ? allowed : allowed.filter((type) => type === MOVEMENT_TYPE.ADJUST);
   const mayEdit = canManageInventory(can);
+  const mayDelete = canDeleteItem(can);
+
+  const navigate = useNavigate();
+  const toast = useToast();
+  const remove = useDeleteItem();
+  const { confirm, dialog } = useConfirm("item-confirm-delete");
+
+  const askDelete = (): void => {
+    if (!row) {
+      return;
+    }
+    confirm({
+      title: "inventory.item.confirmDelete.title",
+      titleValues: { name: row.name },
+      consequences: [
+        t("inventory.item.confirmDelete.history"),
+        t("inventory.item.confirmDelete.stock"),
+      ],
+      onConfirm: async () => {
+        try {
+          await remove.mutateAsync(row.id);
+          toast.success("inventory.item.deleted");
+          void navigate("/inventory", { replace: true });
+        } catch (error) {
+          toast.error(...errorToast(error));
+          throw error;
+        }
+      },
+    });
+  };
 
   return (
     <div data-testid="item-page" className="flex flex-col gap-5">
@@ -95,7 +128,7 @@ export function ItemPage(): JSX.Element {
                 </Button>
               ))}
 
-            {(menuActions.length > 0 || mayEdit) && (
+            {(menuActions.length > 0 || mayEdit || mayDelete) && (
               <RowMenu
                 size="target"
                 label={t("inventory.itemPage.actions")}
@@ -114,6 +147,16 @@ export function ItemPage(): JSX.Element {
                 {mayEdit && (
                   <MenuItem icon="edit" data-testid="item-edit" onSelect={() => setEditing(true)}>
                     {t("inventory.editItem")}
+                  </MenuItem>
+                )}
+                {mayDelete && (
+                  <MenuItem
+                    icon="trash"
+                    tone="danger"
+                    data-testid="item-delete"
+                    onSelect={askDelete}
+                  >
+                    {t("common.delete")}
                   </MenuItem>
                 )}
               </RowMenu>
@@ -199,6 +242,8 @@ export function ItemPage(): JSX.Element {
           item={row}
         />
       )}
+
+      {dialog}
     </div>
   );
 }

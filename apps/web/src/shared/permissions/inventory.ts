@@ -5,6 +5,8 @@ export const seesInventory = (can: Can): boolean => can("inventory.list");
 
 export const canManageInventory = (can: Can): boolean => can("inventory.create");
 
+export const canDeleteItem = (can: Can): boolean => can("inventory.remove");
+
 export const canDeleteSupplier = (can: Can): boolean => can("suppliers.remove");
 
 export const canManageSuppliers = (can: Can): boolean => can("suppliers.create");
