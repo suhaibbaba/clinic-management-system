@@ -1414,7 +1414,13 @@
       "minHint": "Reaching it puts the item in the alerts and on the shopping list",
       "supplier": "Default Supplier",
       "active": "Active",
-      "nameHint": "In English, as it is written on the pack"
+      "nameHint": "In English, as it is written on the pack",
+      "deleted": "Item Deleted",
+      "confirmDelete": {
+        "title": "Delete the item “{{name}}”?",
+        "history": "Its past movements stay on the record and in supplier statements",
+        "stock": "It leaves the item list, the alerts and the shopping list, along with any quantity left"
+      }
     },
     "movement": {
       "onHand": "In Stock Now",

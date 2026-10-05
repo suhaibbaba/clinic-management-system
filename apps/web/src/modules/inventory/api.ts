@@ -38,6 +38,8 @@ export const inventoryApi = {
   updateItem: (id: string, body: UpdateInventoryItemInput) =>
     apiRequest<InventoryItem>(`/inventory/items/${id}`, { method: "PATCH", body }),
 
+  removeItem: (id: string) => apiRequest<void>(`/inventory/items/${id}`, { method: "DELETE" }),
+
   batches: (id: string) => apiRequest<ItemBatches>(`/inventory/items/${id}/batches`),
 
   movements: (params: Partial<ListMovementsQuery> = {}) =>
