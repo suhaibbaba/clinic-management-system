@@ -1,17 +1,29 @@
 import {
   DEFAULT_LOOKUP_COLOUR,
   ENGLISH_ONLY_LOOKUP_LISTS,
+  LOOKUP_LIST,
   createLookupOptionSchema,
+  drugRegimenSchema,
+  readDrugRegimen,
   type LookupListKey,
   type LookupOption,
 } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, FormField, Input, Ltr, Modal, useToast } from "@clinic/ui";
+import { Badge, Button, FormField, Input, Ltr, Modal, QuantityInput, useToast } from "@clinic/ui";
 import { useCreateLookupOption, useUpdateLookupOption } from "@web/shared/queries/lookups";
 import { errorToast } from "@web/shared/lib/api-error";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
+import {
+  EMPTY_REGIMEN_INPUT,
+  toRegimen,
+  toRegimenInput,
+  withRegimen,
+  type RegimenInput,
+} from "@web/shared/lib/regimen";
+
+const frequentDrugSchema = createLookupOptionSchema.extend({ meta: drugRegimenSchema });
 
 export function LookupOptionModal({
   open,
@@ -37,12 +49,21 @@ export function LookupOptionModal({
   const [nameAr, setNameAr] = useState("");
   const [nameEn, setNameEn] = useState("");
   const [color, setColor] = useState(DEFAULT_LOOKUP_COLOUR);
+  const [regimen, setRegimen] = useState<RegimenInput>(EMPTY_REGIMEN_INPUT);
   const englishOnly = ENGLISH_ONLY_LOOKUP_LISTS.includes(listKey);
+  const isDrug = listKey === LOOKUP_LIST.FREQUENT_DRUG;
   const arabic = englishOnly ? nameEn : nameAr;
   const chosen = coloured && (color !== DEFAULT_LOOKUP_COLOUR || !option?.isSystem) ? color : null;
-  const body = { nameAr: arabic.trim(), nameEn: nameEn.trim(), color: chosen };
+  const body = {
+    nameAr: arabic.trim(),
+    nameEn: nameEn.trim(),
+    color: chosen,
+    ...(isDrug && { meta: withRegimen(option?.meta, toRegimen(regimen)) }),
+  };
 
-  const form = useFormErrors(schemaErrors(createLookupOptionSchema, { listKey, ...body }));
+  const form = useFormErrors(
+    schemaErrors(isDrug ? frequentDrugSchema : createLookupOptionSchema, { listKey, ...body }),
+  );
   const { reset } = form;
   const isPending = create.isPending || update.isPending;
 
@@ -54,6 +75,7 @@ export function LookupOptionModal({
     setNameAr(option?.nameAr ?? "");
     setNameEn(option?.nameEn ?? "");
     setColor(option?.color ?? DEFAULT_LOOKUP_COLOUR);
+    setRegimen(toRegimenInput(readDrugRegimen(option?.meta)));
     reset();
   }, [open, option, reset]);
 
@@ -151,6 +173,67 @@ export function LookupOptionModal({
             </FormField>
           </div>
         </div>
+
+        {isDrug && (
+          <fieldset data-testid={`${testId}-regimen`} className="flex flex-col gap-2">
+            <legend className="text-label font-medium text-ink">
+              {t("lookups.regimen.title")}
+            </legend>
+            <p className="text-meta text-ink-muted">{t("lookups.regimen.hint")}</p>
+            <div className="grid max-w-(--form-max) grid-cols-3 gap-3">
+              <div onBlur={form.leave("meta.perDose")}>
+                <FormField
+                  error={form.errors["meta.perDose"]}
+                  label="prescriptions.perDose"
+                  htmlFor="lookup-per-dose"
+                  optional
+                >
+                  <Input
+                    id="lookup-per-dose"
+                    data-testid="lookup-field-per-dose"
+                    dir="ltr"
+                    inputMode="decimal"
+                    autoComplete="off"
+                    value={regimen.perDose}
+                    onChange={(event) => setRegimen({ ...regimen, perDose: event.target.value })}
+                  />
+                </FormField>
+              </div>
+              <div onBlur={form.leave("meta.timesPerDay")}>
+                <FormField
+                  error={form.errors["meta.timesPerDay"]}
+                  label="prescriptions.timesPerDay"
+                  htmlFor="lookup-times-per-day"
+                  optional
+                >
+                  <QuantityInput
+                    id="lookup-times-per-day"
+                    data-testid="lookup-field-times-per-day"
+                    value={regimen.timesPerDay}
+                    onChange={(event) =>
+                      setRegimen({ ...regimen, timesPerDay: event.target.value })
+                    }
+                  />
+                </FormField>
+              </div>
+              <div onBlur={form.leave("meta.days")}>
+                <FormField
+                  error={form.errors["meta.days"]}
+                  label="prescriptions.days"
+                  htmlFor="lookup-days"
+                  optional
+                >
+                  <QuantityInput
+                    id="lookup-days"
+                    data-testid="lookup-field-days"
+                    value={regimen.days}
+                    onChange={(event) => setRegimen({ ...regimen, days: event.target.value })}
+                  />
+                </FormField>
+              </div>
+            </div>
+          </fieldset>
+        )}
 
         {coloured && (
           <div onBlur={form.leave("color")}>

@@ -103,6 +103,25 @@ const AR = {
     signaturePatient: "توقيع المريض",
   },
 
+  prescription: {
+    title: "وصفة طبية",
+    patient: "المريض",
+    fileNumber: "رقم الملف",
+    doctor: "الطبيب",
+    date: "التاريخ",
+    columns: {
+      number: "#",
+      drug: "الدواء",
+      perDose: "الكمية في كل مرة",
+      timesPerDay: "مرات في اليوم",
+      duration: "المدة",
+    },
+    days: { one: "يوم واحد", two: "يومان", few: "{count} أيام", many: "{count} يوماً" },
+    instructions: "التعليمات",
+    notes: "ملاحظات",
+    signatureDoctor: "توقيع الطبيب",
+  },
+
   settlement: {
     title: "كشف تسوية طبيب زائر",
     doctor: "الطبيب",
@@ -265,6 +284,25 @@ const EN: typeof AR = {
     empty: "No planned treatments",
     signatureDoctor: "Doctor's signature",
     signaturePatient: "Patient's signature",
+  },
+
+  prescription: {
+    title: "Prescription",
+    patient: "Patient",
+    fileNumber: "File number",
+    doctor: "Doctor",
+    date: "Date",
+    columns: {
+      number: "#",
+      drug: "Medicine",
+      perDose: "Amount each time",
+      timesPerDay: "Times a day",
+      duration: "Duration",
+    },
+    days: { one: "1 day", two: "2 days", few: "{count} days", many: "{count} days" },
+    instructions: "Instructions",
+    notes: "Notes",
+    signatureDoctor: "Doctor's signature",
   },
 
   settlement: {

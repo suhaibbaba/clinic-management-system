@@ -283,7 +283,9 @@ export function PatientPage(): JSX.Element {
         {activeTab === "treatmentPlans" && (
           <TreatmentPlansTab patientId={id} patient={patient.data} />
         )}
-        {activeTab === "prescriptions" && <PrescriptionsTab patientId={id} />}
+        {activeTab === "prescriptions" && (
+          <PrescriptionsTab patientId={id} patient={patient.data} />
+        )}
         {activeTab === "timeline" && <TimelineTab patientId={id} />}
         {activeTab === "billing" && (
           <AccountTab

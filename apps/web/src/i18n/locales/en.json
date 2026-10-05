@@ -750,14 +750,16 @@
     "drugsOf": "Drugs Prescribed at the Visit of {{date}}",
     "drugsTitle": "Prescribed Drugs",
     "drug": "Drug",
-    "dose": "Dose",
-    "frequency": "Frequency",
-    "duration": "Duration",
     "notes": "Notes",
     "drugPlaceholder": "e.g. anti-inflammatory",
-    "dosePlaceholder": "e.g. 400 mg",
-    "frequencyPlaceholder": "e.g. twice a day",
-    "durationPlaceholder": "e.g. 5 days",
+    "frequentDrug": "From Frequent Drugs",
+    "frequentDrugPlaceholder": "Pick a drug to fill in its dose",
+    "perDose": "Amount Each Time",
+    "timesPerDay": "Times a Day",
+    "days": "Days",
+    "instructions": "Instructions for the Patient",
+    "instructionsPlaceholder": "For example: after meals",
+    "writtenAs": "Written earlier: {{text}}",
     "addDrug": "Add a Drug",
     "removeDrug": "Remove the Drug",
     "drugNumber": "Drug {{number}}",
@@ -1585,11 +1587,15 @@
       "item_category": "How inventory items are grouped",
       "item_unit": "The units inventory is counted in",
       "payment_method": "How payments are taken, and how labs are paid",
-      "frequent_drug": "The drugs offered first when writing a prescription"
+      "frequent_drug": "The drugs offered first when writing a prescription, with their usual dose"
     },
     "rowMenu": "More Options",
     "moveUp": "Move Up",
-    "moveDown": "Move Down"
+    "moveDown": "Move Down",
+    "regimen": {
+      "title": "Usual Dose",
+      "hint": "Filled into the prescription when this drug is picked, and can be changed there. For example 1 × 2 × 7: one tablet, twice a day, for seven days."
+    }
   },
   "priceList": {
     "title": "Price List",
@@ -1864,7 +1870,9 @@
         "create": "Add a Prescription",
         "findOne": "Open a Prescription",
         "list": "See the Prescriptions",
+        "print": "Print a Prescription",
         "remove": "Delete a Prescription",
+        "send": "Send a Prescription to the Patient by WhatsApp",
         "update": "Edit a Prescription"
       },
       "procedure-catalog": {

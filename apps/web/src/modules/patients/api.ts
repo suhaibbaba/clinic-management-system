@@ -140,6 +140,11 @@ export const patientsApi = {
   removePrescription: (id: string): Promise<void> =>
     apiRequest(`/prescriptions/${id}`, { method: "DELETE" }),
 
+  prescriptionPdf: (id: string): Promise<Blob> => apiDownload(`/prescriptions/${id}/print`),
+
+  sendPrescription: (id: string, to: string): Promise<void> =>
+    apiRequest(`/prescriptions/${id}/print/whatsapp`, { method: "POST", body: { to } }),
+
   attachments: (
     patientId: string,
     query: Partial<ListAttachmentsQuery> = {},
