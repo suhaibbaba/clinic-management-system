@@ -15,3 +15,22 @@ export function describeItem(item: PrescriptionItem): string {
     .filter(Boolean)
     .join(" · ");
 }
+
+export interface DrugSuggestion {
+  readonly key: string;
+  readonly label: string;
+}
+
+export function drugSuggestions(
+  drugs: readonly DrugSuggestion[],
+  typed: string,
+  limit = 6,
+): DrugSuggestion[] {
+  const query = typed.trim().toLowerCase();
+
+  if (drugs.some((drug) => drug.label.toLowerCase() === query)) {
+    return [];
+  }
+
+  return drugs.filter((drug) => drug.label.toLowerCase().includes(query)).slice(0, limit);
+}

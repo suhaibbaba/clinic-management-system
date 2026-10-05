@@ -3,7 +3,6 @@ import {
   createPrescriptionSchema,
   lookupLabel,
   readDrugRegimen,
-  regimenShorthand,
   type Prescription,
   type PrescriptionItem,
   type Visit,
@@ -17,10 +16,10 @@ import {
   FormField,
   Icon,
   Input,
-  Ltr,
   Modal,
   QuantityInput,
   Select,
+  SuggestionChips,
   Textarea,
   useToast,
 } from "@clinic/ui";
@@ -30,6 +29,7 @@ import { payloadResolver } from "@web/shared/lib/payload-resolver";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { formatDateTime } from "@web/shared/lib/format";
 import { useLookupList } from "@web/shared/queries/lookups";
+import { drugSuggestions } from "@web/modules/patients/lib/prescriptions";
 import {
   EMPTY_REGIMEN_INPUT,
   toRegimen,
@@ -47,7 +47,6 @@ interface PrescriptionFormModalProps {
 }
 
 interface ItemValues extends RegimenInput {
-  frequent: string;
   drug: string;
   note: string;
   legacy: Pick<PrescriptionItem, "dose" | "frequency" | "duration">;
@@ -61,7 +60,6 @@ interface FormValues {
 
 const EMPTY_ITEM: ItemValues = {
   ...EMPTY_REGIMEN_INPUT,
-  frequent: "",
   drug: "",
   note: "",
   legacy: {},
@@ -69,7 +67,6 @@ const EMPTY_ITEM: ItemValues = {
 
 const toItemValues = (item: PrescriptionItem): ItemValues => ({
   ...toRegimenInput(item),
-  frequent: "",
   drug: item.drug,
   note: item.note ?? "",
   legacy: { dose: item.dose, frequency: item.frequency, duration: item.duration },
@@ -157,7 +154,6 @@ export function PrescriptionFormModal({
     const filled = toRegimenInput(readDrugRegimen(option.meta));
     const touch = { shouldDirty: true, shouldValidate: true };
 
-    setValue(`items.${index}.frequent`, code);
     setValue(`items.${index}.drug`, lookupLabel(option, i18n.language), touch);
     for (const key of ["perDose", "timesPerDay", "days"] as const) {
       if (filled[key] !== "") {
@@ -167,6 +163,10 @@ export function PrescriptionFormModal({
   };
 
   const watched = watch("items");
+  const frequentChoices = frequentDrugs.map((option) => ({
+    key: option.code,
+    label: lookupLabel(option, i18n.language),
+  }));
 
   const onSubmit = handleSubmit(
     async (values) => {
@@ -257,19 +257,11 @@ export function PrescriptionFormModal({
               data-testid={`prescription-item-${index}`}
               className="rounded-panel border border-line p-3"
             >
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <h3 className="flex items-center gap-2 text-label font-medium text-ink-muted">
-                  {t("prescriptions.drugNumber", { number: index + 1 })}
-                  {regimenShorthand(toRegimen(watched?.[index] ?? EMPTY_ITEM)) && (
-                    <Ltr
-                      data-testid={`prescription-item-${index}-shorthand`}
-                      className="rounded-control bg-sunken px-2 font-mono text-ink"
-                    >
-                      {regimenShorthand(toRegimen(watched?.[index] ?? EMPTY_ITEM))}
-                    </Ltr>
-                  )}
-                </h3>
-                {items.fields.length > 1 && (
+              {items.fields.length > 1 && (
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <h3 className="text-label font-medium text-ink-muted">
+                    {t("prescriptions.drugNumber", { number: index + 1 })}
+                  </h3>
                   <Button
                     icon={<Icon name="x" />}
                     variant="ghost"
@@ -278,38 +270,10 @@ export function PrescriptionFormModal({
                     aria-label={t("prescriptions.removeDrug")}
                     onClick={() => items.remove(index)}
                   />
-                )}
-              </div>
+                </div>
+              )}
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                {frequentDrugs.length > 0 && (
-                  <FormField
-                    label="prescriptions.frequentDrug"
-                    htmlFor={`prescription-frequent-${index}`}
-                    optional
-                  >
-                    <Controller
-                      name={`items.${index}.frequent`}
-                      control={control}
-                      render={({ field }) => (
-                        <Select
-                          id={`prescription-frequent-${index}`}
-                          data-testid={`prescription-item-${index}-frequent`}
-                          searchable
-                          placeholder={t("prescriptions.frequentDrugPlaceholder")}
-                          options={frequentDrugs.map((option) => ({
-                            value: option.code,
-                            label: lookupLabel(option, i18n.language),
-                          }))}
-                          value={field.value}
-                          onBlur={field.onBlur}
-                          onChange={(event) => pickFrequent(index, event.target.value)}
-                        />
-                      )}
-                    />
-                  </FormField>
-                )}
-
+              <div className="flex max-w-(--field-max) flex-col gap-4">
                 <FormField
                   label="prescriptions.drug"
                   htmlFor={`prescription-drug-${index}`}
@@ -320,66 +284,95 @@ export function PrescriptionFormModal({
                     id={`prescription-drug-${index}`}
                     data-testid={`prescription-item-${index}-drug`}
                     placeholder={t("prescriptions.drugPlaceholder")}
+                    autoComplete="off"
                     {...register(`items.${index}.drug`)}
                   />
                 </FormField>
-              </div>
 
-              <div className="mt-3 grid max-w-(--form-max) grid-cols-3 gap-3">
+                {drugSuggestions(frequentChoices, watched?.[index]?.drug ?? "").length > 0 && (
+                  <SuggestionChips
+                    data-testid={`prescription-item-${index}-frequent`}
+                    className="-mt-2 flex-nowrap overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:shrink-0"
+                    suggestions={drugSuggestions(frequentChoices, watched?.[index]?.drug ?? "")}
+                    onPick={(suggestion) => pickFrequent(index, suggestion.key)}
+                  />
+                )}
+
                 <FormField
-                  label="prescriptions.perDose"
+                  label="prescriptions.regimen"
                   htmlFor={`prescription-per-dose-${index}`}
-                  error={errors.items?.[index]?.perDose}
-                  optional
-                >
-                  <Input
-                    id={`prescription-per-dose-${index}`}
-                    data-testid={`prescription-item-${index}-per-dose`}
-                    dir="ltr"
-                    inputMode="decimal"
-                    autoComplete="off"
-                    {...register(`items.${index}.perDose`)}
-                  />
-                </FormField>
-
-                <FormField
-                  label="prescriptions.timesPerDay"
-                  htmlFor={`prescription-times-per-day-${index}`}
-                  error={errors.items?.[index]?.timesPerDay}
-                  optional
-                >
-                  <QuantityInput
-                    id={`prescription-times-per-day-${index}`}
-                    data-testid={`prescription-item-${index}-times-per-day`}
-                    {...register(`items.${index}.timesPerDay`)}
-                  />
-                </FormField>
-
-                <FormField
-                  label="prescriptions.days"
-                  htmlFor={`prescription-days-${index}`}
-                  error={errors.items?.[index]?.days}
+                  error={
+                    errors.items?.[index]?.days ??
+                    errors.items?.[index]?.perDose ??
+                    errors.items?.[index]?.timesPerDay
+                  }
                   required={!watched?.[index]?.legacy.duration}
-                  optional={Boolean(watched?.[index]?.legacy.duration)}
                 >
-                  <QuantityInput
-                    id={`prescription-days-${index}`}
-                    data-testid={`prescription-item-${index}-days`}
-                    {...register(`items.${index}.days`)}
-                  />
+                  <div
+                    dir="ltr"
+                    data-testid={`prescription-item-${index}-regimen`}
+                    className="flex items-start justify-end gap-2"
+                  >
+                    <label className="flex flex-col items-center gap-1">
+                      <Input
+                        id={`prescription-per-dose-${index}`}
+                        data-testid={`prescription-item-${index}-per-dose`}
+                        aria-label={t("prescriptions.perDose")}
+                        inputMode="decimal"
+                        autoComplete="off"
+                        className="w-18 [&_[data-part=input-control]]:text-center"
+                        {...register(`items.${index}.perDose`)}
+                      />
+                      <span className="text-meta text-ink-muted">
+                        {t("prescriptions.perDoseShort")}
+                      </span>
+                    </label>
+                    <span
+                      aria-hidden="true"
+                      className="flex h-(--control-h) items-center text-ink-subtle"
+                    >
+                      ×
+                    </span>
+                    <label className="flex flex-col items-center gap-1">
+                      <QuantityInput
+                        data-testid={`prescription-item-${index}-times-per-day`}
+                        aria-label={t("prescriptions.timesPerDay")}
+                        className="w-18 [&_[data-part=input-control]]:text-center"
+                        {...register(`items.${index}.timesPerDay`)}
+                      />
+                      <span className="text-meta text-ink-muted">
+                        {t("prescriptions.timesPerDayShort")}
+                      </span>
+                    </label>
+                    <span
+                      aria-hidden="true"
+                      className="flex h-(--control-h) items-center text-ink-subtle"
+                    >
+                      ×
+                    </span>
+                    <label className="flex flex-col items-center gap-1">
+                      <QuantityInput
+                        data-testid={`prescription-item-${index}-days`}
+                        aria-label={t("prescriptions.days")}
+                        className="w-18 [&_[data-part=input-control]]:text-center"
+                        {...register(`items.${index}.days`)}
+                      />
+                      <span className="text-meta text-ink-muted">
+                        {t("prescriptions.daysShort")}
+                      </span>
+                    </label>
+                  </div>
                 </FormField>
-              </div>
 
-              {legacyText(watched?.[index]?.legacy) && (
-                <p
-                  data-testid={`prescription-item-${index}-legacy`}
-                  className="mt-2 text-meta text-ink-muted"
-                >
-                  {t("prescriptions.writtenAs", { text: legacyText(watched?.[index]?.legacy) })}
-                </p>
-              )}
+                {legacyText(watched?.[index]?.legacy) && (
+                  <p
+                    data-testid={`prescription-item-${index}-legacy`}
+                    className="-mt-2 text-meta text-ink-muted"
+                  >
+                    {t("prescriptions.writtenAs", { text: legacyText(watched?.[index]?.legacy) })}
+                  </p>
+                )}
 
-              <div className="mt-3 max-w-(--field-max)">
                 <FormField
                   label="prescriptions.instructions"
                   htmlFor={`prescription-note-${index}`}

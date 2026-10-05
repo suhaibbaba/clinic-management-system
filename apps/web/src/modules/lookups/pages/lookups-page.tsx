@@ -18,8 +18,9 @@ import {
   MenuItem,
   PageHeader,
   RowMenu,
-  Select,
   Switch,
+  TabPanel,
+  Tabs,
   useConfirm,
   useToast,
 } from "@clinic/ui";
@@ -52,18 +53,14 @@ export function LookupsPage(): JSX.Element {
       />
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-        <div className="lg:hidden">
-          <Select
-            data-testid="lookups-picker"
-            aria-label={t("lookups.pickList")}
-            value={listKey}
-            options={LOOKUP_LIST_KEYS.map((key) => ({
-              value: key,
-              label: t(`lookups.lists.${key}`),
-            }))}
-            onChange={(event) => setListKey(event.target.value as LookupListKey)}
-          />
-        </div>
+        <Tabs
+          data-testid="lookups-picker"
+          className="lg:hidden"
+          label="lookups.pickList"
+          tabs={LOOKUP_LIST_KEYS.map((key) => ({ id: key, label: `lookups.lists.${key}` }))}
+          value={listKey}
+          onChange={setListKey}
+        />
 
         <nav
           data-testid="lookups-nav"
@@ -90,7 +87,9 @@ export function LookupsPage(): JSX.Element {
           ))}
         </nav>
 
-        <LookupList listKey={listKey} />
+        <TabPanel id={listKey} className="flex-1" data-testid="lookups-panel">
+          <LookupList listKey={listKey} />
+        </TabPanel>
       </div>
     </div>
   );
