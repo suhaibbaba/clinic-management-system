@@ -16,6 +16,7 @@ import { Icon } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
 import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 import { documentDirection } from "@ui/lib/direction";
+import { useMediaQuery } from "@ui/lib/use-media-query";
 
 export interface SelectOption {
   readonly value: string;
@@ -61,6 +62,7 @@ function PlainSelect({
 }: SelectProps): JSX.Element {
   const part = parts("select", testId);
   const dialogLayer = useDialogLayer();
+  const finePointer = useMediaQuery("(pointer: fine)");
   const empty = value === "" || value === undefined;
   const shown =
     renderValue && !empty ? options.find((option) => option.value === value) : undefined;
@@ -139,11 +141,13 @@ function PlainSelect({
             "data-[state=closed]:animate-[menu-out_150ms_ease-in]",
           )}
         >
-          <SelectPrimitive.ScrollUpButton className="flex h-6 items-center justify-center text-ink-subtle">
-            <Icon name="chevron-up" className="size-4" />
-          </SelectPrimitive.ScrollUpButton>
+          {finePointer && (
+            <SelectPrimitive.ScrollUpButton className="flex h-6 items-center justify-center text-ink-subtle">
+              <Icon name="chevron-up" className="size-4" />
+            </SelectPrimitive.ScrollUpButton>
+          )}
 
-          <SelectPrimitive.Viewport>
+          <SelectPrimitive.Viewport className="overscroll-contain">
             {placeholder !== undefined && (
               <Row value={NONE} label={placeholder} muted testId={testId} />
             )}
@@ -159,9 +163,11 @@ function PlainSelect({
             ))}
           </SelectPrimitive.Viewport>
 
-          <SelectPrimitive.ScrollDownButton className="flex h-6 items-center justify-center text-ink-subtle">
-            <Icon name="chevron-down" className="size-4" />
-          </SelectPrimitive.ScrollDownButton>
+          {finePointer && (
+            <SelectPrimitive.ScrollDownButton className="flex h-6 items-center justify-center text-ink-subtle">
+              <Icon name="chevron-down" className="size-4" />
+            </SelectPrimitive.ScrollDownButton>
+          )}
         </SelectPrimitive.Content>
       </SelectPrimitive.Portal>
     </SelectPrimitive.Root>

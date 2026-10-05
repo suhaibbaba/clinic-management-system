@@ -1,4 +1,4 @@
-import { useEffect, useRef, type JSX, type ReactNode } from "react";
+import type { JSX, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { PILL_BASE } from "@ui/components/badge";
@@ -32,17 +32,9 @@ export function Tabs<TId extends string>({
   const { t } = useTranslation();
   const ids = tabs.map((tab) => tab.id);
   const stop = rovingStop(ids, value);
-  const list = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    list.current
-      ?.querySelector('[aria-selected="true"]')
-      ?.scrollIntoView({ block: "nearest", inline: "center" });
-  }, [value]);
 
   return (
     <div
-      ref={list}
       data-part="tabs"
       {...testid(testId)}
       role="tablist"
