@@ -62,10 +62,7 @@ export function StatCard({
       <Ltr
         as="p"
         {...part("figure")}
-        className={cn(
-          "mt-2 whitespace-normal break-words text-title font-medium",
-          FIGURES[tone],
-        )}
+        className={cn("mt-2 whitespace-normal break-words text-title font-medium", FIGURES[tone])}
       >
         {value}
       </Ltr>
