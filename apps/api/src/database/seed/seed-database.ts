@@ -107,6 +107,7 @@ export interface SeedOptions {
   readonly randomSeed?: number;
   readonly daysBack?: number;
   readonly daysForward?: number;
+  readonly demo?: boolean;
   readonly passwordHash: string;
 }
 
@@ -185,6 +186,20 @@ export async function seedDatabase(db: Database, options: SeedOptions): Promise<
 
   const audit = { createdBy: adminId, updatedBy: adminId };
   const catalogIdByCode = await seedCatalog(db, clinic.id, specialtyId, audit);
+
+  if (options.demo === false) {
+    const counts = await seedPracticeSetup(db, clinic.id, audit);
+
+    return {
+      clinicId: clinic.id,
+      created: Object.values(counts).some((count) => count > 0),
+      accounts,
+      counts,
+      notes,
+    };
+  }
+
+  const practice = await insertPractice(db, clinic.id, audit);
 
   const now = new Date();
   const today = localDate(now, CLINIC_TIME_ZONE);
@@ -272,6 +287,7 @@ export async function seedDatabase(db: Database, options: SeedOptions): Promise<
     closureStart,
     closureDates,
     cleanTimeOffDate,
+    practice,
   });
 
   await db.insert(clinicNotes).values({
@@ -308,6 +324,127 @@ interface WriteContext {
   readonly closureStart: string;
   readonly closureDates: ReadonlySet<string>;
   readonly cleanTimeOffDate: string;
+  readonly practice: PracticeRows;
+}
+
+type Audit = { readonly createdBy: string; readonly updatedBy: string };
+
+interface LabRows {
+  readonly labs: readonly { readonly id: string }[];
+  readonly workTypes: readonly {
+    readonly id: string;
+    readonly labId: string;
+    readonly price: string;
+  }[];
+}
+
+interface StoreRows {
+  readonly suppliers: readonly { readonly id: string }[];
+  readonly items: readonly { readonly id: string }[];
+}
+
+type PracticeRows = LabRows & StoreRows;
+
+async function insertPractice(db: Database, clinicId: string, audit: Audit): Promise<PracticeRows> {
+  return {
+    ...(await insertLabs(db, clinicId, audit)),
+    ...(await insertStore(db, clinicId, audit)),
+  };
+}
+
+async function seedPracticeSetup(
+  db: Database,
+  clinicId: string,
+  audit: Audit,
+): Promise<SeedCounts> {
+  const [anyLab] = await db
+    .select({ id: labs.id })
+    .from(labs)
+    .where(eq(labs.clinicId, clinicId))
+    .limit(1);
+  const [anySupplier] = await db
+    .select({ id: suppliers.id })
+    .from(suppliers)
+    .where(eq(suppliers.clinicId, clinicId))
+    .limit(1);
+
+  const lab = anyLab ? null : await insertLabs(db, clinicId, audit);
+  const store = anySupplier ? null : await insertStore(db, clinicId, audit);
+
+  return {
+    labs: lab?.labs.length ?? 0,
+    labWorkTypes: lab?.workTypes.length ?? 0,
+    suppliers: store?.suppliers.length ?? 0,
+    inventoryItems: store?.items.length ?? 0,
+  };
+}
+
+async function insertLabs(db: Database, clinicId: string, audit: Audit): Promise<LabRows> {
+  const labRows = await db
+    .insert(labs)
+    .values(
+      LABS.map((lab) => ({
+        clinicId,
+        name: lab.name,
+        phone: lab.phone,
+        address: lab.address,
+        contactPerson: lab.contactPerson,
+        ...audit,
+      })),
+    )
+    .returning({ id: labs.id });
+
+  const workTypeRows = await db
+    .insert(labWorkTypes)
+    .values(
+      LABS.flatMap((lab, index) =>
+        lab.workTypes.map((type) => ({
+          labId: labRows[index]?.id as string,
+          name: type.name,
+          defaultPrice: type.defaultPrice,
+          ...audit,
+        })),
+      ),
+    )
+    .returning({
+      id: labWorkTypes.id,
+      labId: labWorkTypes.labId,
+      price: labWorkTypes.defaultPrice,
+    });
+
+  return { labs: labRows, workTypes: workTypeRows };
+}
+
+async function insertStore(db: Database, clinicId: string, audit: Audit): Promise<StoreRows> {
+  const supplierRows = await db
+    .insert(suppliers)
+    .values(
+      SUPPLIERS.map((supplier) => ({
+        clinicId,
+        name: supplier.name,
+        phone: supplier.phone,
+        contactPerson: supplier.contactPerson,
+        ...audit,
+      })),
+    )
+    .returning({ id: suppliers.id });
+
+  const itemRows = await db
+    .insert(inventoryItems)
+    .values(
+      ITEMS.map((item) => ({
+        clinicId,
+        name: item.name,
+        category: item.category,
+        unit: item.unit,
+        minQuantity: item.minQuantity,
+        defaultSupplierId: supplierRows[item.supplier]?.id ?? null,
+        ...audit,
+      })),
+    )
+    .returning({ id: inventoryItems.id });
+
+  return { suppliers: supplierRows, items: itemRows };
 }
 
 async function writeEverything(db: Database, ctx: WriteContext): Promise<SeedCounts> {
@@ -763,37 +900,8 @@ async function writeLabs(
   ctx: WriteContext,
   procedures: readonly ProcedureRecord[],
 ): Promise<SeedCounts> {
-  const labRows = await db
-    .insert(labs)
-    .values(
-      LABS.map((lab) => ({
-        clinicId: ctx.clinicId,
-        name: lab.name,
-        phone: lab.phone,
-        address: lab.address,
-        contactPerson: lab.contactPerson,
-        ...ctx.audit,
-      })),
-    )
-    .returning({ id: labs.id });
-
-  const workTypeRows = await db
-    .insert(labWorkTypes)
-    .values(
-      LABS.flatMap((lab, index) =>
-        lab.workTypes.map((type) => ({
-          labId: labRows[index]?.id as string,
-          name: type.name,
-          defaultPrice: type.defaultPrice,
-          ...ctx.audit,
-        })),
-      ),
-    )
-    .returning({
-      id: labWorkTypes.id,
-      labId: labWorkTypes.labId,
-      price: labWorkTypes.defaultPrice,
-    });
+  const labRows = ctx.practice.labs;
+  const workTypeRows = ctx.practice.workTypes;
 
   const labWork = [...procedures]
     .filter((procedure) => procedure.needsLab)
@@ -895,33 +1003,8 @@ async function writeInventory(
   ctx: WriteContext,
   procedures: readonly ProcedureRecord[],
 ): Promise<SeedCounts> {
-  const supplierRows = await db
-    .insert(suppliers)
-    .values(
-      SUPPLIERS.map((supplier) => ({
-        clinicId: ctx.clinicId,
-        name: supplier.name,
-        phone: supplier.phone,
-        contactPerson: supplier.contactPerson,
-        ...ctx.audit,
-      })),
-    )
-    .returning({ id: suppliers.id });
-
-  const itemRows = await db
-    .insert(inventoryItems)
-    .values(
-      ITEMS.map((item) => ({
-        clinicId: ctx.clinicId,
-        name: item.name,
-        category: item.category,
-        unit: item.unit,
-        minQuantity: item.minQuantity,
-        defaultSupplierId: supplierRows[item.supplier]?.id ?? null,
-        ...ctx.audit,
-      })),
-    )
-    .returning({ id: inventoryItems.id });
+  const supplierRows = ctx.practice.suppliers;
+  const itemRows = ctx.practice.items;
 
   const movements: (typeof stockMovements.$inferInsert)[] = [];
 

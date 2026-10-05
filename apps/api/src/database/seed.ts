@@ -24,7 +24,10 @@ async function main(): Promise<void> {
       parallelism: 1,
     });
 
-    const summary = await seedDatabase(db, { passwordHash });
+    const summary = await seedDatabase(db, {
+      passwordHash,
+      demo: process.env.SEED_DEMO !== "false",
+    });
 
     report(summary, env.SEED_PASSWORD, Date.now() - startedAt);
   } finally {
@@ -51,7 +54,7 @@ function report(summary: SeedSummary, password: string, elapsedMs: number): void
     "",
     ...(summary.created
       ? [`Wrote, in ${(elapsedMs / 1000).toFixed(1)}s:`, "", ...rows]
-      : ["The clinic already holds patients — nothing was written."]),
+      : ["Nothing new to write — the clinic is already set up."]),
     ...(summary.notes.length > 0 ? ["", ...summary.notes] : []),
     "",
     "Development credentials only — change SEED_PASSWORD before any shared environment.",
