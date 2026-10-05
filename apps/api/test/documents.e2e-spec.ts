@@ -30,6 +30,7 @@ describe("Documents", () => {
   let otherAdminToken: string;
   let patientId: string;
   let payment: Payment;
+  let prescriptionId: string;
 
   const recipient = "+962790000123";
 
@@ -93,6 +94,30 @@ describe("Documents", () => {
 
     expect(paid.statusCode).toBe(201);
     payment = paid.json() as Payment;
+
+    const prescribed = await context.app.inject({
+      method: "POST",
+      url: "/prescriptions",
+      headers: auth(doctorToken),
+      payload: {
+        patientId,
+        doctorId: fixtures.doctorId,
+        items: [
+          {
+            drug: "Amoxicillin 500 mg",
+            perDose: 1,
+            timesPerDay: 3,
+            days: 7,
+            note: "بعد الأكل",
+          },
+          { drug: "Ibuprofen 400 mg", dose: "400 mg", frequency: "BID", duration: "٣ أيام" },
+        ],
+        notes: "مراجعة بعد أسبوع",
+      },
+    });
+
+    expect(prescribed.statusCode).toBe(201);
+    prescriptionId = (prescribed.json() as { id: string }).id;
   });
 
   afterAll(async () => {
@@ -132,6 +157,32 @@ describe("Documents", () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it("renders a prescription for a clinical role, never for a receptionist or another clinic", async () => {
+      const url = `/prescriptions/${prescriptionId}/print`;
+
+      const doctor = await context.app.inject({ method: "GET", url, headers: auth(doctorToken) });
+
+      expect(doctor.statusCode).toBe(200);
+      expect(doctor.headers["content-type"]).toContain("application/pdf");
+      expect(isPdf(doctor.rawPayload)).toBe(true);
+
+      const receptionist = await context.app.inject({
+        method: "GET",
+        url,
+        headers: auth(receptionistToken),
+      });
+
+      expect(receptionist.statusCode).toBe(403);
+
+      const otherClinic = await context.app.inject({
+        method: "GET",
+        url,
+        headers: auth(otherAdminToken),
+      });
+
+      expect(otherClinic.statusCode).toBe(404);
     });
 
     it("renders a doctor's settlement for the admin only", async () => {
@@ -237,6 +288,15 @@ describe("Documents", () => {
 
       expect(plan.statusCode).toBe(403);
 
+      const prescription = await context.app.inject({
+        method: "POST",
+        url: `/prescriptions/${prescriptionId}/print/whatsapp`,
+        headers: auth(receptionistToken),
+        payload: { to: recipient },
+      });
+
+      expect(prescription.statusCode).toBe(403);
+
       const payroll = await context.app.inject({
         method: "POST",
         url: "/payroll/2026-09/print/whatsapp",
@@ -251,6 +311,7 @@ describe("Documents", () => {
       const sends = [
         { url: `/patients/${patientId}/statement/whatsapp`, token: receptionistToken },
         { url: `/patients/${patientId}/treatment-plan/whatsapp`, token: doctorToken },
+        { url: `/prescriptions/${prescriptionId}/print/whatsapp`, token: doctorToken },
         { url: "/inventory/shopping-list/whatsapp", token: doctorToken },
         { url: "/payroll/2026-09/print/whatsapp", token: adminToken },
         {

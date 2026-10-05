@@ -1,14 +1,39 @@
 import { z } from "zod";
 import { paginationQuerySchema } from "@shared/schemas/common";
 
-export const prescriptionItemSchema = z.object({
-  drug: z.string().trim().min(1).max(160),
-  dose: z.string().trim().max(80).nullish(),
-  frequency: z.string().trim().max(80).nullish(),
-  duration: z.string().trim().min(1).max(80),
-  note: z.string().trim().max(300).nullish(),
+export const drugRegimenSchema = z.object({
+  perDose: z.number().positive().max(100).multipleOf(0.25).nullish(),
+  timesPerDay: z.number().int().min(1).max(24).nullish(),
+  days: z.number().int().min(1).max(365).nullish(),
 });
+export type DrugRegimen = z.infer<typeof drugRegimenSchema>;
+
+export const prescriptionItemSchema = z
+  .object({
+    drug: z.string().trim().min(1).max(160),
+    dose: z.string().trim().max(80).nullish(),
+    frequency: z.string().trim().max(80).nullish(),
+    duration: z.string().trim().max(80).nullish(),
+    ...drugRegimenSchema.shape,
+    note: z.string().trim().max(300).nullish(),
+  })
+  .refine((item) => (item.duration ?? "") !== "" || item.days != null, {
+    path: ["days"],
+    message: "A prescription item needs its number of days",
+  });
 export type PrescriptionItem = z.infer<typeof prescriptionItemSchema>;
+
+export function readDrugRegimen(meta: Record<string, unknown> | undefined): DrugRegimen {
+  const parsed = drugRegimenSchema.safeParse(meta ?? {});
+
+  return parsed.success ? parsed.data : {};
+}
+
+export function regimenShorthand(regimen: DrugRegimen): string | null {
+  const parts = [regimen.perDose, regimen.timesPerDay, regimen.days];
+
+  return parts.every((part) => part == null) ? null : parts.map((part) => part ?? "–").join("×");
+}
 
 export const prescriptionSchema = z.object({
   id: z.uuid(),

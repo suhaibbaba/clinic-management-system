@@ -1,14 +1,41 @@
-import { createPrescriptionSchema, type Prescription, type Visit } from "@clinic/shared";
+import {
+  LOOKUP_LIST,
+  createPrescriptionSchema,
+  lookupLabel,
+  readDrugRegimen,
+  regimenShorthand,
+  type Prescription,
+  type PrescriptionItem,
+  type Visit,
+} from "@clinic/shared";
 import { useEffect, type JSX } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
-import { Button, FormField, Icon, Input, Modal, Select, Textarea, useToast } from "@clinic/ui";
+import {
+  Button,
+  FormField,
+  Icon,
+  Input,
+  Ltr,
+  Modal,
+  QuantityInput,
+  Select,
+  Textarea,
+  useToast,
+} from "@clinic/ui";
 import { useSavePrescription } from "@web/modules/patients/queries";
 import { errorToast } from "@web/shared/lib/api-error";
 import { payloadResolver } from "@web/shared/lib/payload-resolver";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { formatDateTime } from "@web/shared/lib/format";
+import { useLookupList } from "@web/shared/queries/lookups";
+import {
+  EMPTY_REGIMEN_INPUT,
+  toRegimen,
+  toRegimenInput,
+  type RegimenInput,
+} from "@web/shared/lib/regimen";
 
 interface PrescriptionFormModalProps {
   readonly "data-testid"?: string | undefined;
@@ -19,11 +46,11 @@ interface PrescriptionFormModalProps {
   readonly prescription: Prescription | null;
 }
 
-interface ItemValues {
+interface ItemValues extends RegimenInput {
+  frequent: string;
   drug: string;
-  dose: string;
-  frequency: string;
-  duration: string;
+  note: string;
+  legacy: Pick<PrescriptionItem, "dose" | "frequency" | "duration">;
 }
 
 interface FormValues {
@@ -32,9 +59,26 @@ interface FormValues {
   notes: string;
 }
 
-const EMPTY_ITEM: ItemValues = { drug: "", dose: "", frequency: "", duration: "" };
+const EMPTY_ITEM: ItemValues = {
+  ...EMPTY_REGIMEN_INPUT,
+  frequent: "",
+  drug: "",
+  note: "",
+  legacy: {},
+};
+
+const toItemValues = (item: PrescriptionItem): ItemValues => ({
+  ...toRegimenInput(item),
+  frequent: "",
+  drug: item.drug,
+  note: item.note ?? "",
+  legacy: { dose: item.dose, frequency: item.frequency, duration: item.duration },
+});
 
 const orNull = (value: string): string | null => (value.trim() === "" ? null : value);
+
+const legacyText = (legacy: ItemValues["legacy"] | undefined): string =>
+  [legacy?.dose, legacy?.frequency, legacy?.duration].filter(Boolean).join(" · ");
 
 export function PrescriptionFormModal({
   open,
@@ -44,15 +88,18 @@ export function PrescriptionFormModal({
   prescription,
   "data-testid": testId = "prescription-form-modal",
 }: PrescriptionFormModalProps): JSX.Element {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const toast = useToast();
   const save = useSavePrescription(patientId);
+  const frequentDrugs = useLookupList(LOOKUP_LIST.FREQUENT_DRUG);
 
   const {
     control,
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors, isSubmitting, isValid },
   } = useForm<FormValues>({
     mode: "onTouched",
@@ -66,12 +113,18 @@ export function PrescriptionFormModal({
       patientId,
       visitId: values.visitId === "" ? undefined : values.visitId,
       doctorId: visit?.doctorId ?? prescription?.doctorId ?? "",
-      items: values.items.map((item) => ({
-        drug: item.drug,
-        dose: orNull(item.dose),
-        frequency: orNull(item.frequency),
-        duration: item.duration,
-      })),
+      items: values.items.map((item) => {
+        const regimen = toRegimen(item);
+
+        return {
+          drug: item.drug,
+          ...regimen,
+          dose: regimen.perDose == null ? item.legacy.dose : null,
+          frequency: regimen.timesPerDay == null ? item.legacy.frequency : null,
+          duration: regimen.days == null ? item.legacy.duration : null,
+          note: orNull(item.note),
+        };
+      }),
       notes: orNull(values.notes),
     };
 
@@ -87,17 +140,33 @@ export function PrescriptionFormModal({
       prescription
         ? {
             visitId: prescription.visitId ?? "",
-            items: prescription.items.map((item) => ({
-              drug: item.drug,
-              dose: item.dose ?? "",
-              frequency: item.frequency ?? "",
-              duration: item.duration,
-            })),
+            items: prescription.items.map(toItemValues),
             notes: prescription.notes ?? "",
           }
         : { visitId: visits[0]?.id ?? "", items: [EMPTY_ITEM], notes: "" },
     );
   }, [open, prescription, visits, reset]);
+
+  const pickFrequent = (index: number, code: string): void => {
+    const option = frequentDrugs.find((entry) => entry.code === code);
+
+    if (!option) {
+      return;
+    }
+
+    const filled = toRegimenInput(readDrugRegimen(option.meta));
+    const touch = { shouldDirty: true, shouldValidate: true };
+
+    setValue(`items.${index}.frequent`, code);
+    setValue(`items.${index}.drug`, lookupLabel(option, i18n.language), touch);
+    for (const key of ["perDose", "timesPerDay", "days"] as const) {
+      if (filled[key] !== "") {
+        setValue(`items.${index}.${key}`, filled[key], touch);
+      }
+    }
+  };
+
+  const watched = watch("items");
 
   const onSubmit = handleSubmit(
     async (values) => {
@@ -189,8 +258,16 @@ export function PrescriptionFormModal({
               className="rounded-panel border border-line p-3"
             >
               <div className="mb-2 flex items-center justify-between gap-2">
-                <h3 className="text-label font-medium text-ink-muted">
+                <h3 className="flex items-center gap-2 text-label font-medium text-ink-muted">
                   {t("prescriptions.drugNumber", { number: index + 1 })}
+                  {regimenShorthand(toRegimen(watched?.[index] ?? EMPTY_ITEM)) && (
+                    <Ltr
+                      data-testid={`prescription-item-${index}-shorthand`}
+                      className="rounded-control bg-sunken px-2 font-mono text-ink"
+                    >
+                      {regimenShorthand(toRegimen(watched?.[index] ?? EMPTY_ITEM))}
+                    </Ltr>
+                  )}
                 </h3>
                 {items.fields.length > 1 && (
                   <Button
@@ -205,6 +282,34 @@ export function PrescriptionFormModal({
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
+                {frequentDrugs.length > 0 && (
+                  <FormField
+                    label="prescriptions.frequentDrug"
+                    htmlFor={`prescription-frequent-${index}`}
+                    optional
+                  >
+                    <Controller
+                      name={`items.${index}.frequent`}
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          id={`prescription-frequent-${index}`}
+                          data-testid={`prescription-item-${index}-frequent`}
+                          searchable
+                          placeholder={t("prescriptions.frequentDrugPlaceholder")}
+                          options={frequentDrugs.map((option) => ({
+                            value: option.code,
+                            label: lookupLabel(option, i18n.language),
+                          }))}
+                          value={field.value}
+                          onBlur={field.onBlur}
+                          onChange={(event) => pickFrequent(index, event.target.value)}
+                        />
+                      )}
+                    />
+                  </FormField>
+                )}
+
                 <FormField
                   label="prescriptions.drug"
                   htmlFor={`prescription-drug-${index}`}
@@ -218,46 +323,74 @@ export function PrescriptionFormModal({
                     {...register(`items.${index}.drug`)}
                   />
                 </FormField>
+              </div>
 
+              <div className="mt-3 grid max-w-(--form-max) grid-cols-3 gap-3">
                 <FormField
-                  label="prescriptions.duration"
-                  htmlFor={`prescription-duration-${index}`}
-                  error={errors.items?.[index]?.duration}
-                  required
+                  label="prescriptions.perDose"
+                  htmlFor={`prescription-per-dose-${index}`}
+                  error={errors.items?.[index]?.perDose}
+                  optional
                 >
                   <Input
-                    id={`prescription-duration-${index}`}
-                    data-testid={`prescription-item-${index}-duration`}
-                    placeholder={t("prescriptions.durationPlaceholder")}
-                    {...register(`items.${index}.duration`)}
+                    id={`prescription-per-dose-${index}`}
+                    data-testid={`prescription-item-${index}-per-dose`}
+                    dir="ltr"
+                    inputMode="decimal"
+                    autoComplete="off"
+                    {...register(`items.${index}.perDose`)}
                   />
                 </FormField>
 
                 <FormField
-                  label="prescriptions.dose"
-                  htmlFor={`prescription-dose-${index}`}
-                  error={errors.items?.[index]?.dose}
+                  label="prescriptions.timesPerDay"
+                  htmlFor={`prescription-times-per-day-${index}`}
+                  error={errors.items?.[index]?.timesPerDay}
                   optional
                 >
-                  <Input
-                    id={`prescription-dose-${index}`}
-                    data-testid={`prescription-item-${index}-dose`}
-                    placeholder={t("prescriptions.dosePlaceholder")}
-                    {...register(`items.${index}.dose`)}
+                  <QuantityInput
+                    id={`prescription-times-per-day-${index}`}
+                    data-testid={`prescription-item-${index}-times-per-day`}
+                    {...register(`items.${index}.timesPerDay`)}
                   />
                 </FormField>
 
                 <FormField
-                  label="prescriptions.frequency"
-                  htmlFor={`prescription-frequency-${index}`}
-                  error={errors.items?.[index]?.frequency}
+                  label="prescriptions.days"
+                  htmlFor={`prescription-days-${index}`}
+                  error={errors.items?.[index]?.days}
+                  required={!watched?.[index]?.legacy.duration}
+                  optional={Boolean(watched?.[index]?.legacy.duration)}
+                >
+                  <QuantityInput
+                    id={`prescription-days-${index}`}
+                    data-testid={`prescription-item-${index}-days`}
+                    {...register(`items.${index}.days`)}
+                  />
+                </FormField>
+              </div>
+
+              {legacyText(watched?.[index]?.legacy) && (
+                <p
+                  data-testid={`prescription-item-${index}-legacy`}
+                  className="mt-2 text-meta text-ink-muted"
+                >
+                  {t("prescriptions.writtenAs", { text: legacyText(watched?.[index]?.legacy) })}
+                </p>
+              )}
+
+              <div className="mt-3 max-w-(--field-max)">
+                <FormField
+                  label="prescriptions.instructions"
+                  htmlFor={`prescription-note-${index}`}
+                  error={errors.items?.[index]?.note}
                   optional
                 >
                   <Input
-                    id={`prescription-frequency-${index}`}
-                    data-testid={`prescription-item-${index}-frequency`}
-                    placeholder={t("prescriptions.frequencyPlaceholder")}
-                    {...register(`items.${index}.frequency`)}
+                    id={`prescription-note-${index}`}
+                    data-testid={`prescription-item-${index}-note`}
+                    placeholder={t("prescriptions.instructionsPlaceholder")}
+                    {...register(`items.${index}.note`)}
                   />
                 </FormField>
               </div>

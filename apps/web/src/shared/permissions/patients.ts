@@ -19,6 +19,10 @@ export const canWritePrescription = (can: Can): boolean => can("prescriptions.cr
 
 export const canDeletePrescription = (can: Can): boolean => can("prescriptions.remove");
 
+export const canPrintPrescription = (can: Can): boolean => can("prescriptions.print");
+
+export const canSendPrescription = (can: Can): boolean => can("prescriptions.send");
+
 export const canCreatePatient = (can: Can): boolean => can("patients.create");
 
 export const canEditPatient = (can: Can): boolean => can("patients.update");

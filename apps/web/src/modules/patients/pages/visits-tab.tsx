@@ -28,7 +28,7 @@ import { useDoctors } from "@web/shared/queries/doctors";
 import { ConsumeForVisit } from "@web/modules/inventory/components/consume-for-visit";
 import { canConsumeStock } from "@web/shared/permissions/inventory";
 import { canDeleteVisit } from "@web/shared/permissions/patients";
-import { describeItem } from "@web/modules/patients/pages/prescriptions-tab";
+import { describeItem } from "@web/modules/patients/lib/prescriptions";
 import { TreatmentsPanel } from "@web/modules/patients/components/treatments/treatments-panel";
 import {
   useDeleteVisit,

@@ -1,4 +1,4 @@
-import type { Prescription, PrescriptionItem } from "@clinic/shared";
+import type { PatientClinicalView, Prescription, PrescriptionItem } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -8,6 +8,7 @@ import {
   Icon,
   Ltr,
   MenuItem,
+  MenuSeparator,
   Modal,
   NotePreview,
   RowMenu,
@@ -19,7 +20,16 @@ import {
 import { SkeletonCard, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/shared/providers/session";
 import { useDoctors } from "@web/shared/queries/doctors";
-import { canDeletePrescription, canWritePrescription } from "@web/shared/permissions/patients";
+import {
+  canDeletePrescription,
+  canPrintPrescription,
+  canSendPrescription,
+  canWritePrescription,
+} from "@web/shared/permissions/patients";
+import { DocumentMenuItems } from "@web/shared/components/document-menu-items";
+import { useDocumentActions } from "@web/shared/hooks/use-document-actions";
+import { whatsAppNumber } from "@web/shared/lib/whatsapp";
+import { prescriptionSource } from "@web/modules/patients/lib/documents";
 import { PrescriptionFormModal } from "@web/modules/patients/components/prescriptions/prescription-form-modal";
 import {
   useDeletePrescription,
@@ -29,16 +39,23 @@ import {
 import { errorToast } from "@web/shared/lib/api-error";
 import { formatDate, formatDateTime } from "@web/shared/lib/format";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
+import { describeItem } from "@web/modules/patients/lib/prescriptions";
 
-export const describeItem = (item: PrescriptionItem): string =>
-  [item.dose, item.frequency, item.duration].filter(Boolean).join(" · ");
-
-export function PrescriptionsTab({ patientId }: { readonly patientId: string }): JSX.Element {
+export function PrescriptionsTab({
+  patientId,
+  patient,
+}: {
+  readonly patientId: string;
+  readonly patient: PatientClinicalView | undefined;
+}): JSX.Element {
   const { t } = useTranslation();
   const { can } = useSession();
   const toast = useToast();
   const mayWrite = canWritePrescription(can);
   const mayDelete = canDeletePrescription(can);
+  const mayPrint = canPrintPrescription(can);
+  const maySend = canSendPrescription(can);
+  const documents = useDocumentActions("prescription-document");
   const remove = useDeletePrescription(patientId);
 
   const { confirm, dialog } = useConfirm("prescriptions-confirm-delete");
@@ -155,6 +172,7 @@ export function PrescriptionsTab({ patientId }: { readonly patientId: string }):
   return (
     <div data-testid="prescriptions-tab" className="flex flex-col gap-4">
       {dialog}
+      {documents.dialog}
       <div className="flex items-center justify-between gap-3">
         <TotalBadge
           data-testid="prescriptions-count"
@@ -198,12 +216,25 @@ export function PrescriptionsTab({ patientId }: { readonly patientId: string }):
                   : t("prescriptions.withoutVisit")
               }
               subtitle={`${t("prescriptions.writtenBy")}: ${doctorName(prescription.doctorId)}`}
-              {...((mayWrite || mayDelete) && {
+              {...((mayWrite || mayDelete || mayPrint) && {
                 menu: (
                   <RowMenu
                     label={t("prescriptions.menu")}
                     data-testid={`prescription-${prescription.id}-menu`}
                   >
+                    {mayPrint && (
+                      <DocumentMenuItems
+                        actions={documents}
+                        source={prescriptionSource(
+                          prescription.id,
+                          patient?.fileNumber,
+                          patient ? whatsAppNumber(patient) : null,
+                          maySend,
+                        )}
+                        data-testid="prescription-document"
+                      />
+                    )}
+                    {mayPrint && (mayWrite || mayDelete) && <MenuSeparator />}
                     {mayWrite && (
                       <MenuItem
                         icon="edit"

@@ -2,6 +2,8 @@ import {
   COLOURED_LOOKUP_LISTS,
   LOOKUP_LIST_KEYS,
   lookupLabel,
+  readDrugRegimen,
+  regimenShorthand,
   type LookupListKey,
   type LookupOption,
 } from "@clinic/shared";
@@ -243,6 +245,12 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
                   </span>
                   <span className="block text-label text-ink-subtle">
                     <Ltr>{option.code}</Ltr>
+                    {regimenShorthand(readDrugRegimen(option.meta)) && (
+                      <span data-testid="lookup-option-regimen">
+                        {" · "}
+                        <Ltr>{regimenShorthand(readDrugRegimen(option.meta))}</Ltr>
+                      </span>
+                    )}
                     {option.isSystem && (
                       <span data-testid="lookup-option-system"> · {t("lookups.system")}</span>
                     )}

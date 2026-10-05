@@ -201,6 +201,36 @@ describe("Patients permission boundaries (e2e)", () => {
     }
   });
 
+  it("asks for the number of days, and keeps the doctor's 1×2×7 as numbers", async () => {
+    const prescribe = (item: Record<string, unknown>) =>
+      context.app.inject({
+        method: "POST",
+        url: "/prescriptions",
+        headers: auth(tokens[USER_ROLE.DOCTOR]),
+        payload: { patientId, doctorId: fixtures.doctorId, items: [item] },
+      });
+
+    expect((await prescribe({ drug: "Paracetamol 500 mg", perDose: 1 })).statusCode).toBe(400);
+    expect(
+      (await prescribe({ drug: "Paracetamol 500 mg", perDose: 0.3, timesPerDay: 2, days: 3 }))
+        .statusCode,
+    ).toBe(400);
+
+    const created = await prescribe({
+      drug: "Paracetamol 500 mg",
+      perDose: 1,
+      timesPerDay: 2,
+      days: 7,
+    });
+
+    expect(created.statusCode).toBe(201);
+    expect((created.json() as { items: unknown[] }).items[0]).toMatchObject({
+      perDose: 1,
+      timesPerDay: 2,
+      days: 7,
+    });
+  });
+
   it("keeps a prescription to its own patient's visit, dose and frequency optional, and lets its doctor delete it", async () => {
     const otherPatientId = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
       ...nameParts("مريض آخر"),

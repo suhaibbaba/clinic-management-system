@@ -774,14 +774,16 @@
     "drugsOf": "أدوية وصفة زيارة {{date}}",
     "drugsTitle": "أدوية الوصفة",
     "drug": "الدواء",
-    "dose": "الجرعة",
-    "frequency": "التكرار",
-    "duration": "المدة",
     "notes": "ملاحظات",
     "drugPlaceholder": "مثلاً: Ibuprofen",
-    "dosePlaceholder": "مثلاً: 400 mg",
-    "frequencyPlaceholder": "مثلاً: BID",
-    "durationPlaceholder": "مثلاً: 5 أيام",
+    "frequentDrug": "من الأدوية الشائعة",
+    "frequentDrugPlaceholder": "اختر دواءً لتعبئة جرعته",
+    "perDose": "الكمية في كل مرة",
+    "timesPerDay": "مرات في اليوم",
+    "days": "عدد الأيام",
+    "instructions": "تعليمات للمريض",
+    "instructionsPlaceholder": "مثلاً: بعد الأكل",
+    "writtenAs": "مكتوبة سابقاً: {{text}}",
     "addDrug": "إضافة دواء",
     "removeDrug": "حذف الدواء",
     "drugNumber": "الدواء {{number}}",
@@ -1637,11 +1639,15 @@
       "item_category": "تصنيف مواد المستودع",
       "item_unit": "وحدات قياس مواد المستودع",
       "payment_method": "طرق استلام الدفعات ودفعها للمختبرات",
-      "frequent_drug": "الأدوية المقترحة عند كتابة وصفة"
+      "frequent_drug": "الأدوية المقترحة عند كتابة وصفة، مع جرعتها المعتادة"
     },
     "rowMenu": "خيارات أخرى",
     "moveUp": "نقل للأعلى",
-    "moveDown": "نقل للأسفل"
+    "moveDown": "نقل للأسفل",
+    "regimen": {
+      "title": "الجرعة المعتادة",
+      "hint": "تُعبّأ في الوصفة عند اختيار هذا الدواء، ويمكن تعديلها. مثلاً 1 × 2 × 7: حبة واحدة، مرتين في اليوم، لسبعة أيام."
+    }
   },
   "priceList": {
     "title": "قائمة الأسعار",
@@ -1916,7 +1922,9 @@
         "create": "إضافة وصفة",
         "findOne": "فتح وصفة",
         "list": "عرض الوصفات",
+        "print": "طباعة وصفة",
         "remove": "حذف وصفة",
+        "send": "إرسال وصفة للمريض عبر واتساب",
         "update": "تعديل وصفة"
       },
       "procedure-catalog": {
