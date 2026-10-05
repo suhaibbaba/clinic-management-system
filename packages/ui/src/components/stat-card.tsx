@@ -48,7 +48,7 @@ export function StatCard({
     <div
       {...part()}
       className={cn(
-        "rounded-card border border-line bg-surface p-[18px_20px] shadow-card",
+        "h-full min-w-0 rounded-card border border-line bg-surface p-[18px_20px] shadow-card",
         "transition duration-[250ms] ease-in-out hover:-translate-y-0.5 hover:shadow-card-hover",
         className,
       )}
@@ -59,7 +59,11 @@ export function StatCard({
         </Badge>
       </div>
 
-      <Ltr as="p" {...part("figure")} className={cn("mt-2 text-kpi font-medium", FIGURES[tone])}>
+      <Ltr
+        as="p"
+        {...part("figure")}
+        className={cn("mt-2 whitespace-normal break-words text-title font-medium", FIGURES[tone])}
+      >
         {value}
       </Ltr>
 
