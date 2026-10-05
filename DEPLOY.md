@@ -325,6 +325,19 @@ What the job does, in order:
 4. runs the ordinary deploy, which recreates both volumes, migrates, and seeds
    into an empty database.
 
+#### Handing the sandbox to a client: setup only, no demo data
+
+Set `SEED_DEMO=false` in `/opt/clinic/sandbox/.env` before the reset. The
+seed then writes the clinic's setup only — accounts, lookups, the specialty,
+the procedure catalog, labs with their work types, suppliers and items (with no
+stock) — and no patients, appointments, visits, money, lab orders, stock
+movements, notifications, payroll or notes. Uploaded files go with the object
+store volume.
+
+Leave it at `false` afterwards: while the clinic has no patients, a later
+deploy with `SEED_DEMO=true` would fill it with demo data. Once the client has
+added a patient the seed writes nothing either way.
+
 The same thing by hand, if Actions is not available:
 
 ```bash
