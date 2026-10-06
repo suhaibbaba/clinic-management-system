@@ -17,6 +17,8 @@ export const USER_ROLES = [
   USER_ROLE.RECEPTIONIST,
 ] as const;
 
+export const DOCTOR_PROFILE_ROLES: readonly UserRole[] = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR];
+
 export const CHART_TYPE = {
   TOOTH_FDI: "tooth_fdi",
   BODY_REGION: "body_region",
