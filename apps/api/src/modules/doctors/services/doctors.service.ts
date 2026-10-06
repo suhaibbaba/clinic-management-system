@@ -8,6 +8,7 @@ import {
 } from "@nestjs/common";
 import { and, count, desc, eq, ilike, isNull, or, type SQL } from "drizzle-orm";
 import {
+  DOCTOR_PROFILE_ROLES,
   DOCTOR_USER_REF_MESSAGE,
   USER_ROLE,
   type CreateDoctorInput,
@@ -207,7 +208,9 @@ export class DoctorsService implements OnModuleInit {
       throw new BadRequestException("User not found in this clinic");
     }
 
-    if (user.id === actor.id && user.role !== USER_ROLE.DOCTOR) {
+    const keepsRole = DOCTOR_PROFILE_ROLES.includes(user.role);
+
+    if (user.id === actor.id && !keepsRole) {
       throw new BadRequestException("You cannot change your own role");
     }
 
@@ -221,7 +224,7 @@ export class DoctorsService implements OnModuleInit {
       throw new ConflictException("This user already has a doctor profile");
     }
 
-    if (user.role !== USER_ROLE.DOCTOR) {
+    if (!keepsRole) {
       await executor
         .update(users)
         .set({ role: USER_ROLE.DOCTOR, updatedAt: new Date(), updatedBy: actor.id })

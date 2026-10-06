@@ -54,7 +54,8 @@ export interface AppointmentFormModalProps {
   readonly onOpenChange: (open: boolean) => void;
   readonly appointment?: CalendarAppointment | undefined;
   readonly defaults?:
-    { readonly date?: string; readonly doctorId?: string; readonly startsAt?: string } | undefined;
+    | { readonly date?: string; readonly doctorId?: string; readonly startsAt?: string }
+    | undefined;
   readonly waitingEntry?: WaitingListEntry | undefined;
   readonly rebookFrom?: CalendarAppointment | undefined;
   readonly forPatient?: PickedPatient | undefined;

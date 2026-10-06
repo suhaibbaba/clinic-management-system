@@ -38,6 +38,7 @@ import { useDoctors } from "@web/shared/queries/doctors";
 import { AgendaList } from "@web/modules/appointments/components/agenda-list";
 import { AppointmentDrawer } from "@web/modules/appointments/components/appointment-drawer";
 import { AppointmentFormModal } from "@web/modules/appointments/components/appointment-form-modal";
+import { ownDoctorFirst } from "@web/modules/appointments/lib/doctor-filter";
 import { QUEUE_STEP_MINUTES } from "@web/modules/appointments/lib/calendar-time";
 import {
   instantAt,
@@ -409,9 +410,12 @@ export function AppointmentsPage(): JSX.Element {
               aria-label={t("appointments.doctor")}
               placeholder={t("appointments.allDoctors")}
               value={doctorFilter}
-              options={(doctors.data?.items ?? []).map((doctor) => ({
+              options={ownDoctorFirst(doctors.data?.items ?? [], user?.id).map((doctor) => ({
                 value: doctor.id,
-                label: doctorName(doctor.user.name),
+                label:
+                  doctor.id === ownDoctorId
+                    ? t("appointments.myAppointments")
+                    : doctorName(doctor.user.name),
               }))}
               onChange={(event) => setDoctorFilter(event.target.value)}
             />

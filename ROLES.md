@@ -15,6 +15,8 @@ Authoritative spec for authorization. Every endpoint must map to a row here befo
 
 Users belong to one clinic and have exactly one role (v1). `admin` implicitly passes every role check within their clinic.
 
+**An admin who treats patients** keeps the role `admin` and gains a `doctors` row: being a doctor is that row, not the role. Adding an admin as a doctor from the Doctors page (`POST /doctors` with `userId`, their own id included) creates the row and leaves the role alone; any other role becomes `doctor`. Such an admin is bookable, appears in every doctor list and on the public booking page, and still sees the whole clinic; the calendar's doctor filter offers their own column first as "My appointments". A user with a `doctors` row may only move between `admin` and `doctor` on the users screen; any other role needs the doctor profile removed first.
+
 **Every permission is a capability a clinic can change.** The matrix below is the shipped default. Each endpoint is a capability, and so is each data rule below (`RULE` in `packages/shared`); the Permissions page grants or withdraws any of them per role. The sidebar and the route guards follow the same capabilities, so a page appears the moment its list capability is granted.
 
 **Paid modules** sit above the matrix. A clinic has a `modules` list, empty by default; while a module is off its capabilities are refused to everyone, admin included, and leave the session and the Permissions page. Only the vendor switches one on: `pnpm -C apps/api module:enable <clinic slug> <module>` (and `module:disable`, `module:list`). Today's module is `assistant`: every `/ai` route, the AI query, and the daily follow-ups.

@@ -38,6 +38,7 @@ import {
   safeColumns,
   toAuditSnapshot,
   assertNotDoctorRole,
+  assertRoleChange,
   SafeUserRow,
   staffNameColumns,
   photoCategory,
@@ -159,7 +160,7 @@ export class UsersService implements OnModuleInit {
     }
 
     if (input.role !== undefined && input.role !== existing.role) {
-      assertNotDoctorRole(input.role);
+      assertRoleChange(existing.role, input.role, await this.hasDoctorProfile(actor.clinicId, id));
     }
 
     if (
@@ -338,6 +339,16 @@ export class UsersService implements OnModuleInit {
 
   async signPhoto(key: string | null): Promise<string | null> {
     return key ? (await this.storage.createDownloadUrl(key)).url : null;
+  }
+
+  private async hasDoctorProfile(clinicId: string, userId: string): Promise<boolean> {
+    const [row] = await this.db
+      .select({ id: doctors.id })
+      .from(doctors)
+      .where(this.scope.where(doctors, clinicId, eq(doctors.userId, userId)))
+      .limit(1);
+
+    return row !== undefined;
   }
 
   private async setPhotoKey(

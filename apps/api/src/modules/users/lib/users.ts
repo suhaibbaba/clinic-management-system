@@ -1,6 +1,7 @@
 import { users } from "@api/database/schema";
 import { sql } from "drizzle-orm";
 import {
+  DOCTOR_PROFILE_ROLES,
   type PersonNameInput,
   joinPersonName,
   type UserRole,
@@ -59,6 +60,17 @@ export function staffNameColumns(
 export function assertNotDoctorRole(role: UserRole): void {
   if (role === USER_ROLE.DOCTOR || role === USER_ROLE.VISITING_DOCTOR) {
     throw new BadRequestException("Create a doctor from the doctors screen, which makes both rows");
+  }
+}
+
+export function assertRoleChange(from: UserRole, to: UserRole, hasDoctorProfile: boolean): void {
+  if (!hasDoctorProfile || from === USER_ROLE.VISITING_DOCTOR) {
+    assertNotDoctorRole(to);
+    return;
+  }
+
+  if (!DOCTOR_PROFILE_ROLES.includes(to)) {
+    throw new BadRequestException("Remove the doctor profile before giving this user that role");
   }
 }
 

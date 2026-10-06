@@ -237,4 +237,75 @@ describe("Doctor creation (e2e)", () => {
       expect(again.statusCode).toBe(409);
     });
   });
+
+  describe("an admin who treats patients", () => {
+    const createAdmin = async (): Promise<User> => {
+      const created = await context.app.inject({
+        method: "POST",
+        url: "/users",
+        headers: auth(token),
+        payload: {
+          ...staffName("مدير طبيب", "Admin doctor"),
+          phone: uniquePhone(),
+          password,
+          role: USER_ROLE.ADMIN,
+        },
+      });
+
+      return created.json() as User;
+    };
+
+    const roleOf = async (id: string): Promise<string | undefined> => {
+      const [row] = await context.db.select().from(users).where(eq(users.id, id));
+
+      return row?.role;
+    };
+
+    const changeRole = (id: string, role: string) =>
+      context.app.inject({
+        method: "PATCH",
+        url: `/users/${id}`,
+        headers: auth(token),
+        payload: { role },
+      });
+
+    it("keeps another admin's role when the doctors screen links them", async () => {
+      const admin = await createAdmin();
+      const response = await createDoctor({ userId: admin.id });
+
+      expect(response.statusCode).toBe(201);
+      expect(await roleOf(admin.id)).toBe(USER_ROLE.ADMIN);
+
+      const adminToken = await context.login(admin.phone);
+      const adminOnly = await context.app.inject({
+        method: "GET",
+        url: `/payroll/salaries/${admin.id}`,
+        headers: auth(adminToken),
+      });
+
+      expect(adminOnly.statusCode).toBe(200);
+    });
+
+    it("moves an admin doctor between admin and doctor only", async () => {
+      const admin = await createAdmin();
+      await createDoctor({ userId: admin.id });
+
+      expect((await changeRole(admin.id, USER_ROLE.RECEPTIONIST)).statusCode).toBe(400);
+      expect((await changeRole(admin.id, USER_ROLE.DOCTOR)).statusCode).toBe(200);
+      expect((await changeRole(admin.id, USER_ROLE.ADMIN)).statusCode).toBe(200);
+      expect(await roleOf(admin.id)).toBe(USER_ROLE.ADMIN);
+    });
+
+    it("lets the admin add their own doctor profile and stay admin", async () => {
+      const me = (
+        await context.app.inject({ method: "GET", url: "/me", headers: auth(token) })
+      ).json() as { id: string };
+
+      const response = await createDoctor({ userId: me.id });
+
+      expect(response.statusCode).toBe(201);
+      expect((response.json() as Doctor).userId).toBe(me.id);
+      expect(await roleOf(me.id)).toBe(USER_ROLE.ADMIN);
+    });
+  });
 });
