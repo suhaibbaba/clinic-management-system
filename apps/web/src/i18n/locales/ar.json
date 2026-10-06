@@ -787,6 +787,8 @@
     "instructionsPlaceholder": "مثلاً: بعد الأكل",
     "writtenAs": "مكتوبة سابقاً: {{text}}",
     "addDrug": "إضافة دواء",
+    "addDrugNamed": "إضافة «{{name}}» إلى الأدوية الشائعة",
+    "drugAdded": "أُضيف الدواء إلى الأدوية الشائعة",
     "removeDrug": "حذف الدواء",
     "drugNumber": "الدواء {{number}}",
     "confirmDelete": {

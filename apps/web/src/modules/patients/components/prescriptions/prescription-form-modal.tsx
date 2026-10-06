@@ -1,9 +1,9 @@
 import {
-  LOOKUP_LIST,
   createPrescriptionSchema,
   lookupLabel,
   readDrugRegimen,
   type Prescription,
+  type LookupOption,
   type PrescriptionItem,
   type Visit,
 } from "@clinic/shared";
@@ -19,7 +19,6 @@ import {
   Modal,
   QuantityInput,
   Select,
-  SuggestionChips,
   Textarea,
   useToast,
 } from "@clinic/ui";
@@ -28,8 +27,7 @@ import { errorToast } from "@web/shared/lib/api-error";
 import { payloadResolver } from "@web/shared/lib/payload-resolver";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { formatDateTime } from "@web/shared/lib/format";
-import { useLookupList } from "@web/shared/queries/lookups";
-import { drugSuggestions } from "@web/modules/patients/lib/prescriptions";
+import { DrugPicker } from "@web/modules/patients/components/prescriptions/drug-picker";
 import {
   EMPTY_REGIMEN_INPUT,
   toRegimen,
@@ -88,7 +86,6 @@ export function PrescriptionFormModal({
   const { t, i18n } = useTranslation();
   const toast = useToast();
   const save = useSavePrescription(patientId);
-  const frequentDrugs = useLookupList(LOOKUP_LIST.FREQUENT_DRUG);
 
   const {
     control,
@@ -144,13 +141,7 @@ export function PrescriptionFormModal({
     );
   }, [open, prescription, visits, reset]);
 
-  const pickFrequent = (index: number, code: string): void => {
-    const option = frequentDrugs.find((entry) => entry.code === code);
-
-    if (!option) {
-      return;
-    }
-
+  const pickFrequent = (index: number, option: LookupOption): void => {
     const filled = toRegimenInput(readDrugRegimen(option.meta));
     const touch = { shouldDirty: true, shouldValidate: true };
 
@@ -163,10 +154,6 @@ export function PrescriptionFormModal({
   };
 
   const watched = watch("items");
-  const frequentChoices = frequentDrugs.map((option) => ({
-    key: option.code,
-    label: lookupLabel(option, i18n.language),
-  }));
 
   const onSubmit = handleSubmit(
     async (values) => {
@@ -280,23 +267,24 @@ export function PrescriptionFormModal({
                   error={errors.items?.[index]?.drug}
                   required
                 >
-                  <Input
-                    id={`prescription-drug-${index}`}
-                    data-testid={`prescription-item-${index}-drug`}
-                    placeholder={t("prescriptions.drugPlaceholder")}
-                    autoComplete="off"
-                    {...register(`items.${index}.drug`)}
+                  <Controller
+                    name={`items.${index}.drug`}
+                    control={control}
+                    render={({ field }) => (
+                      <DrugPicker
+                        ref={field.ref}
+                        id={`prescription-drug-${index}`}
+                        data-testid={`prescription-item-${index}-drug`}
+                        placeholder={t("prescriptions.drugPlaceholder")}
+                        hasError={Boolean(errors.items?.[index]?.drug)}
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        onPick={(option) => pickFrequent(index, option)}
+                      />
+                    )}
                   />
                 </FormField>
-
-                {drugSuggestions(frequentChoices, watched?.[index]?.drug ?? "").length > 0 && (
-                  <SuggestionChips
-                    data-testid={`prescription-item-${index}-frequent`}
-                    className="-mt-2 flex-nowrap overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:shrink-0"
-                    suggestions={drugSuggestions(frequentChoices, watched?.[index]?.drug ?? "")}
-                    onPick={(suggestion) => pickFrequent(index, suggestion.key)}
-                  />
-                )}
 
                 <FormField
                   label="prescriptions.regimen"

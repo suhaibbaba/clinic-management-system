@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { describeItem, drugSuggestions } from "@web/modules/patients/lib/prescriptions";
+import {
+  describeItem,
+  drugSuggestions,
+  isKnownDrug,
+} from "@web/modules/patients/lib/prescriptions";
 
 describe("describeItem", () => {
   it("isolates the shorthand so a right-to-left line keeps it in order", () => {
@@ -36,5 +40,14 @@ describe("drugSuggestions", () => {
 
   it("steps aside once the name is one of them", () => {
     expect(drugSuggestions(drugs, "ibuprofen 400 mg")).toEqual([]);
+  });
+});
+
+describe("isKnownDrug", () => {
+  const drugs = [{ key: "a", label: "Ibuprofen 400 mg" }];
+
+  it("matches a frequent drug whatever the case or surrounding spaces", () => {
+    expect(isKnownDrug(drugs, "  ibuprofen 400 MG ")).toBe(true);
+    expect(isKnownDrug(drugs, "Ibuprofen")).toBe(false);
   });
 });

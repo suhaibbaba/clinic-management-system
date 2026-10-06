@@ -763,6 +763,8 @@
     "instructionsPlaceholder": "For example: after meals",
     "writtenAs": "Written earlier: {{text}}",
     "addDrug": "Add a Drug",
+    "addDrugNamed": "Add “{{name}}” to Frequent Drugs",
+    "drugAdded": "Drug Added to Frequent Drugs",
     "removeDrug": "Remove the Drug",
     "drugNumber": "Drug {{number}}",
     "confirmDelete": {
