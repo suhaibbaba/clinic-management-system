@@ -4,21 +4,25 @@ import {
   LOOKUP_LIST,
   createLookupOptionSchema,
   drugRegimenSchema,
+  readDrugNote,
   readDrugRegimen,
   type LookupListKey,
   type LookupOption,
 } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, FormField, Input, Ltr, Modal, QuantityInput, useToast } from "@clinic/ui";
+import { Badge, Button, FormField, Input, Ltr, Modal, Textarea, useToast } from "@clinic/ui";
 import { useCreateLookupOption, useUpdateLookupOption } from "@web/shared/queries/lookups";
 import { errorToast } from "@web/shared/lib/api-error";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
+import { InstructionSuggestions } from "@web/shared/components/instruction-suggestions";
+import { RegimenRow } from "@web/shared/components/regimen-row";
 import {
   EMPTY_REGIMEN_INPUT,
   toRegimen,
   toRegimenInput,
+  withDrugNote,
   withRegimen,
   type RegimenInput,
 } from "@web/shared/lib/regimen";
@@ -50,6 +54,7 @@ export function LookupOptionModal({
   const [nameEn, setNameEn] = useState("");
   const [color, setColor] = useState(DEFAULT_LOOKUP_COLOUR);
   const [regimen, setRegimen] = useState<RegimenInput>(EMPTY_REGIMEN_INPUT);
+  const [note, setNote] = useState("");
   const englishOnly = ENGLISH_ONLY_LOOKUP_LISTS.includes(listKey);
   const isDrug = listKey === LOOKUP_LIST.FREQUENT_DRUG;
   const arabic = englishOnly ? nameEn : nameAr;
@@ -58,7 +63,9 @@ export function LookupOptionModal({
     nameAr: arabic.trim(),
     nameEn: nameEn.trim(),
     color: chosen,
-    ...(isDrug && { meta: withRegimen(option?.meta, toRegimen(regimen)) }),
+    ...(isDrug && {
+      meta: withDrugNote(withRegimen(option?.meta, toRegimen(regimen)), note),
+    }),
   };
 
   const form = useFormErrors(
@@ -76,6 +83,7 @@ export function LookupOptionModal({
     setNameEn(option?.nameEn ?? "");
     setColor(option?.color ?? DEFAULT_LOOKUP_COLOUR);
     setRegimen(toRegimenInput(readDrugRegimen(option?.meta)));
+    setNote(readDrugNote(option?.meta));
     reset();
   }, [open, option, reset]);
 
@@ -180,59 +188,70 @@ export function LookupOptionModal({
               {t("lookups.regimen.title")}
             </legend>
             <p className="text-meta text-ink-muted">{t("lookups.regimen.hint")}</p>
-            <div className="grid max-w-(--form-max) grid-cols-3 gap-3">
-              <div onBlur={form.leave("meta.perDose")}>
-                <FormField
-                  error={form.errors["meta.perDose"]}
-                  label="prescriptions.perDose"
-                  htmlFor="lookup-per-dose"
-                  optional
+            <div
+              onBlur={(event) => {
+                form.leave("meta.perDose")(event);
+                form.leave("meta.timesPerDay")(event);
+                form.leave("meta.days")(event);
+              }}
+            >
+              <RegimenRow
+                data-testid="lookup-field-regimen"
+                perDose={{
+                  id: "lookup-per-dose",
+                  "data-testid": "lookup-field-per-dose",
+                  value: regimen.perDose,
+                  onChange: (event) => setRegimen({ ...regimen, perDose: event.target.value }),
+                }}
+                timesPerDay={{
+                  "data-testid": "lookup-field-times-per-day",
+                  value: regimen.timesPerDay,
+                  onChange: (event) => setRegimen({ ...regimen, timesPerDay: event.target.value }),
+                }}
+                days={{
+                  "data-testid": "lookup-field-days",
+                  value: regimen.days,
+                  onChange: (event) => setRegimen({ ...regimen, days: event.target.value }),
+                }}
+              />
+              {(form.errors["meta.perDose"] ??
+                form.errors["meta.timesPerDay"] ??
+                form.errors["meta.days"]) && (
+                <p
+                  data-testid="lookup-field-regimen-error"
+                  className="mt-1 text-meta text-danger-600"
                 >
-                  <Input
-                    id="lookup-per-dose"
-                    data-testid="lookup-field-per-dose"
-                    dir="ltr"
-                    inputMode="decimal"
-                    autoComplete="off"
-                    value={regimen.perDose}
-                    onChange={(event) => setRegimen({ ...regimen, perDose: event.target.value })}
-                  />
-                </FormField>
-              </div>
-              <div onBlur={form.leave("meta.timesPerDay")}>
-                <FormField
-                  error={form.errors["meta.timesPerDay"]}
-                  label="prescriptions.timesPerDay"
-                  htmlFor="lookup-times-per-day"
-                  optional
-                >
-                  <QuantityInput
-                    id="lookup-times-per-day"
-                    data-testid="lookup-field-times-per-day"
-                    value={regimen.timesPerDay}
-                    onChange={(event) =>
-                      setRegimen({ ...regimen, timesPerDay: event.target.value })
-                    }
-                  />
-                </FormField>
-              </div>
-              <div onBlur={form.leave("meta.days")}>
-                <FormField
-                  error={form.errors["meta.days"]}
-                  label="prescriptions.days"
-                  htmlFor="lookup-days"
-                  optional
-                >
-                  <QuantityInput
-                    id="lookup-days"
-                    data-testid="lookup-field-days"
-                    value={regimen.days}
-                    onChange={(event) => setRegimen({ ...regimen, days: event.target.value })}
-                  />
-                </FormField>
-              </div>
+                  {t("errors.validation.invalid")}
+                </p>
+              )}
             </div>
           </fieldset>
+        )}
+
+        {isDrug && (
+          <div className="flex max-w-(--field-max) flex-col gap-2">
+            <FormField
+              label="lookups.drugNote"
+              htmlFor="lookup-drug-note"
+              hint={t("lookups.drugNoteHint")}
+              optional
+            >
+              <Textarea
+                rows={2}
+                id="lookup-drug-note"
+                data-testid="lookup-field-drug-note"
+                value={note}
+                maxLength={300}
+                placeholder={t("prescriptions.instructionsPlaceholder")}
+                onChange={(event) => setNote(event.target.value)}
+              />
+            </FormField>
+            <InstructionSuggestions
+              data-testid="lookup-drug-note-suggestions"
+              value={note}
+              onChange={setNote}
+            />
+          </div>
         )}
 
         {coloured && (

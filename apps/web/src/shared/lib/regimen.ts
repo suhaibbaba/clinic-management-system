@@ -39,3 +39,9 @@ export function withRegimen(
 
   return Object.fromEntries([...kept, ...given]);
 }
+
+export function withDrugNote(meta: Record<string, unknown>, note: string): Record<string, unknown> {
+  const rest = Object.fromEntries(Object.entries(meta).filter(([key]) => key !== "note"));
+
+  return note.trim() === "" ? rest : { ...rest, note: note.trim() };
+}
