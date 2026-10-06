@@ -761,6 +761,8 @@
     "daysShort": "Days",
     "instructions": "Instructions for the Patient",
     "instructionsPlaceholder": "For example: after meals",
+    "suggestions": "Suggestions",
+    "instructionSeparator": ", ",
     "writtenAs": "Written earlier: {{text}}",
     "addDrug": "Add a Drug",
     "addDrugNamed": "Add “{{name}}” to Frequent Drugs",
@@ -1579,7 +1581,8 @@
       "item_category": "Item Categories",
       "item_unit": "Units",
       "payment_method": "Payment Methods",
-      "frequent_drug": "Frequent Drugs"
+      "frequent_drug": "Frequent Drugs",
+      "drug_instruction": "Drug Instructions"
     },
     "hints": {
       "tooth_state": "What the tooth chart paints, and what a finished procedure leaves behind",
@@ -1591,15 +1594,18 @@
       "item_category": "How inventory items are grouped",
       "item_unit": "The units inventory is counted in",
       "payment_method": "How payments are taken, and how labs are paid",
-      "frequent_drug": "The drugs offered first when writing a prescription, with their usual dose"
+      "frequent_drug": "The drugs offered first when writing a prescription, with their usual dose",
+      "drug_instruction": "Ready phrases added with a tap to a drug's instructions in a prescription"
     },
     "rowMenu": "More Options",
     "moveUp": "Move Up",
     "moveDown": "Move Down",
     "regimen": {
       "title": "Usual Dose",
-      "hint": "Filled into the prescription when this drug is picked, and can be changed there. For example 1 × 2 × 7: one tablet, twice a day, for seven days."
-    }
+      "hint": "Filled into the prescription when this drug is picked, and can be changed there."
+    },
+    "drugNote": "Notes",
+    "drugNoteHint": "Written into “Instructions for the Patient” when this drug is picked in a prescription"
   },
   "priceList": {
     "title": "Price List",

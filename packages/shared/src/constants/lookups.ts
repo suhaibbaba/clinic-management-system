@@ -9,6 +9,7 @@ export const LOOKUP_LIST = {
   ITEM_UNIT: "item_unit",
   PAYMENT_METHOD: "payment_method",
   FREQUENT_DRUG: "frequent_drug",
+  DRUG_INSTRUCTION: "drug_instruction",
 } as const;
 
 export type LookupListKey = (typeof LOOKUP_LIST)[keyof typeof LOOKUP_LIST];
@@ -24,6 +25,7 @@ export const LOOKUP_LIST_KEYS = [
   LOOKUP_LIST.ITEM_UNIT,
   LOOKUP_LIST.PAYMENT_METHOD,
   LOOKUP_LIST.FREQUENT_DRUG,
+  LOOKUP_LIST.DRUG_INSTRUCTION,
 ] as const;
 
 export const COLOURED_LOOKUP_LISTS: readonly LookupListKey[] = [LOOKUP_LIST.TOOTH_STATE];
@@ -192,6 +194,26 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
     { code: "ibuprofen_400", nameAr: "Ibuprofen 400 mg", nameEn: "Ibuprofen 400 mg" },
     { code: "paracetamol_500", nameAr: "Paracetamol 500 mg", nameEn: "Paracetamol 500 mg" },
     { code: "chlorhexidine_rinse", nameAr: "Chlorhexidine rinse", nameEn: "Chlorhexidine rinse" },
+  ],
+
+  [LOOKUP_LIST.DRUG_INSTRUCTION]: [
+    { code: "after_meals", nameAr: "بعد الأكل", nameEn: "After meals" },
+    { code: "before_meals", nameAr: "قبل الأكل", nameEn: "Before meals" },
+    { code: "empty_stomach", nameAr: "على معدة فارغة", nameEn: "On an empty stomach" },
+    { code: "with_water", nameAr: "مع كوب ماء كامل", nameEn: "With a full glass of water" },
+    { code: "at_bedtime", nameAr: "قبل النوم", nameEn: "At bedtime" },
+    { code: "when_needed", nameAr: "عند اللزوم", nameEn: "When needed" },
+    { code: "finish_course", nameAr: "أكمل العلاج حتى آخره", nameEn: "Finish the whole course" },
+    {
+      code: "rinse_spit",
+      nameAr: "مضمضة ثم بصق دون بلع",
+      nameEn: "Rinse and spit, do not swallow",
+    },
+    {
+      code: "nothing_after",
+      nameAr: "لا أكل ولا شرب نصف ساعة بعده",
+      nameEn: "Nothing to eat or drink for half an hour after",
+    },
   ],
 };
 

@@ -1,6 +1,7 @@
 import {
   createPrescriptionSchema,
   lookupLabel,
+  readDrugNote,
   readDrugRegimen,
   type Prescription,
   type LookupOption,
@@ -11,23 +12,15 @@ import { useEffect, type JSX } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
-import {
-  Button,
-  FormField,
-  Icon,
-  Input,
-  Modal,
-  QuantityInput,
-  Select,
-  Textarea,
-  useToast,
-} from "@clinic/ui";
+import { Button, FormField, Icon, Modal, Select, Textarea, useToast } from "@clinic/ui";
 import { useSavePrescription } from "@web/modules/patients/queries";
 import { errorToast } from "@web/shared/lib/api-error";
 import { payloadResolver } from "@web/shared/lib/payload-resolver";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { formatDateTime } from "@web/shared/lib/format";
 import { DrugPicker } from "@web/modules/patients/components/prescriptions/drug-picker";
+import { InstructionSuggestions } from "@web/shared/components/instruction-suggestions";
+import { RegimenRow } from "@web/shared/components/regimen-row";
 import {
   EMPTY_REGIMEN_INPUT,
   toRegimen,
@@ -150,6 +143,12 @@ export function PrescriptionFormModal({
       if (filled[key] !== "") {
         setValue(`items.${index}.${key}`, filled[key], touch);
       }
+    }
+
+    const note = readDrugNote(option.meta);
+
+    if (note !== "") {
+      setValue(`items.${index}.note`, note, touch);
     }
   };
 
@@ -296,60 +295,22 @@ export function PrescriptionFormModal({
                   }
                   required={!watched?.[index]?.legacy.duration}
                 >
-                  <div
-                    dir="ltr"
+                  <RegimenRow
                     data-testid={`prescription-item-${index}-regimen`}
-                    className="flex items-start justify-end gap-2"
-                  >
-                    <label className="flex flex-col items-center gap-1">
-                      <Input
-                        id={`prescription-per-dose-${index}`}
-                        data-testid={`prescription-item-${index}-per-dose`}
-                        aria-label={t("prescriptions.perDose")}
-                        inputMode="decimal"
-                        autoComplete="off"
-                        className="w-18 [&_[data-part=input-control]]:text-center"
-                        {...register(`items.${index}.perDose`)}
-                      />
-                      <span className="text-meta text-ink-muted">
-                        {t("prescriptions.perDoseShort")}
-                      </span>
-                    </label>
-                    <span
-                      aria-hidden="true"
-                      className="flex h-(--control-h) items-center text-ink-subtle"
-                    >
-                      ×
-                    </span>
-                    <label className="flex flex-col items-center gap-1">
-                      <QuantityInput
-                        data-testid={`prescription-item-${index}-times-per-day`}
-                        aria-label={t("prescriptions.timesPerDay")}
-                        className="w-18 [&_[data-part=input-control]]:text-center"
-                        {...register(`items.${index}.timesPerDay`)}
-                      />
-                      <span className="text-meta text-ink-muted">
-                        {t("prescriptions.timesPerDayShort")}
-                      </span>
-                    </label>
-                    <span
-                      aria-hidden="true"
-                      className="flex h-(--control-h) items-center text-ink-subtle"
-                    >
-                      ×
-                    </span>
-                    <label className="flex flex-col items-center gap-1">
-                      <QuantityInput
-                        data-testid={`prescription-item-${index}-days`}
-                        aria-label={t("prescriptions.days")}
-                        className="w-18 [&_[data-part=input-control]]:text-center"
-                        {...register(`items.${index}.days`)}
-                      />
-                      <span className="text-meta text-ink-muted">
-                        {t("prescriptions.daysShort")}
-                      </span>
-                    </label>
-                  </div>
+                    perDose={{
+                      id: `prescription-per-dose-${index}`,
+                      "data-testid": `prescription-item-${index}-per-dose`,
+                      ...register(`items.${index}.perDose`),
+                    }}
+                    timesPerDay={{
+                      "data-testid": `prescription-item-${index}-times-per-day`,
+                      ...register(`items.${index}.timesPerDay`),
+                    }}
+                    days={{
+                      "data-testid": `prescription-item-${index}-days`,
+                      ...register(`items.${index}.days`),
+                    }}
+                  />
                 </FormField>
 
                 {legacyText(watched?.[index]?.legacy) && (
@@ -361,19 +322,32 @@ export function PrescriptionFormModal({
                   </p>
                 )}
 
-                <FormField
-                  label="prescriptions.instructions"
-                  htmlFor={`prescription-note-${index}`}
-                  error={errors.items?.[index]?.note}
-                  optional
-                >
-                  <Input
-                    id={`prescription-note-${index}`}
-                    data-testid={`prescription-item-${index}-note`}
-                    placeholder={t("prescriptions.instructionsPlaceholder")}
-                    {...register(`items.${index}.note`)}
+                <div className="flex flex-col gap-2">
+                  <FormField
+                    label="prescriptions.instructions"
+                    htmlFor={`prescription-note-${index}`}
+                    error={errors.items?.[index]?.note}
+                    optional
+                  >
+                    <Textarea
+                      rows={2}
+                      id={`prescription-note-${index}`}
+                      data-testid={`prescription-item-${index}-note`}
+                      placeholder={t("prescriptions.instructionsPlaceholder")}
+                      {...register(`items.${index}.note`)}
+                    />
+                  </FormField>
+                  <InstructionSuggestions
+                    data-testid={`prescription-item-${index}-note-suggestions`}
+                    value={watched?.[index]?.note ?? ""}
+                    onChange={(note) =>
+                      setValue(`items.${index}.note`, note, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })
+                    }
                   />
-                </FormField>
+                </div>
               </div>
             </li>
           ))}

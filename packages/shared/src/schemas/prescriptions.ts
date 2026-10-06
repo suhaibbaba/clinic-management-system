@@ -29,6 +29,12 @@ export function readDrugRegimen(meta: Record<string, unknown> | undefined): Drug
   return parsed.success ? parsed.data : {};
 }
 
+export function readDrugNote(meta: Record<string, unknown> | undefined): string {
+  const note = meta?.["note"];
+
+  return typeof note === "string" ? note : "";
+}
+
 export function regimenShorthand(regimen: DrugRegimen): string | null {
   const parts = [regimen.perDose, regimen.timesPerDay, regimen.days];
 

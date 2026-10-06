@@ -4,6 +4,7 @@ import {
   EMPTY_REGIMEN_INPUT,
   toRegimen,
   toRegimenInput,
+  withDrugNote,
   withRegimen,
 } from "@web/shared/lib/regimen";
 
@@ -68,5 +69,10 @@ describe("drug regimen", () => {
         items: [{ drug: "Ibuprofen 400 mg", duration: "5 أيام" }],
       }).success,
     ).toBe(true);
+  });
+
+  it("keeps a drug's note beside its regimen, and drops it when cleared", () => {
+    expect(withDrugNote({ days: 7 }, "  بعد الأكل ")).toEqual({ days: 7, note: "بعد الأكل" });
+    expect(withDrugNote({ days: 7, note: "بعد الأكل" }, " ")).toEqual({ days: 7 });
   });
 });
