@@ -2,8 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createUserSchema,
   updateUserSchema,
-  USER_ROLE,
-  USER_ROLES,
   type CreateUserInput,
   type UpdateUserInput,
   type User,
@@ -27,6 +25,7 @@ import {
 import { useCreateUser, useUpdateUser, useUser } from "@web/modules/users/queries";
 import { StaffNameFields, type StaffNameValues } from "@web/shared/components/staff-name-fields";
 import { UserPhotoField } from "@web/modules/users/components/user-photo-field";
+import { assignableRoles } from "@web/modules/users/lib/roles";
 import { errorToast } from "@web/shared/lib/api-error";
 import { Modal } from "@clinic/ui/components/modal";
 
@@ -106,9 +105,10 @@ export function UserFormModal({
     );
   }, [open, isEdit, user, reset]);
 
-  const roleOptions = USER_ROLES.filter(
-    (role) => role !== USER_ROLE.VISITING_DOCTOR || user?.role === role,
-  ).map((role) => ({ value: role, label: t(`roles.${role}`) }));
+  const roleOptions = assignableRoles(user?.role).map((role) => ({
+    value: role,
+    label: t(`roles.${role}`),
+  }));
 
   const email = watch("email")?.trim() ?? "";
 
