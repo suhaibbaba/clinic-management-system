@@ -183,18 +183,7 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
     { code: "transfer", nameAr: "حوالة", nameEn: "Transfer" },
   ],
 
-  [LOOKUP_LIST.FREQUENT_DRUG]: [
-    { code: "amoxicillin_500", nameAr: "Amoxicillin 500 mg", nameEn: "Amoxicillin 500 mg" },
-    {
-      code: "amoxiclav_1g",
-      nameAr: "Amoxicillin/clavulanate 1 g",
-      nameEn: "Amoxicillin/clavulanate 1 g",
-    },
-    { code: "metronidazole_500", nameAr: "Metronidazole 500 mg", nameEn: "Metronidazole 500 mg" },
-    { code: "ibuprofen_400", nameAr: "Ibuprofen 400 mg", nameEn: "Ibuprofen 400 mg" },
-    { code: "paracetamol_500", nameAr: "Paracetamol 500 mg", nameEn: "Paracetamol 500 mg" },
-    { code: "chlorhexidine_rinse", nameAr: "Chlorhexidine rinse", nameEn: "Chlorhexidine rinse" },
-  ],
+  [LOOKUP_LIST.FREQUENT_DRUG]: [],
 
   [LOOKUP_LIST.DRUG_INSTRUCTION]: [
     { code: "after_meals", nameAr: "بعد الأكل", nameEn: "After meals" },
