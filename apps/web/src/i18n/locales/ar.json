@@ -887,7 +887,7 @@
     "upload": "رفع صورة",
     "uploading": "جارٍ الرفع",
     "uploaded": "تم رفع الصورة",
-    "uploadHint": "JPEG أو PNG أو WebP أو TIFF أو DICOM أو PDF، بحد أقصى 50 ميغابايت.",
+    "uploadHint": "JPEG أو PNG أو WebP أو TIFF أو BMP أو DICOM أو PDF، بحد أقصى 50 ميغابايت.",
     "tooLarge": "حجم الملف يتجاوز الحد المسموح",
     "unsupportedType": "نوع الملف غير مدعوم",
     "deleted": "تم حذف الصورة",

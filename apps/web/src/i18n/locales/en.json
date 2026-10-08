@@ -855,7 +855,7 @@
     "upload": "Upload Image",
     "uploading": "Uploading",
     "uploaded": "Image Uploaded",
-    "uploadHint": "JPEG, PNG, WebP, TIFF, DICOM or PDF, up to 50 MB.",
+    "uploadHint": "JPEG, PNG, WebP, TIFF, BMP, DICOM or PDF, up to 50 MB.",
     "tooLarge": "File Is Larger Than the Limit",
     "unsupportedType": "Unsupported file type",
     "deleted": "Image Deleted",
