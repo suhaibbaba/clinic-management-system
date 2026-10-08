@@ -10,6 +10,7 @@ export const ALLOWED_ATTACHMENT_MIME_TYPES = [
   "image/png",
   "image/webp",
   "image/tiff",
+  "image/bmp",
   "application/dicom",
   "application/pdf",
 ] as const;
