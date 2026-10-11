@@ -21,6 +21,7 @@ import {
   CatalogView,
   toRoleView,
   CatalogRow,
+  type CatalogAccess,
 } from "@api/modules/patients/lib/procedure-catalog";
 
 @Injectable()
@@ -78,20 +79,17 @@ export class ProcedureCatalogService implements OnModuleInit {
         .from(procedureCatalog)
         .where(where),
     ]);
-    const details = await this.permissions.can(actor, RULE.CATALOG_DETAILS);
+    const access = await this.catalogAccess(actor);
 
     return toPaginated(
-      rows.map((row) => toRoleView(row, details)),
+      rows.map((row) => toRoleView(row, access)),
       totals?.value ?? 0,
       query,
     );
   }
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<CatalogView> {
-    return toRoleView(
-      await this.requireRow(actor.clinicId, id),
-      await this.permissions.can(actor, RULE.CATALOG_DETAILS),
-    );
+    return toRoleView(await this.requireRow(actor.clinicId, id), await this.catalogAccess(actor));
   }
 
   async requirePriced(clinicId: string, id: string): Promise<CatalogRow> {
@@ -126,7 +124,7 @@ export class ProcedureCatalogService implements OnModuleInit {
       throw new Error("Failed to create catalog item");
     }
 
-    return toRoleView(row, await this.permissions.can(actor, RULE.CATALOG_DETAILS));
+    return toRoleView(row, await this.catalogAccess(actor));
   }
 
   async update(
@@ -164,7 +162,7 @@ export class ProcedureCatalogService implements OnModuleInit {
       throw new Error("Failed to update catalog item");
     }
 
-    return toRoleView(row, await this.permissions.can(actor, RULE.CATALOG_DETAILS));
+    return toRoleView(row, await this.catalogAccess(actor));
   }
 
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
@@ -174,6 +172,15 @@ export class ProcedureCatalogService implements OnModuleInit {
       .update(procedureCatalog)
       .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
       .where(this.scope.where(procedureCatalog, actor.clinicId, eq(procedureCatalog.id, id)));
+  }
+
+  private async catalogAccess(actor: AuthenticatedUser): Promise<CatalogAccess> {
+    const [details, chart] = await Promise.all([
+      this.permissions.can(actor, RULE.CATALOG_DETAILS),
+      this.permissions.can(actor, RULE.PATIENTS_CLINICAL),
+    ]);
+
+    return { details, chart };
   }
 
   private async findRow(clinicId: string, id: string): Promise<CatalogRow | undefined> {

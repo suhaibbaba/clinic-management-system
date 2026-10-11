@@ -13,6 +13,8 @@ export const canRecordProcedure = (can: Can): boolean => can("procedures.create"
 
 export const canManageAttachments = (can: Can): boolean => can("patient-attachments.presignUpload");
 
+export const canOpenAttachment = (can: Can): boolean => can("attachments.findOne");
+
 export const canDeleteAttachment = (can: Can): boolean => can("attachments.remove");
 
 export const canWritePrescription = (can: Can): boolean => can("prescriptions.create");

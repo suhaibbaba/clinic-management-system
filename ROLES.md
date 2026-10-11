@@ -27,7 +27,7 @@ Users belong to one clinic and have exactly one role (v1). `admin` implicitly pa
 | `patients.clinical` | Medical fields, the chart and prices, clinical timeline entries | doctor, visiting doctor, technician |
 | `patients.financial` | Balances, the balance filter and sort, payment and charge timeline entries | doctor, technician, receptionist |
 | `patients.all` | Every patient; without it, only assigned patients (the visiting doctor rule) | doctor, receptionist, technician |
-| `procedure-catalog.details` | The full catalog; without it, names and prices only | doctor, visiting doctor, technician |
+| `procedure-catalog.details` | The full catalog; without it, names and prices only (plus each item's chart outcome under `patients.clinical`, so the chart colours its teeth) | doctor, visiting doctor, technician |
 | `appointments.allCalendars` | Every doctor's calendar, lab orders, time off and extra hours; without it, one's own | receptionist, technician |
 | `lab-orders.setPrice` | Setting the price of lab work | receptionist, technician |
 | `doctors.allSchedules` | Changing any doctor's weekly hours; without it, one's own | — |

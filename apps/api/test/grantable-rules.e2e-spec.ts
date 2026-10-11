@@ -111,6 +111,22 @@ describe("Data rules a clinic can grant (e2e)", () => {
     });
   });
 
+  it("colours the chart for a receptionist the clinic shows it to, without the full catalog", async () => {
+    const firstItem = async () =>
+      (await get(USER_ROLE.RECEPTIONIST, "/procedure-catalog")).json<{
+        items: Record<string, unknown>[];
+      }>().items[0];
+
+    expect(await firstItem()).not.toHaveProperty("chartOutcome");
+
+    await withGrant(USER_ROLE.RECEPTIONIST, RULE.PATIENTS_CLINICAL, true, async () => {
+      const item = await firstItem();
+
+      expect(item).toHaveProperty("chartOutcome");
+      expect(item).not.toHaveProperty("isActive");
+    });
+  });
+
   it("lets a technician delete a colleague's note once the clinic allows it", async () => {
     const write = async () =>
       (

@@ -8,7 +8,11 @@ import { useTranslation } from "react-i18next";
 import { Button, EmptyState, Icon, Img, Ltr, useConfirm, useToast } from "@clinic/ui";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/shared/providers/session";
-import { canDeleteAttachment, canManageAttachments } from "@web/shared/permissions/patients";
+import {
+  canDeleteAttachment,
+  canManageAttachments,
+  canOpenAttachment,
+} from "@web/shared/permissions/patients";
 import {
   useAttachment,
   useDeleteAttachment,
@@ -198,7 +202,9 @@ function ImageCard({
 }): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
-  const { data, isPending } = useAttachment(attachment.id, true);
+  const { can } = useSession();
+  const canOpen = canOpenAttachment(can);
+  const { data, isPending } = useAttachment(attachment.id, canOpen);
   const remove = useDeleteAttachment(patientId);
   const { confirm, dialog } = useConfirm("imaging-confirm-delete");
 
@@ -227,7 +233,15 @@ function ImageCard({
     >
       {dialog}
       <div className="flex aspect-square items-center justify-center overflow-hidden rounded-md bg-canvas">
-        {isPending && <Skeleton className="size-full rounded-none" />}
+        {canOpen && isPending && <Skeleton className="size-full rounded-none" />}
+
+        {!canOpen && (
+          <Icon
+            name={isImage ? "image" : "file"}
+            data-testid="imaging-card-locked"
+            className="size-7 text-ink-subtle"
+          />
+        )}
 
         {data?.downloadUrl &&
           (isImage ? (
