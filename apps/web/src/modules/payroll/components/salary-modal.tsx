@@ -3,7 +3,7 @@ import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Modal, Money, MoneyInput, Select, useToast } from "@clinic/ui";
 import { useSalaryHistory, useSetSalary } from "@web/modules/payroll/queries";
-import { shiftMonth } from "@web/modules/payroll/lib/months";
+import { shiftMonth } from "@web/shared/lib/months";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { errorToast } from "@web/shared/lib/api-error";
 import { schemaErrors } from "@web/shared/lib/form-errors";

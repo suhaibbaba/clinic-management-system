@@ -23,9 +23,11 @@ import {
   type AdjustmentTarget,
 } from "@web/modules/payroll/components/adjustment-modal";
 import { EmployeeMonthModal } from "@web/modules/payroll/components/employee-month-modal";
+import { PayPlanModal } from "@web/modules/payroll/components/pay-plan-modal";
+import { PayRulesModal } from "@web/modules/payroll/components/pay-rules-modal";
 import { SalaryModal } from "@web/modules/payroll/components/salary-modal";
 import { SalaryPaymentModal } from "@web/modules/payroll/components/salary-payment-modal";
-import { currentMonth, isMonth, shiftMonth } from "@web/modules/payroll/lib/months";
+import { currentMonth, isMonth, shiftMonth } from "@web/shared/lib/months";
 import { useCloseMonth, usePayroll } from "@web/modules/payroll/queries";
 import { errorToast } from "@web/shared/lib/api-error";
 import { todayIso } from "@web/shared/lib/dates";
@@ -55,6 +57,8 @@ export function PayrollPage(): JSX.Element {
   const [paying, setPaying] = useState<PayrollLine | null>(null);
   const [detailsFor, setDetailsFor] = useState<PayrollLine | null>(null);
   const [closing, setClosing] = useState(false);
+  const [planFor, setPlanFor] = useState<PayrollLine | null>(null);
+  const [editingRules, setEditingRules] = useState(false);
 
   const data = payroll.data;
   const isClosed = data?.closedAt !== null && data?.closedAt !== undefined;
@@ -89,10 +93,24 @@ export function PayrollPage(): JSX.Element {
       header: "payroll.monthlySalary",
       align: "numeric",
       render: (row) =>
-        row.base === "0.00" ? (
+        row.plan === "percentage" ? (
+          <Badge tone="info">{t("payroll.plan.kinds.percentage")}</Badge>
+        ) : row.base === "0.00" ? (
           <Badge tone="warning">{t("payroll.noSalary")}</Badge>
         ) : (
           <Money amount={row.base} currency={currency} />
+        ),
+    },
+    {
+      key: "share",
+      header: "payroll.share",
+      align: "numeric",
+      hideOnMobile: true,
+      render: (row) =>
+        row.plan === "salary" ? (
+          <span className="text-ink-muted">—</span>
+        ) : (
+          <Money amount={row.share} currency={currency} />
         ),
     },
     {
@@ -161,6 +179,11 @@ export function PayrollPage(): JSX.Element {
               {t("payroll.setSalary")}
             </MenuItem>
           )}
+          {!isClosed && (
+            <MenuItem icon="gear" data-testid="payroll-set-plan" onSelect={() => setPlanFor(row)}>
+              {t("payroll.plan.title")}
+            </MenuItem>
+          )}
           <MenuItem icon="list" data-testid="payroll-entries" onSelect={() => setDetailsFor(row)}>
             {t("payroll.entries")}
           </MenuItem>
@@ -176,11 +199,21 @@ export function PayrollPage(): JSX.Element {
         title="payroll.title"
         subtitle="payroll.subtitle"
         actions={
-          <DocumentActions
-            data-testid="payroll-print"
-            label={t("payroll.print")}
-            source={data ? payrollSource(month, can("payroll.sendMonth")) : undefined}
-          />
+          <>
+            <Button
+              variant="secondary"
+              icon={<Icon name="gear" />}
+              data-testid="payroll-rules"
+              onClick={() => setEditingRules(true)}
+            >
+              {t("payroll.rules.title")}
+            </Button>
+            <DocumentActions
+              data-testid="payroll-print"
+              label={t("payroll.print")}
+              source={data ? payrollSource(month, can("payroll.sendMonth")) : undefined}
+            />
+          </>
         }
         primaryAction={
           !isClosed && data ? (
@@ -256,8 +289,8 @@ export function PayrollPage(): JSX.Element {
             tone="success"
           />
           <StatCard
-            label={t("payroll.visitingShares")}
-            value={<Money amount={data.visitingShares} currency={currency} />}
+            label={t("payroll.doctorShares")}
+            value={<Money amount={data.doctorShares} currency={currency} />}
             icon="stethoscope"
             tone="neutral"
           />
@@ -282,6 +315,12 @@ export function PayrollPage(): JSX.Element {
       />
 
       <SalaryModal line={salaryFor} month={month} onClose={() => setSalaryFor(null)} />
+      <PayPlanModal line={planFor} month={month} onClose={() => setPlanFor(null)} />
+      <PayRulesModal
+        open={editingRules}
+        thisMonth={thisMonth}
+        onClose={() => setEditingRules(false)}
+      />
       <AdjustmentModal target={adjusting} month={month} onClose={() => setAdjusting(null)} />
       <SalaryPaymentModal line={paying} month={month} onClose={() => setPaying(null)} />
       <EmployeeMonthModal

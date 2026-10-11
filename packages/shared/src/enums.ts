@@ -1060,9 +1060,55 @@ export const STAFF_PAYMENT_KINDS = [
   STAFF_PAYMENT_KIND.SETTLEMENT,
 ] as const;
 
+export const PAY_PLAN_KIND = {
+  SALARY: "salary",
+  PERCENTAGE: "percentage",
+  SALARY_AND_PERCENTAGE: "salary_and_percentage",
+} as const satisfies Record<string, string>;
+export type PayPlanKind = EnumValue<typeof PAY_PLAN_KIND>;
+
+export const PAY_PLAN_KINDS = [
+  PAY_PLAN_KIND.SALARY,
+  PAY_PLAN_KIND.PERCENTAGE,
+  PAY_PLAN_KIND.SALARY_AND_PERCENTAGE,
+] as const;
+
+export const PAY_BASIS = {
+  DONE: "done",
+  COLLECTED: "collected",
+} as const satisfies Record<string, string>;
+export type PayBasis = EnumValue<typeof PAY_BASIS>;
+
+export const PAY_BASES = [PAY_BASIS.DONE, PAY_BASIS.COLLECTED] as const;
+
+export const LAB_COST_BEARER = {
+  SHARED: "shared",
+  DOCTOR: "doctor",
+} as const satisfies Record<string, string>;
+export type LabCostBearer = EnumValue<typeof LAB_COST_BEARER>;
+
+export const LAB_COST_BEARERS = [LAB_COST_BEARER.SHARED, LAB_COST_BEARER.DOCTOR] as const;
+
+export const SETTLEMENT_LINE_STATUS = {
+  UNPAID: "unpaid",
+  PAID: "paid",
+  ADJUSTED: "adjusted",
+} as const satisfies Record<string, string>;
+export type SettlementLineStatus = EnumValue<typeof SETTLEMENT_LINE_STATUS>;
+
+export const SETTLEMENT_LINE_STATUSES = [
+  SETTLEMENT_LINE_STATUS.UNPAID,
+  SETTLEMENT_LINE_STATUS.PAID,
+  SETTLEMENT_LINE_STATUS.ADJUSTED,
+] as const;
+
 export const PAYROLL_ERROR = {
   MONTH_CLOSED: "payroll_month_closed",
   ALREADY_CLOSED: "payroll_already_closed",
   NOT_EMPLOYEE: "payroll_not_employee",
   FUTURE_MONTH: "payroll_future_month",
+  NOT_A_DOCTOR: "payroll_not_a_doctor",
+  NOTHING_TO_PAY: "payroll_nothing_to_pay",
+  NOT_ON_PERCENTAGE: "payroll_not_on_percentage",
+  PAST_MONTH: "payroll_past_month",
 } as const;

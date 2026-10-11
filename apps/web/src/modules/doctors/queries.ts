@@ -2,11 +2,12 @@ import { DOCTORS_KEY, USERS_KEY } from "@web/shared/constants/query-keys";
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   CreateDoctorInput,
-  CreateStaffPaymentInput,
+  CreateSettlementPayoutInput,
   CreateVisitingDoctorInput,
   Doctor,
   DoctorSettlement,
   SettlementQuery,
+  SettlementTermsInput,
   UpdateTreatmentSettlementInput,
   UpdateDoctorInput,
   WeeklySchedule,
@@ -81,7 +82,7 @@ export function useSettlement(
   enabled: boolean,
 ): UseQueryResult<DoctorSettlement> {
   return useQuery({
-    queryKey: [SETTLEMENT_KEY, id, query.from, query.to],
+    queryKey: [SETTLEMENT_KEY, id, query.from, query.to, query.status ?? null],
     queryFn: () => doctorsApi.settlement(id, query),
     enabled,
     placeholderData: (previous) => previous,
@@ -98,9 +99,7 @@ function useSettlementWrite<TInput>(id: string, write: (input: TInput) => Promis
 }
 
 export const useSetSettlementTerms = (id: string) =>
-  useSettlementWrite(id, (clinicSharePercent: number) =>
-    doctorsApi.setTerms(id, { clinicSharePercent }),
-  );
+  useSettlementWrite(id, (body: SettlementTermsInput) => doctorsApi.setTerms(id, body));
 
 export const useSetTreatmentSettlement = (id: string) =>
   useSettlementWrite(
@@ -110,7 +109,7 @@ export const useSetTreatmentSettlement = (id: string) =>
   );
 
 export const useRecordPayout = (id: string) =>
-  useSettlementWrite(id, (body: CreateStaffPaymentInput) => doctorsApi.payout(id, body));
+  useSettlementWrite(id, (body: CreateSettlementPayoutInput) => doctorsApi.payout(id, body));
 
 export const useReversePayout = (id: string) =>
   useSettlementWrite(id, ({ payoutId, reason }: { payoutId: string; reason: string }) =>

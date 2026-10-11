@@ -17,6 +17,9 @@ import { PayrollDocumentsService } from "@api/modules/payroll/services/payroll-d
 import {
   AUDIT_ACTION,
   USER_ROLE,
+  type PayPlan,
+  type PayRule,
+  type PayRules,
   type Payroll,
   type PayrollAdjustment,
   type SalaryTerm,
@@ -27,11 +30,14 @@ import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import {
+  PAY_PLANS_ENTITY,
+  PAY_RULES_ENTITY,
   PAYROLL_ADJUSTMENTS_ENTITY,
   PAYROLL_MONTHS_ENTITY,
   SALARY_TERMS_ENTITY,
   STAFF_PAYMENTS_ENTITY,
 } from "@api/common/constants/audit-entities";
+import { PayTermsService } from "@api/modules/payroll/services/pay-terms.service";
 import { PayrollService } from "@api/modules/payroll/services/payroll.service";
 import { StaffPaymentsService } from "@api/modules/payroll/services/staff-payments.service";
 import {
@@ -39,6 +45,8 @@ import {
   CreateSalaryPaymentDto,
   IdParamDto,
   MonthParamDto,
+  PayPlanDto,
+  PayRulesDto,
   ReverseEntryDto,
   SalaryTermsDto,
 } from "@api/modules/payroll/dto/payroll.dto";
@@ -48,6 +56,7 @@ import {
 export class PayrollController {
   constructor(
     private readonly payroll: PayrollService,
+    private readonly terms: PayTermsService,
     private readonly documents: PayrollDocumentsService,
     private readonly delivery: DocumentDeliveryService,
   ) {}
@@ -68,6 +77,35 @@ export class PayrollController {
     @Body() body: SalaryTermsDto,
   ): Promise<SalaryTerm> {
     return this.payroll.setSalary(actor, params.id, body);
+  }
+
+  @Get("pay-rules")
+  payRules(@CurrentUser() actor: AuthenticatedUser): Promise<PayRules> {
+    return this.terms.payRules(actor);
+  }
+
+  @Put("pay-rules")
+  @Audit(PAY_RULES_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: "response" })
+  setPayRules(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Body() body: PayRulesDto,
+  ): Promise<PayRule> {
+    return this.terms.setPayRules(actor, body);
+  }
+
+  @Get("plans/:id")
+  plans(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<PayPlan[]> {
+    return this.terms.planHistory(actor, params.id);
+  }
+
+  @Put("plans/:id")
+  @Audit(PAY_PLANS_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: "response" })
+  setPlan(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Body() body: PayPlanDto,
+  ): Promise<PayPlan> {
+    return this.terms.setPlan(actor, params.id, body);
   }
 
   @Get(":month")

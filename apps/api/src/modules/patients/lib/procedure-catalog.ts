@@ -14,6 +14,7 @@ export function toCatalogItem(row: CatalogRow): ProcedureCatalogItem {
     name: row.name,
     defaultPrice: row.defaultPrice,
     chartOutcome: row.chartOutcome,
+    taxExempt: row.taxExempt,
     isActive: row.isActive,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),

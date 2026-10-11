@@ -1,4 +1,11 @@
-import { PAYROLL_ADJUSTMENT_KINDS, STAFF_PAYMENT_KINDS } from "@clinic/shared";
+import {
+  LAB_COST_BEARERS,
+  PAY_BASES,
+  PAY_PLAN_KINDS,
+  PAYROLL_ADJUSTMENT_KINDS,
+  STAFF_PAYMENT_KINDS,
+  type PayPlanKind,
+} from "@clinic/shared";
 import { sql } from "drizzle-orm";
 import {
   date,
@@ -12,9 +19,12 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { clinics, users } from "@api/database/schema/core";
+import { clinics, doctors, users } from "@api/database/schema/core";
+import { performedProcedures } from "@api/database/schema/patients";
 
 const money = (name: string) => numeric(name, { precision: 10, scale: 2 });
+
+const percent = (name: string) => numeric(name, { precision: 5, scale: 2 });
 
 const auditColumns = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -23,12 +33,23 @@ const auditColumns = {
   updatedBy: uuid("updated_by"),
 };
 
-export const payrollAdjustmentKindEnum = pgEnum("payroll_adjustment_kind", PAYROLL_ADJUSTMENT_KINDS);
+export const payrollAdjustmentKindEnum = pgEnum(
+  "payroll_adjustment_kind",
+  PAYROLL_ADJUSTMENT_KINDS,
+);
 
 export const staffPaymentKindEnum = pgEnum("staff_payment_kind", STAFF_PAYMENT_KINDS);
 
+export const payPlanKindEnum = pgEnum("pay_plan_kind", PAY_PLAN_KINDS);
+
+export const payBasisEnum = pgEnum("pay_basis", PAY_BASES);
+
+export const labCostBearerEnum = pgEnum("lab_cost_bearer", LAB_COST_BEARERS);
+
 export interface PayrollLineSnapshot {
   readonly userId: string;
+  readonly plan?: PayPlanKind;
+  readonly share?: string;
   readonly base: string;
   readonly extras: string;
   readonly cuts: string;
@@ -119,5 +140,91 @@ export const staffPayments = pgTable(
       .on(table.clinicId, table.month)
       .where(sql`month is not null`),
     index("staff_payments_reverses_idx").on(table.reversesId),
+  ],
+);
+
+export const payRules = pgTable(
+  "pay_rules",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    effectiveMonth: date("effective_month").notNull(),
+    taxPercent: percent("tax_percent").notNull(),
+    overheadPercent: percent("overhead_percent").notNull(),
+    basis: payBasisEnum("basis").notNull(),
+    labCostBearer: labCostBearerEnum("lab_cost_bearer").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdBy: uuid("created_by"),
+  },
+  (table) => [index("pay_rules_month_idx").on(table.clinicId, table.effectiveMonth)],
+);
+
+export const doctorRates = pgTable(
+  "doctor_rates",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    doctorId: uuid("doctor_id")
+      .notNull()
+      .references(() => doctors.id),
+    effectiveMonth: date("effective_month").notNull(),
+    clinicSharePercent: percent("clinic_share_percent").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdBy: uuid("created_by"),
+  },
+  (table) => [
+    index("doctor_rates_doctor_idx").on(table.clinicId, table.doctorId, table.effectiveMonth),
+  ],
+);
+
+export const payPlans = pgTable(
+  "pay_plans",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    kind: payPlanKindEnum("kind").notNull(),
+    effectiveMonth: date("effective_month").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdBy: uuid("created_by"),
+  },
+  (table) => [index("pay_plans_user_idx").on(table.clinicId, table.userId, table.effectiveMonth)],
+);
+
+export const settlementItems = pgTable(
+  "settlement_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    payoutId: uuid("payout_id")
+      .notNull()
+      .references(() => staffPayments.id),
+    performedProcedureId: uuid("performed_procedure_id")
+      .notNull()
+      .references(() => performedProcedures.id),
+    doctorId: uuid("doctor_id")
+      .notNull()
+      .references(() => doctors.id),
+    amount: money("amount").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdBy: uuid("created_by"),
+  },
+  (table) => [
+    index("settlement_items_payout_idx").on(table.payoutId),
+    index("settlement_items_line_idx").on(
+      table.clinicId,
+      table.performedProcedureId,
+      table.doctorId,
+    ),
   ],
 );

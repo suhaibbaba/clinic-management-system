@@ -1,4 +1,9 @@
-import type { Doctor, PerformedProcedure, PerformedProcedureStatus } from "@clinic/shared";
+import type {
+  Doctor,
+  PerformedProcedure,
+  PerformedProcedureStatus,
+  TreatmentSettlementStatus,
+} from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Ltr, MenuItem, Money, PersonName, RowMenu, type IconName } from "@clinic/ui";
@@ -9,6 +14,7 @@ import {
   treatmentSurfaces,
   treatmentTeeth,
 } from "@web/modules/patients/lib/treatments/treatments";
+import { SETTLEMENT_STATUS_TONES } from "@web/shared/constants/settlement";
 import { formatDate, formatList } from "@web/shared/lib/format";
 
 const MOVE_ICONS: Record<PerformedProcedureStatus, IconName> = {
@@ -30,6 +36,7 @@ export interface TreatmentItemProps {
   readonly onEdit: () => void;
   readonly onDelete: () => void;
   readonly onSendToLab?: (() => void) | undefined;
+  readonly doctorPay?: readonly TreatmentSettlementStatus[] | undefined;
 }
 
 export function TreatmentItem({
@@ -44,6 +51,7 @@ export function TreatmentItem({
   onEdit,
   onDelete,
   onSendToLab,
+  doctorPay,
 }: TreatmentItemProps): JSX.Element {
   const { t } = useTranslation();
   const teeth = treatmentTeeth(treatment);
@@ -147,6 +155,21 @@ export function TreatmentItem({
           </div>
         )}
       </dl>
+
+      {doctorPay && doctorPay.length > 0 && (
+        <ul data-testid="treatment-doctor-pay" className="flex flex-wrap gap-1.5">
+          {doctorPay.map((pay) => (
+            <li key={pay.doctorId}>
+              <Badge tone={SETTLEMENT_STATUS_TONES[pay.status]}>
+                <PersonName name={pay.doctorName} />
+                {" · "}
+                {t(`treatments.doctorPay.${pay.status}`)}
+                {pay.lastPaidAt && pay.status === "paid" && ` · ${formatDate(pay.lastPaidAt)}`}
+              </Badge>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {treatment.notes && (
         <p className="whitespace-pre-wrap text-meta text-ink">{treatment.notes}</p>

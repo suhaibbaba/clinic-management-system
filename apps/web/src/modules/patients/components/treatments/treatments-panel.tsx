@@ -34,6 +34,7 @@ import {
   useCreateProcedure,
   useDeleteProcedure,
   usePatientProcedures,
+  usePatientSettlementStatus,
   useProcedureCatalog,
   useUpdateProcedure,
 } from "@web/modules/patients/queries";
@@ -41,6 +42,7 @@ import { TREATMENT_FORM_ID } from "@web/modules/patients/constants";
 import {
   canDeleteProcedure,
   canRecordProcedure,
+  canSeeDoctorPay,
   canSeePrices,
 } from "@web/shared/permissions/patients";
 import { errorToast } from "@web/shared/lib/api-error";
@@ -93,6 +95,7 @@ export function TreatmentsPanel({
   const mayChange = canRecordProcedure(can);
   const mayDelete = canDeleteProcedure(can);
   const showPrices = role ? canSeePrices(can) : false;
+  const doctorPay = usePatientSettlementStatus(patientId, canSeeDoctorPay(can));
   const doctorList = doctors.data?.items ?? [];
   const ordered = newestTreatmentsFirst(treatments);
 
@@ -234,6 +237,7 @@ export function TreatmentsPanel({
               onEdit={() => setEditing({ treatment })}
               onDelete={() => setDeleting(treatment)}
               {...(onSendToLab && { onSendToLab: () => onSendToLab(treatment) })}
+              doctorPay={doctorPay.data?.filter((pay) => pay.treatmentId === treatment.id)}
             />
           ))}
         </ol>

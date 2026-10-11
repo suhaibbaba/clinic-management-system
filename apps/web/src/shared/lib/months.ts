@@ -14,3 +14,7 @@ export function shiftMonth(month: string, delta: number): string {
 export function isMonth(value: string): boolean {
   return /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
 }
+
+export function monthsFrom(month: string, count: number): string[] {
+  return Array.from({ length: count }, (_, offset) => shiftMonth(month, offset));
+}

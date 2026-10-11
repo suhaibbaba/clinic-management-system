@@ -73,6 +73,7 @@ describe("Sidebar navigation", () => {
       ar.nav.assistant,
       ar.nav.patients,
       ar.nav.appointments,
+      ar.nav.myEarnings,
       ar.nav.labs,
       ar.nav.inventory,
       ar.nav.clinic,
@@ -311,6 +312,50 @@ describe("The price list follows its grants", () => {
       "aria-current",
       "page",
     );
+  });
+});
+
+describe("My earnings follows its grant", () => {
+  const earnings = {
+    from: "2026-01-01",
+    to: "2026-01-31",
+    basis: "done",
+    lines: [],
+    totals: { payable: "0.00", paid: "0.00", outstanding: "0.00" },
+    payouts: [],
+    earned: "0.00",
+    paid: "0.00",
+    balance: "0.00",
+  };
+
+  it("opens for a doctor the clinic let see their earnings, and appears in their sidebar", async () => {
+    mockApi({
+      ...handlers(USER_ROLE.VISITING_DOCTOR, [
+        ...SHIPPED_CAPABILITIES[USER_ROLE.VISITING_DOCTOR],
+        "my-settlement.statement",
+      ]),
+      "GET /me/settlement": { status: 200, body: earnings },
+    });
+    authTokens.clear();
+    renderWithProviders(<AppRoutes />, { route: "/my-earnings" });
+
+    expect(
+      await screen.findByRole("heading", { name: ar.earnings.title, level: 1 }),
+    ).toBeInTheDocument();
+    expect(linkNames()).toEqual([
+      ar.nav.dashboard,
+      ar.nav.patients,
+      ar.nav.appointments,
+      ar.nav.myEarnings,
+    ]);
+  });
+
+  it("sends a doctor without the grant back home", async () => {
+    await renderAs(USER_ROLE.DOCTOR, "/my-earnings");
+
+    expect(await screen.findByRole("region", { name: ar.dashboard.schedule.title })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: ar.earnings.title })).not.toBeInTheDocument();
+    expect(linkNames()).not.toContain(ar.nav.myEarnings);
   });
 });
 

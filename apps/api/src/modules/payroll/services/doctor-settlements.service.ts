@@ -1,112 +1,158 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  type OnModuleInit,
+} from "@nestjs/common";
+import {
+  PAY_PLAN_KIND,
+  PAYROLL_ERROR,
   STAFF_PAYMENT_KIND,
   addDays,
   addMoney,
   instantFromLocal,
-  type CreateStaffPaymentInput,
+  type CreateSettlementPayoutInput,
   type DoctorSettlement,
-  type StaffPayment,
+  type OwnSettlement,
+  type SettlementPayout,
   type SettlementQuery,
   type SettlementTermsInput,
+  type SettlementTreatment,
+  type TreatmentSettlementStatus,
   type UpdateTreatmentSettlementInput,
 } from "@clinic/shared";
-import { and, desc, eq, gte, lt, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, lt, sql, type SQL } from "drizzle-orm";
+import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
-import { DATABASE, type Database } from "@api/database/database.module";
-import { doctors, performedProcedures, staffPayments } from "@api/database/schema";
+import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
+import {
+  doctors,
+  performedProcedures,
+  settlementItems,
+  staffPayments,
+  users,
+} from "@api/database/schema";
+import { SETTLEMENT_TREATMENTS_ENTITY } from "@api/common/constants/audit-entities";
 import { negate } from "@api/common/lib/money";
 import {
   oneDoctor,
-  settlementRows,
+  payoutItems,
+  performedBetween,
+  settlementLines,
+  toSettlementItem,
   toSettlementTreatment,
-  visitingDoctors,
+  type SettlementItemRow,
   type SettlementRow,
+  type SettlementScope,
+  totalsOf,
 } from "@api/modules/payroll/lib/doctor-settlements";
-import { toStaffPayment } from "@api/modules/payroll/lib/payroll";
+import { includesShare } from "@api/modules/payroll/lib/pay-terms";
+import { toStaffPayment, type StaffPaymentRow } from "@api/modules/payroll/lib/payroll";
+import { PayTermsService } from "@api/modules/payroll/services/pay-terms.service";
 import { StaffPaymentsService } from "@api/modules/payroll/services/staff-payments.service";
 
+const ZERO = "0.00";
+
+interface DoctorRow {
+  readonly id: string;
+  readonly userId: string;
+  readonly role: AuthenticatedUser["role"];
+  readonly clinicSharePercent: string | null;
+}
+
 @Injectable()
-export class DoctorSettlementsService {
+export class DoctorSettlementsService implements OnModuleInit {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly scope: ClinicScopeService,
     private readonly payments: StaffPaymentsService,
+    private readonly terms: PayTermsService,
+    private readonly auditSnapshots: AuditSnapshotRegistry,
   ) {}
+
+  onModuleInit(): void {
+    this.auditSnapshots.register(SETTLEMENT_TREATMENTS_ENTITY, async (id, clinicId) => {
+      const [row] = await this.db
+        .select({
+          materialCost: performedProcedures.materialCost,
+          clinicSharePercent: performedProcedures.clinicSharePercent,
+          shareSplit: performedProcedures.shareSplit,
+          shareWaivedReason: performedProcedures.shareWaivedReason,
+        })
+        .from(performedProcedures)
+        .where(this.scope.where(performedProcedures, clinicId, eq(performedProcedures.id, id)))
+        .limit(1);
+
+      return row ? { ...row } : null;
+    });
+  }
 
   async settlement(
     actor: AuthenticatedUser,
     doctorId: string,
     query: SettlementQuery,
   ): Promise<DoctorSettlement> {
-    const doctor = await this.requireDoctor(actor, doctorId);
-    const timeZone = await clinicTimeZone(this.db, actor.clinicId);
-    const start = instantFromLocal(query.from, 0, timeZone);
-    const end = instantFromLocal(addDays(query.to, 1), 0, timeZone);
-
-    const [rows, earnedRows, payouts, paidRows] = await Promise.all([
-      this.db.execute<SettlementRow & Record<string, unknown>>(
-        sql`${settlementRows(
-          actor.clinicId,
-          oneDoctor(doctorId),
-          sql`p.performed_at >= ${start.toISOString()}::timestamptz and p.performed_at < ${end.toISOString()}::timestamptz`,
-        )} order by performed_at desc`,
-      ),
-      this.db.execute<{ earned: string | null }>(
-        sql`select coalesce(sum(doctor_share), 0)::numeric(12, 2)::text as earned from (${settlementRows(
-          actor.clinicId,
-          oneDoctor(doctorId),
-        )}) settled`,
-      ),
-      this.db
-        .select()
-        .from(staffPayments)
-        .where(
-          and(
-            this.paymentsOf(actor.clinicId, doctor.userId),
-            gte(staffPayments.createdAt, start),
-            lt(staffPayments.createdAt, end),
-          ),
-        )
-        .orderBy(desc(staffPayments.createdAt)),
-      this.db
-        .select({ paid: sql<string>`coalesce(sum(${staffPayments.amount}), 0)::text` })
-        .from(staffPayments)
-        .where(this.paymentsOf(actor.clinicId, doctor.userId)),
+    const doctor = await this.requireDoctor(actor.clinicId, doctorId);
+    const month = await this.terms.currentMonth(actor.clinicId);
+    const [statement, rules, rate, plans] = await Promise.all([
+      this.statement(actor.clinicId, doctor, query),
+      this.terms.payRules(actor),
+      this.terms.doctorRateAt(actor.clinicId, doctor, month),
+      this.terms.plansAt(actor.clinicId, [{ id: doctor.userId, role: doctor.role }], month),
     ]);
-
-    const treatments = [...rows].map(toSettlementTreatment);
-    const earned = earnedRows[0]?.earned ?? "0.00";
-    const paid = paidRows[0]?.paid ?? "0.00";
 
     return {
       doctorId,
       from: query.from,
       to: query.to,
-      clinicSharePercent: Number(doctor.clinicSharePercent ?? 0),
-      treatments,
-      totals: treatments.reduce(
-        (sum, row) => ({
-          revenue: addMoney(sum.revenue, addMoney(row.price, negate(row.discount))),
-          materials: addMoney(sum.materials, row.materialCost),
-          net: addMoney(sum.net, row.net),
-          clinicShare: addMoney(sum.clinicShare, row.clinicShare),
-          doctorShare: addMoney(sum.doctorShare, row.doctorShare),
-        }),
-        {
-          revenue: "0.00",
-          materials: "0.00",
-          net: "0.00",
-          clinicShare: "0.00",
-          doctorShare: "0.00",
-        },
-      ),
-      payouts: payouts.map(toStaffPayment),
-      earned: addMoney(earned, "0.00"),
-      paid: addMoney(paid, "0.00"),
-      balance: addMoney(earned, negate(addMoney(paid, "0.00"))),
+      clinicSharePercent: rate,
+      onPercentage: includesShare(plans.get(doctor.userId) ?? PAY_PLAN_KIND.SALARY),
+      basis: rules.current.basis,
+      labCostBearer: rules.current.labCostBearer,
+      ...statement,
+    };
+  }
+
+  async ownSettlement(actor: AuthenticatedUser, query: SettlementQuery): Promise<OwnSettlement> {
+    const doctor = await this.doctorOfUser(actor.clinicId, actor.id);
+    const [statement, rules] = await Promise.all([
+      this.statement(actor.clinicId, doctor, query),
+      this.terms.payRules(actor),
+    ]);
+
+    return {
+      from: query.from,
+      to: query.to,
+      basis: rules.current.basis,
+      lines: statement.treatments.map((line) => ({
+        id: line.id,
+        performedAt: line.performedAt,
+        patientId: line.patientId,
+        patientName: line.patientName,
+        fileNumber: line.fileNumber,
+        procedureName: line.procedureName,
+        revenue: line.revenue,
+        workPercent: line.workPercent,
+        doctorShare: line.doctorShare,
+        waivedReason: line.waivedReason,
+        collectedPercent: line.collectedPercent,
+        payable: line.payable,
+        paid: line.paid,
+        outstanding: line.outstanding,
+        status: line.status,
+      })),
+      totals: {
+        payable: statement.totals.payable,
+        paid: statement.totals.paid,
+        outstanding: statement.totals.outstanding,
+      },
+      payouts: statement.payouts,
+      earned: statement.earned,
+      paid: statement.paid,
+      balance: statement.balance,
     };
   }
 
@@ -114,17 +160,17 @@ export class DoctorSettlementsService {
     actor: AuthenticatedUser,
     doctorId: string,
     input: SettlementTermsInput,
-  ): Promise<void> {
-    await this.requireDoctor(actor, doctorId);
+  ): Promise<{ id: string }> {
+    await this.requireDoctor(actor.clinicId, doctorId);
 
-    await this.db
-      .update(doctors)
-      .set({
-        clinicSharePercent: String(input.clinicSharePercent),
-        updatedAt: new Date(),
-        updatedBy: actor.id,
-      })
-      .where(this.scope.where(doctors, actor.clinicId, eq(doctors.id, doctorId)));
+    return {
+      id: await this.terms.setDoctorRate(
+        actor,
+        doctorId,
+        input.clinicSharePercent,
+        input.effectiveMonth,
+      ),
+    };
   }
 
   async updateTreatment(
@@ -132,6 +178,13 @@ export class DoctorSettlementsService {
     treatmentId: string,
     input: UpdateTreatmentSettlementInput,
   ): Promise<void> {
+    if (input.shareSplit) {
+      await this.requireDoctors(
+        actor.clinicId,
+        input.shareSplit.map((entry) => entry.doctorId),
+      );
+    }
+
     const [row] = await this.db
       .update(performedProcedures)
       .set({
@@ -139,6 +192,10 @@ export class DoctorSettlementsService {
         ...(input.clinicSharePercent !== undefined && {
           clinicSharePercent:
             input.clinicSharePercent === null ? null : String(input.clinicSharePercent),
+        }),
+        ...(input.shareSplit !== undefined && { shareSplit: input.shareSplit }),
+        ...(input.shareWaivedReason !== undefined && {
+          shareWaivedReason: input.shareWaivedReason,
         }),
         updatedAt: new Date(),
         updatedBy: actor.id,
@@ -160,27 +217,257 @@ export class DoctorSettlementsService {
   async createPayout(
     actor: AuthenticatedUser,
     doctorId: string,
-    input: CreateStaffPaymentInput,
-  ): Promise<StaffPayment> {
-    const doctor = await this.requireDoctor(actor, doctorId);
+    input: CreateSettlementPayoutInput,
+  ): Promise<SettlementPayout> {
+    const doctor = await this.requireDoctor(actor.clinicId, doctorId);
+    const timeZone = await clinicTimeZone(this.db, actor.clinicId);
+    const treatmentIds = input.treatmentIds ?? [];
 
-    return this.payments.record(
-      actor,
-      { userId: doctor.userId, kind: STAFF_PAYMENT_KIND.SETTLEMENT, month: null },
-      input,
-    );
+    return this.db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`settlement:${doctorId}`}))`);
+
+      if (treatmentIds.length === 0) {
+        const month = await this.terms.currentMonth(actor.clinicId);
+        const plans = await this.terms.plansAt(
+          actor.clinicId,
+          [{ id: doctor.userId, role: doctor.role }],
+          month,
+        );
+
+        if (!includesShare(plans.get(doctor.userId) ?? PAY_PLAN_KIND.SALARY)) {
+          throw new BadRequestException(PAYROLL_ERROR.NOT_ON_PERCENTAGE);
+        }
+
+        const payout = await this.payments.record(
+          actor,
+          { userId: doctor.userId, kind: STAFF_PAYMENT_KIND.SETTLEMENT, month: null },
+          { amount: input.amount ?? ZERO, method: input.method, note: input.note ?? null },
+          tx,
+        );
+
+        return { ...payout, items: [] };
+      }
+
+      const lines = await this.lines(
+        {
+          clinicId: actor.clinicId,
+          timeZone,
+          doctors: oneDoctor(doctorId),
+          treatments: sql`p.id in (${sql.join(
+            treatmentIds.map((id) => sql`${id}::uuid`),
+            sql`, `,
+          )})`,
+        },
+        tx,
+      );
+
+      if (treatmentIds.some((id) => !lines.some((line) => line.id === id))) {
+        throw new NotFoundException("Resource not found");
+      }
+
+      const owed = lines.filter((line) => Number(line.outstanding) !== 0);
+      const total = owed.reduce((sum, line) => addMoney(sum, line.outstanding), ZERO);
+
+      if (Number(total) <= 0) {
+        throw new BadRequestException(PAYROLL_ERROR.NOTHING_TO_PAY);
+      }
+
+      const payout = await this.payments.record(
+        actor,
+        { userId: doctor.userId, kind: STAFF_PAYMENT_KIND.SETTLEMENT, month: null },
+        { amount: total, method: input.method, note: input.note ?? null },
+        tx,
+      );
+
+      await tx.insert(settlementItems).values(
+        owed.map((line) => ({
+          clinicId: actor.clinicId,
+          payoutId: payout.id,
+          performedProcedureId: line.id,
+          doctorId,
+          amount: line.outstanding,
+          createdBy: actor.id,
+        })),
+      );
+
+      return {
+        ...payout,
+        items: owed.map((line) => ({
+          treatmentId: line.id,
+          patientId: line.patientId,
+          patientName: line.patientName,
+          fileNumber: line.fileNumber,
+          procedureName: line.procedureName,
+          performedAt: line.performedAt,
+          amount: line.outstanding,
+        })),
+      };
+    });
   }
 
-  async visitingSharesBetween(clinicId: string, start: Date, end: Date): Promise<string> {
-    const [row] = await this.db.execute<{ total: string | null }>(
-      sql`select coalesce(sum(doctor_share), 0)::numeric(12, 2)::text as total from (${settlementRows(
-        clinicId,
-        visitingDoctors,
-        sql`p.performed_at >= ${start.toISOString()}::timestamptz and p.performed_at < ${end.toISOString()}::timestamptz`,
-      )}) settled`,
+  async payout(
+    actor: AuthenticatedUser,
+    doctorId: string,
+    payoutId: string,
+  ): Promise<SettlementPayout> {
+    const doctor = await this.requireDoctor(actor.clinicId, doctorId);
+    const [row] = await this.db
+      .select()
+      .from(staffPayments)
+      .where(and(this.paymentsOf(actor.clinicId, doctor.userId), eq(staffPayments.id, payoutId)))
+      .limit(1);
+
+    if (!row) {
+      throw new NotFoundException("Resource not found");
+    }
+
+    const [payout] = await this.withItems(actor.clinicId, [row]);
+
+    if (!payout) {
+      throw new NotFoundException("Resource not found");
+    }
+
+    return payout;
+  }
+
+  async treatmentStatuses(
+    actor: AuthenticatedUser,
+    patientId: string,
+  ): Promise<TreatmentSettlementStatus[]> {
+    const timeZone = await clinicTimeZone(this.db, actor.clinicId);
+    const rows = await this.db.execute<
+      SettlementRow & { name_ar: string; name_en: string } & Record<string, unknown>
+    >(
+      sql`select line.*, u.name_ar, u.name_en
+          from (${settlementLines({
+            clinicId: actor.clinicId,
+            timeZone,
+            treatments: sql`p.patient_id = ${patientId}`,
+          })}) line
+          join doctors d on d.id = line.doctor_id
+          join users u on u.id = d.user_id
+          order by line.performed_at desc`,
     );
 
-    return addMoney(row?.total ?? "0.00", "0.00");
+    return [...rows].map((row) => ({
+      treatmentId: row.id,
+      doctorId: row.doctor_id,
+      doctorName: { ar: row.name_ar, en: row.name_en },
+      payable: row.payable,
+      paid: row.paid,
+      status: row.status,
+      lastPaidAt: row.last_paid_at ? new Date(row.last_paid_at).toISOString() : null,
+    }));
+  }
+
+  async sharesBetween(
+    clinicId: string,
+    start: Date,
+    end: Date,
+    doctors?: SQL,
+  ): Promise<Map<string, string>> {
+    const timeZone = await clinicTimeZone(this.db, clinicId);
+    const rows = await this.db.execute<{ doctor_id: string; total: string }>(
+      sql`select doctor_id, coalesce(sum(doctor_share), 0)::numeric(12, 2)::text as total
+          from (${settlementLines({
+            clinicId,
+            timeZone,
+            window: performedBetween(start, end),
+            ...(doctors && { doctors }),
+          })}) settled
+          group by doctor_id`,
+    );
+
+    return new Map([...rows].map((row) => [row.doctor_id, addMoney(row.total, ZERO)]));
+  }
+
+  private async statement(
+    clinicId: string,
+    doctor: DoctorRow,
+    query: SettlementQuery,
+  ): Promise<
+    Pick<DoctorSettlement, "treatments" | "totals" | "payouts" | "earned" | "paid" | "balance">
+  > {
+    const timeZone = await clinicTimeZone(this.db, clinicId);
+    const start = instantFromLocal(query.from, 0, timeZone);
+    const end = instantFromLocal(addDays(query.to, 1), 0, timeZone);
+
+    const [treatments, earnedRows, payoutRows, paidRows] = await Promise.all([
+      this.lines({
+        clinicId,
+        timeZone,
+        doctors: oneDoctor(doctor.id),
+        window: performedBetween(start, end),
+      }),
+      this.db.execute<{ earned: string | null }>(
+        sql`select coalesce(sum(payable), 0)::numeric(12, 2)::text as earned from (${settlementLines(
+          { clinicId, timeZone, doctors: oneDoctor(doctor.id) },
+        )}) settled`,
+      ),
+      this.db
+        .select()
+        .from(staffPayments)
+        .where(
+          and(
+            this.paymentsOf(clinicId, doctor.userId),
+            gte(staffPayments.createdAt, start),
+            lt(staffPayments.createdAt, end),
+          ),
+        )
+        .orderBy(desc(staffPayments.createdAt)),
+      this.db
+        .select({ paid: sql<string>`coalesce(sum(${staffPayments.amount}), 0)::text` })
+        .from(staffPayments)
+        .where(this.paymentsOf(clinicId, doctor.userId)),
+    ]);
+
+    const filtered = query.status
+      ? treatments.filter((line) => line.status === query.status)
+      : treatments;
+    const earned = addMoney(earnedRows[0]?.earned ?? ZERO, ZERO);
+    const paid = addMoney(paidRows[0]?.paid ?? ZERO, ZERO);
+
+    return {
+      treatments: filtered,
+      totals: totalsOf(filtered),
+      payouts: await this.withItems(clinicId, payoutRows),
+      earned,
+      paid,
+      balance: addMoney(earned, negate(paid)),
+    };
+  }
+
+  private async lines(
+    scope: SettlementScope,
+    executor: DatabaseExecutor = this.db,
+  ): Promise<SettlementTreatment[]> {
+    const rows = await executor.execute<SettlementRow & Record<string, unknown>>(
+      sql`${settlementLines(scope)} order by performed_at desc`,
+    );
+
+    return [...rows].map(toSettlementTreatment);
+  }
+
+  private async withItems(
+    clinicId: string,
+    rows: readonly StaffPaymentRow[],
+  ): Promise<SettlementPayout[]> {
+    const items =
+      rows.length === 0
+        ? []
+        : [
+            ...(await this.db.execute<SettlementItemRow & Record<string, unknown>>(
+              payoutItems(
+                clinicId,
+                rows.map((row) => row.id),
+              ),
+            )),
+          ];
+
+    return rows.map((row) => ({
+      ...toStaffPayment(row),
+      items: items.filter((item) => item.payout_id === row.id).map(toSettlementItem),
+    }));
   }
 
   private paymentsOf(clinicId: string, userId: string) {
@@ -191,14 +478,17 @@ export class DoctorSettlementsService {
     );
   }
 
-  private async requireDoctor(
-    actor: AuthenticatedUser,
-    doctorId: string,
-  ): Promise<{ clinicSharePercent: string | null; userId: string }> {
+  private async requireDoctor(clinicId: string, doctorId: string): Promise<DoctorRow> {
     const [row] = await this.db
-      .select({ clinicSharePercent: doctors.clinicSharePercent, userId: doctors.userId })
+      .select({
+        id: doctors.id,
+        userId: doctors.userId,
+        role: users.role,
+        clinicSharePercent: doctors.clinicSharePercent,
+      })
       .from(doctors)
-      .where(and(this.scope.where(doctors, actor.clinicId, eq(doctors.id, doctorId))))
+      .innerJoin(users, eq(users.id, doctors.userId))
+      .where(this.scope.where(doctors, clinicId, eq(doctors.id, doctorId)))
       .limit(1);
 
     if (!row) {
@@ -206,5 +496,42 @@ export class DoctorSettlementsService {
     }
 
     return row;
+  }
+
+  private async doctorOfUser(clinicId: string, userId: string): Promise<DoctorRow> {
+    const [row] = await this.db
+      .select({
+        id: doctors.id,
+        userId: doctors.userId,
+        role: users.role,
+        clinicSharePercent: doctors.clinicSharePercent,
+      })
+      .from(doctors)
+      .innerJoin(users, eq(users.id, doctors.userId))
+      .where(this.scope.where(doctors, clinicId, eq(doctors.userId, userId)))
+      .limit(1);
+
+    if (!row) {
+      throw new NotFoundException("Resource not found");
+    }
+
+    return row;
+  }
+
+  private async requireDoctors(clinicId: string, ids: readonly string[]): Promise<void> {
+    const rows = await this.db
+      .select({ id: doctors.id })
+      .from(doctors)
+      .where(
+        and(
+          eq(doctors.clinicId, clinicId),
+          inArray(doctors.id, [...ids]),
+          isNull(doctors.deletedAt),
+        ),
+      );
+
+    if (rows.length !== new Set(ids).size) {
+      throw new NotFoundException("Resource not found");
+    }
   }
 }

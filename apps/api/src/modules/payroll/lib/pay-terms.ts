@@ -1,0 +1,59 @@
+import {
+  LAB_COST_BEARER,
+  PAY_BASIS,
+  PAY_PLAN_KIND,
+  USER_ROLE,
+  type PayPlan,
+  type PayPlanKind,
+  type PayRule,
+  type PayrollMonth,
+  type UserRole,
+} from "@clinic/shared";
+import { payPlans, payRules } from "@api/database/schema";
+import { monthOf } from "@api/modules/payroll/lib/payroll";
+
+export type PayRuleRow = typeof payRules.$inferSelect;
+
+export type PayPlanRow = typeof payPlans.$inferSelect;
+
+export function toPayRule(row: PayRuleRow): PayRule {
+  return {
+    id: row.id,
+    taxPercent: Number(row.taxPercent),
+    overheadPercent: Number(row.overheadPercent),
+    basis: row.basis,
+    labCostBearer: row.labCostBearer,
+    effectiveMonth: monthOf(row.effectiveMonth),
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
+export function defaultPayRule(month: PayrollMonth): PayRule {
+  return {
+    id: null,
+    taxPercent: 0,
+    overheadPercent: 0,
+    basis: PAY_BASIS.DONE,
+    labCostBearer: LAB_COST_BEARER.SHARED,
+    effectiveMonth: month,
+    createdAt: null,
+  };
+}
+
+export function toPayPlan(row: PayPlanRow): PayPlan {
+  return {
+    id: row.id,
+    userId: row.userId,
+    kind: row.kind,
+    effectiveMonth: monthOf(row.effectiveMonth),
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
+export function defaultPlan(role: UserRole): PayPlanKind {
+  return role === USER_ROLE.VISITING_DOCTOR ? PAY_PLAN_KIND.PERCENTAGE : PAY_PLAN_KIND.SALARY;
+}
+
+export const includesSalary = (kind: PayPlanKind): boolean => kind !== PAY_PLAN_KIND.PERCENTAGE;
+
+export const includesShare = (kind: PayPlanKind): boolean => kind !== PAY_PLAN_KIND.SALARY;

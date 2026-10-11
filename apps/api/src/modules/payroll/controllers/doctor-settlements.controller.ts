@@ -15,20 +15,29 @@ import { Throttle } from "@nestjs/throttler";
 import { SendDocumentDto } from "@api/modules/notifications/dto/document-delivery.dto";
 import { DocumentDeliveryService } from "@api/modules/notifications/services/document-delivery.service";
 import { PayrollDocumentsService } from "@api/modules/payroll/services/payroll-documents.service";
-import { AUDIT_ACTION, USER_ROLE, type DoctorSettlement, type StaffPayment } from "@clinic/shared";
+import {
+  AUDIT_ACTION,
+  USER_ROLE,
+  type DoctorSettlement,
+  type OwnSettlement,
+  type SettlementPayout,
+  type TreatmentSettlementStatus,
+} from "@clinic/shared";
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import {
-  DOCTORS_ENTITY,
-  PERFORMED_PROCEDURES_ENTITY,
+  DOCTOR_RATES_ENTITY,
+  SETTLEMENT_TREATMENTS_ENTITY,
   STAFF_PAYMENTS_ENTITY,
 } from "@api/common/constants/audit-entities";
 import { DoctorSettlementsService } from "@api/modules/payroll/services/doctor-settlements.service";
 import {
-  CreateStaffPaymentDto,
+  CreateSettlementPayoutDto,
   IdParamDto,
+  OwnSettlementQueryDto,
+  PayoutParamDto,
   SettlementQueryDto,
   SettlementTermsDto,
   UpdateTreatmentSettlementDto,
@@ -81,14 +90,13 @@ export class DoctorSettlementsController {
   }
 
   @Put(":id/settlement-terms")
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @Audit(DOCTORS_ENTITY, AUDIT_ACTION.UPDATE)
-  async terms(
+  @Audit(DOCTOR_RATES_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: "response" })
+  terms(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
     @Body() body: SettlementTermsDto,
-  ): Promise<void> {
-    await this.settlements.updateTerms(actor, params.id, body);
+  ): Promise<{ id: string }> {
+    return this.settlements.updateTerms(actor, params.id, body);
   }
 
   @Post(":id/payouts")
@@ -96,9 +104,47 @@ export class DoctorSettlementsController {
   payout(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
-    @Body() body: CreateStaffPaymentDto,
-  ): Promise<StaffPayment> {
+    @Body() body: CreateSettlementPayoutDto,
+  ): Promise<SettlementPayout> {
     return this.settlements.createPayout(actor, params.id, body);
+  }
+
+  @Get(":id/payouts/:payoutId/print")
+  @Header("Content-Type", "application/pdf")
+  @Header("Content-Disposition", 'inline; filename="payout.pdf"')
+  payoutPdf(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: PayoutParamDto,
+  ): Promise<Buffer> {
+    return this.documents.payout(actor, params.id, params.payoutId);
+  }
+}
+
+@Controller("me/settlement")
+@Roles(USER_ROLE.ADMIN)
+export class MySettlementController {
+  constructor(private readonly settlements: DoctorSettlementsService) {}
+
+  @Get()
+  statement(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Query() query: OwnSettlementQueryDto,
+  ): Promise<OwnSettlement> {
+    return this.settlements.ownSettlement(actor, query);
+  }
+}
+
+@Controller("patients/:id/settlement-status")
+@Roles(USER_ROLE.ADMIN)
+export class PatientSettlementStatusController {
+  constructor(private readonly settlements: DoctorSettlementsService) {}
+
+  @Get()
+  list(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+  ): Promise<TreatmentSettlementStatus[]> {
+    return this.settlements.treatmentStatuses(actor, params.id);
   }
 }
 
@@ -109,7 +155,7 @@ export class SettlementTreatmentsController {
 
   @Patch(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Audit(PERFORMED_PROCEDURES_ENTITY, AUDIT_ACTION.UPDATE)
+  @Audit(SETTLEMENT_TREATMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   async update(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
