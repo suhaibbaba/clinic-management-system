@@ -421,6 +421,13 @@
       "when": 1791147525524,
       "tag": "0059_patient_assigned_doctor",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1791710086340,
+      "tag": "0060_percentage_pay",
+      "breakpoints": true
     }
   ]
 }

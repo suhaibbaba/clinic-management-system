@@ -59,3 +59,11 @@ export const USERS_ENTITY = "users";
 export const TRANSLATION_OVERRIDES_ENTITY = "translation_overrides";
 
 export const PAYMENTS_ENTITY = "payments";
+
+export const PAY_RULES_ENTITY = "pay_rules";
+
+export const PAY_PLANS_ENTITY = "pay_plans";
+
+export const DOCTOR_RATES_ENTITY = "doctor_rates";
+
+export const SETTLEMENT_TREATMENTS_ENTITY = "settlement_treatments";

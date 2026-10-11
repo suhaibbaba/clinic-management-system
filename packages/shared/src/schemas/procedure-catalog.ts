@@ -11,6 +11,7 @@ export const procedureCatalogItemSchema = z.object({
   name: z.string(),
   defaultPrice: moneySchema,
   chartOutcome: lookupCodeSchema.nullable(),
+  taxExempt: z.boolean(),
   isActive: z.boolean(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
@@ -33,11 +34,13 @@ const catalogWritableFields = {
   name: z.string().trim().min(1).max(160),
   defaultPrice: wholeMoneySchema,
   chartOutcome: lookupCodeSchema.nullish(),
+  taxExempt: z.boolean(),
   isActive: z.boolean(),
 };
 
 export const createProcedureCatalogItemSchema = z.object({
   ...catalogWritableFields,
+  taxExempt: z.boolean().default(false),
   isActive: z.boolean().default(true),
 });
 export type CreateProcedureCatalogItemInput = z.infer<typeof createProcedureCatalogItemSchema>;

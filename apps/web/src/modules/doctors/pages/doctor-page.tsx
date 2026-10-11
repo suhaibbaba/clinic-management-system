@@ -130,7 +130,7 @@ export function DoctorPage(): JSX.Element {
         </section>
       </div>
 
-      {doctor.data.isVisiting && canSeeSettlement(can) && (
+      {canSeeSettlement(can) && (
         <div className="border border-line rounded-card bg-surface shadow-card p-4">
           <SettlementSection doctorId={id} doctorPhone={doctor.data.user.phone} />
         </div>

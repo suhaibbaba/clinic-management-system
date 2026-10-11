@@ -1,5 +1,6 @@
 import { listPatients } from "@web/shared/api/patients";
 import type {
+  TreatmentSettlementStatus,
   AllergyFlags,
   Attachment,
   ConfirmAttachmentUploadInput,
@@ -45,6 +46,9 @@ async function fetchAllPages<TItem>(
 }
 
 export const patientsApi = {
+  settlementStatus: (patientId: string): Promise<TreatmentSettlementStatus[]> =>
+    apiRequest(`/patients/${patientId}/settlement-status`),
+
   list: listPatients,
 
   create: (body: CreatePatientInput): Promise<PatientClinicalView> =>

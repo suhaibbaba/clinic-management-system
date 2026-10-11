@@ -1,6 +1,11 @@
 import type {
   CreatePayrollAdjustmentInput,
   CreateSalaryPaymentInput,
+  PayPlan,
+  PayPlanInput,
+  PayRule,
+  PayRules,
+  PayRulesInput,
   Payroll,
   PayrollAdjustment,
   SalaryTerm,
@@ -21,6 +26,16 @@ export const payrollApi = {
 
   setSalary: (userId: string, body: SalaryTermsInput): Promise<SalaryTerm> =>
     apiRequest(`/payroll/salaries/${userId}`, { method: "PUT", body }),
+
+  payRules: (): Promise<PayRules> => apiRequest("/payroll/pay-rules"),
+
+  setPayRules: (body: PayRulesInput): Promise<PayRule> =>
+    apiRequest("/payroll/pay-rules", { method: "PUT", body }),
+
+  plans: (userId: string): Promise<PayPlan[]> => apiRequest(`/payroll/plans/${userId}`),
+
+  setPlan: (userId: string, body: PayPlanInput): Promise<PayPlan> =>
+    apiRequest(`/payroll/plans/${userId}`, { method: "PUT", body }),
 
   adjust: (month: string, body: CreatePayrollAdjustmentInput): Promise<PayrollAdjustment> =>
     apiRequest(`/payroll/${month}/adjustments`, { method: "POST", body }),

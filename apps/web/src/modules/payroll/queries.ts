@@ -2,6 +2,10 @@ import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tan
 import type {
   CreatePayrollAdjustmentInput,
   CreateSalaryPaymentInput,
+  PayPlan,
+  PayPlanInput,
+  PayRules,
+  PayRulesInput,
   Payroll,
   SalaryTerm,
   SalaryTermsInput,
@@ -27,6 +31,22 @@ export function useSalaryHistory(userId: string | null): UseQueryResult<SalaryTe
   });
 }
 
+export function usePayRules(enabled: boolean): UseQueryResult<PayRules> {
+  return useQuery({
+    queryKey: [PAYROLL_KEY, "pay-rules"],
+    queryFn: () => payrollApi.payRules(),
+    enabled,
+  });
+}
+
+export function usePlanHistory(userId: string | null): UseQueryResult<PayPlan[]> {
+  return useQuery({
+    queryKey: [PAYROLL_KEY, "plans", userId],
+    queryFn: () => payrollApi.plans(userId ?? ""),
+    enabled: userId !== null,
+  });
+}
+
 function usePayrollWrite<TInput, TResult>(write: (input: TInput) => Promise<TResult>) {
   const queryClient = useQueryClient();
 
@@ -39,6 +59,14 @@ function usePayrollWrite<TInput, TResult>(write: (input: TInput) => Promise<TRes
 export const useSetSalary = () =>
   usePayrollWrite(({ userId, body }: { userId: string; body: SalaryTermsInput }) =>
     payrollApi.setSalary(userId, body),
+  );
+
+export const useSetPayRules = () =>
+  usePayrollWrite((body: PayRulesInput) => payrollApi.setPayRules(body));
+
+export const useSetPlan = () =>
+  usePayrollWrite(({ userId, body }: { userId: string; body: PayPlanInput }) =>
+    payrollApi.setPlan(userId, body),
   );
 
 export const useAdjustPay = (month: string) =>

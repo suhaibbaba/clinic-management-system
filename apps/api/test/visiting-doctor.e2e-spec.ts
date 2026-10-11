@@ -319,9 +319,9 @@ describe("Visiting doctor (e2e)", () => {
         method: "PUT",
         url: `/doctors/${visitorDoctorId}/settlement-terms`,
         headers: as(USER_ROLE.ADMIN),
-        payload: { clinicSharePercent: 40 },
+        payload: { clinicSharePercent: 40, effectiveMonth: today.slice(0, 7) },
       });
-      expect(terms.statusCode).toBe(204);
+      expect(terms.statusCode).toBe(200);
 
       first = await treat({ price: "1000" });
       second = await treat({ price: "500", discount: "100", discountReason: "خصم" });

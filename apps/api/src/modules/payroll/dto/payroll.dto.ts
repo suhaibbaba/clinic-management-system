@@ -2,15 +2,20 @@ import { createZodDto } from "nestjs-zod";
 import {
   createPayrollAdjustmentSchema,
   createSalaryPaymentSchema,
+  createSettlementPayoutSchema,
   createStaffPaymentSchema,
   idParamSchema,
+  payPlanInputSchema,
+  payRulesInputSchema,
   payrollMonthParamSchema,
   reverseEntrySchema,
   salaryTermsInputSchema,
   settlementQuerySchema,
   settlementTermsSchema,
   updateTreatmentSettlementSchema,
+  uuidSchema,
 } from "@clinic/shared";
+import { z } from "zod";
 
 export class IdParamDto extends createZodDto(idParamSchema) {}
 
@@ -31,3 +36,15 @@ export class ReverseEntryDto extends createZodDto(reverseEntrySchema) {}
 export class SalaryTermsDto extends createZodDto(salaryTermsInputSchema) {}
 
 export class CreatePayrollAdjustmentDto extends createZodDto(createPayrollAdjustmentSchema) {}
+
+export class CreateSettlementPayoutDto extends createZodDto(createSettlementPayoutSchema) {}
+
+export class PayRulesDto extends createZodDto(payRulesInputSchema) {}
+
+export class PayPlanDto extends createZodDto(payPlanInputSchema) {}
+
+export class PayoutParamDto extends createZodDto(
+  z.object({ id: uuidSchema, payoutId: uuidSchema }),
+) {}
+
+export class OwnSettlementQueryDto extends createZodDto(settlementQuerySchema) {}

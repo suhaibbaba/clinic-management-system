@@ -4,6 +4,8 @@ import { PayrollDocumentsService } from "@api/modules/payroll/services/payroll-d
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import {
   DoctorSettlementsController,
+  MySettlementController,
+  PatientSettlementStatusController,
   SettlementTreatmentsController,
 } from "@api/modules/payroll/controllers/doctor-settlements.controller";
 import {
@@ -12,6 +14,7 @@ import {
   StaffPaymentsController,
 } from "@api/modules/payroll/controllers/payroll.controller";
 import { DoctorSettlementsService } from "@api/modules/payroll/services/doctor-settlements.service";
+import { PayTermsService } from "@api/modules/payroll/services/pay-terms.service";
 import { PayrollService } from "@api/modules/payroll/services/payroll.service";
 import { StaffPaymentsService } from "@api/modules/payroll/services/staff-payments.service";
 
@@ -20,6 +23,8 @@ import { StaffPaymentsService } from "@api/modules/payroll/services/staff-paymen
   controllers: [
     DoctorSettlementsController,
     SettlementTreatmentsController,
+    MySettlementController,
+    PatientSettlementStatusController,
     PayrollController,
     PayrollAdjustmentsController,
     StaffPaymentsController,
@@ -27,6 +32,7 @@ import { StaffPaymentsService } from "@api/modules/payroll/services/staff-paymen
   providers: [
     ClinicScopeService,
     StaffPaymentsService,
+    PayTermsService,
     DoctorSettlementsService,
     PayrollService,
     PayrollDocumentsService,

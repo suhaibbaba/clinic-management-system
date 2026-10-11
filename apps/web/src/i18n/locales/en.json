@@ -136,7 +136,8 @@
     "payroll": "Payroll",
     "openSearch": "Open Search",
     "closeSearch": "Close Search",
-    "priceList": "Price List"
+    "priceList": "Price List",
+    "myEarnings": "My Earnings"
   },
   "roles": {
     "admin": "Admin",
@@ -273,8 +274,8 @@
       "scheduleHint": "Optional. Leave it empty to book them any time the clinic is open."
     },
     "settlement": {
-      "title": "Settlement",
-      "about": "The doctor's done treatments in the period: price after discount minus materials, then the clinic takes its share and the rest is the doctor's.",
+      "title": "Doctor settlement",
+      "about": "The doctor's treatments done in the period: the amount after discount, less tax, operating expenses and materials; the clinic takes its percentage and the rest is the doctor's.",
       "period": "Period",
       "amount": "Amount",
       "materials": "Materials",
@@ -283,7 +284,6 @@
       "doctorShare": "Doctor Share",
       "adjusted": "Adjusted",
       "revenue": "Revenue",
-      "materialsTotal": "Materials: {{amount}}",
       "balance": "Owed to the Doctor",
       "balanceCaption": "Everything earned minus everything paid",
       "noTreatments": "No done treatments in this period",
@@ -303,7 +303,54 @@
       "percentHint": "Leave empty for the doctor's share ({{percent}}%), or 0 for none",
       "treatmentUpdated": "Settlement Updated",
       "shareSaved": "Clinic Share Saved",
-      "print": "Print Statement"
+      "print": "Print Statement",
+      "deductions": "Tax & expenses",
+      "waivedBecause": "No share: {{reason}}",
+      "workShare": "{{percent}}% of the work",
+      "collectedOf": "{{percent}}% collected of {{amount}}",
+      "status": "Status",
+      "statuses": {
+        "unpaid": "Unpaid",
+        "paid": "Paid",
+        "adjusted": "Needs settling"
+      },
+      "correction": "Difference {{amount}}",
+      "onSalary": "This doctor is on a salary. Change their pay plan on the payroll page to earn a percentage.",
+      "basis": {
+        "done": "On treatments done",
+        "collected": "On what the patient paid"
+      },
+      "bearer": {
+        "shared": "Lab and material costs shared",
+        "doctor": "Lab and material costs on the doctor"
+      },
+      "deductionsTotal": "Tax {{tax}} · Expenses {{overhead}} · Materials {{materials}}",
+      "stillToPay": "Still to pay {{amount}}",
+      "advance": "Advance",
+      "coversTreatments_one": "1 treatment",
+      "coversTreatments_other": "{{count}} treatments",
+      "showPatients": "Show patients",
+      "hidePatients": "Hide patients",
+      "printPayout": "Print payout",
+      "reverseReleases_one": "Its treatment becomes unpaid again",
+      "reverseReleases_other": "Its {{count}} treatments become unpaid again",
+      "payoutKind": "Payout kind",
+      "payoutModes": {
+        "treatments": "For treatments",
+        "advance": "Advance"
+      },
+      "nothingOwed": "Nothing is owed to this doctor",
+      "payoutTotal": "Payout total",
+      "payAmount_one": "Pay for 1 treatment",
+      "payAmount_other": "Pay for {{count}} treatments",
+      "advanceHint": "Comes off the doctor's balance and covers no particular treatment",
+      "sharedWork": "Another doctor shared this treatment",
+      "partner": "Other doctor",
+      "choosePartner": "Choose a doctor",
+      "thisDoctorsWork": "This doctor's share of the work %",
+      "partnerWork": "The other doctor's share {{percent}}%",
+      "waive": "No share for the doctor (redo or warranty)",
+      "waiveReason": "Reason"
     },
     "kind": "Doctor Type",
     "kinds": {
@@ -584,7 +631,11 @@
       "monthClosed": "This month is closed; its pay can no longer change",
       "alreadyClosed": "This month is already closed",
       "notEmployee": "A visiting doctor is not an employee; settle them from their page",
-      "futureMonth": "A month that has not started cannot be closed"
+      "futureMonth": "A month that has not started cannot be closed",
+      "notADoctor": "A percentage is only for somebody who treats patients; add them as a doctor first",
+      "nothingToPay": "Nothing is owed for the chosen treatments",
+      "notOnPercentage": "This doctor is on a salary, not a percentage",
+      "pastMonth": "A change cannot start in a month that has passed"
     },
     "document": {
       "unavailable": "Sending documents on WhatsApp is not set up for this clinic. Add the document template in the assistant settings.",
@@ -847,7 +898,12 @@
       "charge": "Its charge is reversed with a correcting entry; no entry is erased",
       "chart": "Its marks leave the tooth chart"
     },
-    "fromPlanned": "From the Treatment Plan"
+    "fromPlanned": "From the Treatment Plan",
+    "doctorPay": {
+      "unpaid": "Doctor not paid yet",
+      "paid": "Doctor paid",
+      "adjusted": "Doctor's share needs settling"
+    }
   },
   "imaging": {
     "uploadTitle": "Add an X-Ray or a Document",
@@ -1639,7 +1695,8 @@
     "confirmDelete": {
       "title": "Delete “{{name}}” from the price list?",
       "consequence": "It will no longer be offered when recording a treatment. Treatments already recorded keep their prices."
-    }
+    },
+    "taxExempt": "Tax-exempt when working out the doctor's share"
   },
   "documents": {
     "print": "Print",
@@ -1956,9 +2013,10 @@
         "list": "The assistant's free questions over the clinic's data"
       },
       "doctor-settlements": {
-        "settlement": "View a Visiting Doctor's Settlement",
-        "terms": "Set a Visiting Doctor's Clinic Share",
-        "payout": "Pay a Visiting Doctor"
+        "settlement": "View a Doctor's Settlement",
+        "terms": "Set a Doctor's Clinic Share",
+        "payout": "Pay a Doctor",
+        "payoutPdf": "Print a Doctor Payout"
       },
       "settlement-treatments": {
         "update": "Adjust a Treatment's Materials and Share"
@@ -1969,7 +2027,11 @@
         "month": "View a Month's Payroll",
         "adjust": "Add to or Cut from Pay",
         "pay": "Pay a Salary",
-        "close": "Close a Payroll Month"
+        "close": "Close a Payroll Month",
+        "payRules": "View the Percentage Rules",
+        "setPayRules": "Change the Percentage Rules",
+        "plans": "View an Employee's Pay Plan",
+        "setPlan": "Change an Employee's Pay Plan"
       },
       "payroll-adjustments": {
         "reverse": "Reverse an Extra or Cut"
@@ -1989,6 +2051,12 @@
         "upsert": "Change an Interface Text",
         "save": "Save Interface Text Changes",
         "reset": "Restore an Interface Text to Its Default"
+      },
+      "my-settlement": {
+        "statement": "View My Earnings from Treatments"
+      },
+      "patient-settlement-status": {
+        "list": "See What a Doctor Was Paid for a Patient's Treatments"
       }
     },
     "hints": {
@@ -2048,13 +2116,14 @@
       "waiting-list": "Waiting List",
       "ai": "Assistant",
       "reports": "Reports",
-      "doctor-settlements": "Visiting Doctor Settlements",
+      "doctor-settlements": "Doctor Settlements",
       "settlement-treatments": "Treatment Settlement",
       "payroll": "Payroll",
       "payroll-adjustments": "Payroll Extras and Cuts",
       "staff-payments": "Staff Payments",
       "doctor-extra-hours": "Doctors",
-      "translations": "Interface Text"
+      "translations": "Interface Text",
+      "me": "My account"
     },
     "subtitle": "What each role is able to do",
     "title": "Permissions",
@@ -2557,9 +2626,44 @@
     "employees_one": "1 Employee",
     "employees_other": "{{count}} employees",
     "remainingCaption": "Remaining: {{amount}}",
-    "visitingShares": "Visiting Doctor Shares",
     "staffCost": "Staff Cost",
-    "staffCostCaption": "Salaries due plus visiting doctor shares",
-    "empty": "No employees this month"
+    "staffCostCaption": "Salaries due plus every doctor's percentage share",
+    "empty": "No employees this month",
+    "share": "Percentage share",
+    "doctorShares": "Doctor percentage shares",
+    "rules": {
+      "title": "Percentage rules",
+      "about": "These come off each treatment's price before it is split between the clinic and the doctor, from the chosen month",
+      "saved": "Percentage rules saved",
+      "tax": "Tax %",
+      "taxHint": "Taken off the amount after discount, except on tax-exempt treatments",
+      "overhead": "Operating expenses %",
+      "overheadHint": "A fixed share of the amount to cover rent, power and the rest",
+      "basis": "Share is worked out on",
+      "bearer": "Lab and material costs",
+      "history": "Earlier changes",
+      "summary": "Tax {{tax}}% · Expenses {{overhead}}% · {{basis}}"
+    },
+    "plan": {
+      "title": "Pay plan",
+      "about": "A salary, a percentage of treatments, or both. Applies from the chosen month",
+      "notDoctor": "A percentage is only for somebody who treats patients, so this employee stays on a salary",
+      "saved": "Pay plan saved",
+      "kind": "Plan",
+      "history": "Earlier changes",
+      "kinds": {
+        "salary": "Salary",
+        "percentage": "Percentage",
+        "salary_and_percentage": "Salary and percentage"
+      }
+    }
+  },
+  "earnings": {
+    "title": "My Earnings",
+    "subtitle": "Your share of the treatments you performed, and what was paid to you",
+    "myShare": "My share",
+    "noProfile": "Your account has no doctor profile",
+    "earnedInPeriod": "Earned in the period",
+    "paidInPeriod": "Paid in the period"
   }
 }

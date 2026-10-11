@@ -6,6 +6,7 @@ import {
 } from "@web/shared/constants/query-keys";
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
+  TreatmentSettlementStatus,
   AllergyFlags,
   Attachment,
   ConfirmAttachmentUploadInput,
@@ -40,6 +41,7 @@ export const PATIENT_VISITS_KEY = "patient-visits";
 export const PATIENT_PRESCRIPTIONS_KEY = "patient-prescriptions";
 export const PATIENT_ATTACHMENTS_KEY = "patient-attachments";
 export const PATIENT_TIMELINE_KEY = "patient-timeline";
+export const PATIENT_SETTLEMENT_KEY = "patient-settlement-status";
 
 export function useUpdatePatient(id: string) {
   const queryClient = useQueryClient();
@@ -91,6 +93,17 @@ export function usePatientProcedures(id: string): UseQueryResult<PerformedProced
   return useQuery({
     queryKey: [PATIENT_PROCEDURES_KEY, id],
     queryFn: () => patientsApi.procedures(id),
+  });
+}
+
+export function usePatientSettlementStatus(
+  patientId: string,
+  enabled: boolean,
+): UseQueryResult<TreatmentSettlementStatus[]> {
+  return useQuery({
+    queryKey: [PATIENT_SETTLEMENT_KEY, patientId],
+    queryFn: () => patientsApi.settlementStatus(patientId),
+    enabled,
   });
 }
 

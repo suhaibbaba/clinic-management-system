@@ -1,7 +1,8 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import {
+  LOOKUP_LIST,
+  addMoney,
   personName,
-  subtractMoney,
   type Money,
   type PayrollMonth,
   type SettlementQuery,
@@ -20,6 +21,7 @@ import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { doctors, users } from "@api/database/schema";
+import { LookupsService } from "@api/modules/lookups/services/lookups.service";
 import { DoctorSettlementsService } from "@api/modules/payroll/services/doctor-settlements.service";
 import { PayrollService } from "@api/modules/payroll/services/payroll.service";
 
@@ -31,6 +33,7 @@ export class PayrollDocumentsService {
     private readonly scope: ClinicScopeService,
     private readonly settlements: DoctorSettlementsService,
     private readonly payroll: PayrollService,
+    private readonly lookups: LookupsService,
   ) {}
 
   async settlement(
@@ -71,6 +74,7 @@ export class PayrollDocumentsService {
           { width: 1.8, header: text.columns.patient },
           { width: 1.9, header: text.columns.procedure },
           { width: 1.1, header: text.columns.amount, align: "end", ltr: true },
+          { width: 1.1, header: text.columns.deductions, align: "end", ltr: true },
           { width: 1.1, header: text.columns.materials, align: "end", ltr: true },
           { width: 1.3, header: text.columns.clinicShare, align: "end", ltr: true },
           { width: 1.2, header: text.columns.doctorShare, align: "end", ltr: true },
@@ -79,7 +83,8 @@ export class PayrollDocumentsService {
           documentDate(row.performedAt, zone),
           row.patientName,
           row.procedureName,
-          money(subtractMoney(row.price, row.discount)),
+          money(row.revenue),
+          money(addMoney(row.tax, row.overhead)),
           money(row.materialCost),
           { text: money(row.clinicShare), sub: `${row.clinicSharePercent}%` },
           { text: money(row.doctorShare), weight: "medium" as const },
@@ -90,6 +95,8 @@ export class PayrollDocumentsService {
 
     pdf.totals([
       { label: text.totalRevenue, value: money(settlement.totals.revenue) },
+      { label: text.totalTax, value: money(settlement.totals.tax) },
+      { label: text.totalOverhead, value: money(settlement.totals.overhead) },
       { label: text.totalMaterials, value: money(settlement.totals.materials) },
       { label: text.totalClinicShare, value: money(settlement.totals.clinicShare) },
       { label: text.totalDoctorShare, value: money(settlement.totals.doctorShare) },
@@ -155,12 +162,72 @@ export class PayrollDocumentsService {
       { label: text.totalDue, value: money(payroll.totals.due) },
       { label: text.totalPaid, value: money(payroll.totals.paid) },
       { label: text.totalRemaining, value: money(payroll.totals.remaining) },
-      { label: text.visitingShares, value: money(payroll.visitingShares) },
+      { label: text.doctorShares, value: money(payroll.doctorShares) },
       { label: text.staffCost, value: money(payroll.staffCost), strong: true },
     ]);
 
     pdf.space(12);
     pdf.signatures([text.signature]);
+
+    return pdf.save();
+  }
+
+  async payout(actor: AuthenticatedUser, doctorId: string, payoutId: string): Promise<Buffer> {
+    const payout = await this.settlements.payout(actor, doctorId, payoutId);
+    const clinic = await this.letterheads.load(actor.clinicId);
+    const doctor = await this.doctorName(actor.clinicId, doctorId);
+    const methods = await this.lookups.labels(
+      actor.clinicId,
+      LOOKUP_LIST.PAYMENT_METHOD,
+      clinic.language,
+    );
+    const strings = documentStrings(clinic.language);
+    const text = strings.payout;
+    const zone = clinic.timeZone;
+    const money = (amount: Money): string => documentMoney(amount, clinic.currency);
+
+    const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
+
+    await this.letterheads.draw(pdf, clinic, text.title);
+    pdf.footer((page, total) => fillPage(strings.common.page, page, total));
+
+    pdf.infoGrid([
+      { label: text.doctor, value: personName(doctor, clinic.language) },
+      { label: text.paidAt, value: documentDateTime(payout.createdAt, zone), ltr: true },
+      { label: text.method, value: methods.get(payout.method) ?? payout.method },
+      ...(payout.note ? [{ label: text.note, value: payout.note }] : []),
+    ]);
+
+    if (payout.reversedAt !== null) {
+      pdf.text(text.reversed, { size: 11, colour: MUTED, align: "centre", gap: 8 });
+    }
+
+    if (payout.items.length === 0) {
+      pdf.text(text.advance, { size: 11, colour: MUTED, align: "centre", gap: 12 });
+    } else {
+      pdf.table(
+        [
+          { width: 1.2, header: text.columns.date, ltr: true },
+          { width: 2.2, header: text.columns.patient },
+          { width: 1, header: text.columns.fileNumber, ltr: true },
+          { width: 2.2, header: text.columns.procedure },
+          { width: 1.3, header: text.columns.amount, align: "end", ltr: true },
+        ],
+        payout.items.map((item) => [
+          documentDate(item.performedAt, zone),
+          item.patientName,
+          item.fileNumber ?? "",
+          item.procedureName,
+          { text: money(item.amount), weight: "medium" as const },
+        ]),
+        9,
+      );
+    }
+
+    pdf.totals([{ label: text.total, value: money(payout.amount), strong: true }]);
+
+    pdf.space(12);
+    pdf.signatures([text.signatureClinic, text.signatureDoctor]);
 
     return pdf.save();
   }

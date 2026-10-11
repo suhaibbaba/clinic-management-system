@@ -1,10 +1,11 @@
 import { listDoctors } from "@web/shared/api/doctors";
 import type {
   CreateDoctorInput,
-  CreateStaffPaymentInput,
+  CreateSettlementPayoutInput,
   CreateVisitingDoctorInput,
   Doctor,
   DoctorSettlement,
+  SettlementPayout,
   StaffPayment,
   SettlementQuery,
   SettlementTermsInput,
@@ -46,14 +47,17 @@ export const doctorsApi = {
       body: { to },
     }),
 
-  setTerms: (id: string, body: SettlementTermsInput): Promise<void> =>
+  setTerms: (id: string, body: SettlementTermsInput): Promise<{ id: string }> =>
     apiRequest(`/doctors/${id}/settlement-terms`, { method: "PUT", body }),
 
   setTreatment: (treatmentId: string, body: UpdateTreatmentSettlementInput): Promise<void> =>
     apiRequest(`/settlement-treatments/${treatmentId}`, { method: "PATCH", body }),
 
-  payout: (id: string, body: CreateStaffPaymentInput): Promise<StaffPayment> =>
+  payout: (id: string, body: CreateSettlementPayoutInput): Promise<SettlementPayout> =>
     apiRequest(`/doctors/${id}/payouts`, { method: "POST", body }),
+
+  payoutPdf: (id: string, payoutId: string): Promise<Blob> =>
+    apiDownload(`/doctors/${id}/payouts/${payoutId}/print`, {}),
 
   reversePayment: (paymentId: string, reason: string): Promise<StaffPayment> =>
     apiRequest(`/staff-payments/${paymentId}/reverse`, { method: "POST", body: { reason } }),

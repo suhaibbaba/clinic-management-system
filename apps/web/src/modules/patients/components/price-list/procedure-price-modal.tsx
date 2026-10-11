@@ -7,7 +7,7 @@ import {
 } from "@clinic/shared";
 import { useEffect, useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, FormField, Input, Modal, MoneyInput, Select, useToast } from "@clinic/ui";
+import { Button, FormField, Input, Modal, MoneyInput, Select, Switch, useToast } from "@clinic/ui";
 import { procedureOutcomes, wholePrice } from "@web/modules/patients/lib/price-list";
 import { useCreateCatalogItem, useUpdateCatalogItem } from "@web/modules/patients/queries";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
@@ -42,6 +42,7 @@ export function ProcedurePriceModal({
   const [price, setPrice] = useState("");
   const [specialtyId, setSpecialtyId] = useState("");
   const [outcome, setOutcome] = useState("");
+  const [taxExempt, setTaxExempt] = useState(false);
 
   const choices = useMemo(
     () =>
@@ -63,6 +64,7 @@ export function ProcedurePriceModal({
     name: name.trim(),
     defaultPrice: price,
     chartOutcome: charted && outcome !== "" ? outcome : null,
+    taxExempt,
   };
 
   const form = useFormErrors(schemaErrors(createProcedureCatalogItemSchema, body));
@@ -79,6 +81,7 @@ export function ProcedurePriceModal({
     setPrice(item ? wholePrice(item.defaultPrice) : "");
     setSpecialtyId(item?.specialtyId ?? "");
     setOutcome(item?.chartOutcome ?? "");
+    setTaxExempt(item?.taxExempt ?? false);
     reset();
   }, [open, item, reset]);
 
@@ -230,6 +233,13 @@ export function ProcedurePriceModal({
             />
           </FormField>
         )}
+
+        <Switch
+          data-testid="price-field-tax-exempt"
+          checked={taxExempt}
+          onCheckedChange={setTaxExempt}
+          label={t("priceList.taxExempt")}
+        />
       </div>
     </Modal>
   );

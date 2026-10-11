@@ -15,7 +15,7 @@ import { and, eq } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { LookupsService } from "@api/modules/lookups/services/lookups.service";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
-import { DATABASE, type Database } from "@api/database/database.module";
+import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import { staffPayments } from "@api/database/schema";
 import { STAFF_PAYMENTS_ENTITY } from "@api/common/constants/audit-entities";
 import { negate } from "@api/common/lib/money";
@@ -45,10 +45,11 @@ export class StaffPaymentsService implements OnModuleInit {
     actor: AuthenticatedUser,
     target: { userId: string; kind: StaffPaymentKind; month: string | null },
     input: CreateStaffPaymentInput,
+    executor: DatabaseExecutor = this.db,
   ): Promise<StaffPayment> {
     await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.PAYMENT_METHOD, input.method);
 
-    const [row] = await this.db
+    const [row] = await executor
       .insert(staffPayments)
       .values({
         clinicId: actor.clinicId,

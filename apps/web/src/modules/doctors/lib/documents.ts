@@ -13,3 +13,8 @@ export const settlementSource = (
   recipient,
   send: maySend ? (to) => doctorsApi.sendSettlement(doctorId, query, to) : undefined,
 });
+
+export const payoutSource = (doctorId: string, payoutId: string): DocumentSource => ({
+  load: () => doctorsApi.payoutPdf(doctorId, payoutId),
+  filename: `payout-${payoutId.slice(0, 8)}.pdf`,
+});

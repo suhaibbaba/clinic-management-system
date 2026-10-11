@@ -36,6 +36,10 @@ const PayrollPage = lazyPage(async () => ({
   default: (await import("@web/modules/payroll/pages/payroll-page")).PayrollPage,
 }));
 
+const MyEarningsPage = lazyPage(async () => ({
+  default: (await import("@web/modules/earnings/pages/my-earnings-page")).MyEarningsPage,
+}));
+
 const PriceListPage = lazyPage(async () => ({
   default: (await import("@web/modules/patients/pages/price-list-page")).PriceListPage,
 }));
@@ -233,6 +237,16 @@ export function AppRoutes(): JSX.Element {
             <RequireCapability capabilities={PAGE_CAPABILITIES.payroll} redirectTo={HOME}>
               <RouteChunk>
                 <PayrollPage />
+              </RouteChunk>
+            </RequireCapability>
+          }
+        />
+        <Route
+          path="/my-earnings"
+          element={
+            <RequireCapability capabilities={PAGE_CAPABILITIES.myEarnings} redirectTo={HOME}>
+              <RouteChunk>
+                <MyEarningsPage />
               </RouteChunk>
             </RequireCapability>
           }

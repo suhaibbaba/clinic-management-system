@@ -7,6 +7,7 @@ import {
   type OnModuleInit,
 } from "@nestjs/common";
 import {
+  PAY_PLAN_KIND,
   PAYROLL_ADJUSTMENT_KIND,
   PAYROLL_ERROR,
   STAFF_PAYMENT_KIND,
@@ -30,6 +31,7 @@ import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import {
+  doctors,
   payrollAdjustments,
   payrollMonths,
   salaryTerms,
@@ -52,7 +54,9 @@ import {
   toSalaryTerm,
   toStaffPayment,
 } from "@api/modules/payroll/lib/payroll";
+import { includesSalary, includesShare } from "@api/modules/payroll/lib/pay-terms";
 import { DoctorSettlementsService } from "@api/modules/payroll/services/doctor-settlements.service";
+import { PayTermsService } from "@api/modules/payroll/services/pay-terms.service";
 import { StaffPaymentsService } from "@api/modules/payroll/services/staff-payments.service";
 
 const ZERO = "0.00";
@@ -63,6 +67,7 @@ export class PayrollService implements OnModuleInit {
     @Inject(DATABASE) private readonly db: Database,
     private readonly payments: StaffPaymentsService,
     private readonly settlements: DoctorSettlementsService,
+    private readonly terms: PayTermsService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
   ) {}
 
@@ -100,13 +105,9 @@ export class PayrollService implements OnModuleInit {
 
   async payroll(actor: AuthenticatedUser, month: PayrollMonth): Promise<Payroll> {
     const closed = await this.closedMonth(actor.clinicId, month);
-    const lines = await this.linesFor(actor.clinicId, month, closed?.lines);
-    const timeZone = await clinicTimeZone(this.db, actor.clinicId);
-    const visitingShares = await this.settlements.visitingSharesBetween(
-      actor.clinicId,
-      instantFromLocal(monthStart(month), 0, timeZone),
-      instantFromLocal(nextMonthStart(month), 0, timeZone),
-    );
+    const shares = await this.sharesIn(actor.clinicId, month);
+    const lines = await this.linesFor(actor.clinicId, month, shares, closed?.lines);
+    const doctorShares = [...shares.values()].reduce((sum, share) => addMoney(sum, share), ZERO);
 
     const totals = lines.reduce(
       (sum, line) => ({
@@ -125,8 +126,8 @@ export class PayrollService implements OnModuleInit {
       closedAt: closed?.closedAt.toISOString() ?? null,
       lines,
       totals,
-      visitingShares,
-      staffCost: addMoney(totals.due, visitingShares),
+      doctorShares,
+      staffCost: addMoney(totals.due, doctorShares),
     };
   }
 
@@ -148,7 +149,7 @@ export class PayrollService implements OnModuleInit {
     input: SalaryTermsInput,
   ): Promise<SalaryTerm> {
     await this.requireEmployee(actor, userId);
-    await this.requireOpenFrom(actor.clinicId, input.effectiveMonth);
+    await this.terms.requireOpenFrom(actor.clinicId, input.effectiveMonth);
 
     const [row] = await this.db
       .insert(salaryTerms)
@@ -274,13 +275,19 @@ export class PayrollService implements OnModuleInit {
       throw new BadRequestException(PAYROLL_ERROR.FUTURE_MONTH);
     }
 
-    const lines = await this.linesFor(actor.clinicId, month);
+    const lines = await this.linesFor(
+      actor.clinicId,
+      month,
+      await this.sharesIn(actor.clinicId, month),
+    );
 
     await this.db.insert(payrollMonths).values({
       clinicId: actor.clinicId,
       month: monthStart(month),
-      lines: lines.map(({ userId, base, extras, cuts, due }) => ({
+      lines: lines.map(({ userId, plan, share, base, extras, cuts, due }) => ({
         userId,
+        plan,
+        share,
         base,
         extras,
         cuts,
@@ -292,9 +299,20 @@ export class PayrollService implements OnModuleInit {
     return this.payroll(actor, month);
   }
 
+  private async sharesIn(clinicId: string, month: PayrollMonth): Promise<Map<string, string>> {
+    const timeZone = await clinicTimeZone(this.db, clinicId);
+
+    return this.settlements.sharesBetween(
+      clinicId,
+      instantFromLocal(monthStart(month), 0, timeZone),
+      instantFromLocal(nextMonthStart(month), 0, timeZone),
+    );
+  }
+
   private async linesFor(
     clinicId: string,
     month: PayrollMonth,
+    shares: ReadonlyMap<string, string>,
     snapshot?: readonly PayrollLineSnapshot[],
   ): Promise<PayrollLine[]> {
     const start = monthStart(month);
@@ -307,8 +325,10 @@ export class PayrollService implements OnModuleInit {
         nameEn: users.nameEn,
         role: users.role,
         joinedOn: users.joinedOn,
+        doctorId: doctors.id,
       })
       .from(users)
+      .leftJoin(doctors, and(eq(doctors.userId, users.id), isNull(doctors.deletedAt)))
       .where(
         and(
           eq(users.clinicId, clinicId),
@@ -331,7 +351,8 @@ export class PayrollService implements OnModuleInit {
       return [];
     }
 
-    const [terms, adjustments, paid] = await Promise.all([
+    const [plans, terms, adjustments, paid] = await Promise.all([
+      this.terms.plansAt(clinicId, staff, month),
       this.db
         .select()
         .from(salaryTerms)
@@ -372,8 +393,12 @@ export class PayrollService implements OnModuleInit {
       const own = adjustments.filter((row) => row.userId === person.id);
       const payments = paid.filter((row) => row.userId === person.id);
       const frozen = snapshot?.find((line) => line.userId === person.id);
-      const base =
-        frozen?.base ?? terms.find((row) => row.userId === person.id)?.monthlyAmount ?? ZERO;
+      const plan = frozen?.plan ?? plans.get(person.id) ?? PAY_PLAN_KIND.SALARY;
+      const salary = terms.find((row) => row.userId === person.id)?.monthlyAmount ?? ZERO;
+      const base = frozen?.base ?? (includesSalary(plan) ? salary : ZERO);
+      const share =
+        frozen?.share ??
+        (includesShare(plan) && person.doctorId ? (shares.get(person.doctorId) ?? ZERO) : ZERO);
       const extras =
         frozen?.extras ?? sumOf(own.filter((row) => row.kind === PAYROLL_ADJUSTMENT_KIND.EXTRA));
       const cuts =
@@ -386,6 +411,9 @@ export class PayrollService implements OnModuleInit {
         name: { ar: person.nameAr, en: person.nameEn },
         role: person.role,
         joinedOn: person.joinedOn,
+        plan,
+        doctorId: person.doctorId,
+        share: addMoney(share, ZERO),
         base: addMoney(base, ZERO),
         extras,
         cuts,
@@ -410,23 +438,6 @@ export class PayrollService implements OnModuleInit {
 
   private async requireOpen(clinicId: string, month: PayrollMonth): Promise<void> {
     if (await this.closedMonth(clinicId, month)) {
-      throw new ConflictException(PAYROLL_ERROR.MONTH_CLOSED);
-    }
-  }
-
-  private async requireOpenFrom(clinicId: string, month: PayrollMonth): Promise<void> {
-    const [row] = await this.db
-      .select({ month: payrollMonths.month })
-      .from(payrollMonths)
-      .where(
-        and(
-          eq(payrollMonths.clinicId, clinicId),
-          sql`${payrollMonths.month} >= ${monthStart(month)}`,
-        ),
-      )
-      .limit(1);
-
-    if (row) {
       throw new ConflictException(PAYROLL_ERROR.MONTH_CLOSED);
     }
   }

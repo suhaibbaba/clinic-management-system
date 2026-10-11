@@ -4,6 +4,7 @@ import {
   type AttachmentMime,
   type BodyRegionLocation,
   type PrescriptionItem,
+  type ShareSplitEntry,
   type ToothLocation,
 } from "@clinic/shared";
 import { sql } from "drizzle-orm";
@@ -59,6 +60,7 @@ export const procedureCatalog = pgTable(
     name: text("name").notNull(),
     defaultPrice: money("default_price").notNull(),
     chartOutcome: text("chart_outcome"),
+    taxExempt: boolean("tax_exempt").notNull().default(false),
     isActive: boolean("is_active").notNull().default(true),
     ...auditColumns,
     ...softDeleteColumn,
@@ -179,6 +181,8 @@ export const performedProcedures = pgTable(
     status: performedProcedureStatusEnum("status").notNull().default("done"),
     materialCost: money("material_cost"),
     clinicSharePercent: numeric("clinic_share_percent", { precision: 5, scale: 2 }),
+    shareSplit: jsonb("share_split").$type<ShareSplitEntry[]>(),
+    shareWaivedReason: text("share_waived_reason"),
     performedAt: timestamp("performed_at", { withTimezone: true }).notNull().defaultNow(),
     notes: text("notes"),
     ...auditColumns,
