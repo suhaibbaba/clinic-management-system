@@ -159,6 +159,33 @@ describe("Patient page", () => {
         screen.queryByRole("tab", { name: ar.patients.tabs.attachments }),
       ).not.toBeInTheDocument();
     });
+
+    it("offers a clinical tab only when the clinic also granted the list it reads", async () => {
+      await renderPatientPage(USER_ROLE.RECEPTIONIST, {
+        "GET /me": {
+          status: 200,
+          body: makeProfile({
+            role: USER_ROLE.RECEPTIONIST,
+            capabilities: [
+              ...SHIPPED_CAPABILITIES[USER_ROLE.RECEPTIONIST],
+              "patients.clinical",
+              "procedures.list",
+              "patient-attachments.presignUpload",
+              "patient-attachments.confirmUpload",
+            ],
+          }),
+        },
+      });
+
+      await screen.findByRole("tab", { name: ar.patients.tabs.chart });
+
+      expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+        ar.patients.tabs.chart,
+        ar.patients.tabs.treatmentPlan,
+        ar.patients.tabs.timeline,
+        ar.patients.tabs.billing,
+      ]);
+    });
   });
 
   describe("editing the file (ROLES.md patients matrix)", () => {

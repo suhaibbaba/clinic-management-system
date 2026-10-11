@@ -17,12 +17,14 @@ export const procedureCatalogItemSchema = z.object({
 });
 export type ProcedureCatalogItem = z.infer<typeof procedureCatalogItemSchema>;
 
-export const procedureCatalogPriceViewSchema = procedureCatalogItemSchema.pick({
-  id: true,
-  code: true,
-  name: true,
-  defaultPrice: true,
-});
+export const procedureCatalogPriceViewSchema = procedureCatalogItemSchema
+  .pick({
+    id: true,
+    code: true,
+    name: true,
+    defaultPrice: true,
+  })
+  .extend({ chartOutcome: procedureCatalogItemSchema.shape.chartOutcome.optional() });
 export type ProcedureCatalogPriceView = z.infer<typeof procedureCatalogPriceViewSchema>;
 
 const catalogWritableFields = {

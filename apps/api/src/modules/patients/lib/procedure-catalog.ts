@@ -20,13 +20,19 @@ export function toCatalogItem(row: CatalogRow): ProcedureCatalogItem {
   };
 }
 
-export function toRoleView(row: CatalogRow, details: boolean): CatalogView {
-  if (!details) {
+export interface CatalogAccess {
+  readonly details: boolean;
+  readonly chart: boolean;
+}
+
+export function toRoleView(row: CatalogRow, access: CatalogAccess): CatalogView {
+  if (!access.details) {
     return {
       id: row.id,
       code: row.code,
       name: row.name,
       defaultPrice: row.defaultPrice,
+      ...(access.chart && { chartOutcome: row.chartOutcome }),
     };
   }
 

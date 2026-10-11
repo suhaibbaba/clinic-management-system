@@ -9,12 +9,27 @@ import type { IconName } from "@clinic/ui";
 export const PERMANENT_DENTITION_AGE = 13;
 
 export const PATIENT_TABS = [
-  { id: "chart", label: "patients.tabs.chart", clinical: true },
-  { id: "visits", label: "patients.tabs.visits", clinical: true },
-  { id: "treatmentPlans", label: "patients.tabs.treatmentPlan", clinical: true },
-  { id: "attachments", label: "patients.tabs.attachments", clinical: true },
-  { id: "prescriptions", label: "patients.tabs.prescriptions", clinical: true },
-  { id: "timeline", label: "patients.tabs.timeline", clinical: true },
+  { id: "chart", label: "patients.tabs.chart", clinical: true, reads: "procedures.list" },
+  { id: "visits", label: "patients.tabs.visits", clinical: true, reads: "visits.list" },
+  {
+    id: "treatmentPlans",
+    label: "patients.tabs.treatmentPlan",
+    clinical: true,
+    reads: "procedures.list",
+  },
+  {
+    id: "attachments",
+    label: "patients.tabs.attachments",
+    clinical: true,
+    reads: "patient-attachments.list",
+  },
+  {
+    id: "prescriptions",
+    label: "patients.tabs.prescriptions",
+    clinical: true,
+    reads: "prescriptions.list",
+  },
+  { id: "timeline", label: "patients.tabs.timeline", clinical: true, reads: "timeline.list" },
   { id: "billing", label: "patients.tabs.billing", clinical: false },
 ] as const;
 
