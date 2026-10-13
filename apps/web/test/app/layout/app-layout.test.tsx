@@ -41,6 +41,7 @@ function handlers(
     "GET /appointments/pending-confirmation": { status: 200, body: paginated([], { total: 4 }) },
     "GET /appointments/calendar": { status: 200, body: makeCalendarFeed() },
     "GET /notes": { status: 200, body: paginated([]) },
+    "GET /website/messages": { status: 200, body: paginated([]) },
     ...overrides,
   } as Record<string, MockResponse>;
 }
@@ -77,6 +78,7 @@ describe("Sidebar navigation", () => {
       ar.nav.labs,
       ar.nav.inventory,
       ar.nav.clinic,
+      ar.nav.website,
       ar.nav.users,
       ar.nav.payroll,
       ar.nav.priceList,
@@ -265,12 +267,25 @@ describe("Route guards", () => {
     [USER_ROLE.VISITING_DOCTOR, "/clinic/prices"],
     [USER_ROLE.RECEPTIONIST, "/clinic/prices"],
     [USER_ROLE.TECHNICIAN, "/clinic/prices"],
+    [USER_ROLE.DOCTOR, "/website"],
+    [USER_ROLE.VISITING_DOCTOR, "/website"],
+    [USER_ROLE.TECHNICIAN, "/website"],
   ])("redirects %s away from %s and onto the dashboard", async (role, route) => {
     await renderAs(role, route);
 
     expect(
       await screen.findByRole("region", { name: ar.dashboard.schedule.title }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("The website inbox", () => {
+  it("opens for a receptionist from the bell without adding a settings row", async () => {
+    await renderAs(USER_ROLE.RECEPTIONIST, "/website?tab=messages");
+
+    expect(await screen.findByTestId("website-messages")).toBeInTheDocument();
+    expect(screen.queryByTestId("website-content")).not.toBeInTheDocument();
+    expect(within(nav()).queryByRole("link", { name: ar.nav.website })).not.toBeInTheDocument();
   });
 });
 

@@ -93,6 +93,19 @@ Shipped defaults, each changeable per clinic on the Permissions page. Doctor and
 | Booking settings (rules, windows) | CRU | — | — | R |
 | Public slot listing + create booking | — | — | — | — (public endpoints, rate-limited, OTP) |
 
+### Website (module `website`)
+Only for a clinic whose `modules` include `website`; without it every endpoint below is refused and the public site answers 404.
+
+| Resource | admin | doctor | technician | receptionist |
+|---|---|---|---|---|
+| Site content: draft, images, publish | CRU | — | — | — |
+| Contact messages (inbox) | RUD | — | — | RUD |
+| Public site + contact form | — | — | — | — (public endpoints, rate-limited, capped per phone) |
+
+The public site shows the clinic's name, logo, phone, email, address, location and working hours, and
+each doctor's name, specialty and staff photo, never anything from a patient record. A doctor hidden on
+the editor is absent from the public answer, not only from the page.
+
 ### Labs
 | Resource | admin | doctor | technician | receptionist |
 |---|---|---|---|---|

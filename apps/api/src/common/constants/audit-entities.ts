@@ -67,3 +67,7 @@ export const PAY_PLANS_ENTITY = "pay_plans";
 export const DOCTOR_RATES_ENTITY = "doctor_rates";
 
 export const SETTLEMENT_TREATMENTS_ENTITY = "settlement_treatments";
+
+export const SITE_CONTENT_ENTITY = "site_content";
+
+export const CONTACT_MESSAGES_ENTITY = "contact_messages";

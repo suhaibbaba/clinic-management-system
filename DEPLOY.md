@@ -245,6 +245,62 @@ server {
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
+### The clinic's website on its own domain
+
+A clinic with the `website` module gets a public site, edited on the dashboard's **Website** page.
+It answers at `/site/<slug>` on any host. To put it on the clinic's own domain, with the dashboard on
+`admin.` of the same domain:
+
+1. Point both names at the server and add them to the TLS certificate.
+2. Switch the module on and record the domain (no `www.`, no port):
+
+   ```sh
+   pnpm -C apps/api module:enable <clinic slug> website
+   docker compose exec postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+     -c "update clinics set site_domain = 'abuobaidclinic.ps' where slug = '<clinic slug>'"
+   ```
+
+3. Add two host nginx blocks. They differ in one header: `X-Clinic-Entry: site` tells the web
+   container to answer every page of that host with the website instead of the dashboard. `/api/`,
+   `/book/…` and the booking manage links keep working on both.
+
+```nginx
+server {
+    server_name admin.abuobaidclinic.ps;
+
+    # TLS as above.
+
+    location / {
+        proxy_pass http://127.0.0.1:15080;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+server {
+    server_name abuobaidclinic.ps www.abuobaidclinic.ps;
+
+    # TLS as above.
+
+    location / {
+        proxy_pass http://127.0.0.1:15080;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Clinic-Entry    site;
+    }
+}
+```
+
+The page's `<head>` (title, description, preview picture and the clinic's structured data) is filled
+by the web container through SSI from `/api/public/site/head`, so search engines and chat previews
+read the published text without running the bundle. Nothing shows until the admin publishes once.
+
 ### Why the S3 hostname is public
 
 `STORAGE_ENDPOINT` is set to `https://clinic-sandbox-s3.organza-moda.com`, not

@@ -1,6 +1,7 @@
 import { cleanTypedNumber } from "@clinic/shared";
 import {
   useEffect,
+  useRef,
   useState,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
@@ -101,12 +102,14 @@ export function ChoiceCard({
   onClick,
   label,
   children,
+  layout = "row",
   "data-testid": testId,
 }: {
   readonly selected: boolean;
   readonly onClick: () => void;
   readonly label: string;
   readonly children: ReactNode;
+  readonly layout?: "row" | "tile";
   readonly "data-testid"?: string | undefined;
 }): JSX.Element {
   return (
@@ -117,8 +120,9 @@ export function ChoiceCard({
       aria-label={label}
       onClick={onClick}
       className={cx(
-        "flex w-full cursor-pointer items-center gap-3 rounded-card p-4 text-start",
-        "transition-colors duration-150",
+        "flex w-full cursor-pointer items-center gap-3 rounded-card p-4",
+        layout === "tile" ? "h-full flex-col justify-center text-center" : "text-start",
+        "transition-[background-color,box-shadow,scale] duration-150 active:scale-[0.98]",
         selected
           ? "bg-selected ring-2 ring-primary-600"
           : "border border-line bg-surface shadow-card hover:bg-row-hover",
@@ -174,8 +178,13 @@ export function Img({
   readonly fallback?: ReactNode;
 }): JSX.Element {
   const [state, setState] = useState<"loading" | "loaded" | "failed">("loading");
+  const image = useRef<HTMLImageElement>(null);
 
-  useEffect(() => setState("loading"), [src]);
+  useEffect(() => {
+    const current = image.current;
+
+    setState(current?.complete && current.naturalWidth > 0 ? "loaded" : "loading");
+  }, [src]);
 
   const missing = src === null || src === undefined || src === "";
 
@@ -187,6 +196,7 @@ export function Img({
     >
       {!missing && (
         <img
+          ref={image}
           src={src}
           alt={alt}
           onLoad={() => setState("loaded")}
@@ -215,6 +225,7 @@ export interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
   readonly error?: string | undefined;
   readonly hint?: string | undefined;
   readonly prefix?: string | undefined;
+  readonly addon?: ReactNode;
 }
 
 export function Field({
@@ -222,6 +233,7 @@ export function Field({
   error,
   hint,
   prefix,
+  addon,
   id,
   className,
   "data-testid": testId,
@@ -240,7 +252,7 @@ export function Field({
       className={cx(
         "min-h-(--control-h) w-full min-w-0 rounded-control border-[1.5px] bg-surface px-3 text-field text-ink",
         "placeholder:text-ink-subtle",
-        prefix !== undefined
+        prefix !== undefined || addon !== undefined
           ? "text-left"
           : rest.dir === "ltr"
             ? "page-rtl:text-right page-ltr:text-left"
@@ -271,7 +283,12 @@ export function Field({
         {label}
       </label>
 
-      {prefix === undefined ? (
+      {addon !== undefined ? (
+        <div dir="ltr" className="flex gap-2">
+          {addon}
+          {input}
+        </div>
+      ) : prefix === undefined ? (
         input
       ) : (
         <div dir="ltr" className="flex gap-2">

@@ -27,6 +27,7 @@ import { LabsModule } from "@api/modules/labs/labs.module";
 import { LookupsModule } from "@api/modules/lookups/lookups.module";
 import { TranslationsModule } from "@api/modules/translations/translations.module";
 import { NotesModule } from "@api/modules/notes/notes.module";
+import { WebsiteModule } from "@api/modules/website/website.module";
 import { PdfModule } from "@api/modules/billing/pdf/pdf.module";
 import { EmailModule } from "@api/modules/email/email.module";
 import { NotificationsModule } from "@api/modules/notifications/notifications.module";
@@ -67,6 +68,7 @@ import { UsersModule } from "@api/modules/users/users.module";
     LookupsModule,
     TranslationsModule,
     NotesModule,
+    WebsiteModule,
     PdfModule,
     LabsModule,
     InventoryModule,

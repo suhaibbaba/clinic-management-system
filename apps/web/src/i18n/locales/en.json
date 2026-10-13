@@ -104,6 +104,7 @@
     "audit": "Audit Log",
     "backToDashboard": "Back to the Dashboard",
     "clinic": "Clinic Details",
+    "website": "Website",
     "dashboard": "Dashboard",
     "doctors": "Doctors",
     "groups": {
@@ -2057,6 +2058,17 @@
       },
       "patient-settlement-status": {
         "list": "See What a Doctor Was Paid for a Patient's Treatments"
+      },
+      "website": {
+        "editor": "View the website content",
+        "saveDraft": "Save the website draft",
+        "publish": "Publish the website",
+        "presignImage": "Upload website images"
+      },
+      "website-messages": {
+        "list": "View website messages",
+        "update": "Mark a message as handled",
+        "remove": "Delete a website message"
       }
     },
     "hints": {
@@ -2086,7 +2098,8 @@
       "payroll": "The Payroll screen: staff salaries, the monthly payroll, paying a salary and closing a month.",
       "payroll-adjustments": "Extras and cuts added to an employee’s month on the Payroll screen, and reversing one entered by mistake.",
       "staff-payments": "Salary payments recorded on the Payroll screen, and reversing one entered by mistake.",
-      "settlement-treatments": "A visiting doctor’s settlement: the materials and the doctor’s share on each treatment."
+      "settlement-treatments": "A visiting doctor’s settlement: the materials and the doctor’s share on each treatment.",
+      "website": "The Website screen: the clinic's public page, publishing it, and contact form messages."
     },
     "intro": "Every line here is one action in the app. Switch it off and its button leaves that role’s screens and the action is refused if attempted; switch it back whenever you like. What you change belongs to this clinic alone.",
     "resources": {
@@ -2123,7 +2136,8 @@
       "staff-payments": "Staff Payments",
       "doctor-extra-hours": "Doctors",
       "translations": "Interface Text",
-      "me": "My account"
+      "me": "My account",
+      "website": "Website"
     },
     "subtitle": "What each role is able to do",
     "title": "Permissions",
@@ -2140,7 +2154,8 @@
     "urgentRequests": "Urgent Requests on the Waiting List",
     "overdueLabs": "Overdue Lab Orders",
     "inventoryAlerts": "Items Needing Attention",
-    "overdueBalances": "Patients with an Overdue Balance"
+    "overdueBalances": "Patients with an Overdue Balance",
+    "contactMessages": "New messages from the website"
   },
   "pwa": {
     "install": "Install the App",
@@ -2665,5 +2680,199 @@
     "noProfile": "Your account has no doctor profile",
     "earnedInPeriod": "Earned in the period",
     "paidInPeriod": "Paid in the period"
+  },
+  "website": {
+    "title": "Website",
+    "subtitle": "The clinic's public page: what visitors see, and the messages they send",
+    "tabs": {
+      "label": "Website sections",
+      "content": "Content",
+      "messages": "Messages"
+    },
+    "saved": "Draft saved",
+    "published": "Website published",
+    "open": "Open the site",
+    "publish": "Publish",
+    "status": {
+      "live": "Live",
+      "draft": "Not published yet",
+      "unpublished": "Unpublished changes",
+      "publishedAt": "Last published: {{at}}"
+    },
+    "cards": {
+      "sections": "Sections",
+      "sectionsHint": "Show or hide each section and order them as they appear on the page.",
+      "hero": "Hero",
+      "heroHint": "The first thing a visitor sees: a title, a description and up to three rotating photos.",
+      "story": "Home introduction",
+      "storyHint": "A picture with a badge, a title, the highlight cards and a link to About us.",
+      "services": "Services",
+      "servicesHint": "What the clinic offers. Services are also the first booking step.",
+      "doctors": "Doctors",
+      "doctorsHint": "Names, specialties and photos come from the doctors' accounts. Hide anyone you do not want shown.",
+      "about": "About us",
+      "aboutHint": "An introduction to the clinic, its values and a short quote.",
+      "gallery": "Clinic gallery",
+      "galleryHint": "Three photos of the clinic with a short title and text, shown on the home page.",
+      "booking": "Booking",
+      "bookingHint": "The online booking form itself, with the rules set in the booking settings.",
+      "contact": "Contact",
+      "contactHint": "Phone, email, address, hours and the map come from the clinic details.",
+      "brand": "Brand and links",
+      "brandHint": "A short line shown over pictures, and the clinic's social accounts in the footer."
+    },
+    "sections": {
+      "services": "Services",
+      "doctors": "Doctors",
+      "about": "About us",
+      "booking": "Booking",
+      "contact": "Contact"
+    },
+    "fields": {
+      "title": "Title",
+      "subtitle": "Description",
+      "heroTitleHint": "Leave empty to show the clinic's name.",
+      "slide": "Photo {{number}}",
+      "image": "Image",
+      "promo": "Promo card title",
+      "promoImage": "Promo card image",
+      "body": "Text",
+      "bodyHint": "Separate paragraphs with an empty line.",
+      "quote": "Quote",
+      "welcome": "Welcome line over the map",
+      "formEnabled": "Accept messages from the contact form",
+      "tagline": "Tagline",
+      "taglineHint": "For example: More Than A Smile — shown over the promo pictures.",
+      "eyebrow": "Small line above the title",
+      "badge": "Round badge text",
+      "intro": "Introduction",
+      "headerImage": "Page header picture",
+      "statValue": "Number",
+      "statLabel": "What the number means",
+      "note": "Line beside the contact cards",
+      "welcomeBody": "Welcome text",
+      "welcomeImage": "Welcome picture",
+      "topics": "Enquiry types",
+      "topicsHint": "Visitors pick one on the contact form. Leave empty to hide the choice.",
+      "topic": "Type {{number}}",
+      "addTopic": "Add a type",
+      "invalidLink": "Write a full link starting with https://",
+      "pillars": "Mission, vision and values",
+      "stats": "Numbers",
+      "addStat": "Add a number",
+      "statsImage": "Picture beside the numbers",
+      "whyTitle": "“Why us” title",
+      "whyImage": "“Why us” picture",
+      "ctaTitle": "Booking call-out title",
+      "ctaSubtitle": "Booking call-out text",
+      "ctaImage": "Booking call-out picture"
+    },
+    "placeholders": {
+      "servicesTitle": "Our services"
+    },
+    "language": {
+      "ar": "In Arabic",
+      "en": "In English"
+    },
+    "image": {
+      "unsupported": "The image must be PNG, JPEG or WebP",
+      "tooLarge": "The image is larger than 5 MB",
+      "none": "No image",
+      "replace": "Replace",
+      "upload": "Upload image",
+      "remove": "Remove",
+      "tooSmall": "The picture is {{actual}} pixels wide; this slot needs at least {{width}} so it stays sharp.",
+      "minWidth": "At least {{width}} pixels wide"
+    },
+    "list": {
+      "up": "Move up",
+      "down": "Move down",
+      "remove": "Remove"
+    },
+    "feature": {
+      "icon": "Icon",
+      "label": "Text",
+      "add": "Add a card",
+      "text": "Short description"
+    },
+    "icons": {
+      "users": "Team",
+      "sparkles": "Sparkle",
+      "shield": "Safety",
+      "heart": "Care",
+      "gem": "Quality",
+      "smile": "Smile",
+      "star": "Excellence",
+      "award": "Award",
+      "stethoscope": "Doctor",
+      "clock": "Time",
+      "building": "Building",
+      "calendar": "Appointment",
+      "eye": "Vision",
+      "send": "Message",
+      "monitor": "Device",
+      "armchair": "Comfort",
+      "target": "Goal",
+      "tooth": "Tooth"
+    },
+    "services": {
+      "empty": "No services yet. The section stays off the site until you add one.",
+      "item": "Service {{number}}",
+      "name": "Service name",
+      "description": "Short description",
+      "image": "Service image",
+      "add": "Add a service"
+    },
+    "doctors": {
+      "empty": "The clinic has no doctors yet.",
+      "noPhoto": "no photo",
+      "show": "Show {{name}} on the site",
+      "editProfile": "Profile",
+      "title": "Professional title",
+      "titleHint": "For example: Implant consultant. Shown instead of the specialty.",
+      "bio": "Bio"
+    },
+    "preview": {
+      "title": "Website preview",
+      "device": "Preview size",
+      "desktop": "Desktop",
+      "mobile": "Phone",
+      "page": "Page",
+      "pages": {
+        "home": "Home",
+        "services": "Services",
+        "doctors": "Doctors",
+        "about": "About us",
+        "contact": "Contact",
+        "booking": "Booking"
+      }
+    },
+    "messages": {
+      "markedHandled": "Message marked as handled",
+      "markedOpen": "Message moved back to new",
+      "confirmRemove": {
+        "title": "Delete the message from {{name}}?",
+        "consequence": "The message leaves the list."
+      },
+      "removed": "Message deleted",
+      "from": "From",
+      "message": "Message",
+      "received": "Received",
+      "status": "Status",
+      "handled": "Handled",
+      "open": "New",
+      "markHandled": "Mark as handled",
+      "markOpen": "Move back to new",
+      "filter": "Message status",
+      "all": "All",
+      "empty": "No messages",
+      "emptyHint": "Messages from the website's contact form arrive here."
+    },
+    "social": {
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "whatsapp": "WhatsApp",
+      "youtube": "YouTube"
+    }
   }
 }

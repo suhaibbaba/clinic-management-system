@@ -19,3 +19,7 @@ export const USERS_KEY = "users";
 export const WAITING_LIST_KEY = "waiting-list";
 
 export const PENDING_BOOKINGS_KEY = "pending-bookings";
+
+export const CONTACT_MESSAGES_KEY = "contact-messages";
+
+export const WEBSITE_EDITOR_KEY = "website-editor";

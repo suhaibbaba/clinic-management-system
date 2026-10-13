@@ -8,6 +8,8 @@ import { useSession } from "@web/shared/providers/session";
 import { canSeeBilling } from "@web/shared/permissions/billing";
 import { usePendingBookingsCount } from "@web/shared/queries/booking";
 import { seesPendingBookings } from "@web/shared/permissions/booking";
+import { seesContactMessages } from "@web/shared/permissions/website";
+import { useOpenContactMessagesCount } from "@web/shared/queries/website";
 import { useInventoryAlerts } from "@web/modules/inventory/queries";
 import { useLabOrders } from "@web/modules/labs/queries";
 import { usePatients } from "@web/shared/queries/patients";
@@ -27,6 +29,9 @@ export function NotificationBell(): JSX.Element {
 
   const frontDesk = seesPendingBookings(can);
   const pending = usePendingBookingsCount(frontDesk);
+
+  const mayMessages = seesContactMessages(can);
+  const messages = useOpenContactMessagesCount(mayMessages);
 
   const mayQueue = can("waiting-list.list");
   const urgent = useWaitingList({ limit: 1, source: WAITING_LIST_SOURCE.ONLINE }, mayQueue);
@@ -51,6 +56,12 @@ export function NotificationBell(): JSX.Element {
         icon: "globe",
         count: frontDesk ? pending : 0,
         to: "/appointments?status=pending",
+      },
+      {
+        key: "contactMessages",
+        icon: "message",
+        count: mayMessages ? messages : 0,
+        to: "/website?tab=messages&status=open",
       },
       {
         key: "urgentRequests",

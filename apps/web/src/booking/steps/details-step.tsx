@@ -1,11 +1,13 @@
 import { isBookingPhone } from "@shared/constants/booking";
-import { dialCodeOf, joinPhone, type PhoneCountry } from "@shared/constants/phone";
+import { joinPhone, type PhoneCountry } from "@shared/constants/phone";
+import { CountryPicker } from "@web/booking/country-picker";
 import { useState, type FormEvent, type JSX } from "react";
 import { t } from "@web/booking/i18n";
 import { isBookingNameComplete, NameFields } from "@web/booking/steps/name-fields";
 import { Button, Field } from "@web/booking/ui";
 
 export interface BookingDetails {
+  readonly country: PhoneCountry;
   readonly firstName: string;
   readonly lastName: string;
   readonly phone: string;
@@ -17,20 +19,18 @@ export function DetailsStep({
   onChange,
   onSubmit,
   busy,
-  country,
   summary,
 }: {
   readonly details: BookingDetails;
   readonly onChange: (details: BookingDetails) => void;
   readonly onSubmit: () => void;
   readonly busy: boolean;
-  readonly country: PhoneCountry;
   readonly summary: JSX.Element;
 }): JSX.Element {
   const [touched, setTouched] = useState(false);
 
   const nameError = !isBookingNameComplete(details);
-  const phoneError = isBookingPhone(joinPhone(country, details.phone) ?? "")
+  const phoneError = isBookingPhone(joinPhone(details.country, details.phone) ?? "")
     ? undefined
     : t("details.phoneError");
   const typedWhole = /^\s*(\+|00)/.test(details.phone);
@@ -57,7 +57,17 @@ export function DetailsStep({
 
       <Field
         data-testid="details-field-phone"
-        {...(!typedWhole && { prefix: dialCodeOf(country) })}
+        {...(!typedWhole && {
+          addon: (
+            <CountryPicker
+              country={details.country}
+              onChange={(country) => onChange({ ...details, country })}
+              language="ar"
+              label={t("details.country")}
+              data-testid="details-country"
+            />
+          ),
+        })}
         label={t("details.phone")}
         name="phone"
         type="tel"

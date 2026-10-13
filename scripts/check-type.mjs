@@ -12,7 +12,7 @@ const SEARCH = ["apps/web/src", "packages/ui/src", "packages/shared/src"];
 
 const EXTENSIONS = /\.(?:tsx?|css)$/;
 
-const SIZE_NAMES = "micro|meta|label|value|section|heading|title|field|kpi";
+const SIZE_NAMES = "micro|meta|label|value|section|heading|title|field|kpi|headline|hero";
 
 const RULES = [
   {
@@ -21,7 +21,7 @@ const RULES = [
   },
   {
     pattern:
-      /\bleading-(?!(?:$|["'\s}])|(?:micro|meta|label|value|section|heading|title|field|kpi)\b)[a-z0-9[\]().-]+/g,
+      /\bleading-(?!(?:$|["'\s}])|(?:micro|meta|label|value|section|heading|title|field|kpi|headline|hero)\b)[a-z0-9[\]().-]+/g,
     say: "a line height off the scale",
   },
   {

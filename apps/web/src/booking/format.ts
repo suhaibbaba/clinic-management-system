@@ -32,8 +32,26 @@ export function daysFromToday(iso: string): number {
 export interface DayChip {
   readonly date: string;
   readonly label: string;
+  readonly weekday: string;
   readonly dayNumber: string;
-  readonly monthLabel: string;
+}
+
+const noon = (iso: string): Date => new Date(`${iso}T12:00:00`);
+
+export function weekTitle(from: string, to: string): string {
+  return stripBidiMarks(
+    new Intl.DateTimeFormat(DATE_LOCALE, {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).formatRange(noon(from), noon(to)),
+  );
+}
+
+export function dayTitle(iso: string): string {
+  return stripBidiMarks(
+    noon(iso).toLocaleDateString(DATE_LOCALE, { weekday: "long", day: "numeric", month: "long" }),
+  );
 }
 
 export function dayChips(from: string, count: number, maxDaysAhead: number): DayChip[] {
@@ -46,19 +64,15 @@ export function dayChips(from: string, count: number, maxDaysAhead: number): Day
       break;
     }
 
-    const at = new Date(`${date}T12:00:00`);
+    const at = noon(date);
     const distance = daysFromToday(date);
+    const weekday = stripBidiMarks(at.toLocaleDateString(DATE_LOCALE, { weekday: "long" }));
 
     chips.push({
       date,
-      label:
-        distance === 0
-          ? "today"
-          : distance === 1
-            ? "tomorrow"
-            : stripBidiMarks(at.toLocaleDateString(DATE_LOCALE, { weekday: "long" })),
+      label: distance === 0 ? "today" : distance === 1 ? "tomorrow" : weekday,
+      weekday: weekday.replace(/^ال/, ""), // i18n-allow: the Arabic article dropped from a weekday name the platform formatted
       dayNumber: pad(at.getDate()),
-      monthLabel: stripBidiMarks(at.toLocaleDateString(DATE_LOCALE, { month: "short" })),
     });
   }
 

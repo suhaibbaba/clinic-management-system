@@ -1,0 +1,142 @@
+{
+  "skip": "Skip to content",
+  "nav": {
+    "label": "Site sections",
+    "home": "Home",
+    "services": "Services",
+    "doctors": "Doctors",
+    "about": "About us",
+    "booking": "Book",
+    "contact": "Contact",
+    "book": "Book an appointment",
+    "menu": "Menu",
+    "switchLanguage": "View the site in {{language}}"
+  },
+  "hero": {
+    "subtitle": "Complete care with modern technology, in a calm and safe setting",
+    "cta": "Book your appointment",
+    "slides": "Clinic photos",
+    "slide": "Photo {{number}}"
+  },
+  "services": {
+    "title": "Our services",
+    "subtitle": "Complete care for everything you need",
+    "book": "Book {{name}}",
+    "promo": "A consultation is where better health begins",
+    "promoCta": "Book your appointment",
+    "eyebrow": "Our services",
+    "pageTitle": "Complete care for your smile"
+  },
+  "doctors": {
+    "title": "Our doctors",
+    "subtitle": "A specialist team caring for you to the highest standard",
+    "filter": "Specialty",
+    "all": "All specialties",
+    "book": "Book",
+    "bookWith": "Book with {{name}}",
+    "empty": "No doctors in this specialty.",
+    "promo": "Choose your doctor and book with ease",
+    "promoCta": "Book now",
+    "profile": "View profile",
+    "profileOf": "View {{name}}'s profile",
+    "back": "All doctors",
+    "notFound": "This doctor is not available."
+  },
+  "about": {
+    "title": "About us",
+    "subtitle": "We care about your health because you deserve the best",
+    "cta": "Book an appointment",
+    "why": "Why choose us"
+  },
+  "booking": {
+    "title": "Book an appointment",
+    "subtitle": "A few quick, simple steps",
+    "aside": "A step towards better health",
+    "closed": "Online booking is unavailable right now. Please call us instead."
+  },
+  "contact": {
+    "title": "Contact us",
+    "subtitle": "We are here to answer your questions",
+    "phone": "Call us",
+    "email": "Email us",
+    "address": "Find us",
+    "hours": "Opening hours",
+    "closedDay": "Closed",
+    "dayRange": "{{from}} – {{to}}",
+    "welcome": "You are always welcome at our clinic",
+    "map": "Map of {{name}}",
+    "directions": "Directions",
+    "form": {
+      "title": "Send us a message",
+      "name": "Full name",
+      "email": "Email",
+      "phone": "Phone number",
+      "message": "Your message",
+      "optional": "Optional",
+      "send": "Send message",
+      "sent": "Your message has arrived. We will be in touch soon.",
+      "another": "Send another message",
+      "preview": "Sending works once the site is published.",
+      "invalid": {
+        "name": "Write your full name.",
+        "phone": "Write a valid phone number.",
+        "email": "Write a valid email, or leave it empty.",
+        "message": "Write at least five characters."
+      },
+      "subtitle": "We would be glad to hear from you",
+      "topic": "Enquiry type",
+      "topicNone": "Choose an enquiry type",
+      "country": "Country code",
+      "phoneHint": "Use a number that has WhatsApp so we can reply quickly."
+    },
+    "onMap": "See it on the map",
+    "emailNote": "We will reply as soon as we can",
+    "subtitleDefault": "We are always here for you",
+    "hoursSpan": "{{from}} – {{to}}",
+    "hoursTime": "{{opens}} – {{closes}}"
+  },
+  "footer": {
+    "rights": "© {{year}} {{name}}. All rights reserved.",
+    "social": "Follow us",
+    "socials": {
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "whatsapp": "WhatsApp",
+      "youtube": "YouTube"
+    }
+  },
+  "preview": {
+    "waiting": "Waiting for the preview…"
+  },
+  "common": {
+    "retry": "Try again"
+  },
+  "errors": {
+    "notFound": "This site is not available.",
+    "network": "Could not connect. Check your internet and try again.",
+    "throttled": "Too many requests in a short time. Try again shortly.",
+    "closed": "Messages are switched off right now.",
+    "server": "Something went wrong on our side. Try again shortly.",
+    "generic": "Something unexpected went wrong. Try again."
+  },
+  "home": {
+    "contactNow": "Contact us now",
+    "statsLabel": "Our numbers",
+    "aboutLink": "More about us",
+    "servicesAll": "All services",
+    "doctorsAll": "Meet our doctors",
+    "galleryEyebrow": "Our home",
+    "galleryTitle": "A place designed for you",
+    "galleryLink": "Discover more",
+    "contactLink": "All ways to reach us",
+    "ctaTitle": "Every smile tells a better story",
+    "ctaSubtitle": "Let us be part of yours"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "home": "Back to the home page"
+  },
+  "carousel": {
+    "item": "Card {{number}} of {{total}}"
+  }
+}
