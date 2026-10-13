@@ -30,6 +30,8 @@ export const PAGE_CAPABILITIES = {
   labs: ["labs.list"],
   inventory: ["inventory.list"],
   clinic: ["clinics.update"],
+  website: ["website.editor", "website-messages.list"],
+  websiteEditor: ["website.editor"],
   users: ["users.list"],
   doctor: ["doctors.updateSchedule"],
   payroll: ["payroll.month"],
@@ -97,6 +99,12 @@ export const NAV_SETTINGS: NavGroup = {
       label: "nav.clinic",
       capabilities: PAGE_CAPABILITIES.clinic,
       icon: "building",
+    },
+    {
+      to: "/website",
+      label: "nav.website",
+      capabilities: PAGE_CAPABILITIES.websiteEditor,
+      icon: "globe",
     },
     {
       to: "/users",

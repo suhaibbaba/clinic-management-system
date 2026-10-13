@@ -2,7 +2,15 @@ import type { ManagedBooking } from "@clinic/shared";
 import { APPOINTMENT_STATUS } from "@shared/enums";
 import { useMemo, useState, type JSX } from "react";
 import { bookingApi, failureKey } from "@web/booking/api";
-import { clinicDate, dayChips, learnClinicOffset, bookingName } from "@web/booking/format";
+import {
+  addDays,
+  bookingName,
+  clinicDate,
+  dayChips,
+  daysFromToday,
+  learnClinicOffset,
+  todayIso,
+} from "@web/booking/format";
 import { t } from "@web/booking/i18n";
 import { FullPageMessage, PageShell } from "@web/booking/layout";
 import { BookingFacts } from "@web/booking/steps/success-view";
@@ -11,6 +19,8 @@ import { Alert, Button, Card, Skeleton, cx } from "@web/booking/ui";
 import { useAsync } from "@web/booking/use-async";
 
 const VISIBLE_DAYS = 7;
+
+const MAX_DAYS_AHEAD = 365;
 
 const STATUS_KEY: Record<string, string> = {
   [APPOINTMENT_STATUS.REQUESTED]: "manage.statusRequested",
@@ -204,13 +214,18 @@ function ReschedulePanel({
   readonly onClose: () => void;
 }): JSX.Element {
   const [date, setDate] = useState(() => clinicDate(booking.startsAt));
+  const [from, setFrom] = useState(() => {
+    const booked = clinicDate(booking.startsAt);
+
+    return booked < todayIso() ? todayIso() : booked;
+  });
 
   const doctors = useAsync(() => bookingApi.doctors(slug ?? ""), [slug], Boolean(slug));
   const doctorId = doctors.data?.find(
     (entry) => bookingName(entry.name) === bookingName(booking.doctorName),
   )?.id;
 
-  const chips = useMemo(() => dayChips(date, VISIBLE_DAYS, 365), [date]);
+  const chips = useMemo(() => dayChips(from, VISIBLE_DAYS, MAX_DAYS_AHEAD), [from]);
 
   const week = useAsync(
     async () => {
@@ -225,7 +240,7 @@ function ReschedulePanel({
 
       return days;
     },
-    [slug, doctorId, chips.length, date],
+    [slug, doctorId, chips.length, from],
     Boolean(slug && doctorId),
   );
 
@@ -248,6 +263,15 @@ function ReschedulePanel({
         week={week}
         date={date}
         onDate={setDate}
+        canPrevious={from > todayIso()}
+        canNext={daysFromToday(addDays(from, VISIBLE_DAYS)) <= MAX_DAYS_AHEAD}
+        onWeek={(step) => {
+          const start = addDays(from, step * VISIBLE_DAYS);
+          const next = start < todayIso() ? todayIso() : start;
+
+          setFrom(next);
+          setDate(next);
+        }}
         selected={undefined}
         onSelect={onPick}
       />

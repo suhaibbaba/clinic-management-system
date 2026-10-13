@@ -1,0 +1,11 @@
+@theme static {
+  --color-primary-50: #f1fafb;
+  --color-primary-100: #ddf3f5;
+  --color-primary-200: #bfe6ea;
+  --color-primary-300: #8ed3d9;
+  --color-primary-500: #23a8b3;
+  --color-primary-600: #1199a6;
+  --color-primary-700: #0b7f8c;
+  --color-primary-800: #0a5c78;
+  --color-primary-900: #0b3d58;
+}

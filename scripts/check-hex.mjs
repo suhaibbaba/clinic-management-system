@@ -10,6 +10,8 @@ const ALLOWED = new Set([
   "packages/ui/src/styles/base.css",
   "apps/web/src/theme.css",
   "apps/web/src/theme.ts",
+  "apps/web/src/site/theme.css",
+  "apps/web/site.html",
   "packages/shared/src/constants/lookups.ts",
 ]);
 
@@ -17,6 +19,7 @@ const SEARCH = [
   "apps/web/src",
   "apps/web/index.html",
   "apps/web/booking.html",
+  "apps/web/site.html",
   "apps/web/public",
   "packages/ui/src",
 ];
@@ -57,6 +60,7 @@ for (const target of SEARCH) {
 const PINNED = new Set([
   "apps/web/index.html",
   "apps/web/booking.html",
+  "apps/web/site.html",
   "apps/web/public/favicon.svg",
 ]);
 

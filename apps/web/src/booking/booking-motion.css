@@ -1,0 +1,68 @@
+@keyframes booking-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes booking-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--slide-from) * 24px));
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.booking-step {
+  animation: booking-fade-in 180ms ease-out;
+}
+
+.booking-stage {
+  --slide-from: 1;
+  animation: booking-slide-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.booking-stage[data-direction="back"] {
+  --slide-from: -1;
+}
+
+[dir="rtl"] .booking-stage {
+  --slide-from: -1;
+}
+
+[dir="rtl"] .booking-stage[data-direction="back"] {
+  --slide-from: 1;
+}
+
+.booking-progress {
+  transition: width 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.booking-step-dot {
+  transition:
+    background-color 300ms ease,
+    border-color 300ms ease,
+    color 300ms ease,
+    box-shadow 300ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .booking-step,
+  .booking-stage {
+    animation: none;
+  }
+
+  .booking-progress,
+  .booking-step-dot {
+    transition: none;
+  }
+}

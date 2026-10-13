@@ -43,6 +43,7 @@ FROM ${NGINX_IMAGE} AS runtime
 
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY docker/security-headers.conf /etc/nginx/snippets/security-headers.conf
+COPY docker/site-headers.conf /etc/nginx/snippets/site-headers.conf
 COPY --from=build /repo/apps/web/dist /usr/share/nginx/html
 
 EXPOSE 80

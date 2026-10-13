@@ -9,7 +9,11 @@ const SRC = join(ROOT, "src");
 const UI_SRC = join(ROOT, "..", "..", "packages", "ui", "src");
 const SHARED_SRC = join(ROOT, "..", "..", "packages", "shared", "src");
 
-const LOCALE_PAIRS = [join(SRC, "i18n", "locales"), join(SRC, "booking", "locales")];
+const LOCALE_PAIRS = [
+  join(SRC, "i18n", "locales"),
+  join(SRC, "booking", "locales"),
+  join(SRC, "site", "locales"),
+];
 
 const ARABIC_LETTER = /[ؠ-ي٠-٩ٮ-ۿ]/;
 

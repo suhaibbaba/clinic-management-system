@@ -27,6 +27,11 @@ const DASHBOARD_PATTERNS = [
       "The booking entry is a separate bundle; move anything shared out of it rather than importing from it.",
   },
   {
+    group: ["@web/site/*"],
+    message:
+      "The website entry is a separate bundle; the dashboard previews it in a frame instead.",
+  },
+  {
     group: ["@ui/*"],
     message:
       "Import the library by its package name — @clinic/ui, @clinic/ui/components/… — never by its internal alias.",
@@ -166,9 +171,56 @@ export default tseslint.config(
   },
 
   {
+    // The public website is a third entry: it embeds the booking wizard and nothing of the dashboard.
+    files: ["apps/web/src/site/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["../*", "./*"],
+              message: "Use the @web/… alias instead of a relative path.",
+            },
+            {
+              group: [
+                "@web/modules/*",
+                "@web/shared/*",
+                "@web/app/*",
+                "@web/i18n*",
+                "@web/App",
+                "@clinic/ui",
+                "@clinic/ui/*",
+              ],
+              message:
+                "The website entry ships its own bundle and must not import the dashboard app or the UI library. Write what it needs under src/site, or reuse src/booking.",
+            },
+            {
+              group: [
+                "@tanstack/*",
+                "react-router*",
+                "react-i18next",
+                "i18next",
+                "react-hook-form",
+                "@hookform/*",
+                "@radix-ui/*",
+                "date-fns",
+                "react-day-picker",
+                "tailwind-merge",
+              ],
+              message:
+                "Not in the website bundle: a visitor should not download the dashboard's stack.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  {
     /* And the other way: the dashboard has no business reaching into the
        booking entry either — a shared piece belongs in a shared place. */
-    files: ["apps/web/src/!(booking)/**/*.{ts,tsx}", "apps/web/src/*.{ts,tsx}"],
+    files: ["apps/web/src/!(booking|site)/**/*.{ts,tsx}", "apps/web/src/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": ["error", { patterns: DASHBOARD_PATTERNS }],
     },

@@ -1,4 +1,13 @@
 import {
+  Armchair,
+  Monitor,
+  Target,
+  Award,
+  Gem,
+  Heart,
+  Smile,
+  Star,
+  ArrowUp,
   GripVertical,
   MoreVertical,
   ListOrdered,
@@ -68,7 +77,10 @@ import type { TestIdProps } from "@ui/lib/testid";
 export type IconName =
   | "activity"
   | "arrow-down"
+  | "arrow-up"
+  | "armchair"
   | "alert"
+  | "award"
   | "bell"
   | "building"
   | "calendar"
@@ -87,6 +99,8 @@ export type IconName =
   | "file"
   | "gear"
   | "grip"
+  | "heart"
+  | "gem"
   | "globe"
   | "google"
   | "image"
@@ -103,6 +117,7 @@ export type IconName =
   | "menu"
   | "message"
   | "money"
+  | "monitor"
   | "more-vertical"
   | "package"
   | "passkey"
@@ -112,11 +127,14 @@ export type IconName =
   | "receipt"
   | "send"
   | "sparkles"
+  | "star"
   | "stop"
+  | "target"
   | "reset"
   | "key"
   | "search"
   | "shield"
+  | "smile"
   | "spinner"
   | "stethoscope"
   | "tooth"
@@ -156,6 +174,9 @@ const ICONS: Record<IconName, LucideIcon> = {
   activity: Activity,
   alert: AlertTriangle,
   "arrow-down": ArrowDown,
+  "arrow-up": ArrowUp,
+  armchair: Armchair,
+  award: Award,
   bell: Bell,
   building: Building2,
   calendar: CalendarDays,
@@ -174,7 +195,9 @@ const ICONS: Record<IconName, LucideIcon> = {
   file: FileText,
   gear: Settings,
   grip: GripVertical,
+  heart: Heart,
   "more-vertical": MoreVertical,
+  gem: Gem,
   globe: Globe,
   image: ImageIcon,
   info: Info,
@@ -190,6 +213,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   menu: Menu,
   message: MessageSquare,
   money: CreditCard,
+  monitor: Monitor,
   package: Package,
   passkey: Fingerprint,
   phone: Phone,
@@ -201,9 +225,12 @@ const ICONS: Record<IconName, LucideIcon> = {
   reset: RotateCcw,
   search: Search,
   shield: Shield,
+  smile: Smile,
   sparkles: Sparkles,
+  star: Star,
   spinner: Loader2,
   stop: Square,
+  target: Target,
   stethoscope: Stethoscope,
   tooth: ToothGlyph,
   trash: Trash2,

@@ -48,6 +48,7 @@ export const clinics = pgTable(
     nameAr: text("name_ar").notNull(),
     nameEn: text("name_en").notNull(),
     slug: text("slug").notNull(),
+    siteDomain: text("site_domain"),
     logoKey: text("logo_key"),
     appIconKey: text("app_icon_key"),
     logoIconsAt: timestamp("logo_icons_at", { withTimezone: true }),
@@ -68,7 +69,10 @@ export const clinics = pgTable(
     ...auditColumns,
     ...softDeleteColumn,
   },
-  (table) => [uniqueIndex("clinics_slug_uniq").on(table.slug).where(liveRows)],
+  (table) => [
+    uniqueIndex("clinics_slug_uniq").on(table.slug).where(liveRows),
+    uniqueIndex("clinics_site_domain_uniq").on(table.siteDomain).where(liveRows),
+  ],
 );
 
 export const specialties = pgTable(

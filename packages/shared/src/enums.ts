@@ -1033,6 +1033,11 @@ export const BOOKING_ERROR = {
   TOO_MANY_MESSAGES: "booking_too_many_messages",
 } as const satisfies Record<string, string>;
 
+export const WEBSITE_ERROR = {
+  TOO_MANY_MESSAGES: "website_too_many_messages",
+  CONTACT_CLOSED: "website_contact_closed",
+} as const satisfies Record<string, string>;
+
 export const STOCK_ERROR = {
   INSUFFICIENT: "insufficient_stock",
   BELOW_ONE: "stock_take_below_one",

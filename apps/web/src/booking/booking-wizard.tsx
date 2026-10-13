@@ -3,10 +3,18 @@ import { DEFAULT_PHONE_COUNTRY, isPhoneCountry, joinPhone } from "@shared/consta
 import { BOOKING_CONFIRMATION_MODE } from "@shared/enums";
 import { useEffect, useMemo, useState, type JSX } from "react";
 import { BookingError, bookingApi, failureKey } from "@web/booking/api";
-import { dayChips, learnClinicOffset, todayIso, bookingName } from "@web/booking/format";
+import {
+  addDays,
+  bookingName,
+  dayChips,
+  daysFromToday,
+  learnClinicOffset,
+  todayIso,
+} from "@web/booking/format";
 import { t } from "@web/booking/i18n";
 import { useClinicLogo } from "@web/booking/branding";
-import { FullPageMessage, PageShell, StepHeader } from "@web/booking/layout";
+import { STEP_KEYS } from "@web/booking/constants";
+import { FullPageMessage, PageShell, StepHeader, StepNav } from "@web/booking/layout";
 import { rememberClinic } from "@web/booking/route";
 import { DetailsStep, type BookingDetails } from "@web/booking/steps/details-step";
 import { DoctorStep } from "@web/booking/steps/doctor-step";
@@ -46,23 +54,57 @@ const STAGE_TITLE: Record<Stage, string> = {
   urgentSent: "urgent.sentHeading",
 };
 
-export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element {
+export function BookingWizard({
+  slug,
+  inline = false,
+  initialDoctorId,
+}: {
+  readonly slug: string;
+  readonly inline?: boolean;
+  readonly initialDoctorId?: string | undefined;
+}): JSX.Element {
   const clinic = useAsync(() => bookingApi.clinic(slug), [slug]);
   const logoUrl = useClinicLogo(slug, clinic.data?.logoUrl);
   const doctors = useAsync(() => bookingApi.doctors(slug), [slug], clinic.data?.bookingEnabled);
 
   const [stage, setStage] = useState<Stage>("doctor");
+  const [motion, setMotion] = useState<{ stage: Stage; direction: "forward" | "back" }>({
+    stage,
+    direction: "forward",
+  });
+
+  if (motion.stage !== stage) {
+    setMotion({
+      stage,
+      direction: STAGE_STEP[stage] < STAGE_STEP[motion.stage] ? "back" : "forward",
+    });
+  }
+
+  const direction = motion.direction;
   const [doctor, setDoctor] = useState<PublicDoctor>();
+
+  useEffect(() => {
+    const preselected = doctors.data?.find((candidate) => candidate.id === initialDoctorId);
+
+    if (!preselected) {
+      return;
+    }
+
+    setDoctor(preselected);
+    setStage((current) => (current === "doctor" ? "when" : current));
+  }, [doctors.data, initialDoctorId]);
   const [from, setFrom] = useState(todayIso());
   const [date, setDate] = useState(todayIso());
   const [slot, setSlot] = useState<SlotOption>();
   const [details, setDetails] = useState<BookingDetails>({
+    country: DEFAULT_PHONE_COUNTRY,
     firstName: "",
     lastName: "",
     phone: "",
     reason: "",
   });
   const [urgent, setUrgent] = useState<UrgentDetails>({
+    country: DEFAULT_PHONE_COUNTRY,
     firstName: "",
     lastName: "",
     phone: "",
@@ -80,6 +122,12 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
   const country = isPhoneCountry(clinic.data?.country)
     ? clinic.data.country
     : DEFAULT_PHONE_COUNTRY;
+
+  useEffect(() => {
+    setDetails((current) => ({ ...current, country }));
+    setUrgent((current) => ({ ...current, country }));
+  }, [country]);
+
   const chips = useMemo(() => dayChips(from, VISIBLE_DAYS, maxDaysAhead), [from, maxDaysAhead]);
 
   const week = useAsync(
@@ -125,14 +173,16 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
     setBusy(true);
     setFailure(undefined);
 
+    const reason = details.reason.trim();
+
     try {
       const receipt = await bookingApi.book(slug, {
         firstName: details.firstName.trim(),
         lastName: details.lastName.trim(),
-        phone: joinPhone(country, details.phone) ?? "",
+        phone: joinPhone(details.country, details.phone) ?? "",
         doctorId: doctor.id,
         startsAt: slot.startsAt,
-        ...(details.reason.trim() && { reason: details.reason.trim() }),
+        ...(reason && { reason }),
       });
 
       setToken(receipt.token);
@@ -163,7 +213,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
       await bookingApi.requestUrgent(slug, {
         firstName: urgent.firstName.trim(),
         lastName: urgent.lastName.trim(),
-        phone: joinPhone(country, urgent.phone) ?? "",
+        phone: joinPhone(urgent.country, urgent.phone) ?? "",
         complaint: urgent.complaint.trim(),
         ...(doctor && { doctorId: doctor.id }),
       });
@@ -217,7 +267,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
   if (clinic.loading) {
     return (
-      <PageShell clinicName={undefined} logoUrl={logoUrl}>
+      <PageShell clinicName={undefined} logoUrl={logoUrl} inline={inline}>
         <Skeleton className="h-8 w-2/3" />
         <div className="mt-4 flex flex-col gap-3">
           <Skeleton className="h-[76px] rounded-card" />
@@ -229,7 +279,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
   if (clinic.error || !clinic.data) {
     return (
-      <PageShell clinicName={undefined} logoUrl={logoUrl}>
+      <PageShell clinicName={undefined} logoUrl={logoUrl} inline={inline}>
         <FullPageMessage
           title={t(failureKey(clinic.error))}
           action={
@@ -244,7 +294,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
   if (!clinic.data.bookingEnabled) {
     return (
-      <PageShell clinicName={bookingName(clinic.data.name)} logoUrl={logoUrl}>
+      <PageShell clinicName={bookingName(clinic.data.name)} logoUrl={logoUrl} inline={inline}>
         <FullPageMessage
           title={t("errors.closed")}
           {...(clinic.data.phone && { body: clinic.data.phone })}
@@ -257,7 +307,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
   if (stage === "done") {
     return (
-      <PageShell clinicName={bookingName(clinic.data.name)} logoUrl={logoUrl}>
+      <PageShell clinicName={bookingName(clinic.data.name)} logoUrl={logoUrl} inline={inline}>
         {booking ? <SuccessView booking={booking} /> : <PendingView />}
       </PageShell>
     );
@@ -265,7 +315,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
   if (stage === "urgentSent") {
     return (
-      <PageShell clinicName={bookingName(clinic.data.name)} logoUrl={logoUrl}>
+      <PageShell clinicName={bookingName(clinic.data.name)} logoUrl={logoUrl} inline={inline}>
         <UrgentSentView />
       </PageShell>
     );
@@ -275,44 +325,43 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
     <PageShell
       clinicName={bookingName(clinic.data.name)}
       logoUrl={logoUrl}
+      inline={inline}
       footer={
         stage === "doctor" ? (
-          <Button
-            full
-            data-testid="booking-next-doctor"
-            disabled={!doctor}
-            onClick={() => setStage("when")}
-          >
-            {t("common.next")}
-          </Button>
+          <StepNav
+            next={{
+              testId: "booking-next-doctor",
+              disabled: !doctor,
+              onClick: () => setStage("when"),
+            }}
+          />
         ) : stage === "when" ? (
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              data-testid="booking-back-doctor"
-              onClick={() => setStage("doctor")}
-            >
-              {t("common.back")}
-            </Button>
-            <Button
-              full
-              data-testid="booking-next-when"
-              disabled={!slot}
-              onClick={() => setStage("details")}
-            >
-              {t("common.next")}
-            </Button>
-          </div>
+          <StepNav
+            back={{ testId: "booking-back-doctor", onClick: () => setStage("doctor") }}
+            next={{
+              testId: "booking-next-when",
+              disabled: !slot,
+              onClick: () => setStage("details"),
+            }}
+          />
         ) : stage === "details" ? (
-          <Button variant="secondary" full data-testid="booking-back-slots" onClick={backToSlots}>
-            {t("common.back")}
-          </Button>
+          <StepNav back={{ testId: "booking-back-slots", onClick: backToSlots }} />
         ) : undefined
       }
     >
-      <div key={stage} data-testid={`booking-stage-${stage}`} className="booking-step">
-        <StepHeader current={STAGE_STEP[stage]} title={t(STAGE_TITLE[stage])} />
+      <StepHeader
+        current={STAGE_STEP[stage]}
+        title={t(STAGE_TITLE[stage])}
+        steps={STEP_KEYS}
+        level={inline ? 2 : 1}
+      />
 
+      <div
+        key={stage}
+        data-testid={`booking-stage-${stage}`}
+        data-direction={direction}
+        className="booking-stage"
+      >
         {failure && stage !== "otp" && (
           <div className="mb-4">
             <Alert>{failure}</Alert>
@@ -339,16 +388,48 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
             onDate={(next) => {
               setDate(next);
               setSlot(undefined);
+            }}
+            canPrevious={from > todayIso()}
+            canNext={daysFromToday(addDays(from, VISIBLE_DAYS)) <= maxDaysAhead}
+            onWeek={(step) => {
+              const start = addDays(from, step * VISIBLE_DAYS);
+              const next = start < todayIso() ? todayIso() : start;
 
-              if (next === chips.at(-1)?.date) {
-                setFrom(next);
-              }
+              setFrom(next);
+              setDate(next);
+              setSlot(undefined);
             }}
             selected={slot?.startsAt}
-            onSelect={(next) => {
-              setSlot(next);
-              setStage("details");
-            }}
+            onSelect={setSlot}
+            header={
+              doctor && (
+                <div
+                  data-testid="when-doctor"
+                  className="flex items-center gap-3 rounded-card border border-line bg-surface p-3"
+                >
+                  <span
+                    aria-hidden
+                    className="pill-text inline-flex size-(--control-h) shrink-0 items-center justify-center rounded-pill bg-primary-100 text-value font-bold text-primary-800"
+                  >
+                    {bookingName(doctor.name).slice(0, 1)}
+                  </span>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="text-label text-ink-muted">{t("when.with")}</span>
+                    <span className="truncate text-value font-bold text-ink">
+                      {bookingName(doctor.name)}
+                    </span>
+                  </span>
+                  <Button
+                    variant="ghost"
+                    data-testid="when-change-doctor"
+                    onClick={() => setStage("doctor")}
+                    className="px-3 text-label"
+                  >
+                    {t("when.changeDoctor")}
+                  </Button>
+                </div>
+              )
+            }
             onUrgent={() => {
               setFailure(undefined);
               setStage("urgent");
@@ -363,7 +444,6 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
             onSubmit={() => void sendUrgent()}
             onBack={() => setStage("when")}
             busy={busy}
-            country={country}
           />
         )}
 
@@ -373,7 +453,6 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
             onChange={setDetails}
             onSubmit={() => void submit()}
             busy={busy}
-            country={country}
             summary={
               <Card data-testid="booking-summary" className="bg-primary-50 shadow-none">
                 <p className="text-label text-ink-muted">{t("details.summary")}</p>
@@ -390,7 +469,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
         {stage === "otp" && (
           <OtpStep
-            phone={joinPhone(country, details.phone) ?? details.phone}
+            phone={joinPhone(details.country, details.phone) ?? details.phone}
             busy={busy}
             error={otpError}
             attemptsLeft={attemptsLeft}

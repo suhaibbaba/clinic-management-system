@@ -1,11 +1,13 @@
 import { isBookingPhone } from "@shared/constants/booking";
-import { dialCodeOf, joinPhone, type PhoneCountry } from "@shared/constants/phone";
+import { joinPhone, type PhoneCountry } from "@shared/constants/phone";
+import { CountryPicker } from "@web/booking/country-picker";
 import { useState, type FormEvent, type JSX } from "react";
 import { t } from "@web/booking/i18n";
 import { isBookingNameComplete, NameFields } from "@web/booking/steps/name-fields";
 import { Button, Card, Field } from "@web/booking/ui";
 
 export interface UrgentDetails {
+  readonly country: PhoneCountry;
   readonly firstName: string;
   readonly lastName: string;
   readonly phone: string;
@@ -18,19 +20,17 @@ export function UrgentStep({
   onSubmit,
   onBack,
   busy,
-  country,
 }: {
   readonly details: UrgentDetails;
   readonly onChange: (details: UrgentDetails) => void;
   readonly onSubmit: () => void;
   readonly onBack: () => void;
   readonly busy: boolean;
-  readonly country: PhoneCountry;
 }): JSX.Element {
   const [touched, setTouched] = useState(false);
 
   const nameError = !isBookingNameComplete(details);
-  const phoneError = isBookingPhone(joinPhone(country, details.phone) ?? "")
+  const phoneError = isBookingPhone(joinPhone(details.country, details.phone) ?? "")
     ? undefined
     : t("details.phoneError");
   const typedWhole = /^\s*(\+|00)/.test(details.phone);
@@ -61,7 +61,17 @@ export function UrgentStep({
 
       <Field
         data-testid="urgent-field-phone"
-        {...(!typedWhole && { prefix: dialCodeOf(country) })}
+        {...(!typedWhole && {
+          addon: (
+            <CountryPicker
+              country={details.country}
+              onChange={(country) => onChange({ ...details, country })}
+              language="ar"
+              label={t("details.country")}
+              data-testid="details-country"
+            />
+          ),
+        })}
         label={t("details.phone")}
         name="phone"
         type="tel"

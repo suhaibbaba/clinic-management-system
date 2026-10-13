@@ -51,6 +51,11 @@
 
 @theme static {
   --color-surface: #ffffff;
+
+  --color-social-instagram: #e4405f;
+  --color-social-facebook: #1877f2;
+  --color-social-whatsapp: #25d366;
+  --color-social-youtube: #ff0000;
   --color-canvas: var(--color-neutral-50);
   --color-inset: var(--color-neutral-100);
   --color-sunken: #f0f2f4;
@@ -131,6 +136,10 @@
   --text-title--line-height: 1.875rem;
   --text-kpi: 2rem;
   --text-kpi--line-height: 1;
+  --text-headline: 1.875rem;
+  --text-headline--line-height: 2.5rem;
+  --text-hero: 2.625rem;
+  --text-hero--line-height: 3.375rem;
 
   --text-field: 1rem;
   --text-field--line-height: 1.5rem;
@@ -143,6 +152,8 @@
   --leading-heading: 1.625rem;
   --leading-title: 1.875rem;
   --leading-kpi: 1;
+  --leading-headline: 2.5rem;
+  --leading-hero: 3.375rem;
 
   --spacing: 0.25rem;
 }

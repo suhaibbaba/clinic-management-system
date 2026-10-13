@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+@import "@clinic/ui/styles/base.css";
+@import "../theme.css";
+@import "../base.css";
+@import "./theme.css";
+@import "../booking/booking-motion.css";
+
+@utility site-wash {
+  background-image:
+    radial-gradient(900px 420px at 100% 0%, var(--color-primary-100), transparent 65%),
+    radial-gradient(700px 360px at 0% 30%, var(--color-success-50), transparent 70%),
+    linear-gradient(180deg, var(--color-primary-50), var(--color-surface) 70%);
+}
+
+@utility site-panel-wash {
+  background-image:
+    radial-gradient(420px 220px at 0% 100%, var(--color-success-100), transparent 70%),
+    linear-gradient(120deg, var(--color-primary-50), var(--color-primary-100));
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+@utility site-placeholder {
+  background-image:
+    radial-gradient(circle at 30% 25%, var(--color-surface), transparent 45%),
+    radial-gradient(
+      circle,
+      color-mix(in oklab, var(--color-primary-200) 55%, transparent) 1px,
+      transparent 1.5px
+    );
+  background-size:
+    100% 100%,
+    18px 18px;
+}
+
+@utility site-gutter-start {
+  padding-inline-start: max(1rem, calc((100vw - 72rem) / 2 + 1rem));
+}
+
+@utility site-gutter-end {
+  padding-inline-end: max(1rem, calc((100vw - 72rem) / 2 + 1rem));
+}
+
+@utility site-shape-soft {
+  border-radius: var(--radius-card);
+  border-start-start-radius: 38% 30%;
+}
+
+.site-fade-start {
+  mask-image: linear-gradient(to left, transparent, black 45%);
+}
+
+.site-fade-end {
+  mask-image: linear-gradient(to right, transparent, black 40%);
+}
+
+[dir="ltr"] .site-fade-start {
+  mask-image: linear-gradient(to right, transparent, black 45%);
+}
+
+[dir="ltr"] .site-fade-end {
+  mask-image: linear-gradient(to left, transparent, black 40%);
+}
+
+@keyframes site-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.site-page-enter {
+  animation: site-page-in 260ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-page-enter {
+    animation: none;
+  }
+}
+
+[dir="ltr"] #site-main :where(h1, h2, h3, p, blockquote) {
+  unicode-bidi: plaintext;
+}
+
+@keyframes site-dot-fill {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+.site-dot-fill {
+  animation: site-dot-fill linear forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-dot-fill {
+    width: 100%;
+    animation: none;
+  }
+}
+
+@layer base {
+  :where(#site-main, [data-testid="site-header"], [data-testid="site-footer"]) :where(a, button) {
+    transition-property:
+      color, background-color, border-color, box-shadow, opacity, translate, scale;
+    transition-duration: 200ms;
+    transition-timing-function: ease-out;
+  }
+}
+
+@keyframes site-rise {
+  from {
+    opacity: 0;
+    translate: 0 28px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.site-reveal [data-reveal]:not([data-revealed]),
+.site-reveal [data-reveal-group]:not([data-revealed]) > * {
+  opacity: 0;
+}
+
+[data-reveal][data-revealed],
+[data-reveal-group][data-revealed] > * {
+  animation: site-rise 700ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+[data-reveal-group][data-revealed] > :nth-child(2) {
+  animation-delay: 90ms;
+}
+
+[data-reveal-group][data-revealed] > :nth-child(3) {
+  animation-delay: 180ms;
+}
+
+[data-reveal-group][data-revealed] > :nth-child(4) {
+  animation-delay: 270ms;
+}
+
+[data-reveal-group][data-revealed] > :nth-child(5) {
+  animation-delay: 360ms;
+}
+
+[data-reveal-group][data-revealed] > :nth-child(n + 6) {
+  animation-delay: 450ms;
+}

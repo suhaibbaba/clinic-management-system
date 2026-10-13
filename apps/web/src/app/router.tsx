@@ -48,6 +48,10 @@ const LookupsPage = lazyPage(async () => ({
   default: (await import("@web/modules/lookups/pages/lookups-page")).LookupsPage,
 }));
 
+const WebsitePage = lazyPage(async () => ({
+  default: (await import("@web/modules/website/pages/website-page")).WebsitePage,
+}));
+
 const HOME = "/dashboard";
 
 function RedirectKeepingQuery({
@@ -204,6 +208,16 @@ export function AppRoutes(): JSX.Element {
           element={
             <RequireCapability capabilities={PAGE_CAPABILITIES.clinic} redirectTo={HOME}>
               <ClinicPage />
+            </RequireCapability>
+          }
+        />
+        <Route
+          path="/website"
+          element={
+            <RequireCapability capabilities={PAGE_CAPABILITIES.website} redirectTo={HOME}>
+              <RouteChunk>
+                <WebsitePage />
+              </RouteChunk>
             </RequireCapability>
           }
         />

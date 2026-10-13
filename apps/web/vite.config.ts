@@ -23,6 +23,8 @@ function bookingEntry(): Plugin {
 
       if (/^\/book(\/|$)|^\/booking\/manage(\/|$)/.test(path)) {
         request.url = "/booking.html";
+      } else if (/^\/site(\/|$)/.test(path)) {
+        request.url = "/site.html";
       }
 
       next();
@@ -70,7 +72,12 @@ function pwa(): Plugin[] {
       clientsClaim: true,
       globPatterns: ["**/*.{js,css,html,woff2,svg,ico,png}"],
       navigateFallback: "/index.html",
-      navigateFallbackDenylist: [/^\/api\//, /^\/book(\/|$)/, /^\/booking\/manage(\/|$)/],
+      navigateFallbackDenylist: [
+        /^\/api\//,
+        /^\/book(\/|$)/,
+        /^\/booking\/manage(\/|$)/,
+        /^\/site(\/|$)/,
+      ],
       runtimeCaching: [],
       cleanupOutdatedCaches: true,
     },
@@ -139,6 +146,7 @@ export default defineConfig({
       input: {
         index: fileURLToPath(new URL("./index.html", import.meta.url)),
         booking: fileURLToPath(new URL("./booking.html", import.meta.url)),
+        site: fileURLToPath(new URL("./site.html", import.meta.url)),
       },
       treeshake: {
         moduleSideEffects: (id) => !id.includes(sharedSrcDir),
