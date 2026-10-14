@@ -22,7 +22,7 @@ import {
   type TreatmentSettlementStatus,
   type UpdateTreatmentSettlementInput,
 } from "@clinic/shared";
-import { and, desc, eq, gte, inArray, isNull, lt, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, lt, sql } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
@@ -47,6 +47,7 @@ import {
   type SettlementItemRow,
   type SettlementRow,
   type SettlementScope,
+  type ShareTotals,
   totalsOf,
 } from "@api/modules/payroll/lib/doctor-settlements";
 import { includesShare } from "@api/modules/payroll/lib/pay-terms";
@@ -360,25 +361,36 @@ export class DoctorSettlementsService implements OnModuleInit {
     }));
   }
 
-  async sharesBetween(
+  async shareTotalsBetween(
     clinicId: string,
     start: Date,
     end: Date,
-    doctors?: SQL,
-  ): Promise<Map<string, string>> {
+  ): Promise<Map<string, ShareTotals>> {
     const timeZone = await clinicTimeZone(this.db, clinicId);
-    const rows = await this.db.execute<{ doctor_id: string; total: string }>(
-      sql`select doctor_id, coalesce(sum(doctor_share), 0)::numeric(12, 2)::text as total
-          from (${settlementLines({
-            clinicId,
-            timeZone,
-            window: performedBetween(start, end),
-            ...(doctors && { doctors }),
-          })}) settled
+    const rows = await this.db.execute<{
+      doctor_id: string;
+      share: string;
+      payable: string;
+      paid: string;
+    }>(
+      sql`select doctor_id,
+                 coalesce(sum(doctor_share), 0)::numeric(12, 2)::text as share,
+                 coalesce(sum(payable), 0)::numeric(12, 2)::text as payable,
+                 coalesce(sum(paid), 0)::numeric(12, 2)::text as paid
+          from (${settlementLines({ clinicId, timeZone, window: performedBetween(start, end) })}) settled
           group by doctor_id`,
     );
 
-    return new Map([...rows].map((row) => [row.doctor_id, addMoney(row.total, ZERO)]));
+    return new Map(
+      [...rows].map((row) => [
+        row.doctor_id,
+        {
+          share: addMoney(row.share, ZERO),
+          payable: addMoney(row.payable, ZERO),
+          paid: addMoney(row.paid, ZERO),
+        },
+      ]),
+    );
   }
 
   private async statement(

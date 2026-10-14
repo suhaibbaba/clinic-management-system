@@ -275,16 +275,10 @@
       "scheduleHint": "Optional. Leave it empty to book them any time the clinic is open."
     },
     "settlement": {
-      "title": "Doctor settlement",
-      "about": "The doctor's treatments done in the period: the amount after discount, less tax, operating expenses and materials; the clinic takes its percentage and the rest is the doctor's.",
       "period": "Period",
       "amount": "Amount",
       "materials": "Materials",
       "clinicPercent": "Clinic %",
-      "clinicShare": "Clinic Share",
-      "doctorShare": "Doctor Share",
-      "adjusted": "Adjusted",
-      "revenue": "Revenue",
       "balance": "Owed to the Doctor",
       "balanceCaption": "Everything earned minus everything paid",
       "noTreatments": "No done treatments in this period",
@@ -292,20 +286,12 @@
       "noPayouts": "No payments in this period",
       "recordPayout": "Pay the Doctor",
       "payoutRecorded": "Payment Recorded",
-      "payoutMenu": "Payment Actions",
-      "reverse": "Reverse Payment",
       "reversed": "Reversed",
-      "reverseTitle": "Reverse this payment?",
-      "reverseConsequence": "A reversing entry is recorded and the original stays on file",
-      "reverseReason": "Reason for reversing",
-      "payoutReversed": "Payment Reversed",
       "editTreatment": "Settlement: {{name}}",
       "materialHint": "Leave empty for the suggested cost ({{suggested}}), or 0 for none",
       "percentHint": "Leave empty for the doctor's share ({{percent}}%), or 0 for none",
       "treatmentUpdated": "Settlement Updated",
-      "shareSaved": "Clinic Share Saved",
       "print": "Print Statement",
-      "deductions": "Tax & expenses",
       "waivedBecause": "No share: {{reason}}",
       "workShare": "{{percent}}% of the work",
       "collectedOf": "{{percent}}% collected of {{amount}}",
@@ -315,23 +301,13 @@
         "paid": "Paid",
         "adjusted": "Needs settling"
       },
-      "correction": "Difference {{amount}}",
-      "onSalary": "This doctor is on a salary. Change their pay plan on the payroll page to earn a percentage.",
       "basis": {
         "done": "On treatments done",
         "collected": "On what the patient paid"
       },
-      "bearer": {
-        "shared": "Lab and material costs shared",
-        "doctor": "Lab and material costs on the doctor"
-      },
-      "deductionsTotal": "Tax {{tax}} · Expenses {{overhead}} · Materials {{materials}}",
-      "stillToPay": "Still to pay {{amount}}",
       "advance": "Advance",
       "coversTreatments_one": "1 treatment",
       "coversTreatments_other": "{{count}} treatments",
-      "showPatients": "Show patients",
-      "hidePatients": "Hide patients",
       "printPayout": "Print payout",
       "reverseReleases_one": "Its treatment becomes unpaid again",
       "reverseReleases_other": "Its {{count}} treatments become unpaid again",
@@ -364,7 +340,8 @@
     "deleteSignIn": "Their account is deleted and they can no longer sign in.",
     "deleteBooking": "They leave the doctor list and no new appointments can be booked with them.",
     "deleteKeeps": "Their past appointments, visits, treatments and payments stay as they are.",
-    "deleted": "Doctor Deleted"
+    "deleted": "Doctor Deleted",
+    "payStatement": "Pay statement"
   },
   "schedule": {
     "off": "Off",
@@ -2590,25 +2567,12 @@
   },
   "payroll": {
     "title": "Payroll",
-    "subtitle": "Staff pay for each month: salary, extras, cuts, what was paid and what is left.",
-    "employee": "Employee",
+    "subtitle": "Each person's pay this month: what is expected, what was paid and what is left. Open a row for the full calculation.",
     "monthlySalary": "Monthly Salary",
-    "extras": "Extras",
-    "cuts": "Cuts",
-    "due": "Due",
     "paidAmount": "Paid",
     "remaining": "Remaining",
-    "noSalary": "No salary set",
-    "joined": "Joined {{date}}",
-    "menu": "Employee Actions",
     "pay": "Pay Salary",
-    "addExtra": "Add to Pay",
-    "addCut": "Cut from Pay",
-    "setSalary": "Set Salary",
-    "setSalaryHint": "The salary applies from the chosen month on; earlier months stay as they were.",
     "effectiveFrom": "From",
-    "salaryHistory": "Salary History",
-    "salarySaved": "Salary Saved",
     "extraSaved": "Extra Added",
     "cutSaved": "Cut Recorded",
     "paid": "Payment Recorded",
@@ -2616,11 +2580,6 @@
     "reason": "Reason",
     "entries": "Entries",
     "noEntries": "No entries this month",
-    "payment": "Payment",
-    "kind": {
-      "extra": "Extra",
-      "cut": "Cut"
-    },
     "reversed": "Reversed",
     "reverse": "Reverse",
     "reverseTitle": "Reverse this entry?",
@@ -2638,14 +2597,7 @@
     "previousMonth": "Previous Month",
     "nextMonth": "Next Month",
     "thisMonth": "This month",
-    "employees_one": "1 Employee",
-    "employees_other": "{{count}} employees",
-    "remainingCaption": "Remaining: {{amount}}",
-    "staffCost": "Staff Cost",
-    "staffCostCaption": "Salaries due plus every doctor's percentage share",
     "empty": "No employees this month",
-    "share": "Percentage share",
-    "doctorShares": "Doctor percentage shares",
     "rules": {
       "title": "Percentage rules",
       "about": "These come off each treatment's price before it is split between the clinic and the doctor, from the chosen month",
@@ -2657,20 +2609,88 @@
       "basis": "Share is worked out on",
       "bearer": "Lab and material costs",
       "history": "Earlier changes",
-      "summary": "Tax {{tax}}% · Expenses {{overhead}}% · {{basis}}"
+      "summary": "Tax {{tax}}% · Expenses {{overhead}}% · {{basis}}",
+      "bearers": {
+        "shared": "Shared",
+        "doctor": "On the doctor"
+      }
     },
     "plan": {
-      "title": "Pay plan",
-      "about": "A salary, a percentage of treatments, or both. Applies from the chosen month",
-      "notDoctor": "A percentage is only for somebody who treats patients, so this employee stays on a salary",
-      "saved": "Pay plan saved",
-      "kind": "Plan",
-      "history": "Earlier changes",
       "kinds": {
         "salary": "Salary",
         "percentage": "Percentage",
         "salary_and_percentage": "Salary and percentage"
       }
+    },
+    "person": "Staff Member",
+    "payType": "Pay Type",
+    "expected": "Expected",
+    "status": "Status",
+    "statuses": {
+      "nothing": "Nothing due",
+      "paid": "Paid",
+      "partly": "Partly paid",
+      "unpaid": "Unpaid"
+    },
+    "people_one": "1 person",
+    "people_other": "{{count}} people",
+    "openPerson": "Open {{name}}, expected {{amount}}",
+    "addBonus": "Add Bonus",
+    "addDeduction": "Add Deduction",
+    "payShare": "Pay Share",
+    "paySalary": "Pay Salary",
+    "payBonus": "Pay Bonus",
+    "tabs": {
+      "statement": "Statement",
+      "settings": "Pay Settings"
+    },
+    "calc": {
+      "title": "Calculation",
+      "groups": {
+        "share": "Treatment share",
+        "salary": "Salary"
+      },
+      "revenue": "Treatments after discount",
+      "tax": "Tax",
+      "overhead": "Operating expenses",
+      "materials": "Lab and materials",
+      "net": "Net",
+      "clinicShare": "Clinic share",
+      "doctorShare": "Doctor's share",
+      "waiting": "Waiting on patient payment",
+      "share": "Share due",
+      "salary": "Monthly salary",
+      "bonus": "Bonus",
+      "deduction": "Deduction",
+      "expected": "Total expected",
+      "received": "Paid",
+      "owed": "Remaining"
+    },
+    "patients": {
+      "title_one": "1 patient this month",
+      "title_other": "{{count}} patients this month",
+      "patient": "Patient",
+      "amount": "Amount",
+      "patientPaid": "Patient paid",
+      "paidInFull": "Paid in full",
+      "paidPart": "Paid {{percent}}%",
+      "notPaid": "Not paid",
+      "share": "Doctor's share",
+      "doctorPaid": "Paid to doctor",
+      "edit": "Adjust the share for {{name}}"
+    },
+    "entryKinds": {
+      "extra": "Bonus",
+      "cut": "Deduction",
+      "salary": "Salary payment",
+      "share": "Share payout"
+    },
+    "settings": {
+      "saved": "Pay settings saved",
+      "clinicPercent": "Clinic's share %",
+      "clinicPercentHint": "What the clinic keeps of each treatment's net; the rest is the doctor's",
+      "fromHint": "Applies from this month on; earlier months stay as they were",
+      "history": "Earlier changes"
     }
   },
   "earnings": {

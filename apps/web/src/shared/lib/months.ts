@@ -1,3 +1,5 @@
+import { addDays } from "@web/shared/lib/dates";
+
 export function currentMonth(today: string): string {
   return today.slice(0, 7);
 }
@@ -17,4 +19,8 @@ export function isMonth(value: string): boolean {
 
 export function monthsFrom(month: string, count: number): string[] {
   return Array.from({ length: count }, (_, offset) => shiftMonth(month, offset));
+}
+
+export function monthDays(month: string): { from: string; to: string } {
+  return { from: `${month}-01`, to: addDays(`${shiftMonth(month, 1)}-01`, -1) };
 }

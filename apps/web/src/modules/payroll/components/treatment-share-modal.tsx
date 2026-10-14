@@ -18,7 +18,7 @@ import {
   usePersonName,
   useToast,
 } from "@clinic/ui";
-import { useSetTreatmentSettlement } from "@web/modules/doctors/queries";
+import { useSetTreatmentShare } from "@web/modules/payroll/queries";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { errorToast } from "@web/shared/lib/api-error";
 import { schemaErrors } from "@web/shared/lib/form-errors";
@@ -28,7 +28,7 @@ import { useDoctors } from "@web/shared/queries/doctors";
 
 const whole = (amount: string): string => String(Math.round(Number(amount)));
 
-export function SettlementTreatmentModal({
+export function TreatmentShareModal({
   doctorId,
   treatment,
   defaultPercent,
@@ -43,7 +43,7 @@ export function SettlementTreatmentModal({
   const toast = useToast();
   const currency = useCurrency();
   const nameOf = usePersonName();
-  const save = useSetTreatmentSettlement(doctorId);
+  const save = useSetTreatmentShare();
   const doctors = useDoctors({ limit: 100 });
 
   const [material, setMaterial] = useState("");

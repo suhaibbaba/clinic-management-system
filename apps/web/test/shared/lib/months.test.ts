@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currentMonth, isMonth, monthsFrom, shiftMonth } from "@web/shared/lib/months";
+import { currentMonth, isMonth, monthDays, monthsFrom, shiftMonth } from "@web/shared/lib/months";
 
 describe("months", () => {
   it("steps across a year", () => {
@@ -20,5 +20,10 @@ describe("months", () => {
 
   it("lists the months from one onward, across a year", () => {
     expect(monthsFrom("2025-11", 3)).toEqual(["2025-11", "2025-12", "2026-01"]);
+  });
+
+  it("spans a month from its first day to its last, leap years included", () => {
+    expect(monthDays("2028-02")).toEqual({ from: "2028-02-01", to: "2028-02-29" });
+    expect(monthDays("2026-12")).toEqual({ from: "2026-12-01", to: "2026-12-31" });
   });
 });

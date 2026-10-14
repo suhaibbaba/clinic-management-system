@@ -283,16 +283,10 @@
       "scheduleHint": "اختياري. إن تركتها فارغة يمكن حجز مواعيده في أي وقت تكون العيادة مفتوحة."
     },
     "settlement": {
-      "title": "تسوية الطبيب",
-      "about": "معالجات الطبيب المنجزة في الفترة: المبلغ بعد الخصم ناقص الضريبة والمصاريف التشغيلية والمواد، ثم تأخذ العيادة نسبتها والباقي للطبيب.",
       "period": "الفترة",
       "amount": "المبلغ",
       "materials": "المواد",
       "clinicPercent": "نسبة العيادة",
-      "clinicShare": "حصة العيادة",
-      "doctorShare": "حصة الطبيب",
-      "adjusted": "معدّل",
-      "revenue": "الإيرادات",
       "balance": "المتبقي للطبيب",
       "balanceCaption": "كل ما استحقه ناقص ما دُفع له",
       "noTreatments": "لا معالجات منجزة في هذه الفترة",
@@ -300,20 +294,12 @@
       "noPayouts": "لا دفعات في هذه الفترة",
       "recordPayout": "تسجيل دفعة للطبيب",
       "payoutRecorded": "تم تسجيل الدفعة",
-      "payoutMenu": "إجراءات الدفعة",
-      "reverse": "عكس الدفعة",
       "reversed": "معكوسة",
-      "reverseTitle": "عكس هذه الدفعة؟",
-      "reverseConsequence": "تُسجّل دفعة معاكسة ويبقى الأصل في السجل",
-      "reverseReason": "سبب العكس",
-      "payoutReversed": "تم عكس الدفعة",
       "editTreatment": "تسوية: {{name}}",
       "materialHint": "اتركه فارغًا لاستخدام المقترح ({{suggested}})، أو 0 بلا مواد",
       "percentHint": "اتركه فارغًا لاستخدام نسبة الطبيب ({{percent}}%)، أو 0 بلا نسبة",
       "treatmentUpdated": "تم تحديث التسوية",
-      "shareSaved": "تم حفظ نسبة العيادة",
       "print": "طباعة الكشف",
-      "deductions": "ضريبة ومصاريف",
       "waivedBecause": "بلا حصة: {{reason}}",
       "workShare": "حصته من العمل {{percent}}%",
       "collectedOf": "{{percent}}% محصّل من {{amount}}",
@@ -323,18 +309,10 @@
         "paid": "مدفوعة",
         "adjusted": "تحتاج تسوية"
       },
-      "correction": "فرق {{amount}}",
-      "onSalary": "هذا الطبيب على راتب حاليًا. غيّر طريقة دفعه من صفحة الرواتب لتُحسب له نسبة.",
       "basis": {
         "done": "على المعالجات المنجزة",
         "collected": "على ما دفعه المريض"
       },
-      "bearer": {
-        "shared": "تكلفة المختبر والمواد مشتركة",
-        "doctor": "تكلفة المختبر والمواد على الطبيب"
-      },
-      "deductionsTotal": "ضريبة {{tax}} · مصاريف {{overhead}} · مواد {{materials}}",
-      "stillToPay": "متبقٍ للدفع {{amount}}",
       "advance": "سلفة",
       "coversTreatments_zero": "بلا معالجات",
       "coversTreatments_one": "معالجة واحدة",
@@ -342,8 +320,6 @@
       "coversTreatments_few": "{{count}} معالجات",
       "coversTreatments_many": "{{count}} معالجة",
       "coversTreatments_other": "{{count}} معالجة",
-      "showPatients": "عرض المرضى",
-      "hidePatients": "إخفاء المرضى",
       "printPayout": "طباعة سند الدفع",
       "reverseReleases_zero": "تعود المعالجات غير مدفوعة",
       "reverseReleases_one": "تعود معالجة واحدة غير مدفوعة",
@@ -384,7 +360,8 @@
     "deleteSignIn": "يُحذف حسابه ولن يتمكن من تسجيل الدخول بعد الآن.",
     "deleteBooking": "يخرج من قائمة الأطباء ولا يمكن حجز مواعيد جديدة معه.",
     "deleteKeeps": "تبقى مواعيده وزياراته وعلاجاته ودفعاته السابقة كما هي.",
-    "deleted": "تم حذف الطبيب"
+    "deleted": "تم حذف الطبيب",
+    "payStatement": "كشف الأجر"
   },
   "schedule": {
     "off": "عطلة",
@@ -2674,25 +2651,12 @@
   },
   "payroll": {
     "title": "الرواتب",
-    "subtitle": "رواتب الموظفين لكل شهر: الراتب، والإضافات، والخصومات، وما دُفع وما بقي.",
-    "employee": "الموظف",
+    "subtitle": "أجر كل شخص هذا الشهر: المستحق وما دُفع وما تبقى. افتح السطر لترى الحساب كاملًا.",
     "monthlySalary": "الراتب الشهري",
-    "extras": "الإضافات",
-    "cuts": "الخصومات",
-    "due": "المستحق",
     "paidAmount": "المدفوع",
     "remaining": "المتبقي",
-    "noSalary": "لا راتب محدّد",
-    "joined": "انضم {{date}}",
-    "menu": "إجراءات الموظف",
     "pay": "صرف راتب",
-    "addExtra": "إضافة للراتب",
-    "addCut": "خصم من الراتب",
-    "setSalary": "تحديد الراتب",
-    "setSalaryHint": "يسري الراتب من الشهر المختار فما بعده؛ الأشهر السابقة تبقى كما هي.",
     "effectiveFrom": "يسري من",
-    "salaryHistory": "سجل الراتب",
-    "salarySaved": "تم حفظ الراتب",
     "extraSaved": "تمت الإضافة",
     "cutSaved": "تم الخصم",
     "paid": "تم تسجيل الدفعة",
@@ -2700,11 +2664,6 @@
     "reason": "السبب",
     "entries": "الحركات",
     "noEntries": "لا حركات لهذا الشهر",
-    "payment": "دفعة",
-    "kind": {
-      "extra": "إضافة",
-      "cut": "خصم"
-    },
     "reversed": "معكوسة",
     "reverse": "عكس",
     "reverseTitle": "عكس هذه الحركة؟",
@@ -2722,18 +2681,7 @@
     "previousMonth": "الشهر السابق",
     "nextMonth": "الشهر التالي",
     "thisMonth": "هذا الشهر",
-    "employees_zero": "لا موظفين",
-    "employees_one": "موظف واحد",
-    "employees_two": "موظفان",
-    "employees_few": "{{count}} موظفين",
-    "employees_many": "{{count}} موظفًا",
-    "employees_other": "{{count}} موظف",
-    "remainingCaption": "المتبقي: {{amount}}",
-    "staffCost": "تكلفة الموظفين",
-    "staffCostCaption": "الرواتب المستحقة وحصص الأطباء بالنسبة",
     "empty": "لا موظفين في هذا الشهر",
-    "share": "حصة النسبة",
-    "doctorShares": "حصص الأطباء بالنسبة",
     "rules": {
       "title": "قواعد النسبة",
       "about": "تُخصم هذه من سعر كل معالجة قبل تقسيمها بين العيادة والطبيب، وتسري من الشهر المختار",
@@ -2745,20 +2693,96 @@
       "basis": "تُحسب الحصة على",
       "bearer": "تكلفة المختبر والمواد",
       "history": "التغييرات السابقة",
-      "summary": "ضريبة {{tax}}% · مصاريف {{overhead}}% · {{basis}}"
+      "summary": "ضريبة {{tax}}% · مصاريف {{overhead}}% · {{basis}}",
+      "bearers": {
+        "shared": "مشتركة",
+        "doctor": "على الطبيب"
+      }
     },
     "plan": {
-      "title": "طريقة الدفع",
-      "about": "راتب، أو نسبة من المعالجات، أو كلاهما. يسري من الشهر المختار",
-      "notDoctor": "النسبة لمن يعالج المرضى فقط، لذلك يبقى هذا الموظف على راتب",
-      "saved": "حُفظت طريقة الدفع",
-      "kind": "الطريقة",
-      "history": "التغييرات السابقة",
       "kinds": {
         "salary": "راتب",
         "percentage": "نسبة",
         "salary_and_percentage": "راتب ونسبة"
       }
+    },
+    "person": "الموظف",
+    "payType": "نوع الأجر",
+    "expected": "المستحق",
+    "status": "الحالة",
+    "statuses": {
+      "nothing": "لا شيء مستحق",
+      "paid": "مدفوع",
+      "partly": "مدفوع جزئيًا",
+      "unpaid": "غير مدفوع"
+    },
+    "people_zero": "لا أحد",
+    "people_one": "شخص واحد",
+    "people_two": "شخصان",
+    "people_few": "{{count}} أشخاص",
+    "people_many": "{{count}} شخصًا",
+    "people_other": "{{count}} شخص",
+    "openPerson": "فتح {{name}}، المستحق {{amount}}",
+    "addBonus": "إضافة مكافأة",
+    "addDeduction": "إضافة خصم",
+    "payShare": "دفع الحصة",
+    "paySalary": "دفع الراتب",
+    "payBonus": "دفع المكافأة",
+    "tabs": {
+      "statement": "كشف الحساب",
+      "settings": "إعدادات الأجر"
+    },
+    "calc": {
+      "title": "الحساب",
+      "groups": {
+        "share": "حصة العلاجات",
+        "salary": "الراتب"
+      },
+      "revenue": "العلاجات بعد الخصم",
+      "tax": "الضريبة",
+      "overhead": "المصاريف التشغيلية",
+      "materials": "المختبر والمواد",
+      "net": "الصافي",
+      "clinicShare": "حصة العيادة",
+      "doctorShare": "حصة الطبيب",
+      "waiting": "بانتظار دفع المريض",
+      "share": "الحصة المستحقة",
+      "salary": "الراتب الشهري",
+      "bonus": "مكافأة",
+      "deduction": "خصم",
+      "expected": "إجمالي المستحق",
+      "received": "المدفوع",
+      "owed": "المتبقي"
+    },
+    "patients": {
+      "title_zero": "لا مرضى هذا الشهر",
+      "title_one": "مريض واحد هذا الشهر",
+      "title_two": "مريضان هذا الشهر",
+      "title_few": "{{count}} مرضى هذا الشهر",
+      "title_many": "{{count}} مريضًا هذا الشهر",
+      "title_other": "{{count}} مريض هذا الشهر",
+      "patient": "المريض",
+      "amount": "المبلغ",
+      "patientPaid": "دفع المريض",
+      "paidInFull": "مدفوع بالكامل",
+      "paidPart": "مدفوع {{percent}}%",
+      "notPaid": "غير مدفوع",
+      "share": "حصة الطبيب",
+      "doctorPaid": "الدفع للطبيب",
+      "edit": "تعديل الحصة لـ {{name}}"
+    },
+    "entryKinds": {
+      "extra": "مكافأة",
+      "cut": "خصم",
+      "salary": "دفعة راتب",
+      "share": "دفعة حصة"
+    },
+    "settings": {
+      "saved": "تم حفظ إعدادات الأجر",
+      "clinicPercent": "نسبة العيادة %",
+      "clinicPercentHint": "ما تأخذه العيادة من صافي كل علاج، والباقي للطبيب",
+      "fromHint": "يسري من هذا الشهر فصاعدًا، والأشهر السابقة تبقى كما هي",
+      "history": "التغييرات السابقة"
     }
   },
   "earnings": {

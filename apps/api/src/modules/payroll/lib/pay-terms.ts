@@ -2,6 +2,7 @@ import {
   LAB_COST_BEARER,
   PAY_BASIS,
   PAY_PLAN_KIND,
+  PAY_PLAN_KINDS,
   USER_ROLE,
   type PayPlan,
   type PayPlanKind,
@@ -53,6 +54,16 @@ export function toPayPlan(row: PayPlanRow): PayPlan {
 export function defaultPlan(role: UserRole): PayPlanKind {
   return role === USER_ROLE.VISITING_DOCTOR ? PAY_PLAN_KIND.PERCENTAGE : PAY_PLAN_KIND.SALARY;
 }
+
+export function planKindsFor(role: UserRole, isDoctor: boolean): PayPlanKind[] {
+  if (role === USER_ROLE.VISITING_DOCTOR) {
+    return [PAY_PLAN_KIND.PERCENTAGE];
+  }
+
+  return isDoctor ? [...PAY_PLAN_KINDS] : [PAY_PLAN_KIND.SALARY];
+}
+
+export const isEmployee = (role: UserRole): boolean => role !== USER_ROLE.VISITING_DOCTOR;
 
 export const includesSalary = (kind: PayPlanKind): boolean => kind !== PAY_PLAN_KIND.PERCENTAGE;
 

@@ -28,7 +28,3 @@ export const EMPTY_VISITING_DOCTOR: CreateVisitingDoctorInput = {
   weeklySchedule: [],
   clinicSharePercent: 0,
 };
-
-export const PAYOUT_MODES = ["treatments", "advance"] as const;
-
-export const SETTLEMENT_ALL_TIME_FROM = "2000-01-01";

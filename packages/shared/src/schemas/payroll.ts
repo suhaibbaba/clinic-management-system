@@ -136,14 +136,21 @@ export const payrollLineSchema = z.object({
   role: z.enum(USER_ROLES),
   joinedOn: calendarDateSchema.nullable(),
   plan: z.enum(PAY_PLAN_KINDS),
+  planKinds: z.array(z.enum(PAY_PLAN_KINDS)),
+  employee: z.boolean(),
   doctorId: uuidSchema.nullable(),
   share: signedMoneySchema,
+  sharePayable: signedMoneySchema,
+  sharePaid: signedMoneySchema,
   base: signedMoneySchema,
   extras: signedMoneySchema,
   cuts: signedMoneySchema,
   due: signedMoneySchema,
   paid: signedMoneySchema,
   remaining: signedMoneySchema,
+  expected: signedMoneySchema,
+  received: signedMoneySchema,
+  owed: signedMoneySchema,
   adjustments: z.array(payrollAdjustmentSchema),
   payments: z.array(staffPaymentSchema),
 });
@@ -156,6 +163,9 @@ export const payrollTotalsSchema = z.object({
   due: signedMoneySchema,
   paid: signedMoneySchema,
   remaining: signedMoneySchema,
+  expected: signedMoneySchema,
+  received: signedMoneySchema,
+  owed: signedMoneySchema,
 });
 export type PayrollTotals = z.infer<typeof payrollTotalsSchema>;
 

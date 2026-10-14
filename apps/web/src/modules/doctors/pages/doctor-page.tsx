@@ -1,18 +1,18 @@
 import { type WeeklySchedule } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { Badge, PageHeader, PersonName, useToast } from "@clinic/ui";
 import { WorkingHours } from "@web/shared/components/working-hours";
 import { weekFitsWithin } from "@web/shared/lib/week";
 import { SkeletonForm } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/shared/providers/session";
-import { canEditAnySchedule, canSeeSettlement } from "@web/shared/permissions/doctors";
+import { canEditAnySchedule } from "@web/shared/permissions/doctors";
+import { PAGE_CAPABILITIES, mayOpen } from "@web/shared/lib/navigation";
 import { useClinic } from "@web/shared/queries/clinic";
 import { useDoctor, useUpdateDoctorSchedule } from "@web/modules/doctors/queries";
 import { ExtraHoursPanel } from "@web/modules/schedule/components/extra-hours-panel";
 import { TimeOffPanel } from "@web/modules/schedule/components/time-off-panel";
-import { SettlementSection } from "@web/modules/doctors/components/settlement-section";
 import { errorToast } from "@web/shared/lib/api-error";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
@@ -90,6 +90,15 @@ export function DoctorPage(): JSX.Element {
         <span className="text-label text-ink-muted">
           {doctor.data.defaultAppointmentDurationMinutes} {t("doctors.durationUnit")}
         </span>
+        {mayOpen(PAGE_CAPABILITIES.payroll, can) && (
+          <Link
+            to={`/payroll/${doctor.data.userId}`}
+            data-testid="doctor-pay-link"
+            className="ms-auto text-label font-medium text-primary-700 hover:underline"
+          >
+            {t("doctors.payStatement")}
+          </Link>
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -130,11 +139,6 @@ export function DoctorPage(): JSX.Element {
         </section>
       </div>
 
-      {canSeeSettlement(can) && (
-        <div className="border border-line rounded-card bg-surface shadow-card p-4">
-          <SettlementSection doctorId={id} doctorPhone={doctor.data.user.phone} />
-        </div>
-      )}
       {canEdit && (
         <UnsavedChanges
           data-testid="doctor-unsaved"
