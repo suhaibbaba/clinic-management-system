@@ -61,6 +61,12 @@ export interface SettlementItemRow {
   readonly amount: string;
 }
 
+export interface ShareTotals {
+  readonly share: string;
+  readonly payable: string;
+  readonly paid: string;
+}
+
 export interface SettlementScope {
   readonly clinicId: string;
   readonly timeZone: string;

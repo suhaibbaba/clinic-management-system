@@ -22,8 +22,8 @@ import {
 import { Money } from "@web/shared/components/money";
 import { useLookupOptions } from "@web/shared/queries/lookups";
 import { useCurrency } from "@web/shared/queries/clinic";
-import { useRecordPayout, useSettlement } from "@web/modules/doctors/queries";
-import { PAYOUT_MODES, SETTLEMENT_ALL_TIME_FROM } from "@web/modules/doctors/constants";
+import { useRecordPayout, useSettlement } from "@web/modules/payroll/queries";
+import { PAYOUT_MODES, SETTLEMENT_ALL_TIME_FROM } from "@web/modules/payroll/constants";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { errorToast } from "@web/shared/lib/api-error";
 import { todayIso } from "@web/shared/lib/dates";
@@ -32,7 +32,7 @@ import { formatDate } from "@web/shared/lib/format";
 
 type PayoutMode = (typeof PAYOUT_MODES)[number];
 
-export function DoctorPayoutModal({
+export function SharePayoutModal({
   open,
   onOpenChange,
   doctorId,

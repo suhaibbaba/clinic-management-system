@@ -35,6 +35,7 @@ export const PAGE_CAPABILITIES = {
   users: ["users.list"],
   doctor: ["doctors.updateSchedule"],
   payroll: ["payroll.month"],
+  payrollRules: ["payroll.payRules"],
   myEarnings: ["my-settlement.statement"],
   lists: ["lookups.create"],
   priceList: ["procedure-catalog.create", "procedure-catalog.update"],
@@ -208,6 +209,7 @@ const BACK_ROUTES: readonly (BackTarget & { readonly pattern: RegExp })[] = [
     label: "nav.inventory",
   },
   { pattern: /^\/doctors\/[^/]+$/, to: "/users?view=doctors", label: "nav.users" },
+  { pattern: /^\/payroll\/[^/]+$/, to: "/payroll", label: "nav.payroll" },
   { pattern: /^\/profile$/, to: "/dashboard", label: "nav.dashboard" },
 ];
 

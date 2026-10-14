@@ -14,6 +14,8 @@ describe("the back button's target", () => {
     expect(backTarget("/inventory/shopping-list", canFor(USER_ROLE.ADMIN))?.to).toBe("/inventory");
     expect(backTarget("/doctors/d-1", canFor(USER_ROLE.ADMIN))?.to).toBe("/users?view=doctors");
     expect(backTarget("/profile", canFor(USER_ROLE.RECEPTIONIST))?.to).toBe("/dashboard");
+    expect(backTarget("/payroll/u-1", canFor(USER_ROLE.ADMIN))?.to).toBe("/payroll");
+    expect(backTarget("/payroll/settings", canFor(USER_ROLE.ADMIN))?.to).toBe("/payroll");
   });
 
   it("offers nothing on a section the sidebar already reaches", () => {
@@ -33,6 +35,7 @@ describe("the back button's target", () => {
 
   it("never points a reader at a parent its route guard would bounce", () => {
     expect(backTarget("/doctors/d-1", canFor(USER_ROLE.RECEPTIONIST))).toBeUndefined();
+    expect(backTarget("/payroll/u-1", canFor(USER_ROLE.RECEPTIONIST))).toBeUndefined();
     expect(backTarget("/patients/p-1", undefined)).toBeUndefined();
   });
 });

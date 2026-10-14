@@ -25,7 +25,7 @@ import {
   type SalaryTermsInput,
   type StaffPayment,
 } from "@clinic/shared";
-import { and, asc, desc, eq, inArray, isNull, lte, ne, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
@@ -54,7 +54,13 @@ import {
   toSalaryTerm,
   toStaffPayment,
 } from "@api/modules/payroll/lib/payroll";
-import { includesSalary, includesShare } from "@api/modules/payroll/lib/pay-terms";
+import {
+  includesSalary,
+  includesShare,
+  isEmployee,
+  planKindsFor,
+} from "@api/modules/payroll/lib/pay-terms";
+import { type ShareTotals } from "@api/modules/payroll/lib/doctor-settlements";
 import { DoctorSettlementsService } from "@api/modules/payroll/services/doctor-settlements.service";
 import { PayTermsService } from "@api/modules/payroll/services/pay-terms.service";
 import { StaffPaymentsService } from "@api/modules/payroll/services/staff-payments.service";
@@ -107,7 +113,10 @@ export class PayrollService implements OnModuleInit {
     const closed = await this.closedMonth(actor.clinicId, month);
     const shares = await this.sharesIn(actor.clinicId, month);
     const lines = await this.linesFor(actor.clinicId, month, shares, closed?.lines);
-    const doctorShares = [...shares.values()].reduce((sum, share) => addMoney(sum, share), ZERO);
+    const doctorShares = [...shares.values()].reduce(
+      (sum, totals) => addMoney(sum, totals.share),
+      ZERO,
+    );
 
     const totals = lines.reduce(
       (sum, line) => ({
@@ -117,8 +126,21 @@ export class PayrollService implements OnModuleInit {
         due: addMoney(sum.due, line.due),
         paid: addMoney(sum.paid, line.paid),
         remaining: addMoney(sum.remaining, line.remaining),
+        expected: addMoney(sum.expected, line.expected),
+        received: addMoney(sum.received, line.received),
+        owed: addMoney(sum.owed, line.owed),
       }),
-      { base: ZERO, extras: ZERO, cuts: ZERO, due: ZERO, paid: ZERO, remaining: ZERO },
+      {
+        base: ZERO,
+        extras: ZERO,
+        cuts: ZERO,
+        due: ZERO,
+        paid: ZERO,
+        remaining: ZERO,
+        expected: ZERO,
+        received: ZERO,
+        owed: ZERO,
+      },
     );
 
     return {
@@ -299,10 +321,10 @@ export class PayrollService implements OnModuleInit {
     return this.payroll(actor, month);
   }
 
-  private async sharesIn(clinicId: string, month: PayrollMonth): Promise<Map<string, string>> {
+  private async sharesIn(clinicId: string, month: PayrollMonth): Promise<Map<string, ShareTotals>> {
     const timeZone = await clinicTimeZone(this.db, clinicId);
 
-    return this.settlements.sharesBetween(
+    return this.settlements.shareTotalsBetween(
       clinicId,
       instantFromLocal(monthStart(month), 0, timeZone),
       instantFromLocal(nextMonthStart(month), 0, timeZone),
@@ -312,7 +334,7 @@ export class PayrollService implements OnModuleInit {
   private async linesFor(
     clinicId: string,
     month: PayrollMonth,
-    shares: ReadonlyMap<string, string>,
+    shares: ReadonlyMap<string, ShareTotals>,
     snapshot?: readonly PayrollLineSnapshot[],
   ): Promise<PayrollLine[]> {
     const start = monthStart(month);
@@ -339,7 +361,6 @@ export class PayrollService implements OnModuleInit {
             : and(
                 isNull(users.deletedAt),
                 eq(users.isActive, true),
-                ne(users.role, USER_ROLE.VISITING_DOCTOR),
                 or(isNull(users.joinedOn), lte(users.joinedOn, monthEnd(month))),
               ),
         ),
@@ -396,15 +417,19 @@ export class PayrollService implements OnModuleInit {
       const plan = frozen?.plan ?? plans.get(person.id) ?? PAY_PLAN_KIND.SALARY;
       const salary = terms.find((row) => row.userId === person.id)?.monthlyAmount ?? ZERO;
       const base = frozen?.base ?? (includesSalary(plan) ? salary : ZERO);
-      const share =
-        frozen?.share ??
-        (includesShare(plan) && person.doctorId ? (shares.get(person.doctorId) ?? ZERO) : ZERO);
+      const earned =
+        includesShare(plan) && person.doctorId ? shares.get(person.doctorId) : undefined;
+      const share = frozen?.share ?? earned?.share ?? ZERO;
+      const sharePayable = earned?.payable ?? ZERO;
+      const sharePaid = earned?.paid ?? ZERO;
       const extras =
         frozen?.extras ?? sumOf(own.filter((row) => row.kind === PAYROLL_ADJUSTMENT_KIND.EXTRA));
       const cuts =
         frozen?.cuts ?? sumOf(own.filter((row) => row.kind === PAYROLL_ADJUSTMENT_KIND.CUT));
       const due = frozen?.due ?? addMoney(addMoney(base, extras), negate(cuts));
       const settled = sumOf(payments);
+      const expected = addMoney(due, sharePayable);
+      const received = addMoney(settled, sharePaid);
 
       return {
         userId: person.id,
@@ -412,14 +437,21 @@ export class PayrollService implements OnModuleInit {
         role: person.role,
         joinedOn: person.joinedOn,
         plan,
+        planKinds: planKindsFor(person.role, person.doctorId !== null),
+        employee: isEmployee(person.role),
         doctorId: person.doctorId,
         share: addMoney(share, ZERO),
+        sharePayable,
+        sharePaid,
         base: addMoney(base, ZERO),
         extras,
         cuts,
         due,
         paid: settled,
         remaining: addMoney(due, negate(settled)),
+        expected,
+        received,
+        owed: addMoney(expected, negate(received)),
         adjustments: own.map(toAdjustment),
         payments: payments.map(toStaffPayment),
       };

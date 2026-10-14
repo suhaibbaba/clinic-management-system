@@ -70,7 +70,7 @@ export function AdjustmentModal({
       data-testid="payroll-adjustment-modal"
       open={target !== null}
       onOpenChange={(open) => !open && onClose()}
-      title={target?.kind === "cut" ? "payroll.addCut" : "payroll.addExtra"}
+      title={target?.kind === "cut" ? "payroll.addDeduction" : "payroll.addBonus"}
       footer={
         <>
           <Button variant="secondary" data-testid="payroll-adjustment-cancel" onClick={onClose}>

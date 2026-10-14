@@ -1,6 +1,8 @@
 import {
   PAYROLL_ERROR,
   USER_ROLE,
+  addMoney,
+  subtractMoney,
   type DoctorSettlement,
   type OwnSettlement,
   type Payroll,
@@ -366,6 +368,26 @@ describe("Percentage pay (e2e)", () => {
         effectiveMonth: THIS_MONTH,
       });
       expect(await month()).toMatchObject({ plan: "salary_and_percentage", base: "4000.00" });
+
+      const both = await month();
+      expect(both?.expected).toBe(addMoney(both?.due ?? "0.00", both?.sharePayable ?? "0.00"));
+      expect(both?.owed).toBe(subtractMoney(both?.expected ?? "0.00", both?.received ?? "0.00"));
+    });
+
+    it("lists a visiting doctor on their share alone", async () => {
+      const report = (await send("GET", `/payroll/${THIS_MONTH}`)).json() as Payroll;
+      const visitor = report.lines.find(
+        (entry) => entry.userId === clinic.userIds[USER_ROLE.VISITING_DOCTOR],
+      );
+
+      expect(visitor).toMatchObject({
+        plan: "percentage",
+        planKinds: ["percentage"],
+        employee: false,
+        base: "0.00",
+        due: "0.00",
+      });
+      expect(visitor?.expected).toBe(visitor?.sharePayable);
     });
 
     it("puts on a percentage only somebody who treats patients", async () => {
