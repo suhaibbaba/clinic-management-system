@@ -29,6 +29,7 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, doctors, siteContent, specialties, users } from "@api/database/schema";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { StorageService } from "@api/modules/storage/services/storage.service";
+import { ClinicsService } from "@api/modules/clinics/services/clinics.service";
 import { SITE_IMAGE_CATEGORY } from "@api/modules/website/constants";
 import {
   sameContent,
@@ -86,6 +87,7 @@ export class WebsiteService implements OnModuleInit {
     @Inject(DATABASE) private readonly db: Database,
     private readonly storage: StorageService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly clinicsService: ClinicsService,
   ) {}
 
   onModuleInit(): void {
@@ -202,9 +204,15 @@ export class WebsiteService implements OnModuleInit {
 
   async headByHost(host: string | undefined, slug: string | undefined): Promise<string> {
     try {
-      const site = slug ? await this.publicBySlug(slug) : await this.publicByHost(host);
+      const clinic = slug
+        ? await this.liveClinic(eq(clinics.slug, slug))
+        : await this.clinicForHost(host);
+      const [site, icons] = await Promise.all([
+        this.publicSite(clinic),
+        this.clinicsService.siteIconUrls(clinic.id),
+      ]);
 
-      return siteHead(site);
+      return siteHead(site, icons);
     } catch (error) {
       if (error instanceof NotFoundException) {
         return "";

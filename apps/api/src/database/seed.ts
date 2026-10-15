@@ -1,10 +1,14 @@
 import { hash } from "@node-rs/argon2";
+import { USER_ROLE } from "@clinic/shared";
+import { ConfigService } from "@nestjs/config";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { validateEnv } from "@api/config/env.schema";
+import { validateEnv, type Env } from "@api/config/env.schema";
 import * as schema from "@api/database/schema";
 import { CLINIC_NAME } from "@api/database/seed/clinic";
 import { seedDatabase, type SeedSummary } from "@api/database/seed/seed-database";
+import { seedWebsite } from "@api/database/seed/website";
+import { StorageService } from "@api/modules/storage/services/storage.service";
 
 async function main(): Promise<void> {
   const env = validateEnv(process.env);
@@ -25,10 +29,45 @@ async function main(): Promise<void> {
     });
 
     const summary = await seedDatabase(db, { passwordHash });
+    const website = await seedWebsiteSafely(
+      db,
+      new StorageService(new ConfigService<Env, true>(env)),
+      summary,
+    );
 
-    report(summary, env.SEED_PASSWORD, Date.now() - startedAt);
+    report(
+      { ...summary, notes: [...summary.notes, ...website] },
+      env.SEED_PASSWORD,
+      Date.now() - startedAt,
+    );
   } finally {
     await client.end();
+  }
+}
+
+async function seedWebsiteSafely(
+  db: Parameters<typeof seedWebsite>[0],
+  storage: StorageService,
+  summary: SeedSummary,
+): Promise<string[]> {
+  const adminId = summary.accounts.find(({ account }) => account.role === USER_ROLE.ADMIN)?.id;
+
+  if (!adminId) {
+    return [];
+  }
+
+  try {
+    return await seedWebsite(db, storage, {
+      clinicId: summary.clinicId,
+      adminId,
+      doctorUserIds: summary.accounts
+        .filter(({ account }) => account.role === USER_ROLE.DOCTOR)
+        .map(({ id }) => id),
+    });
+  } catch (error: unknown) {
+    return [`The website, logo and photos were not seeded: ${String(error)}`];
+  } finally {
+    storage.onApplicationShutdown();
   }
 }
 

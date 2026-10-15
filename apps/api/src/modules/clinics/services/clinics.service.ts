@@ -158,6 +158,34 @@ export class ClinicsService implements OnModuleInit {
     return (await this.storage.createBrandingUrl(iconKey(source, icon.name))).url;
   }
 
+  async siteIconUrls(
+    clinicId: string,
+  ): Promise<{ favicon: string; appleTouchIcon: string } | null> {
+    const [row] = await this.db
+      .select({
+        logoKey: clinics.logoKey,
+        appIconKey: clinics.appIconKey,
+        logoIconsAt: clinics.logoIconsAt,
+      })
+      .from(clinics)
+      .where(and(eq(clinics.id, clinicId), isNull(clinics.deletedAt)))
+      .limit(1);
+
+    const source = row ? iconSource(row) : null;
+
+    if (!source || row?.logoIconsAt == null) {
+      return null;
+    }
+
+    const [favicon, appleTouchIcon] = await Promise.all(
+      ["favicon.ico", "apple-touch-icon.png"].map(
+        async (name) => (await this.storage.createBrandingUrl(iconKey(source, name))).url,
+      ),
+    );
+
+    return favicon && appleTouchIcon ? { favicon, appleTouchIcon } : null;
+  }
+
   async presignLogo(
     actor: AuthenticatedUser,
     input: PresignClinicLogoInput,

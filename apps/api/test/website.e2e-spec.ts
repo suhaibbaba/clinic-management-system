@@ -9,7 +9,7 @@ import {
   type WebsiteEditor,
 } from "@clinic/shared";
 import { and, eq } from "drizzle-orm";
-import { auditLog } from "@api/database/schema";
+import { auditLog, clinics } from "@api/database/schema";
 import { seedClinicFixtures, uniquePhone } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
@@ -192,6 +192,24 @@ describe("Website (e2e)", () => {
       expect(head.headers["content-type"]).toContain("text/html");
       expect(head.body).toContain("ابتسامة أفضل");
       expect(head.body).not.toContain("مسودة سرية");
+      expect(head.body).not.toContain('rel="icon"');
+    });
+
+    it("gives the head the clinic's own tab icon once its icons are made", async () => {
+      await context.db
+        .update(clinics)
+        .set({ logoKey: `clinic/${clinic.id}/branding/logo.png`, logoIconsAt: new Date() })
+        .where(eq(clinics.id, clinic.id));
+
+      const head = await inject("GET", `/public/site/head?slug=${clinic.slug}`);
+
+      expect(head.body).toMatch(/rel="icon" type="image\/x-icon" href="[^"]+\/icons\/favicon\.ico/);
+      expect(head.body).toMatch(/rel="apple-touch-icon" href="[^"]+\/icons\/apple-touch-icon\.png/);
+
+      await context.db
+        .update(clinics)
+        .set({ logoKey: null, logoIconsAt: null })
+        .where(eq(clinics.id, clinic.id));
     });
   });
 
