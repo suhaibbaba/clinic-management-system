@@ -272,7 +272,7 @@
       "created": "Visiting Doctor Added",
       "optionLabel": "{{name}} · visiting",
       "clinicShare": "Clinic Share %",
-      "clinicShareHint": "The percentage the clinic keeps from each treatment's net",
+      "clinicShareHint": "Leave empty to follow the clinic's general rate",
       "scheduleHint": "Optional. Leave it empty to book them any time the clinic is open."
     },
     "settlement": {
@@ -2612,11 +2612,13 @@
       "basis": "Share is worked out on",
       "bearer": "Lab and material costs",
       "history": "Earlier changes",
-      "summary": "Tax {{tax}}% · Expenses {{overhead}}% · {{basis}}",
+      "summary": "Clinic {{clinic}}% · Tax {{tax}}% · Expenses {{overhead}}% · {{basis}}",
       "bearers": {
         "shared": "Shared",
         "doctor": "On the doctor"
-      }
+      },
+      "clinicShare": "Clinic's share %, for every doctor",
+      "clinicShareHint": "What the clinic keeps of each treatment's net. A doctor with their own rate keeps theirs"
     },
     "plan": {
       "kinds": {
@@ -2717,7 +2719,12 @@
         "profit": "Clinic profit"
       },
       "staffPercent": "Their share %",
-      "shareOf": "{{percent}}% of {{basis}}"
+      "shareOf": "{{percent}}% of {{basis}}",
+      "followClinic": "The clinic's general rate ({{percent}}%)",
+      "followClinicHint": "Changes whenever the general rate changes",
+      "ownRate": "Their own rate",
+      "ownRateHint": "Stays the same when the general rate changes",
+      "ownClinicPercent": "Clinic's share % for this doctor"
     },
     "payPercent": "Pay Percentage",
     "closeDraw": "The owner's draw of {{amount}} is recorded and next month starts from zero"

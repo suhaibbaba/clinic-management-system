@@ -25,6 +25,7 @@ export type ShareTermRow = typeof shareTerms.$inferSelect;
 export function toPayRule(row: PayRuleRow): PayRule {
   return {
     id: row.id,
+    clinicSharePercent: Number(row.clinicSharePercent),
     taxPercent: Number(row.taxPercent),
     overheadPercent: Number(row.overheadPercent),
     basis: row.basis,
@@ -37,6 +38,7 @@ export function toPayRule(row: PayRuleRow): PayRule {
 export function defaultPayRule(month: PayrollMonth): PayRule {
   return {
     id: null,
+    clinicSharePercent: 0,
     taxPercent: 0,
     overheadPercent: 0,
     basis: PAY_BASIS.DONE,

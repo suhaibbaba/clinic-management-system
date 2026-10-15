@@ -46,11 +46,11 @@ const asNumber = (value: string): number => (value === "" ? Number.NaN : Number(
 export function PaySettingsForm({
   line,
   thisMonth,
-  clinicPercent,
+  clinicRate,
 }: {
   readonly line: PayrollLine;
   readonly thisMonth: string;
-  readonly clinicPercent: number | undefined;
+  readonly clinicRate: { readonly own: number | null; readonly general: number } | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
@@ -65,11 +65,13 @@ export function PaySettingsForm({
   const setClinicRate = useSetClinicRate();
 
   const savedSalary = salaries.data?.[0]?.monthlyAmount;
-  const savedClinic = clinicPercent === undefined ? "" : String(clinicPercent);
+  const savedFollows = clinicRate?.own === null;
+  const savedClinic = clinicRate === undefined ? "" : String(clinicRate.own ?? clinicRate.general);
   const [kind, setKind] = useState<PayPlanKind>(line.plan);
   const [basis, setBasis] = useState<StaffShareBasis>(line.shareBasis);
   const [amount, setAmount] = useState("");
   const [clinic, setClinic] = useState("");
+  const [follows, setFollows] = useState(savedFollows);
   const [staff, setStaff] = useState(String(line.shareRate));
   const [effectiveMonth, setEffectiveMonth] = useState(thisMonth);
 
@@ -78,6 +80,7 @@ export function PaySettingsForm({
   useEffect(() => setStaff(String(line.shareRate)), [line.shareRate]);
   useEffect(() => setAmount(savedSalary ? whole(savedSalary) : ""), [savedSalary]);
   useEffect(() => setClinic(savedClinic), [savedClinic]);
+  useEffect(() => setFollows(savedFollows), [savedFollows]);
 
   const bases = STAFF_SHARE_BASES.filter(
     (value) => value !== STAFF_SHARE_BASIS.TREATMENTS || line.doctorId !== null,
@@ -93,12 +96,19 @@ export function PaySettingsForm({
     line.employee &&
     withShare &&
     (basis !== line.shareBasis || (onPercent && staff !== String(line.shareRate)));
-  const clinicChanged = onTreatments && line.doctorId !== null && clinic !== savedClinic;
+  const clinicChanged =
+    onTreatments &&
+    line.doctorId !== null &&
+    clinicRate !== undefined &&
+    (follows !== savedFollows || (!follows && clinic !== savedClinic));
   const changed = planChanged || salaryChanged || termsChanged || clinicChanged;
 
   const salaryBody = { monthlyAmount: amount, effectiveMonth };
   const termsBody = { basis, percent: onPercent ? asNumber(staff) : 0, effectiveMonth };
-  const clinicBody = { clinicSharePercent: asNumber(clinic), effectiveMonth };
+  const clinicBody = {
+    clinicSharePercent: follows ? null : asNumber(clinic),
+    effectiveMonth,
+  };
   const form = useFormErrors({
     ...(planChanged ? schemaErrors(payPlanInputSchema, { kind, effectiveMonth }) : {}),
     ...(salaryChanged ? schemaErrors(salaryTermsInputSchema, salaryBody) : {}),
@@ -124,10 +134,7 @@ export function PaySettingsForm({
         await setShareTerms.mutateAsync({ userId: line.userId, body: termsBody });
       }
       if (clinicChanged && line.doctorId) {
-        await setClinicRate.mutateAsync({
-          doctorId: line.doctorId,
-          body: { clinicSharePercent: Number(clinic), effectiveMonth },
-        });
+        await setClinicRate.mutateAsync({ doctorId: line.doctorId, body: clinicBody });
       }
       toast.success("payroll.settings.saved");
     } catch (error) {
@@ -232,12 +239,39 @@ export function PaySettingsForm({
             </FormField>
           )}
 
-          {onTreatments && line.doctorId && (
+          {onTreatments && line.doctorId && clinicRate && (
+            <FormField
+              label="payroll.settings.clinicPercent"
+              htmlFor="pay-settings-clinic-source"
+              hint="payroll.settings.clinicPercentHint"
+            >
+              <RadioGroup
+                id="pay-settings-clinic-source"
+                data-testid="pay-settings-clinic-source"
+                label={t("payroll.settings.clinicPercent")}
+                value={follows ? "general" : "own"}
+                onChange={(value) => setFollows(value === "general")}
+                options={[
+                  {
+                    value: "general",
+                    label: t("payroll.settings.followClinic", { percent: clinicRate.general }),
+                    description: t("payroll.settings.followClinicHint"),
+                  },
+                  {
+                    value: "own",
+                    label: t("payroll.settings.ownRate"),
+                    description: t("payroll.settings.ownRateHint"),
+                  },
+                ]}
+              />
+            </FormField>
+          )}
+
+          {onTreatments && line.doctorId && clinicRate && !follows && (
             <div onBlur={form.leave("clinicSharePercent")}>
               <FormField
-                label="payroll.settings.clinicPercent"
+                label="payroll.settings.ownClinicPercent"
                 htmlFor="pay-settings-clinic"
-                hint="payroll.settings.clinicPercentHint"
                 error={form.errors["clinicSharePercent"]}
                 required
               >

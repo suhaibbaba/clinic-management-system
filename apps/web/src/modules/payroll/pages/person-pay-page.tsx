@@ -176,7 +176,14 @@ export function PersonPayPage(): JSX.Element {
           <PaySettingsForm
             line={line}
             thisMonth={thisMonth}
-            clinicPercent={settlement.data?.clinicSharePercent}
+            clinicRate={
+              settlement.data
+                ? {
+                    own: settlement.data.clinicShareOwn,
+                    general: settlement.data.clinicShareDefault,
+                  }
+                : undefined
+            }
           />
         )}
       </TabPanel>

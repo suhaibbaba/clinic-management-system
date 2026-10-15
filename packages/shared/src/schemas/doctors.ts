@@ -86,7 +86,7 @@ export const createVisitingDoctorSchema = z.object({
   specialtyId: z.uuid(),
   defaultAppointmentDurationMinutes: appointmentDurationSchema,
   weeklySchedule: weeklyScheduleSchema,
-  clinicSharePercent: clinicSharePercentSchema,
+  clinicSharePercent: clinicSharePercentSchema.nullable().default(null),
 });
 export type CreateVisitingDoctorInput = z.infer<typeof createVisitingDoctorSchema>;
 

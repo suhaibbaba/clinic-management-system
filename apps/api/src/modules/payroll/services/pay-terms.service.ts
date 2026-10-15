@@ -101,7 +101,8 @@ export class PayTermsService implements OnModuleInit {
       return row
         ? {
             doctorId: row.doctorId,
-            clinicSharePercent: Number(row.clinicSharePercent),
+            clinicSharePercent:
+              row.clinicSharePercent === null ? null : Number(row.clinicSharePercent),
             effectiveMonth: monthOf(row.effectiveMonth),
           }
         : null;
@@ -135,6 +136,7 @@ export class PayTermsService implements OnModuleInit {
       .values({
         clinicId: actor.clinicId,
         effectiveMonth: monthStart(input.effectiveMonth),
+        clinicSharePercent: String(input.clinicSharePercent),
         taxPercent: String(input.taxPercent),
         overheadPercent: String(input.overheadPercent),
         basis: input.basis,
@@ -312,7 +314,7 @@ export class PayTermsService implements OnModuleInit {
   async setDoctorRate(
     actor: AuthenticatedUser,
     doctorId: string,
-    clinicSharePercent: number,
+    clinicSharePercent: number | null,
     effectiveMonth: PayrollMonth,
   ): Promise<string> {
     await this.requireNotPast(actor.clinicId, effectiveMonth);
@@ -323,7 +325,7 @@ export class PayTermsService implements OnModuleInit {
         clinicId: actor.clinicId,
         doctorId,
         effectiveMonth: monthStart(effectiveMonth),
-        clinicSharePercent: String(clinicSharePercent),
+        clinicSharePercent: clinicSharePercent === null ? null : String(clinicSharePercent),
         createdBy: actor.id,
       })
       .returning({ id: doctorRates.id });
@@ -339,7 +341,7 @@ export class PayTermsService implements OnModuleInit {
     clinicId: string,
     doctor: { id: string; clinicSharePercent: string | null },
     month: PayrollMonth,
-  ): Promise<number> {
+  ): Promise<number | null> {
     const [row] = await this.db
       .select({ percent: doctorRates.clinicSharePercent })
       .from(doctorRates)
@@ -352,8 +354,9 @@ export class PayTermsService implements OnModuleInit {
       )
       .orderBy(desc(doctorRates.effectiveMonth), desc(doctorRates.createdAt))
       .limit(1);
+    const own = row ? row.percent : doctor.clinicSharePercent;
 
-    return Number(row?.percent ?? doctor.clinicSharePercent ?? 0);
+    return own === null ? null : Number(own);
   }
 
   async requireOpenFrom(clinicId: string, month: PayrollMonth): Promise<void> {

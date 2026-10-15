@@ -20,7 +20,7 @@ export const settlementQuerySchema = z
 export type SettlementQuery = z.infer<typeof settlementQuerySchema>;
 
 export const settlementTermsSchema = z.object({
-  clinicSharePercent: clinicSharePercentSchema,
+  clinicSharePercent: clinicSharePercentSchema.nullable(),
   effectiveMonth: payrollMonthSchema,
 });
 export type SettlementTermsInput = z.infer<typeof settlementTermsSchema>;
@@ -131,6 +131,8 @@ export const doctorSettlementSchema = z.object({
   from: calendarDateSchema,
   to: calendarDateSchema,
   clinicSharePercent: clinicSharePercentSchema,
+  clinicShareOwn: clinicSharePercentSchema.nullable(),
+  clinicShareDefault: clinicSharePercentSchema,
   onPercentage: z.boolean(),
   basis: z.enum(PAY_BASES),
   labCostBearer: z.enum(LAB_COST_BEARERS),

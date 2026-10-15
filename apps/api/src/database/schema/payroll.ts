@@ -160,6 +160,7 @@ export const payRules = pgTable(
       .notNull()
       .references(() => clinics.id),
     effectiveMonth: date("effective_month").notNull(),
+    clinicSharePercent: percent("clinic_share_percent").notNull().default("0"),
     taxPercent: percent("tax_percent").notNull(),
     overheadPercent: percent("overhead_percent").notNull(),
     basis: payBasisEnum("basis").notNull(),
@@ -181,7 +182,7 @@ export const doctorRates = pgTable(
       .notNull()
       .references(() => doctors.id),
     effectiveMonth: date("effective_month").notNull(),
-    clinicSharePercent: percent("clinic_share_percent").notNull(),
+    clinicSharePercent: percent("clinic_share_percent"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     createdBy: uuid("created_by"),
   },

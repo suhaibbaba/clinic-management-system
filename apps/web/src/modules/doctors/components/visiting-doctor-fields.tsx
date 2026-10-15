@@ -132,6 +132,7 @@ export function VisitingDoctorFields({ form, submit }: VisitingDoctorForm): JSX.
           htmlFor="visiting-doctor-share"
           hint="doctors.visiting.clinicShareHint"
           error={errors.clinicSharePercent}
+          optional
         >
           <Controller
             name="clinicSharePercent"
@@ -140,11 +141,9 @@ export function VisitingDoctorFields({ form, submit }: VisitingDoctorForm): JSX.
               <QuantityInput
                 id="visiting-doctor-share"
                 data-testid="visiting-doctor-field-share"
-                value={Number.isNaN(field.value) ? "" : String(field.value)}
+                value={field.value === null ? "" : String(field.value)}
                 onChange={(event) =>
-                  field.onChange(
-                    event.target.value === "" ? Number.NaN : Number(event.target.value),
-                  )
+                  field.onChange(event.target.value === "" ? null : Number(event.target.value))
                 }
                 onBlur={field.onBlur}
               />
