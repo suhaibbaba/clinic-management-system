@@ -9,14 +9,19 @@ import {
 import {
   PAY_PLAN_KIND,
   PAYROLL_ADJUSTMENT_KIND,
+  MOVEMENT_TYPE,
   PAYROLL_ERROR,
   STAFF_PAYMENT_KIND,
+  STAFF_SHARE_BASIS,
   USER_ROLE,
   addMoney,
   instantFromLocal,
+  subtractMoney,
   localDate,
   type CreatePayrollAdjustmentInput,
   type CreateSalaryPaymentInput,
+  type MonthProfit,
+  type OwnerDraw,
   type Payroll,
   type PayrollAdjustment,
   type PayrollLine,
@@ -32,10 +37,14 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import {
   doctors,
+  labPayments,
+  ownerDraws,
+  payments,
   payrollAdjustments,
   payrollMonths,
   salaryTerms,
   staffPayments,
+  stockMovements,
   users,
   type PayrollLineSnapshot,
 } from "@api/database/schema";
@@ -52,9 +61,19 @@ import {
   nextMonthStart,
   toAdjustment,
   toSalaryTerm,
+  toOwnerDraw,
   toStaffPayment,
 } from "@api/modules/payroll/lib/payroll";
 import {
+  percentOf,
+  profitBeforeShares,
+  sumMoney,
+  withProfitShares,
+  type MonthOutgoings,
+} from "@api/modules/payroll/lib/profit";
+import { ExpensesService } from "@api/modules/expenses/services/expenses.service";
+import {
+  defaultShareTerms,
   includesSalary,
   includesShare,
   isEmployee,
@@ -74,6 +93,7 @@ export class PayrollService implements OnModuleInit {
     private readonly payments: StaffPaymentsService,
     private readonly settlements: DoctorSettlementsService,
     private readonly terms: PayTermsService,
+    private readonly expenses: ExpensesService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
   ) {}
 
@@ -110,12 +130,14 @@ export class PayrollService implements OnModuleInit {
   }
 
   async payroll(actor: AuthenticatedUser, month: PayrollMonth): Promise<Payroll> {
-    const closed = await this.closedMonth(actor.clinicId, month);
-    const shares = await this.sharesIn(actor.clinicId, month);
-    const lines = await this.linesFor(actor.clinicId, month, shares, closed?.lines);
-    const doctorShares = [...shares.values()].reduce(
-      (sum, totals) => addMoney(sum, totals.share),
-      ZERO,
+    const [closed, draw] = await Promise.all([
+      this.closedMonth(actor.clinicId, month),
+      this.drawOf(actor.clinicId, month),
+    ]);
+    const { lines, profit, doctorShares } = await this.monthFor(
+      actor.clinicId,
+      month,
+      closed?.lines,
     );
 
     const totals = lines.reduce(
@@ -146,11 +168,23 @@ export class PayrollService implements OnModuleInit {
     return {
       month,
       closedAt: closed?.closedAt.toISOString() ?? null,
+      profit: draw?.profit ?? profit,
+      draw,
       lines,
       totals,
       doctorShares,
       staffCost: addMoney(totals.due, doctorShares),
     };
+  }
+
+  async ownerDraws(actor: AuthenticatedUser): Promise<OwnerDraw[]> {
+    const rows = await this.db
+      .select()
+      .from(ownerDraws)
+      .where(eq(ownerDraws.clinicId, actor.clinicId))
+      .orderBy(desc(ownerDraws.month));
+
+    return rows.map(toOwnerDraw);
   }
 
   async salaryHistory(actor: AuthenticatedUser, userId: string): Promise<SalaryTerm[]> {
@@ -297,44 +331,145 @@ export class PayrollService implements OnModuleInit {
       throw new BadRequestException(PAYROLL_ERROR.FUTURE_MONTH);
     }
 
-    const lines = await this.linesFor(
-      actor.clinicId,
-      month,
-      await this.sharesIn(actor.clinicId, month),
-    );
+    const { lines, profit } = await this.monthFor(actor.clinicId, month);
 
-    await this.db.insert(payrollMonths).values({
-      clinicId: actor.clinicId,
-      month: monthStart(month),
-      lines: lines.map(({ userId, plan, share, base, extras, cuts, due }) => ({
-        userId,
-        plan,
-        share,
-        base,
-        extras,
-        cuts,
-        due,
-      })),
-      closedBy: actor.id,
+    await this.db.transaction(async (tx) => {
+      await tx.insert(payrollMonths).values({
+        clinicId: actor.clinicId,
+        month: monthStart(month),
+        lines: lines.map(
+          ({
+            userId,
+            plan,
+            share,
+            shareBasis,
+            shareRate,
+            percentBase,
+            percentShare,
+            base,
+            extras,
+            cuts,
+            due,
+          }) => ({
+            userId,
+            plan,
+            share,
+            shareBasis,
+            shareRate,
+            percentBase,
+            percentShare,
+            base,
+            extras,
+            cuts,
+            due,
+          }),
+        ),
+        closedBy: actor.id,
+      });
+
+      await tx.insert(ownerDraws).values({
+        clinicId: actor.clinicId,
+        month: monthStart(month),
+        amount: profit.ownerProfit,
+        profit,
+        createdBy: actor.id,
+      });
     });
 
     return this.payroll(actor, month);
   }
 
-  private async sharesIn(clinicId: string, month: PayrollMonth): Promise<Map<string, ShareTotals>> {
+  private async monthFor(
+    clinicId: string,
+    month: PayrollMonth,
+    snapshot?: readonly PayrollLineSnapshot[],
+  ): Promise<{ lines: PayrollLine[]; profit: MonthProfit; doctorShares: string }> {
     const timeZone = await clinicTimeZone(this.db, clinicId);
-
-    return this.settlements.shareTotalsBetween(
-      clinicId,
-      instantFromLocal(monthStart(month), 0, timeZone),
-      instantFromLocal(nextMonthStart(month), 0, timeZone),
+    const start = instantFromLocal(monthStart(month), 0, timeZone);
+    const end = instantFromLocal(nextMonthStart(month), 0, timeZone);
+    const [shares, outgoings] = await Promise.all([
+      this.settlements.shareTotalsBetween(clinicId, start, end),
+      this.outgoingsOf(clinicId, month, start, end),
+    ]);
+    const drafts = await this.linesFor(clinicId, month, shares, outgoings.collections, snapshot);
+    const before = profitBeforeShares(
+      outgoings,
+      sumMoney(drafts.map((line) => line.due)),
+      sumMoney(drafts.map((line) => line.sharePayable)),
     );
+    const lines = drafts.map((line) => withShareOfProfit(line, before.beforeShares, snapshot));
+    const profit = withProfitShares(
+      before,
+      sumMoney(
+        lines
+          .filter((line) => line.shareBasis === STAFF_SHARE_BASIS.PROFIT)
+          .map((line) => line.percentShare),
+      ),
+    );
+
+    return {
+      lines,
+      profit,
+      doctorShares: sumMoney([...shares.values()].map((totals) => totals.share)),
+    };
+  }
+
+  private async outgoingsOf(
+    clinicId: string,
+    month: PayrollMonth,
+    start: Date,
+    end: Date,
+  ): Promise<MonthOutgoings> {
+    const from = start.toISOString();
+    const until = end.toISOString();
+    const sumWhere = async (query: ReturnType<typeof sql>): Promise<string> => {
+      const [row] = [...(await this.db.execute<{ total: string | null }>(query))];
+
+      return addMoney(row?.total ?? ZERO, ZERO);
+    };
+
+    const [collections, labs, stock, spent] = await Promise.all([
+      sumWhere(
+        sql`select coalesce(sum(${payments.amount}), 0)::numeric(12, 2)::text as total
+            from ${payments}
+            where ${payments.clinicId} = ${clinicId} and ${payments.deletedAt} is null
+              and ${payments.createdAt} >= ${from}::timestamptz and ${payments.createdAt} < ${until}::timestamptz`,
+      ),
+      sumWhere(
+        sql`select coalesce(sum(${labPayments.amount}), 0)::numeric(12, 2)::text as total
+            from ${labPayments}
+            where ${labPayments.clinicId} = ${clinicId} and ${labPayments.deletedAt} is null
+              and ${labPayments.createdAt} >= ${from}::timestamptz and ${labPayments.createdAt} < ${until}::timestamptz`,
+      ),
+      sumWhere(
+        sql`select coalesce(sum(${stockMovements.quantity} * ${stockMovements.unitPrice}), 0)::numeric(12, 2)::text as total
+            from ${stockMovements}
+            where ${stockMovements.clinicId} = ${clinicId}
+              and ${stockMovements.type} = ${MOVEMENT_TYPE.PURCHASE}
+              and ${stockMovements.unitPrice} is not null
+              and ${stockMovements.createdAt} >= ${from}::timestamptz and ${stockMovements.createdAt} < ${until}::timestamptz`,
+      ),
+      this.expenses.totalBetween(clinicId, monthStart(month), nextMonthStart(month)),
+    ]);
+
+    return { collections, labs, stock, expenses: spent };
+  }
+
+  private async drawOf(clinicId: string, month: PayrollMonth): Promise<OwnerDraw | null> {
+    const [row] = await this.db
+      .select()
+      .from(ownerDraws)
+      .where(and(eq(ownerDraws.clinicId, clinicId), eq(ownerDraws.month, monthStart(month))))
+      .limit(1);
+
+    return row ? toOwnerDraw(row) : null;
   }
 
   private async linesFor(
     clinicId: string,
     month: PayrollMonth,
     shares: ReadonlyMap<string, ShareTotals>,
+    collections: string,
     snapshot?: readonly PayrollLineSnapshot[],
   ): Promise<PayrollLine[]> {
     const start = monthStart(month);
@@ -372,8 +507,9 @@ export class PayrollService implements OnModuleInit {
       return [];
     }
 
-    const [plans, terms, adjustments, paid] = await Promise.all([
+    const [plans, shareTermsOf, terms, adjustments, paid] = await Promise.all([
       this.terms.plansAt(clinicId, staff, month),
+      this.terms.shareTermsAt(clinicId, staff, month),
       this.db
         .select()
         .from(salaryTerms)
@@ -417,8 +553,15 @@ export class PayrollService implements OnModuleInit {
       const plan = frozen?.plan ?? plans.get(person.id) ?? PAY_PLAN_KIND.SALARY;
       const salary = terms.find((row) => row.userId === person.id)?.monthlyAmount ?? ZERO;
       const base = frozen?.base ?? (includesSalary(plan) ? salary : ZERO);
-      const earned =
-        includesShare(plan) && person.doctorId ? shares.get(person.doctorId) : undefined;
+      const shareTerms = shareTermsOf.get(person.id) ?? defaultShareTerms(person.doctorId !== null);
+      const shareBasis = frozen?.shareBasis ?? shareTerms.basis;
+      const shareRate = frozen?.shareRate ?? shareTerms.percent;
+      const onTreatments = includesShare(plan) && shareBasis === STAFF_SHARE_BASIS.TREATMENTS;
+      const onCollections = includesShare(plan) && shareBasis === STAFF_SHARE_BASIS.COLLECTIONS;
+      const percentBase = frozen?.percentBase ?? (onCollections ? collections : ZERO);
+      const percentShare =
+        frozen?.percentShare ?? (onCollections ? percentOf(collections, shareRate) : ZERO);
+      const earned = onTreatments && person.doctorId ? shares.get(person.doctorId) : undefined;
       const share = frozen?.share ?? earned?.share ?? ZERO;
       const sharePayable = earned?.payable ?? ZERO;
       const sharePaid = earned?.paid ?? ZERO;
@@ -426,7 +569,7 @@ export class PayrollService implements OnModuleInit {
         frozen?.extras ?? sumOf(own.filter((row) => row.kind === PAYROLL_ADJUSTMENT_KIND.EXTRA));
       const cuts =
         frozen?.cuts ?? sumOf(own.filter((row) => row.kind === PAYROLL_ADJUSTMENT_KIND.CUT));
-      const due = frozen?.due ?? addMoney(addMoney(base, extras), negate(cuts));
+      const due = frozen?.due ?? sumMoney([base, extras, negate(cuts), percentShare]);
       const settled = sumOf(payments);
       const expected = addMoney(due, sharePayable);
       const received = addMoney(settled, sharePaid);
@@ -437,9 +580,13 @@ export class PayrollService implements OnModuleInit {
         role: person.role,
         joinedOn: person.joinedOn,
         plan,
-        planKinds: planKindsFor(person.role, person.doctorId !== null),
+        planKinds: planKindsFor(person.role),
         employee: isEmployee(person.role),
         doctorId: person.doctorId,
+        shareBasis,
+        shareRate,
+        percentBase,
+        percentShare,
         share: addMoney(share, ZERO),
         sharePayable,
         sharePaid,
@@ -492,4 +639,32 @@ export class PayrollService implements OnModuleInit {
 
 function sumOf(rows: readonly { amount: string }[]): string {
   return rows.reduce((total, row) => addMoney(total, row.amount), ZERO);
+}
+
+function withShareOfProfit(
+  line: PayrollLine,
+  profit: string,
+  snapshot?: readonly PayrollLineSnapshot[],
+): PayrollLine {
+  if (
+    line.shareBasis !== STAFF_SHARE_BASIS.PROFIT ||
+    !includesShare(line.plan) ||
+    snapshot?.some((frozen) => frozen.userId === line.userId)
+  ) {
+    return line;
+  }
+
+  const percentShare = percentOf(profit, line.shareRate);
+  const due = addMoney(line.due, percentShare);
+  const expected = addMoney(due, line.sharePayable);
+
+  return {
+    ...line,
+    percentBase: profit,
+    percentShare,
+    due,
+    remaining: subtractMoney(due, line.paid),
+    expected,
+    owed: subtractMoney(expected, line.received),
+  };
 }

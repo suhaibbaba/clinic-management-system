@@ -4,7 +4,10 @@ import {
   PAY_PLAN_KINDS,
   PAYROLL_ADJUSTMENT_KINDS,
   STAFF_PAYMENT_KINDS,
+  STAFF_SHARE_BASES,
+  type MonthProfit,
   type PayPlanKind,
+  type StaffShareBasis,
 } from "@clinic/shared";
 import { sql } from "drizzle-orm";
 import {
@@ -46,10 +49,16 @@ export const payBasisEnum = pgEnum("pay_basis", PAY_BASES);
 
 export const labCostBearerEnum = pgEnum("lab_cost_bearer", LAB_COST_BEARERS);
 
+export const staffShareBasisEnum = pgEnum("staff_share_basis", STAFF_SHARE_BASES);
+
 export interface PayrollLineSnapshot {
   readonly userId: string;
   readonly plan?: PayPlanKind;
   readonly share?: string;
+  readonly shareBasis?: StaffShareBasis;
+  readonly shareRate?: number;
+  readonly percentBase?: string;
+  readonly percentShare?: string;
   readonly base: string;
   readonly extras: string;
   readonly cuts: string;
@@ -197,6 +206,41 @@ export const payPlans = pgTable(
     createdBy: uuid("created_by"),
   },
   (table) => [index("pay_plans_user_idx").on(table.clinicId, table.userId, table.effectiveMonth)],
+);
+
+export const shareTerms = pgTable(
+  "share_terms",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    basis: staffShareBasisEnum("basis").notNull(),
+    percent: percent("percent").notNull(),
+    effectiveMonth: date("effective_month").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdBy: uuid("created_by"),
+  },
+  (table) => [index("share_terms_user_idx").on(table.clinicId, table.userId, table.effectiveMonth)],
+);
+
+export const ownerDraws = pgTable(
+  "owner_draws",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    month: date("month").notNull(),
+    amount: money("amount").notNull(),
+    profit: jsonb("profit").$type<MonthProfit>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdBy: uuid("created_by"),
+  },
+  (table) => [uniqueIndex("owner_draws_month_uniq").on(table.clinicId, table.month)],
 );
 
 export const settlementItems = pgTable(

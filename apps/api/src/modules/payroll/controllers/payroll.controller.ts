@@ -17,12 +17,14 @@ import { PayrollDocumentsService } from "@api/modules/payroll/services/payroll-d
 import {
   AUDIT_ACTION,
   USER_ROLE,
+  type OwnerDraw,
   type PayPlan,
   type PayRule,
   type PayRules,
   type Payroll,
   type PayrollAdjustment,
   type SalaryTerm,
+  type ShareTerm,
   type StaffPayment,
 } from "@clinic/shared";
 import { Audit } from "@api/common/decorators/audit.decorator";
@@ -35,6 +37,7 @@ import {
   PAYROLL_ADJUSTMENTS_ENTITY,
   PAYROLL_MONTHS_ENTITY,
   SALARY_TERMS_ENTITY,
+  SHARE_TERMS_ENTITY,
   STAFF_PAYMENTS_ENTITY,
 } from "@api/common/constants/audit-entities";
 import { PayTermsService } from "@api/modules/payroll/services/pay-terms.service";
@@ -49,6 +52,7 @@ import {
   PayRulesDto,
   ReverseEntryDto,
   SalaryTermsDto,
+  ShareTermsDto,
 } from "@api/modules/payroll/dto/payroll.dto";
 
 @Controller("payroll")
@@ -106,6 +110,29 @@ export class PayrollController {
     @Body() body: PayPlanDto,
   ): Promise<PayPlan> {
     return this.terms.setPlan(actor, params.id, body);
+  }
+
+  @Get("share-terms/:id")
+  shareTerms(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+  ): Promise<ShareTerm[]> {
+    return this.terms.shareTermHistory(actor, params.id);
+  }
+
+  @Put("share-terms/:id")
+  @Audit(SHARE_TERMS_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: "response" })
+  setShareTerms(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Body() body: ShareTermsDto,
+  ): Promise<ShareTerm> {
+    return this.terms.setShareTerms(actor, params.id, body);
+  }
+
+  @Get("owner-draws")
+  ownerDraws(@CurrentUser() actor: AuthenticatedUser): Promise<OwnerDraw[]> {
+    return this.payroll.ownerDraws(actor);
   }
 
   @Get(":month")

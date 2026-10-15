@@ -23,3 +23,5 @@ export const PENDING_BOOKINGS_KEY = "pending-bookings";
 export const CONTACT_MESSAGES_KEY = "contact-messages";
 
 export const WEBSITE_EDITOR_KEY = "website-editor";
+
+export const PAYROLL_KEY = "payroll";

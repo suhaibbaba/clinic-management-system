@@ -1,9 +1,13 @@
 import {
+  STAFF_SHARE_BASES,
+  STAFF_SHARE_BASIS,
   payPlanInputSchema,
   salaryTermsInputSchema,
   settlementTermsSchema,
+  shareTermsInputSchema,
   type PayPlanKind,
   type PayrollLine,
+  type StaffShareBasis,
 } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
@@ -22,9 +26,11 @@ import { includesSalary, includesShare } from "@web/modules/payroll/lib/plans";
 import {
   usePlanHistory,
   useSalaryHistory,
+  useSetClinicRate,
   useSetPlan,
   useSetSalary,
   useSetShareTerms,
+  useShareTermHistory,
 } from "@web/modules/payroll/queries";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { errorToast } from "@web/shared/lib/api-error";
@@ -34,6 +40,8 @@ import { monthsFrom } from "@web/shared/lib/months";
 import { useCurrency } from "@web/shared/queries/clinic";
 
 const whole = (amount: string): string => String(Math.round(Number(amount)));
+
+const asNumber = (value: string): number => (value === "" ? Number.NaN : Number(value));
 
 export function PaySettingsForm({
   line,
@@ -47,43 +55,58 @@ export function PaySettingsForm({
   const { t } = useTranslation();
   const toast = useToast();
   const currency = useCurrency();
-  const salaries = useSalaryHistory(line.employee ? line.userId : null);
-  const plans = usePlanHistory(line.employee ? line.userId : null);
+  const employee = line.employee ? line.userId : null;
+  const salaries = useSalaryHistory(employee);
+  const plans = usePlanHistory(employee);
+  const shares = useShareTermHistory(employee);
   const setPlan = useSetPlan();
   const setSalary = useSetSalary();
-  const setShare = useSetShareTerms();
+  const setShareTerms = useSetShareTerms();
+  const setClinicRate = useSetClinicRate();
 
   const savedSalary = salaries.data?.[0]?.monthlyAmount;
+  const savedClinic = clinicPercent === undefined ? "" : String(clinicPercent);
   const [kind, setKind] = useState<PayPlanKind>(line.plan);
+  const [basis, setBasis] = useState<StaffShareBasis>(line.shareBasis);
   const [amount, setAmount] = useState("");
-  const [percent, setPercent] = useState("");
+  const [clinic, setClinic] = useState("");
+  const [staff, setStaff] = useState(String(line.shareRate));
   const [effectiveMonth, setEffectiveMonth] = useState(thisMonth);
 
   useEffect(() => setKind(line.plan), [line.plan]);
+  useEffect(() => setBasis(line.shareBasis), [line.shareBasis]);
+  useEffect(() => setStaff(String(line.shareRate)), [line.shareRate]);
   useEffect(() => setAmount(savedSalary ? whole(savedSalary) : ""), [savedSalary]);
-  useEffect(
-    () => setPercent(clinicPercent === undefined ? "" : String(clinicPercent)),
-    [clinicPercent],
-  );
+  useEffect(() => setClinic(savedClinic), [savedClinic]);
 
+  const bases = STAFF_SHARE_BASES.filter(
+    (value) => value !== STAFF_SHARE_BASIS.TREATMENTS || line.doctorId !== null,
+  );
   const withSalary = line.employee && includesSalary(kind);
-  const withShare = includesShare(kind) && line.doctorId !== null;
+  const withShare = includesShare(kind);
+  const onTreatments = withShare && basis === STAFF_SHARE_BASIS.TREATMENTS;
+  const onPercent = withShare && basis !== STAFF_SHARE_BASIS.TREATMENTS;
+
   const planChanged = kind !== line.plan;
   const salaryChanged = withSalary && amount !== (savedSalary ? whole(savedSalary) : "");
-  const shareChanged = withShare && percent !== String(clinicPercent ?? "");
-  const changed = planChanged || salaryChanged || shareChanged;
+  const termsChanged =
+    line.employee &&
+    withShare &&
+    (basis !== line.shareBasis || (onPercent && staff !== String(line.shareRate)));
+  const clinicChanged = onTreatments && line.doctorId !== null && clinic !== savedClinic;
+  const changed = planChanged || salaryChanged || termsChanged || clinicChanged;
 
   const salaryBody = { monthlyAmount: amount, effectiveMonth };
-  const shareBody = {
-    clinicSharePercent: percent === "" ? undefined : Number(percent),
-    effectiveMonth,
-  };
+  const termsBody = { basis, percent: onPercent ? asNumber(staff) : 0, effectiveMonth };
+  const clinicBody = { clinicSharePercent: asNumber(clinic), effectiveMonth };
   const form = useFormErrors({
     ...(planChanged ? schemaErrors(payPlanInputSchema, { kind, effectiveMonth }) : {}),
     ...(salaryChanged ? schemaErrors(salaryTermsInputSchema, salaryBody) : {}),
-    ...(shareChanged ? schemaErrors(settlementTermsSchema, shareBody) : {}),
+    ...(termsChanged ? schemaErrors(shareTermsInputSchema, termsBody) : {}),
+    ...(clinicChanged ? schemaErrors(settlementTermsSchema, clinicBody) : {}),
   });
-  const saving = setPlan.isPending || setSalary.isPending || setShare.isPending;
+  const saving =
+    setPlan.isPending || setSalary.isPending || setShareTerms.isPending || setClinicRate.isPending;
 
   const submit = async (): Promise<void> => {
     if (!changed || !form.check()) {
@@ -97,10 +120,13 @@ export function PaySettingsForm({
       if (salaryChanged) {
         await setSalary.mutateAsync({ userId: line.userId, body: salaryBody });
       }
-      if (shareChanged && line.doctorId) {
-        await setShare.mutateAsync({
+      if (termsChanged) {
+        await setShareTerms.mutateAsync({ userId: line.userId, body: termsBody });
+      }
+      if (clinicChanged && line.doctorId) {
+        await setClinicRate.mutateAsync({
           doctorId: line.doctorId,
-          body: { clinicSharePercent: Number(percent), effectiveMonth },
+          body: { clinicSharePercent: Number(clinic), effectiveMonth },
         });
       }
       toast.success("payroll.settings.saved");
@@ -108,6 +134,36 @@ export function PaySettingsForm({
       toast.error(...errorToast(error));
     }
   };
+
+  const history = [
+    ...(plans.data ?? []).map((plan) => ({
+      id: plan.id,
+      month: plan.effectiveMonth,
+      at: plan.createdAt,
+      value: <span>{t(`payroll.plan.kinds.${plan.kind}`)}</span>,
+    })),
+    ...(salaries.data ?? []).map((term) => ({
+      id: term.id,
+      month: term.effectiveMonth,
+      at: term.createdAt,
+      value: <Money amount={term.monthlyAmount} currency={currency} />,
+    })),
+    ...(shares.data ?? []).map((term) => ({
+      id: term.id,
+      month: term.effectiveMonth,
+      at: term.createdAt,
+      value: (
+        <span>
+          {term.basis === STAFF_SHARE_BASIS.TREATMENTS
+            ? t("payroll.settings.bases.treatments")
+            : t("payroll.settings.shareOf", {
+                percent: term.percent,
+                basis: t(`payroll.settings.bases.${term.basis}`),
+              })}
+        </span>
+      ),
+    })),
+  ].sort((a, b) => b.month.localeCompare(a.month) || b.at.localeCompare(a.at));
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,var(--form-max))_minmax(0,1fr)]">
@@ -155,20 +211,57 @@ export function PaySettingsForm({
             </div>
           )}
 
-          {withShare && (
+          {withShare && line.employee && (
+            <FormField
+              label="payroll.settings.basis"
+              htmlFor="pay-settings-basis"
+              hint={`payroll.settings.basisHints.${basis}`}
+            >
+              <Select
+                id="pay-settings-basis"
+                data-testid="pay-settings-basis"
+                value={basis}
+                onChange={(event) => setBasis(event.target.value as StaffShareBasis)}
+                options={bases.map((value) => ({
+                  value,
+                  label: t(`payroll.settings.bases.${value}`),
+                }))}
+              />
+            </FormField>
+          )}
+
+          {onTreatments && line.doctorId && (
             <div onBlur={form.leave("clinicSharePercent")}>
               <FormField
                 label="payroll.settings.clinicPercent"
-                htmlFor="pay-settings-percent"
+                htmlFor="pay-settings-clinic"
                 hint="payroll.settings.clinicPercentHint"
                 error={form.errors["clinicSharePercent"]}
                 required
               >
                 <QuantityInput
-                  id="pay-settings-percent"
-                  data-testid="pay-settings-percent"
-                  value={percent}
-                  onChange={(event) => setPercent(event.target.value)}
+                  id="pay-settings-clinic"
+                  data-testid="pay-settings-clinic"
+                  value={clinic}
+                  onChange={(event) => setClinic(event.target.value)}
+                />
+              </FormField>
+            </div>
+          )}
+
+          {onPercent && (
+            <div onBlur={form.leave("percent")}>
+              <FormField
+                label="payroll.settings.staffPercent"
+                htmlFor="pay-settings-staff"
+                error={form.errors["percent"]}
+                required
+              >
+                <QuantityInput
+                  id="pay-settings-staff"
+                  data-testid="pay-settings-staff"
+                  value={staff}
+                  onChange={(event) => setStaff(event.target.value)}
                 />
               </FormField>
             </div>
@@ -206,34 +299,19 @@ export function PaySettingsForm({
         </div>
       </Card>
 
-      {((salaries.data ?? []).length > 0 || (plans.data ?? []).length > 0) && (
+      {history.length > 0 && (
         <Card data-testid="pay-settings-history" className="flex flex-col gap-3">
           <h2 className="text-value font-semibold text-ink">{t("payroll.settings.history")}</h2>
           <ul className="flex flex-col gap-1">
-            {[
-              ...(plans.data ?? []).map((plan) => ({
-                id: plan.id,
-                month: plan.effectiveMonth,
-                at: plan.createdAt,
-                value: <span>{t(`payroll.plan.kinds.${plan.kind}`)}</span>,
-              })),
-              ...(salaries.data ?? []).map((term) => ({
-                id: term.id,
-                month: term.effectiveMonth,
-                at: term.createdAt,
-                value: <Money amount={term.monthlyAmount} currency={currency} />,
-              })),
-            ]
-              .sort((a, b) => b.month.localeCompare(a.month) || b.at.localeCompare(a.at))
-              .map((entry) => (
-                <li
-                  key={entry.id}
-                  className="flex items-center justify-between rounded-panel bg-inset px-3 py-1.5 text-meta"
-                >
-                  <span>{formatMonth(entry.month)}</span>
-                  {entry.value}
-                </li>
-              ))}
+            {history.map((entry) => (
+              <li
+                key={entry.id}
+                className="flex items-center justify-between rounded-panel bg-inset px-3 py-1.5 text-meta"
+              >
+                <span>{formatMonth(entry.month)}</span>
+                {entry.value}
+              </li>
+            ))}
           </ul>
         </Card>
       )}

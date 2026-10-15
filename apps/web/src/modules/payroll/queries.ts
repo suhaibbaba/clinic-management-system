@@ -4,6 +4,7 @@ import type {
   CreateSalaryPaymentInput,
   CreateSettlementPayoutInput,
   DoctorSettlement,
+  OwnerDraw,
   PayPlan,
   PayPlanInput,
   PayRules,
@@ -13,11 +14,12 @@ import type {
   SalaryTermsInput,
   SettlementQuery,
   SettlementTermsInput,
+  ShareTerm,
+  ShareTermsInput,
   UpdateTreatmentSettlementInput,
 } from "@clinic/shared";
 import { payrollApi } from "@web/modules/payroll/api";
-
-const PAYROLL_KEY = "payroll";
+import { PAYROLL_KEY } from "@web/shared/constants/query-keys";
 
 export function usePayroll(month: string, enabled: boolean): UseQueryResult<Payroll> {
   return useQuery({
@@ -40,6 +42,22 @@ export function usePayRules(enabled: boolean): UseQueryResult<PayRules> {
   return useQuery({
     queryKey: [PAYROLL_KEY, "pay-rules"],
     queryFn: () => payrollApi.payRules(),
+    enabled,
+  });
+}
+
+export function useShareTermHistory(userId: string | null): UseQueryResult<ShareTerm[]> {
+  return useQuery({
+    queryKey: [PAYROLL_KEY, "share-terms", userId],
+    queryFn: () => payrollApi.shareTerms(userId ?? ""),
+    enabled: userId !== null,
+  });
+}
+
+export function useOwnerDraws(enabled: boolean): UseQueryResult<OwnerDraw[]> {
+  return useQuery({
+    queryKey: [PAYROLL_KEY, "owner-draws"],
+    queryFn: () => payrollApi.ownerDraws(),
     enabled,
   });
 }
@@ -87,9 +105,14 @@ export const useSetPlan = () =>
     payrollApi.setPlan(userId, body),
   );
 
-export const useSetShareTerms = () =>
+export const useSetClinicRate = () =>
   usePayrollWrite(({ doctorId, body }: { doctorId: string; body: SettlementTermsInput }) =>
-    payrollApi.setShareTerms(doctorId, body),
+    payrollApi.setClinicRate(doctorId, body),
+  );
+
+export const useSetShareTerms = () =>
+  usePayrollWrite(({ userId, body }: { userId: string; body: ShareTermsInput }) =>
+    payrollApi.setShareTerms(userId, body),
   );
 
 export const useAdjustPay = (month: string) =>

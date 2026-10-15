@@ -3,6 +3,7 @@ import type {
   CreateSalaryPaymentInput,
   CreateSettlementPayoutInput,
   DoctorSettlement,
+  OwnerDraw,
   PayPlan,
   PayPlanInput,
   PayRule,
@@ -15,6 +16,8 @@ import type {
   SettlementPayout,
   SettlementQuery,
   SettlementTermsInput,
+  ShareTerm,
+  ShareTermsInput,
   StaffPayment,
   UpdateTreatmentSettlementInput,
 } from "@clinic/shared";
@@ -37,6 +40,14 @@ export const payrollApi = {
 
   setPayRules: (body: PayRulesInput): Promise<PayRule> =>
     apiRequest("/payroll/pay-rules", { method: "PUT", body }),
+
+  shareTerms: (userId: string): Promise<ShareTerm[]> =>
+    apiRequest(`/payroll/share-terms/${userId}`),
+
+  setShareTerms: (userId: string, body: ShareTermsInput): Promise<ShareTerm> =>
+    apiRequest(`/payroll/share-terms/${userId}`, { method: "PUT", body }),
+
+  ownerDraws: (): Promise<OwnerDraw[]> => apiRequest("/payroll/owner-draws"),
 
   plans: (userId: string): Promise<PayPlan[]> => apiRequest(`/payroll/plans/${userId}`),
 
@@ -71,7 +82,7 @@ export const payrollApi = {
       body: { to },
     }),
 
-  setShareTerms: (doctorId: string, body: SettlementTermsInput): Promise<{ id: string }> =>
+  setClinicRate: (doctorId: string, body: SettlementTermsInput): Promise<{ id: string }> =>
     apiRequest(`/doctors/${doctorId}/settlement-terms`, { method: "PUT", body }),
 
   setTreatmentShare: (treatmentId: string, body: UpdateTreatmentSettlementInput): Promise<void> =>

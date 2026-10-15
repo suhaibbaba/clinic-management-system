@@ -12,6 +12,7 @@ import {
   salaryTermsInputSchema,
   settlementQuerySchema,
   settlementTermsSchema,
+  shareTermsInputSchema,
   updateTreatmentSettlementSchema,
   uuidSchema,
 } from "@clinic/shared";
@@ -42,6 +43,8 @@ export class CreateSettlementPayoutDto extends createZodDto(createSettlementPayo
 export class PayRulesDto extends createZodDto(payRulesInputSchema) {}
 
 export class PayPlanDto extends createZodDto(payPlanInputSchema) {}
+
+export class ShareTermsDto extends createZodDto(shareTermsInputSchema) {}
 
 export class PayoutParamDto extends createZodDto(
   z.object({ id: uuidSchema, payoutId: uuidSchema }),

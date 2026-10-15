@@ -1,5 +1,5 @@
 import { subtractMoney, type PayrollLine, type SettlementTotals } from "@clinic/shared";
-import { includesSalary, includesShare } from "@web/modules/payroll/lib/plans";
+import { includesSalary, sharesPercent, sharesTreatments } from "@web/modules/payroll/lib/plans";
 
 export type BreakdownSign = "plus" | "minus" | "result";
 
@@ -8,6 +8,7 @@ export interface BreakdownRow {
   readonly label: string;
   readonly amount: string;
   readonly sign: BreakdownSign;
+  readonly percent?: number;
 }
 
 export interface BreakdownGroup {
@@ -55,6 +56,24 @@ function shareRows(line: PayrollLine, totals: SettlementTotals): BreakdownRow[] 
   ];
 }
 
+function percentRows(line: PayrollLine): BreakdownRow[] {
+  return [
+    {
+      key: "percentBase",
+      label: `payroll.calc.bases.${line.shareBasis}`,
+      amount: line.percentBase,
+      sign: "plus",
+    },
+    {
+      key: "percentShare",
+      label: "payroll.calc.percentShare",
+      amount: line.percentShare,
+      sign: "result",
+      percent: line.shareRate,
+    },
+  ];
+}
+
 function salaryRows(line: PayrollLine): BreakdownRow[] {
   return [
     ...(includesSalary(line.plan)
@@ -87,7 +106,12 @@ export function payBreakdown(
   line: PayrollLine,
   totals: SettlementTotals | undefined,
 ): BreakdownGroup[] {
-  const share = includesShare(line.plan) && totals ? shareRows(line, totals) : [];
+  const share =
+    sharesTreatments(line) && totals
+      ? shareRows(line, totals)
+      : sharesPercent(line)
+        ? percentRows(line)
+        : [];
   const salary = salaryRows(line);
 
   return [
