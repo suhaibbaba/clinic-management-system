@@ -32,6 +32,7 @@ export function PayRulesPage(): JSX.Element {
   const save = useSetPayRules();
   const thisMonth = currentMonth(todayIso());
 
+  const [clinic, setClinic] = useState("0");
   const [tax, setTax] = useState("0");
   const [overhead, setOverhead] = useState("0");
   const [basis, setBasis] = useState<PayBasis>("done");
@@ -40,6 +41,7 @@ export function PayRulesPage(): JSX.Element {
 
   const current = rules.data?.current;
   const body = {
+    clinicSharePercent: clinic === "" ? Number.NaN : Number(clinic),
     taxPercent: tax === "" ? Number.NaN : Number(tax),
     overheadPercent: overhead === "" ? Number.NaN : Number(overhead),
     basis,
@@ -50,13 +52,15 @@ export function PayRulesPage(): JSX.Element {
   const { reset } = form;
   const changed =
     current !== undefined &&
-    (body.taxPercent !== current.taxPercent ||
+    (body.clinicSharePercent !== current.clinicSharePercent ||
+      body.taxPercent !== current.taxPercent ||
       body.overheadPercent !== current.overheadPercent ||
       basis !== current.basis ||
       bearer !== current.labCostBearer);
 
   useEffect(() => {
     if (current) {
+      setClinic(String(current.clinicSharePercent));
       setTax(String(current.taxPercent));
       setOverhead(String(current.overheadPercent));
       setBasis(current.basis);
@@ -89,6 +93,23 @@ export function PayRulesPage(): JSX.Element {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,var(--form-max))_minmax(0,1fr)]">
         <Card data-testid="pay-rules-form" className="flex flex-col gap-4">
           <div ref={form.formRef} className="flex flex-col gap-4">
+            <div onBlur={form.leave("clinicSharePercent")}>
+              <FormField
+                label="payroll.rules.clinicShare"
+                htmlFor="pay-rules-clinic"
+                hint="payroll.rules.clinicShareHint"
+                error={form.errors["clinicSharePercent"]}
+                required
+              >
+                <QuantityInput
+                  id="pay-rules-clinic"
+                  data-testid="pay-rules-clinic"
+                  value={clinic}
+                  onChange={(event) => setClinic(event.target.value)}
+                />
+              </FormField>
+            </div>
+
             <div className="grid gap-4 sm:grid-cols-2">
               <div onBlur={form.leave("taxPercent")}>
                 <FormField
@@ -191,6 +212,7 @@ export function PayRulesPage(): JSX.Element {
                   <span>{formatMonth(rule.effectiveMonth)}</span>
                   <span className="text-ink-muted">
                     {t("payroll.rules.summary", {
+                      clinic: rule.clinicSharePercent,
                       tax: rule.taxPercent,
                       overhead: rule.overheadPercent,
                       basis: t(`doctors.settlement.basis.${rule.basis}`),

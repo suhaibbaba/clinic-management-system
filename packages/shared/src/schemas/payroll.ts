@@ -98,6 +98,7 @@ export type PayrollAdjustment = z.infer<typeof payrollAdjustmentSchema>;
 export const ratePercentSchema = z.number().min(0).max(100);
 
 export const payRulesInputSchema = z.object({
+  clinicSharePercent: ratePercentSchema,
   taxPercent: ratePercentSchema,
   overheadPercent: ratePercentSchema,
   basis: z.enum(PAY_BASES),

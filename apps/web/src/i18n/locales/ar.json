@@ -280,7 +280,7 @@
       "created": "تمت إضافة الطبيب الزائر",
       "optionLabel": "{{name}} · زائر",
       "clinicShare": "نسبة العيادة %",
-      "clinicShareHint": "النسبة التي تحتفظ بها العيادة من صافي كل معالجة",
+      "clinicShareHint": "اتركها فارغة ليتبع نسبة العيادة العامة",
       "scheduleHint": "اختياري. إن تركتها فارغة يمكن حجز مواعيده في أي وقت تكون العيادة مفتوحة."
     },
     "settlement": {
@@ -2696,11 +2696,13 @@
       "basis": "تُحسب الحصة على",
       "bearer": "تكلفة المختبر والمواد",
       "history": "التغييرات السابقة",
-      "summary": "ضريبة {{tax}}% · مصاريف {{overhead}}% · {{basis}}",
+      "summary": "العيادة {{clinic}}% · ضريبة {{tax}}% · مصاريف {{overhead}}% · {{basis}}",
       "bearers": {
         "shared": "مشتركة",
         "doctor": "على الطبيب"
-      }
+      },
+      "clinicShare": "نسبة العيادة % لكل الأطباء",
+      "clinicShareHint": "ما تأخذه العيادة من صافي كل علاج. الطبيب الذي له نسبة خاصة تبقى نسبته"
     },
     "plan": {
       "kinds": {
@@ -2809,7 +2811,12 @@
         "profit": "ربح العيادة"
       },
       "staffPercent": "نسبته %",
-      "shareOf": "{{percent}}% من {{basis}}"
+      "shareOf": "{{percent}}% من {{basis}}",
+      "followClinic": "نسبة العيادة العامة ({{percent}}%)",
+      "followClinicHint": "تتغير كلما تغيرت النسبة العامة",
+      "ownRate": "نسبة خاصة به",
+      "ownRateHint": "تبقى كما هي عند تغيير النسبة العامة",
+      "ownClinicPercent": "نسبة العيادة % لهذا الطبيب"
     },
     "payPercent": "دفع النسبة",
     "closeDraw": "يُسجَّل سحب المالك بمبلغ {{amount}} ويبدأ الشهر التالي من الصفر"

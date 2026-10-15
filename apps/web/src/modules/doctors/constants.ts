@@ -26,5 +26,5 @@ export const EMPTY_VISITING_DOCTOR: CreateVisitingDoctorInput = {
   specialtyId: "",
   defaultAppointmentDurationMinutes: DEFAULT_APPOINTMENT_DURATION,
   weeklySchedule: [],
-  clinicSharePercent: 0,
+  clinicSharePercent: null,
 };

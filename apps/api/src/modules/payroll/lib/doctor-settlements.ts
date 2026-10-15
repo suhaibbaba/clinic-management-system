@@ -238,7 +238,10 @@ export function settlementLines(scope: SettlementScope): SQL {
              coalesce(rule.overhead_percent, 0) as rule_overhead,
              coalesce(rule.basis::text, ${PAY_BASIS.DONE}) as basis,
              coalesce(rule.lab_cost_bearer::text, ${LAB_COST_BEARER.SHARED}) as bearer,
-             coalesce(rate.clinic_share_percent, d.clinic_share_percent, 0) as doctor_percent,
+             (case when rate.found
+                then coalesce(rate.clinic_share_percent, rule.clinic_share_percent, 0)
+                else coalesce(d.clinic_share_percent, rule.clinic_share_percent, 0)
+              end) as doctor_percent,
              u.role = ${USER_ROLE.VISITING_DOCTOR}
                or coalesce(plan.kind::text, ${PAY_PLAN_KIND.SALARY}) <> ${PAY_PLAN_KIND.SALARY}
                as on_percentage
@@ -254,14 +257,14 @@ export function settlementLines(scope: SettlementScope): SQL {
       join doctors d on d.id = part.doctor_id
       join users u on u.id = d.user_id
       left join lateral (
-        select r.tax_percent, r.overhead_percent, r.basis, r.lab_cost_bearer
+        select r.tax_percent, r.overhead_percent, r.basis, r.lab_cost_bearer, r.clinic_share_percent
         from pay_rules r
         where r.clinic_id = ${clinicId} and r.effective_month <= treated.month
         order by r.effective_month desc, r.created_at desc
         limit 1
       ) rule on true
       left join lateral (
-        select dr.clinic_share_percent
+        select dr.clinic_share_percent, true as found
         from doctor_rates dr
         where dr.doctor_id = part.doctor_id and dr.effective_month <= treated.month
         order by dr.effective_month desc, dr.created_at desc

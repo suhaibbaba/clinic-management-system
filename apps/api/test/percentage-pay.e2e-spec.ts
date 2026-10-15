@@ -46,6 +46,7 @@ describe("Percentage pay (e2e)", () => {
 
   const rules = async (payload: Record<string, unknown>) => {
     const response = await send("PUT", "/payroll/pay-rules", {
+      clinicSharePercent: 0,
       taxPercent: 0,
       overheadPercent: 0,
       basis: "done",
@@ -420,6 +421,46 @@ describe("Percentage pay (e2e)", () => {
       );
 
       expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe("the clinic's general rate", () => {
+    const rate = (clinicSharePercent: number | null) =>
+      send("PUT", `/doctors/${visitorId}/settlement-terms`, {
+        clinicSharePercent,
+        effectiveMonth: THIS_MONTH,
+      });
+
+    afterAll(async () => {
+      await rules({});
+      await rate(40);
+    });
+
+    it("lets a doctor follow it, keep their own rate over it, and follow it again", async () => {
+      await rules({ clinicSharePercent: 50 });
+      expect((await rate(null)).statusCode).toBe(200);
+      const id = await treat({});
+
+      expect(await settlement()).toMatchObject({
+        clinicSharePercent: 50,
+        clinicShareOwn: null,
+        clinicShareDefault: 50,
+      });
+      expect(await line(id)).toMatchObject({
+        clinicSharePercent: 50,
+        clinicSharePercentSet: false,
+      });
+
+      await rules({ clinicSharePercent: 60 });
+      expect(await line(id)).toMatchObject({ clinicSharePercent: 60 });
+
+      await rate(20);
+      await rules({ clinicSharePercent: 70 });
+      expect(await settlement()).toMatchObject({ clinicSharePercent: 20, clinicShareOwn: 20 });
+      expect(await line(id)).toMatchObject({ clinicSharePercent: 20 });
+
+      await rate(null);
+      expect(await line(id)).toMatchObject({ clinicSharePercent: 70 });
     });
   });
 

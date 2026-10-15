@@ -172,7 +172,8 @@ export class DoctorsService implements OnModuleInit {
           specialtyId: input.specialtyId,
           weeklySchedule: input.weeklySchedule,
           defaultAppointmentDurationMinutes: input.defaultAppointmentDurationMinutes,
-          clinicSharePercent: String(input.clinicSharePercent),
+          clinicSharePercent:
+            input.clinicSharePercent === null ? null : String(input.clinicSharePercent),
           createdBy: actor.id,
           updatedBy: actor.id,
         })
