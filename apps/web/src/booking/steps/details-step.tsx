@@ -1,6 +1,6 @@
 import { isBookingPhone } from "@shared/constants/booking";
 import { joinPhone, type PhoneCountry } from "@shared/constants/phone";
-import { CountryPicker } from "@web/booking/country-picker";
+import { PhoneCountrySelect } from "@clinic/ui/components/phone-country-select";
 import { useState, type FormEvent, type JSX } from "react";
 import { t } from "@web/booking/i18n";
 import { isBookingNameComplete, NameFields } from "@web/booking/steps/name-fields";
@@ -59,7 +59,7 @@ export function DetailsStep({
         data-testid="details-field-phone"
         {...(!typedWhole && {
           addon: (
-            <CountryPicker
+            <PhoneCountrySelect
               country={details.country}
               onChange={(country) => onChange({ ...details, country })}
               language="ar"

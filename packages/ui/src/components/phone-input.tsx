@@ -1,64 +1,16 @@
 import {
   DEFAULT_PHONE_COUNTRY,
   foldDigits,
-  PHONE_COUNTRIES,
   joinPhone,
   splitPhone,
   type PhoneCountry,
 } from "@clinic/shared";
-import {
-  AE,
-  BH,
-  DE,
-  EG,
-  GB,
-  IL,
-  IQ,
-  JO,
-  KW,
-  LB,
-  OM,
-  PS,
-  QA,
-  SA,
-  SY,
-  TR,
-  US,
-} from "country-flag-icons/react/3x2";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type JSX,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Input, type InputProps } from "@ui/components/input";
-import { Select } from "@ui/components/select";
+import { PhoneCountrySelect } from "@ui/components/phone-country-select";
 import { cn } from "@ui/lib/cn";
 import type { TestIdProps } from "@ui/lib/testid";
-
-const FLAGS: Record<PhoneCountry, typeof PS> = {
-  PS,
-  IL,
-  JO,
-  EG,
-  SA,
-  AE,
-  QA,
-  KW,
-  BH,
-  OM,
-  LB,
-  SY,
-  IQ,
-  TR,
-  GB,
-  DE,
-  US,
-};
 
 const PhoneCountryContext = createContext<PhoneCountry>(DEFAULT_PHONE_COUNTRY);
 
@@ -70,23 +22,6 @@ export function PhoneCountryProvider({
   readonly children: ReactNode;
 }): JSX.Element {
   return <PhoneCountryContext.Provider value={country}>{children}</PhoneCountryContext.Provider>;
-}
-
-export function Flag({
-  country,
-  className,
-}: {
-  readonly country: PhoneCountry;
-  readonly className?: string | undefined;
-}): JSX.Element {
-  const Svg = FLAGS[country];
-
-  return (
-    <Svg
-      aria-hidden="true"
-      className={cn("h-3.5 w-5 shrink-0 rounded-[2px] ring-1 ring-line", className)}
-    />
-  );
 }
 
 export interface PhoneInputProps
@@ -129,11 +64,6 @@ export function PhoneInput({
     }
   }, [value, fallback]);
 
-  const names = useMemo(
-    () => new Intl.DisplayNames([i18n.language], { type: "region" }),
-    [i18n.language],
-  );
-
   const emit = (nextCountry: PhoneCountry, nextLocal: string): void => {
     setCountry(nextCountry);
     setLocal(nextLocal);
@@ -142,36 +72,14 @@ export function PhoneInput({
 
   return (
     <div data-part="phone-input" dir="ltr" className={cn("flex gap-2", className)}>
-      <Select
-        className="w-[7.5rem] shrink-0"
-        listClassName="w-auto min-w-64"
+      <PhoneCountrySelect
         {...(testId !== undefined && { "data-testid": `${testId}-country` })}
-        aria-label={t("common.diallingCode")}
-        value={country}
+        label={t("common.diallingCode")}
+        language={i18n.language}
+        country={country}
         disabled={disabled}
         hasError={hasError}
-        options={PHONE_COUNTRIES.map((entry) => ({
-          value: entry.country,
-          label: `${names.of(entry.country) ?? entry.country} ${entry.dial}`,
-          icon: <Flag country={entry.country} />,
-        }))}
-        renderValue={(option) => {
-          const entry = PHONE_COUNTRIES.find((item) => item.country === option.value);
-
-          return entry ? (
-            <span className="inline-flex items-center gap-2 tabular-nums" dir="ltr">
-              <Flag country={entry.country} />
-              {entry.dial}
-            </span>
-          ) : null;
-        }}
-        onChange={(event) => {
-          const next = PHONE_COUNTRIES.find((entry) => entry.country === event.target.value);
-
-          if (next) {
-            emit(next.country, local);
-          }
-        }}
+        onChange={(next) => emit(next, local)}
       />
 
       <Input
