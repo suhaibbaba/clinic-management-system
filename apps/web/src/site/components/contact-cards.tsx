@@ -18,13 +18,15 @@ function ContactCard({
   return (
     <li
       data-testid={testId}
-      className="flex flex-col items-center gap-2 rounded-card border border-line bg-surface p-6 text-center shadow-card transition-shadow hover:shadow-card-hover"
+      className="flex min-w-0 flex-col items-center gap-2 rounded-card border border-line bg-surface p-6 text-center shadow-card transition-shadow hover:shadow-card-hover"
     >
       <span className="mb-2 inline-flex size-14 items-center justify-center rounded-pill bg-primary-600 text-ink-inverse shadow-nav-active">
         <SiteIcon name={icon} className="size-6" />
       </span>
       <h3 className="text-heading font-bold text-primary-900">{title}</h3>
-      <div className="flex flex-col items-center gap-1 text-label text-ink-muted">{children}</div>
+      <div className="flex max-w-full min-w-0 flex-col items-center gap-1 text-label text-ink-muted">
+        {children}
+      </div>
     </li>
   );
 }
@@ -39,10 +41,14 @@ export function ContactCards(): JSX.Element {
       : null;
 
   return (
-    <ul data-testid="site-contact-cards" data-reveal-group className="grid gap-4 sm:grid-cols-3">
+    <ul
+      data-testid="site-contact-cards"
+      data-reveal-group
+      className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-3"
+    >
       {clinic.address && (
         <ContactCard icon="map-pin" title={t("contact.address")} testId="site-contact-address">
-          <span className="text-ink">{clinic.address}</span>
+          <span className="max-w-full text-ink wrap-anywhere">{clinic.address}</span>
           {pin && (
             <a
               href={pin}
@@ -61,7 +67,7 @@ export function ContactCards(): JSX.Element {
           <a
             href={`tel:${clinic.phone}`}
             dir="ltr"
-            className="text-heading font-bold text-primary-900 hover:text-primary-700"
+            className="max-w-full text-heading font-bold text-primary-900 wrap-anywhere hover:text-primary-700"
           >
             {clinic.phone}
           </a>
@@ -78,7 +84,7 @@ export function ContactCards(): JSX.Element {
           <a
             href={`mailto:${clinic.email}`}
             dir="ltr"
-            className="font-medium break-all text-primary-700 hover:text-primary-900"
+            className="max-w-full font-medium text-primary-700 wrap-anywhere hover:text-primary-900"
           >
             {clinic.email}
           </a>

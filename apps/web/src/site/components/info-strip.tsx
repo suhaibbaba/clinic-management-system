@@ -11,11 +11,13 @@ function Item({
   readonly children: ReactNode;
 }): JSX.Element {
   return (
-    <li className="flex items-center gap-3">
+    <li className="flex min-w-0 items-center gap-3">
       <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-pill bg-primary-50 text-primary-600">
         <SiteIcon name={icon} className="size-5" />
       </span>
-      <span className="flex min-w-0 flex-col text-label text-ink-muted">{children}</span>
+      <span className="flex min-w-0 flex-col text-label text-ink-muted wrap-anywhere">
+        {children}
+      </span>
     </li>
   );
 }
@@ -30,8 +32,8 @@ export function InfoStrip({ compact = false }: { readonly compact?: boolean }): 
       data-testid="site-info-strip"
       className={
         compact
-          ? "flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:gap-x-8"
-          : "grid gap-5 sm:grid-cols-3"
+          ? "flex min-w-0 flex-col gap-4 sm:flex-row sm:flex-wrap sm:gap-x-8"
+          : "grid grid-cols-1 gap-5 sm:grid-cols-3"
       }
     >
       {clinic.address && (
@@ -44,7 +46,7 @@ export function InfoStrip({ compact = false }: { readonly compact?: boolean }): 
           <a
             href={`tel:${clinic.phone}`}
             dir="ltr"
-            className="w-fit text-ink hover:text-primary-700"
+            className="w-fit max-w-full text-ink hover:text-primary-700"
           >
             {clinic.phone}
           </a>

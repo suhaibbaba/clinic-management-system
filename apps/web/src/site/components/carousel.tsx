@@ -48,12 +48,15 @@ export function Carousel({
         aria-label={label}
         onScroll={track}
         className={cx(
-          "-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pt-1 pb-3 [scrollbar-width:none] sm:mx-0 [&::-webkit-scrollbar]:hidden sm:overflow-visible sm:p-0",
+          "relative -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pt-1 pb-3 [scrollbar-width:none] sm:mx-0 [&::-webkit-scrollbar]:hidden sm:overflow-visible sm:p-0",
           grid,
         )}
       >
         {items.map((item, index) => (
-          <li key={index} className="w-[80%] max-w-80 shrink-0 snap-center sm:w-auto sm:max-w-none">
+          <li
+            key={index}
+            className="relative w-[80%] max-w-80 min-w-0 shrink-0 snap-center sm:w-auto sm:max-w-none"
+          >
             {item}
           </li>
         ))}

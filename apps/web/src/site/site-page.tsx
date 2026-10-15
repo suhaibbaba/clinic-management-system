@@ -111,14 +111,17 @@ export function SitePage({
       >
         {t("skip")}
       </a>
-      <div data-testid="site-page" className="flex min-h-full flex-col bg-surface">
+      <div
+        data-testid="site-page"
+        className="flex min-h-full min-w-0 flex-col overflow-x-clip bg-surface wrap-break-word"
+      >
         <SiteHeader />
         <main
           id="site-main"
           tabIndex={-1}
           data-page={page.kind}
           key={page.kind === "doctor" ? `doctor-${page.id}` : page.kind}
-          className="site-page-enter flex-1 outline-none"
+          className="site-page-enter min-w-0 flex-1 outline-none"
         >
           <PageFor page={page} />
         </main>
