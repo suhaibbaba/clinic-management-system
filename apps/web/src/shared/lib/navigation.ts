@@ -22,6 +22,11 @@ export const SETTINGS_VIEW_CAPABILITIES = {
   audit: "audit.list",
 } as const;
 
+export const FINANCE_TAB_CAPABILITIES = {
+  profit: "payroll.month",
+  expenses: "expenses.list",
+} as const;
+
 export const PAGE_CAPABILITIES = {
   assistant: ["ai.chat"],
   patients: ["patients.list"],
@@ -36,6 +41,7 @@ export const PAGE_CAPABILITIES = {
   doctor: ["doctors.updateSchedule"],
   payroll: ["payroll.month"],
   payrollRules: ["payroll.payRules"],
+  finance: Object.values(FINANCE_TAB_CAPABILITIES),
   myEarnings: ["my-settlement.statement"],
   lists: ["lookups.create"],
   priceList: ["procedure-catalog.create", "procedure-catalog.update"],
@@ -119,6 +125,12 @@ export const NAV_SETTINGS: NavGroup = {
       label: "nav.payroll",
       capabilities: PAGE_CAPABILITIES.payroll,
       icon: "money",
+    },
+    {
+      to: "/finance",
+      label: "nav.finance",
+      capabilities: PAGE_CAPABILITIES.finance,
+      icon: "trend-up",
     },
     {
       to: "/clinic/prices",

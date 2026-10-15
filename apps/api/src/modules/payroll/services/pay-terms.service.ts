@@ -7,8 +7,8 @@ import {
   type OnModuleInit,
 } from "@nestjs/common";
 import {
-  PAY_PLAN_KIND,
   PAYROLL_ERROR,
+  STAFF_SHARE_BASIS,
   USER_ROLE,
   localDate,
   type PayPlan,
@@ -18,6 +18,8 @@ import {
   type PayRules,
   type PayRulesInput,
   type PayrollMonth,
+  type ShareTerm,
+  type ShareTermsInput,
   type UserRole,
 } from "@clinic/shared";
 import { and, desc, eq, inArray, isNull, lte, sql } from "drizzle-orm";
@@ -31,19 +33,24 @@ import {
   payPlans,
   payRules,
   payrollMonths,
+  shareTerms,
   users,
 } from "@api/database/schema";
 import {
   DOCTOR_RATES_ENTITY,
   PAY_PLANS_ENTITY,
   PAY_RULES_ENTITY,
+  SHARE_TERMS_ENTITY,
 } from "@api/common/constants/audit-entities";
 import { monthOf, monthStart } from "@api/modules/payroll/lib/payroll";
 import {
   defaultPayRule,
   defaultPlan,
+  defaultShareTerms,
   toPayPlan,
   toPayRule,
+  toShareTerm,
+  type ShareTermsAt,
 } from "@api/modules/payroll/lib/pay-terms";
 
 @Injectable()
@@ -72,6 +79,16 @@ export class PayTermsService implements OnModuleInit {
         .limit(1);
 
       return row ? { ...toPayPlan(row) } : null;
+    });
+
+    this.auditSnapshots.register(SHARE_TERMS_ENTITY, async (id, clinicId) => {
+      const [row] = await this.db
+        .select()
+        .from(shareTerms)
+        .where(and(eq(shareTerms.clinicId, clinicId), eq(shareTerms.id, id)))
+        .limit(1);
+
+      return row ? { ...toShareTerm(row) } : null;
     });
 
     this.auditSnapshots.register(DOCTOR_RATES_ENTITY, async (id, clinicId) => {
@@ -151,10 +168,6 @@ export class PayTermsService implements OnModuleInit {
     if (role === USER_ROLE.VISITING_DOCTOR) {
       throw new BadRequestException(PAYROLL_ERROR.NOT_EMPLOYEE);
     }
-    if (input.kind !== PAY_PLAN_KIND.SALARY && !(await this.doctorOf(actor.clinicId, userId))) {
-      throw new BadRequestException(PAYROLL_ERROR.NOT_A_DOCTOR);
-    }
-
     await this.requireOpenFrom(actor.clinicId, input.effectiveMonth);
 
     const [row] = await this.db
@@ -173,6 +186,96 @@ export class PayTermsService implements OnModuleInit {
     }
 
     return toPayPlan(row);
+  }
+
+  async shareTermHistory(actor: AuthenticatedUser, userId: string): Promise<ShareTerm[]> {
+    await this.requireUser(actor.clinicId, userId);
+
+    const rows = await this.db
+      .select()
+      .from(shareTerms)
+      .where(and(eq(shareTerms.clinicId, actor.clinicId), eq(shareTerms.userId, userId)))
+      .orderBy(desc(shareTerms.effectiveMonth), desc(shareTerms.createdAt));
+
+    return rows.map(toShareTerm);
+  }
+
+  async setShareTerms(
+    actor: AuthenticatedUser,
+    userId: string,
+    input: ShareTermsInput,
+  ): Promise<ShareTerm> {
+    const role = await this.requireUser(actor.clinicId, userId);
+    const isDoctor = (await this.doctorOf(actor.clinicId, userId)) !== null;
+
+    if (role === USER_ROLE.VISITING_DOCTOR) {
+      throw new BadRequestException(PAYROLL_ERROR.NOT_EMPLOYEE);
+    }
+    if (input.basis === STAFF_SHARE_BASIS.TREATMENTS && !isDoctor) {
+      throw new BadRequestException(PAYROLL_ERROR.NOT_A_DOCTOR);
+    }
+
+    await this.requireOpenFrom(actor.clinicId, input.effectiveMonth);
+
+    const [row] = await this.db
+      .insert(shareTerms)
+      .values({
+        clinicId: actor.clinicId,
+        userId,
+        basis: input.basis,
+        percent: String(input.basis === STAFF_SHARE_BASIS.TREATMENTS ? 0 : input.percent),
+        effectiveMonth: monthStart(input.effectiveMonth),
+        createdBy: actor.id,
+      })
+      .returning();
+
+    if (!row) {
+      throw new Error("Failed to record the share terms");
+    }
+
+    return toShareTerm(row);
+  }
+
+  async shareTermsAt(
+    clinicId: string,
+    people: readonly { id: string; role: UserRole; doctorId: string | null }[],
+    month: PayrollMonth,
+  ): Promise<Map<string, ShareTermsAt>> {
+    const ids = people.map((person) => person.id);
+    const rows =
+      ids.length === 0
+        ? []
+        : await this.db
+            .select({
+              userId: shareTerms.userId,
+              basis: shareTerms.basis,
+              percent: shareTerms.percent,
+            })
+            .from(shareTerms)
+            .where(
+              and(
+                eq(shareTerms.clinicId, clinicId),
+                inArray(shareTerms.userId, ids),
+                lte(shareTerms.effectiveMonth, monthStart(month)),
+              ),
+            )
+            .orderBy(desc(shareTerms.effectiveMonth), desc(shareTerms.createdAt));
+
+    return new Map(
+      people.map((person) => {
+        const row = rows.find((candidate) => candidate.userId === person.id);
+        const fallback = defaultShareTerms(person.doctorId !== null);
+
+        if (person.role === USER_ROLE.VISITING_DOCTOR || !row) {
+          return [person.id, fallback];
+        }
+        if (row.basis === STAFF_SHARE_BASIS.TREATMENTS && person.doctorId === null) {
+          return [person.id, fallback];
+        }
+
+        return [person.id, { basis: row.basis, percent: Number(row.percent) }];
+      }),
+    );
   }
 
   async plansAt(

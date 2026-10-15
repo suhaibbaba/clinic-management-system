@@ -10,6 +10,7 @@ export const LOOKUP_LIST = {
   PAYMENT_METHOD: "payment_method",
   FREQUENT_DRUG: "frequent_drug",
   DRUG_INSTRUCTION: "drug_instruction",
+  EXPENSE_CATEGORY: "expense_category",
 } as const;
 
 export type LookupListKey = (typeof LOOKUP_LIST)[keyof typeof LOOKUP_LIST];
@@ -26,6 +27,7 @@ export const LOOKUP_LIST_KEYS = [
   LOOKUP_LIST.PAYMENT_METHOD,
   LOOKUP_LIST.FREQUENT_DRUG,
   LOOKUP_LIST.DRUG_INSTRUCTION,
+  LOOKUP_LIST.EXPENSE_CATEGORY,
 ] as const;
 
 export const COLOURED_LOOKUP_LISTS: readonly LookupListKey[] = [LOOKUP_LIST.TOOTH_STATE];
@@ -184,6 +186,15 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
   ],
 
   [LOOKUP_LIST.FREQUENT_DRUG]: [],
+
+  [LOOKUP_LIST.EXPENSE_CATEGORY]: [
+    { code: "rent", nameAr: "إيجار", nameEn: "Rent" },
+    { code: "utilities", nameAr: "كهرباء وماء وإنترنت", nameEn: "Utilities" },
+    { code: "maintenance", nameAr: "صيانة", nameEn: "Maintenance" },
+    { code: "marketing", nameAr: "تسويق", nameEn: "Marketing" },
+    { code: "fees", nameAr: "رسوم وتراخيص", nameEn: "Fees and licences" },
+    { code: "other", nameAr: "أخرى", nameEn: "Other" },
+  ],
 
   [LOOKUP_LIST.DRUG_INSTRUCTION]: [
     { code: "after_meals", nameAr: "بعد الأكل", nameEn: "After meals" },

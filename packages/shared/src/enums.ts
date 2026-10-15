@@ -1086,6 +1086,19 @@ export type PayBasis = EnumValue<typeof PAY_BASIS>;
 
 export const PAY_BASES = [PAY_BASIS.DONE, PAY_BASIS.COLLECTED] as const;
 
+export const STAFF_SHARE_BASIS = {
+  TREATMENTS: "treatments",
+  COLLECTIONS: "collections",
+  PROFIT: "profit",
+} as const satisfies Record<string, string>;
+export type StaffShareBasis = EnumValue<typeof STAFF_SHARE_BASIS>;
+
+export const STAFF_SHARE_BASES = [
+  STAFF_SHARE_BASIS.TREATMENTS,
+  STAFF_SHARE_BASIS.COLLECTIONS,
+  STAFF_SHARE_BASIS.PROFIT,
+] as const;
+
 export const LAB_COST_BEARER = {
   SHARED: "shared",
   DOCTOR: "doctor",

@@ -12,3 +12,4 @@ export * from "@api/database/schema/lookups";
 export * from "@api/database/schema/translations";
 export * from "@api/database/schema/notes";
 export * from "@api/database/schema/website";
+export * from "@api/database/schema/expenses";

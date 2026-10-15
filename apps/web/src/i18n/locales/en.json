@@ -138,7 +138,8 @@
     "openSearch": "Open Search",
     "closeSearch": "Close Search",
     "priceList": "Price List",
-    "myEarnings": "My Earnings"
+    "myEarnings": "My Earnings",
+    "finance": "Profit and Expenses"
   },
   "roles": {
     "admin": "Admin",
@@ -1617,7 +1618,8 @@
       "item_unit": "Units",
       "payment_method": "Payment Methods",
       "frequent_drug": "Frequent Drugs",
-      "drug_instruction": "Drug Instructions"
+      "drug_instruction": "Drug Instructions",
+      "expense_category": "Expense Categories"
     },
     "hints": {
       "tooth_state": "What the tooth chart paints, and what a finished procedure leaves behind",
@@ -1630,7 +1632,8 @@
       "item_unit": "The units inventory is counted in",
       "payment_method": "How payments are taken, and how labs are paid",
       "frequent_drug": "The drugs offered first when writing a prescription, with their usual dose",
-      "drug_instruction": "Ready phrases added with a tap to a drug's instructions in a prescription"
+      "drug_instruction": "Ready phrases added with a tap to a drug's instructions in a prescription",
+      "expense_category": "What the clinic spends on: rent, utilities and the rest"
     },
     "rowMenu": "More Options",
     "moveUp": "Move Up",
@@ -2620,6 +2623,11 @@
         "salary": "Salary",
         "percentage": "Percentage",
         "salary_and_percentage": "Salary and percentage"
+      },
+      "explain": {
+        "salary": "A fixed amount every month",
+        "percentage": "A percentage only, with no fixed salary",
+        "salary_and_percentage": "A fixed salary plus a percentage"
       }
     },
     "person": "Staff Member",
@@ -2664,7 +2672,13 @@
       "deduction": "Deduction",
       "expected": "Total expected",
       "received": "Paid",
-      "owed": "Remaining"
+      "owed": "Remaining",
+      "bases": {
+        "treatments": "Their treatments",
+        "collections": "Patient payments this month",
+        "profit": "Clinic profit this month"
+      },
+      "percentShare": "Their share"
     },
     "patients": {
       "title_one": "1 patient this month",
@@ -2690,8 +2704,23 @@
       "clinicPercent": "Clinic's share %",
       "clinicPercentHint": "What the clinic keeps of each treatment's net; the rest is the doctor's",
       "fromHint": "Applies from this month on; earlier months stay as they were",
-      "history": "Earlier changes"
-    }
+      "history": "Earlier changes",
+      "basis": "Percentage of",
+      "basisHints": {
+        "treatments": "The treatments this doctor did, after tax, expenses and materials",
+        "collections": "Everything patients paid the clinic this month",
+        "profit": "The month's profit after every cost, before profit shares"
+      },
+      "bases": {
+        "treatments": "Their own treatments",
+        "collections": "All patient payments",
+        "profit": "Clinic profit"
+      },
+      "staffPercent": "Their share %",
+      "shareOf": "{{percent}}% of {{basis}}"
+    },
+    "payPercent": "Pay Percentage",
+    "closeDraw": "The owner's draw of {{amount}} is recorded and next month starts from zero"
   },
   "earnings": {
     "title": "My Earnings",
@@ -2894,5 +2923,41 @@
       "whatsapp": "WhatsApp",
       "youtube": "YouTube"
     }
+  },
+  "finance": {
+    "title": "Profit and Expenses",
+    "subtitle": "What the month earned, what it cost and what is left for the owner.",
+    "tabs": {
+      "profit": "Profit",
+      "expenses": "Expenses"
+    },
+    "statement": "The month's profit",
+    "about": "Patient payments this month, less staff pay, doctors' shares, lab payments, stock bought and expenses. Closing the month records what is left as the owner's draw.",
+    "drawnOn": "Drawn on {{date}}",
+    "drawOnClose": "Drawn when the month closes",
+    "draws": "Owner's draws",
+    "noDraws": "No month has been closed yet",
+    "rows": {
+      "collections": "Patient payments",
+      "staffPay": "Staff pay",
+      "doctorShares": "Doctors' treatment shares",
+      "labs": "Lab payments",
+      "stock": "Stock bought",
+      "expenses": "Expenses",
+      "beforeShares": "Profit before profit shares",
+      "profitShares": "Staff shares of profit",
+      "ownerProfit": "The owner's profit"
+    }
+  },
+  "expenses": {
+    "add": "Add Expense",
+    "saved": "Expense Recorded",
+    "date": "Date",
+    "category": "Category",
+    "chooseCategory": "Choose a category",
+    "amount": "Amount",
+    "monthTotal": "This month's expenses",
+    "empty": "No expenses this month",
+    "reverseTitle": "Reverse this expense?"
   }
 }

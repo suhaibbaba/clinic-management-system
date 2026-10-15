@@ -190,7 +190,13 @@ export function PayrollPage(): JSX.Element {
         onOpenChange={setClosing}
         title="payroll.closeTitle"
         titleValues={{ month: formatMonth(month) }}
-        consequences={[t("payroll.closeLocks"), t("payroll.closeStillPay")]}
+        consequences={[
+          t("payroll.closeLocks"),
+          t("payroll.closeDraw", {
+            amount: moneyText(data?.profit.ownerProfit ?? "0.00", currency),
+          }),
+          t("payroll.closeStillPay"),
+        ]}
         tone="primary"
         confirmLabel={t("payroll.close")}
         onConfirm={async () => {

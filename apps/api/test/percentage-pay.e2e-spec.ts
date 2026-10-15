@@ -390,15 +390,26 @@ describe("Percentage pay (e2e)", () => {
       expect(visitor?.expected).toBe(visitor?.sharePayable);
     });
 
-    it("puts on a percentage only somebody who treats patients", async () => {
-      const response = await send(
-        "PUT",
-        `/payroll/plans/${clinic.userIds[USER_ROLE.RECEPTIONIST]}`,
-        { kind: "percentage", effectiveMonth: THIS_MONTH },
-      );
+    it("puts anybody on a percentage, but a treatments share only on who treats patients", async () => {
+      const receptionist = clinic.userIds[USER_ROLE.RECEPTIONIST];
+      const plan = await send("PUT", `/payroll/plans/${receptionist}`, {
+        kind: "percentage",
+        effectiveMonth: THIS_MONTH,
+      });
+      const treatments = await send("PUT", `/payroll/share-terms/${receptionist}`, {
+        basis: "treatments",
+        percent: 0,
+        effectiveMonth: THIS_MONTH,
+      });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.json()).toMatchObject({ message: PAYROLL_ERROR.NOT_A_DOCTOR });
+      expect(plan.statusCode).toBe(200);
+      expect(treatments.statusCode).toBe(400);
+      expect(treatments.json()).toMatchObject({ message: PAYROLL_ERROR.NOT_A_DOCTOR });
+
+      await send("PUT", `/payroll/plans/${receptionist}`, {
+        kind: "salary",
+        effectiveMonth: THIS_MONTH,
+      });
     });
 
     it("keeps a visiting doctor on a percentage", async () => {

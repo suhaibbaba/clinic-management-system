@@ -3,19 +3,24 @@ import {
   PAY_BASIS,
   PAY_PLAN_KIND,
   PAY_PLAN_KINDS,
+  STAFF_SHARE_BASIS,
   USER_ROLE,
   type PayPlan,
   type PayPlanKind,
   type PayRule,
   type PayrollMonth,
+  type ShareTerm,
+  type StaffShareBasis,
   type UserRole,
 } from "@clinic/shared";
-import { payPlans, payRules } from "@api/database/schema";
+import { payPlans, payRules, shareTerms } from "@api/database/schema";
 import { monthOf } from "@api/modules/payroll/lib/payroll";
 
 export type PayRuleRow = typeof payRules.$inferSelect;
 
 export type PayPlanRow = typeof payPlans.$inferSelect;
+
+export type ShareTermRow = typeof shareTerms.$inferSelect;
 
 export function toPayRule(row: PayRuleRow): PayRule {
   return {
@@ -55,12 +60,31 @@ export function defaultPlan(role: UserRole): PayPlanKind {
   return role === USER_ROLE.VISITING_DOCTOR ? PAY_PLAN_KIND.PERCENTAGE : PAY_PLAN_KIND.SALARY;
 }
 
-export function planKindsFor(role: UserRole, isDoctor: boolean): PayPlanKind[] {
-  if (role === USER_ROLE.VISITING_DOCTOR) {
-    return [PAY_PLAN_KIND.PERCENTAGE];
-  }
+export function planKindsFor(role: UserRole): PayPlanKind[] {
+  return role === USER_ROLE.VISITING_DOCTOR ? [PAY_PLAN_KIND.PERCENTAGE] : [...PAY_PLAN_KINDS];
+}
 
-  return isDoctor ? [...PAY_PLAN_KINDS] : [PAY_PLAN_KIND.SALARY];
+export interface ShareTermsAt {
+  readonly basis: StaffShareBasis;
+  readonly percent: number;
+}
+
+export function defaultShareTerms(isDoctor: boolean): ShareTermsAt {
+  return {
+    basis: isDoctor ? STAFF_SHARE_BASIS.TREATMENTS : STAFF_SHARE_BASIS.COLLECTIONS,
+    percent: 0,
+  };
+}
+
+export function toShareTerm(row: ShareTermRow): ShareTerm {
+  return {
+    id: row.id,
+    userId: row.userId,
+    basis: row.basis,
+    percent: Number(row.percent),
+    effectiveMonth: monthOf(row.effectiveMonth),
+    createdAt: row.createdAt.toISOString(),
+  };
 }
 
 export const isEmployee = (role: UserRole): boolean => role !== USER_ROLE.VISITING_DOCTOR;

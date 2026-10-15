@@ -5,6 +5,7 @@ import {
   PAY_PLAN_KINDS,
   PAYROLL_ADJUSTMENT_KINDS,
   STAFF_PAYMENT_KINDS,
+  STAFF_SHARE_BASES,
   USER_ROLES,
 } from "@shared/enums";
 import { VALIDATION_CODE, calendarDateSchema, uuidSchema } from "@shared/schemas/common";
@@ -130,6 +131,20 @@ export const payPlanSchema = payPlanInputSchema.extend({
 });
 export type PayPlan = z.infer<typeof payPlanSchema>;
 
+export const shareTermsInputSchema = z.object({
+  basis: z.enum(STAFF_SHARE_BASES),
+  percent: ratePercentSchema,
+  effectiveMonth: payrollMonthSchema,
+});
+export type ShareTermsInput = z.infer<typeof shareTermsInputSchema>;
+
+export const shareTermSchema = shareTermsInputSchema.extend({
+  id: uuidSchema,
+  userId: uuidSchema,
+  createdAt: z.iso.datetime(),
+});
+export type ShareTerm = z.infer<typeof shareTermSchema>;
+
 export const payrollLineSchema = z.object({
   userId: uuidSchema,
   name: personNameSchema,
@@ -139,6 +154,10 @@ export const payrollLineSchema = z.object({
   planKinds: z.array(z.enum(PAY_PLAN_KINDS)),
   employee: z.boolean(),
   doctorId: uuidSchema.nullable(),
+  shareBasis: z.enum(STAFF_SHARE_BASES),
+  shareRate: z.number(),
+  percentBase: signedMoneySchema,
+  percentShare: signedMoneySchema,
   share: signedMoneySchema,
   sharePayable: signedMoneySchema,
   sharePaid: signedMoneySchema,
@@ -169,9 +188,33 @@ export const payrollTotalsSchema = z.object({
 });
 export type PayrollTotals = z.infer<typeof payrollTotalsSchema>;
 
+export const monthProfitSchema = z.object({
+  collections: signedMoneySchema,
+  staffPay: signedMoneySchema,
+  doctorShares: signedMoneySchema,
+  labs: signedMoneySchema,
+  stock: signedMoneySchema,
+  expenses: signedMoneySchema,
+  beforeShares: signedMoneySchema,
+  profitShares: signedMoneySchema,
+  ownerProfit: signedMoneySchema,
+});
+export type MonthProfit = z.infer<typeof monthProfitSchema>;
+
+export const ownerDrawSchema = z.object({
+  id: uuidSchema,
+  month: payrollMonthSchema,
+  amount: signedMoneySchema,
+  profit: monthProfitSchema,
+  createdAt: z.iso.datetime(),
+});
+export type OwnerDraw = z.infer<typeof ownerDrawSchema>;
+
 export const payrollSchema = z.object({
   month: payrollMonthSchema,
   closedAt: z.iso.datetime().nullable(),
+  profit: monthProfitSchema,
+  draw: ownerDrawSchema.nullable(),
   lines: z.array(payrollLineSchema),
   totals: payrollTotalsSchema,
   doctorShares: signedMoneySchema,

@@ -1,10 +1,13 @@
 import {
+  type OwnerDraw,
   type PayrollAdjustment,
   type PayrollMonth,
   type SalaryTerm,
   type StaffPayment,
 } from "@clinic/shared";
-import { payrollAdjustments, salaryTerms, staffPayments } from "@api/database/schema";
+import { ownerDraws, payrollAdjustments, salaryTerms, staffPayments } from "@api/database/schema";
+
+export type OwnerDrawRow = typeof ownerDraws.$inferSelect;
 
 export type StaffPaymentRow = typeof staffPayments.$inferSelect;
 
@@ -66,6 +69,16 @@ export function toSalaryTerm(row: SalaryTermRow): SalaryTerm {
     userId: row.userId,
     monthlyAmount: row.monthlyAmount,
     effectiveMonth: monthOf(row.effectiveMonth),
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
+export function toOwnerDraw(row: OwnerDrawRow): OwnerDraw {
+  return {
+    id: row.id,
+    month: monthOf(row.month),
+    amount: row.amount,
+    profit: row.profit,
     createdAt: row.createdAt.toISOString(),
   };
 }

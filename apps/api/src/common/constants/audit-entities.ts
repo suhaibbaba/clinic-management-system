@@ -64,6 +64,10 @@ export const PAY_RULES_ENTITY = "pay_rules";
 
 export const PAY_PLANS_ENTITY = "pay_plans";
 
+export const SHARE_TERMS_ENTITY = "share_terms";
+
+export const EXPENSES_ENTITY = "expenses";
+
 export const DOCTOR_RATES_ENTITY = "doctor_rates";
 
 export const SETTLEMENT_TREATMENTS_ENTITY = "settlement_treatments";

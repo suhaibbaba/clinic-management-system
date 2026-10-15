@@ -50,6 +50,7 @@ export { Popover, type PopoverProps } from "@ui/components/popover";
 export { ProgressBar } from "@ui/components/progress-bar";
 export { SearchField } from "@ui/components/search-field";
 export { SegmentedControl } from "@ui/components/segmented-control";
+export { RadioGroup, type RadioOption } from "@ui/components/radio-group";
 export { Select } from "@ui/components/select";
 export { StatCard, StatRow, type StatTone } from "@ui/components/stat-card";
 export { Switch } from "@ui/components/switch";

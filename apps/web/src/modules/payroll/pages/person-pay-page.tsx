@@ -18,7 +18,7 @@ import { TreatmentShareModal } from "@web/modules/payroll/components/treatment-s
 import { PERSON_TABS } from "@web/modules/payroll/constants";
 import { usePayrollMonth } from "@web/modules/payroll/hooks/use-payroll-month";
 import { settlementSource } from "@web/modules/payroll/lib/documents";
-import { includesSalary, includesShare, payActions } from "@web/modules/payroll/lib/plans";
+import { payActions, salaryPayLabel, sharesTreatments } from "@web/modules/payroll/lib/plans";
 import { usePayRules, usePayroll, useSettlement } from "@web/modules/payroll/queries";
 import { DocumentActions } from "@web/shared/components/document-actions";
 import { monthDays } from "@web/shared/lib/months";
@@ -42,7 +42,7 @@ export function PersonPayPage(): JSX.Element {
   const days = monthDays(month);
 
   const seesShares = line !== undefined && line.doctorId !== null && canSeeSettlement(can);
-  const withShare = seesShares && line !== undefined && includesShare(line.plan);
+  const withShare = seesShares && line !== undefined && sharesTreatments(line);
   const settlement = useSettlement(line?.doctorId ?? null, days, seesShares);
   const rules = usePayRules(withShare);
 
@@ -139,7 +139,7 @@ export function PersonPayPage(): JSX.Element {
               data-testid="person-pay-salary"
               onClick={() => setPayingSalary(true)}
             >
-              {t(includesSalary(line.plan) ? "payroll.paySalary" : "payroll.payBonus")}
+              {t(`payroll.${salaryPayLabel(line)}`)}
             </Button>
           )}
         </div>
