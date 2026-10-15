@@ -2623,6 +2623,11 @@
         "salary": "Salary",
         "percentage": "Percentage",
         "salary_and_percentage": "Salary and percentage"
+      },
+      "explain": {
+        "salary": "A fixed amount every month",
+        "percentage": "A percentage only, with no fixed salary",
+        "salary_and_percentage": "A fixed salary plus a percentage"
       }
     },
     "person": "Staff Member",

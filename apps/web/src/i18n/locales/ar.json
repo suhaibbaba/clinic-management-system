@@ -2707,6 +2707,11 @@
         "salary": "راتب",
         "percentage": "نسبة",
         "salary_and_percentage": "راتب ونسبة"
+      },
+      "explain": {
+        "salary": "مبلغ ثابت كل شهر",
+        "percentage": "نسبة فقط، بدون راتب ثابت",
+        "salary_and_percentage": "راتب ثابت ومعه نسبة"
       }
     },
     "person": "الموظف",

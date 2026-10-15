@@ -18,7 +18,7 @@ import {
   Money,
   MoneyInput,
   QuantityInput,
-  SegmentedControl,
+  RadioGroup,
   Select,
   useToast,
 } from "@clinic/ui";
@@ -171,7 +171,8 @@ export function PaySettingsForm({
         <div ref={form.formRef} className="flex flex-col gap-4">
           <FormField label="payroll.payType" htmlFor="pay-settings-kind">
             {line.planKinds.length > 1 ? (
-              <SegmentedControl
+              <RadioGroup
+                id="pay-settings-kind"
                 data-testid="pay-settings-kind"
                 label={t("payroll.payType")}
                 value={kind}
@@ -179,6 +180,7 @@ export function PaySettingsForm({
                 options={line.planKinds.map((value) => ({
                   value,
                   label: t(`payroll.plan.kinds.${value}`),
+                  description: t(`payroll.plan.explain.${value}`),
                 }))}
               />
             ) : (
