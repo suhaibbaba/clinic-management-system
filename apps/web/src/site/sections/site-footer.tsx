@@ -14,8 +14,8 @@ export function SiteFooter(): JSX.Element {
   return (
     <footer data-testid="site-footer" className="bg-primary-50">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex shrink-0 flex-col items-start gap-2">
-          <SiteLink to="/">
+        <div className="flex max-w-full min-w-0 shrink-0 flex-col items-start gap-2">
+          <SiteLink to="/" className="flex max-w-full min-w-0">
             <SiteLogo url={site.clinic.logoUrl} name={name} size="footer" />
           </SiteLink>
           {tagline && <span className="text-meta text-primary-600">{tagline}</span>}

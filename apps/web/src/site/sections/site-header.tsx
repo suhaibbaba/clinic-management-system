@@ -75,7 +75,11 @@ export function SiteHeader(): JSX.Element {
       className="sticky top-0 z-30 border-b border-line/50 bg-surface/85 backdrop-blur-md"
     >
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 lg:py-4">
-        <SiteLink to="/" data-testid="site-brand" className="flex min-w-0 shrink-0 items-center">
+        <SiteLink
+          to="/"
+          data-testid="site-brand"
+          className="flex max-w-52 min-w-0 shrink items-center lg:max-w-60"
+        >
           <SiteLogo url={site.clinic.logoUrl} name={name} />
         </SiteLink>
 
@@ -106,7 +110,7 @@ export function SiteHeader(): JSX.Element {
           </ul>
         </nav>
 
-        <div className="ms-auto flex items-center gap-2 lg:ms-0">
+        <div className="ms-auto flex shrink-0 items-center gap-2 lg:ms-0">
           <button
             type="button"
             lang={other}
@@ -122,10 +126,10 @@ export function SiteHeader(): JSX.Element {
             <SiteLink
               to={SITE_PATH.BOOKING}
               data-testid="site-header-book"
-              className="pill-text inline-flex min-h-(--control-h) items-center gap-2 rounded-pill bg-primary-600 px-4 text-label font-medium text-ink-inverse shadow-nav-active transition-colors hover:bg-primary-700 sm:px-6"
+              className="pill-text inline-flex min-h-(--control-h) items-center gap-2 rounded-pill bg-primary-600 px-4 text-label font-medium text-ink-inverse shadow-nav-active transition-colors hover:bg-primary-700 max-[23rem]:px-3 sm:px-6"
             >
               <SiteIcon name="calendar" />
-              {t("nav.book")}
+              <span className="max-[23rem]:sr-only">{t("nav.book")}</span>
             </SiteLink>
           )}
 

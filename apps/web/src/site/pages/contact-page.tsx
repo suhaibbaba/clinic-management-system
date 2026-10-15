@@ -38,7 +38,10 @@ export function ContactPage(): JSX.Element {
 
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12">
         <div
-          className={cx("grid items-center gap-6", note && "lg:grid-cols-[14rem_minmax(0,1fr)]")}
+          className={cx(
+            "grid grid-cols-1 items-center gap-6",
+            note && "lg:grid-cols-[14rem_minmax(0,1fr)]",
+          )}
         >
           {note && (
             <p

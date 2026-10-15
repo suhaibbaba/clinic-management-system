@@ -22,8 +22,8 @@ export function SiteLogo({
         onError={() => setFailed(true)}
         className={
           size === "footer"
-            ? "h-16 w-auto max-w-60 shrink-0 object-contain"
-            : "h-12 w-auto max-w-52 shrink-0 object-contain lg:h-14"
+            ? "h-16 w-auto max-w-60 object-contain"
+            : "h-12 w-auto max-w-full min-w-0 object-contain lg:h-14"
         }
       />
     );
