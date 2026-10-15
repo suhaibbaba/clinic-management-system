@@ -9,6 +9,10 @@
       {
         "include": "**/*.ttf",
         "outDir": "dist"
+      },
+      {
+        "include": "database/seed/assets/**/*",
+        "outDir": "dist"
       }
     ],
     "watchAssets": true

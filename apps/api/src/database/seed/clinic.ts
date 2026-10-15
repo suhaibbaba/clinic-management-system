@@ -1,5 +1,6 @@
 import {
   BOOKING_CONFIRMATION_MODE,
+  CLINIC_MODULE,
   DEFAULT_NOTIFICATION_TEMPLATES,
   NOTIFICATION_CHANNEL,
   PROCEDURE_OUTCOME,
@@ -101,6 +102,7 @@ export const CLINIC_DEFAULTS = {
   address: "نابلس، رفيديا، شارع تونس، عمارة الرؤية، الطابق الثاني",
   currency: "ILS",
   workingHours: CLINIC_HOURS,
+  modules: [CLINIC_MODULE.WEBSITE],
   settings: {
     timezone: CLINIC_TIME_ZONE,
     booking: {

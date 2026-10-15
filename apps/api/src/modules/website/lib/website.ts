@@ -50,7 +50,9 @@ const escapeHtml = (value: string): string =>
 const clip = (value: string, max: number): string =>
   value.length > max ? `${value.slice(0, max - 1).trimEnd()}…` : value;
 
-export function siteHead(site: PublicSite): string {
+export type SiteIconLinks = { favicon: string; appleTouchIcon: string };
+
+export function siteHead(site: PublicSite, icons: SiteIconLinks | null): string {
   const { clinic, content } = site;
   const title = content.hero.title.ar || clinic.name.ar;
   const description = clip(
@@ -87,6 +89,12 @@ export function siteHead(site: PublicSite): string {
     `<meta property="og:description" content="${escapeHtml(description)}" />`,
     ...(image ? [`<meta property="og:image" content="${escapeHtml(image)}" />`] : []),
     `<meta name="twitter:card" content="${image ? "summary_large_image" : "summary"}" />`,
+    ...(icons
+      ? [
+          `<link rel="icon" type="image/x-icon" href="${escapeHtml(icons.favicon)}" />`,
+          `<link rel="apple-touch-icon" href="${escapeHtml(icons.appleTouchIcon)}" />`,
+        ]
+      : []),
     `<script type="application/ld+json">${JSON.stringify(structured).replaceAll("<", "\\u003c")}</script>`,
   ].join("\n    ");
 }
