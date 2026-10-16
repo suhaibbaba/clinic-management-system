@@ -1,4 +1,4 @@
-import { isStandalone } from "@web/shared/hooks/use-install-prompt";
+import { isStandalone } from "@web/shared/lib/display-mode";
 
 const UPDATE_CHECK_MS = 30 * 60 * 1000;
 

@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { checkForUpdate } from "@web/shared/lib/service-worker";
-import { isStandalone } from "@web/shared/hooks/use-install-prompt";
+import { isStandalone } from "@web/shared/lib/display-mode";
 import { PULL_DAMPING, PULL_MAX, PULL_THRESHOLD } from "@web/shared/constants/pwa";
 
 function scrolledAncestor(target: EventTarget | null): boolean {

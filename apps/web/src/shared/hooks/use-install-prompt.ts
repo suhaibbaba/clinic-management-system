@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { isIos, isStandalone } from "@web/shared/lib/display-mode";
 
 interface InstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -6,14 +7,6 @@ interface InstallPromptEvent extends Event {
 }
 
 export type InstallState = "installed" | "available" | "manual" | "unavailable";
-
-export const isStandalone = (): boolean =>
-  window.matchMedia?.("(display-mode: standalone)").matches === true ||
-  ("standalone" in navigator && navigator.standalone === true);
-
-const isIos = (): boolean =>
-  /iphone|ipad|ipod/i.test(navigator.userAgent) ||
-  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
 export function useInstallPrompt(): {
   readonly state: InstallState;
