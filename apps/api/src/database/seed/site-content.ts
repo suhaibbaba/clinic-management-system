@@ -25,17 +25,17 @@ export interface SiteDoctorSeed {
 
 export const SITE_DOCTOR_PROFILES: readonly Omit<SiteDoctorSeed, "doctorId">[] = [
   {
-    title: { ar: "أخصائية تجميل وزراعة الأسنان", en: "Cosmetic and implant dentist" },
+    title: { ar: "تجميل وزراعة الأسنان", en: "Cosmetic and implant dentistry" },
     bio: {
-      ar: "خبرة تزيد عن خمسة عشر عاماً في تجميل الأسنان والزراعة الفورية وابتسامة هوليوود. تؤمن بأن كل ابتسامة تستحق خطة علاج واضحة وتجربة مريحة من أول زيارة.",
-      en: "Over fifteen years in cosmetic dentistry, immediate implants and smile makeovers. She believes every smile deserves a clear treatment plan and a comfortable first visit.",
+      ar: "خبرة تزيد عن خمسة عشر عاماً في تجميل الأسنان والزراعة الفورية وابتسامة هوليوود، مع خطة علاج واضحة وتجربة مريحة من أول زيارة.",
+      en: "Over fifteen years in cosmetic dentistry, immediate implants and smile makeovers, with a clear treatment plan and a comfortable first visit.",
     },
   },
   {
-    title: { ar: "أخصائي علاج العصب وطب أسنان الأطفال", en: "Endodontist and paediatric dentist" },
+    title: { ar: "علاج العصب وطب أسنان الأطفال", en: "Root canals and children's dentistry" },
     bio: {
-      ar: "متخصص في علاج قنوات الجذور بالمجهر وطب أسنان الأطفال. يحرص على شرح كل خطوة للمريض وأهله، وعلى أن تكون زيارة الطفل الأولى تجربة يحبها.",
-      en: "Focused on microscope-assisted root canal treatment and children's dentistry. He explains every step to patients and parents, and makes a child's first visit one they enjoy.",
+      ar: "علاج قنوات الجذور بالمجهر وطب أسنان الأطفال، مع شرح كل خطوة للمريض وأهله وزيارة أولى مريحة للطفل.",
+      en: "Microscope-assisted root canal treatment and children's dentistry, with every step explained to patients and parents and a gentle first visit for children.",
     },
   },
 ];

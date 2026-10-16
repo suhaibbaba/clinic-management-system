@@ -26,6 +26,8 @@ export interface SeedWebsiteInput {
   readonly clinicId: string;
   readonly adminId: string;
   readonly doctorUserIds: readonly string[];
+  readonly replaceContent?: boolean;
+  readonly withDoctorPhotos?: boolean;
 }
 
 export async function seedWebsite(
@@ -39,14 +41,18 @@ export async function seedWebsite(
     notes.push("Uploaded the clinic logo and its icons.");
   }
 
-  const photos = await seedDoctorPhotos(db, storage, input);
+  const photos = input.withDoctorPhotos === false ? 0 : await seedDoctorPhotos(db, storage, input);
 
   if (photos > 0) {
     notes.push(`Uploaded ${photos} doctor photo(s).`);
   }
 
   if (await seedSiteContent(db, storage, input)) {
-    notes.push("Published the clinic website with its text and pictures.");
+    notes.push(
+      input.replaceContent === true
+        ? "Replaced the clinic website with the sample text and pictures, and published it."
+        : "Published the clinic website with its text and pictures.",
+    );
   }
 
   if (!(await hasWebsiteModule(db, input.clinicId))) {
@@ -144,7 +150,7 @@ async function seedSiteContent(
     .where(eq(siteContent.clinicId, input.clinicId))
     .limit(1);
 
-  if (existing) {
+  if (existing && input.replaceContent !== true) {
     return false;
   }
 
@@ -195,15 +201,29 @@ async function seedSiteContent(
 
   const now = new Date();
 
-  await db.insert(siteContent).values({
-    clinicId: input.clinicId,
-    draft: content,
-    published: content,
-    publishedAt: now,
-    publishedBy: input.adminId,
-    createdBy: input.adminId,
-    updatedBy: input.adminId,
-  });
+  if (existing) {
+    await db
+      .update(siteContent)
+      .set({
+        draft: content,
+        published: content,
+        publishedAt: now,
+        publishedBy: input.adminId,
+        updatedBy: input.adminId,
+        updatedAt: now,
+      })
+      .where(eq(siteContent.id, existing.id));
+  } else {
+    await db.insert(siteContent).values({
+      clinicId: input.clinicId,
+      draft: content,
+      published: content,
+      publishedAt: now,
+      publishedBy: input.adminId,
+      createdBy: input.adminId,
+      updatedBy: input.adminId,
+    });
+  }
 
   return true;
 }

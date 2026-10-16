@@ -346,6 +346,10 @@ the first time. Drop it if you only want to rebuild the application layers.
 The API container runs Drizzle migrations to completion before it starts
 listening, so the sandbox never serves traffic against an un-migrated database.
 With `SEED_ON_BOOT=true` in `.env` it also runs the seed, which is idempotent.
+It fills only what is empty, so a clinic whose website was already saved keeps it. To put the
+sample website (text, pictures, doctor profiles) over a saved one without wiping anything else,
+run the deploy with `sample_website` set to `WEBSITE`, or on the server:
+`docker compose -p clinic-sandbox -f docker-compose.sandbox.yml exec -T api node dist/database/apply-sample-website.js [slug]`.
 
 To rebuild one service only:
 
