@@ -13,6 +13,11 @@ on:
         required: false
         default: ""
         type: string
+      sample_website:
+        description: "Replace the clinic's website with the sample text and pictures after deploying, keeping every other row. Type WEBSITE to confirm — anything else is ignored."
+        required: false
+        default: ""
+        type: string
 
 # Never two at once, never cancelled: a half-applied migration is worse than a
 # queued deploy.
@@ -32,18 +37,22 @@ jobs:
 
     steps:
       # A typo must stop the job, not deploy without the reset that was asked for.
-      - name: Check the reset confirmation
+      - name: Check the typed confirmations
         env:
           RESET: ${{ inputs.reset_data }}
+          SAMPLE: ${{ inputs.sample_website }}
         run: |
           set -eu
 
-          if [ -z "${RESET}" ] || [ "${RESET}" = "RESET" ]; then
-            exit 0
+          if [ -n "${RESET}" ] && [ "${RESET}" != "RESET" ]; then
+            echo "::error::reset_data must be empty or exactly RESET — got \"${RESET}\""
+            exit 1
           fi
 
-          echo "::error::reset_data must be empty or exactly RESET — got \"${RESET}\""
-          exit 1
+          if [ -n "${SAMPLE}" ] && [ "${SAMPLE}" != "WEBSITE" ]; then
+            echo "::error::sample_website must be empty or exactly WEBSITE — got \"${SAMPLE}\""
+            exit 1
+          fi
 
       # Waits by signing in, not by knocking: a bare TCP probe drops the
       # connection without an identification string, which fail2ban bans the
@@ -217,6 +226,25 @@ jobs:
           echo "::error::${url} did not report healthy after 30 attempts, 5s apart"
           echo "last response: ${body:-<no response>}"
           exit 1
+
+      # Overwrites the website's draft and published content on purpose; the logo is set only when
+      # the clinic has none. Runs inside the api container, so it uses the stack's own .env.
+      - name: Apply the sample website
+        if: ${{ inputs.sample_website == 'WEBSITE' }}
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SANDBOX_HOST }}
+          username: ${{ secrets.SANDBOX_USER }}
+          key: ${{ secrets.SANDBOX_SSH_KEY }}
+          port: ${{ secrets.SANDBOX_SSH_PORT || 22 }}
+          script_stop: true
+          timeout: 60s
+          command_timeout: 10m
+          script: |
+            set -eu
+            cd ${{ env.REMOTE_DIR }}
+            docker compose -p ${{ env.COMPOSE_PROJECT }} -f docker-compose.sandbox.yml \
+              exec -T api node dist/database/apply-sample-website.js
 
       # "container is unhealthy" alone says nothing about what the container
       # said. Two services only: this log is public.
