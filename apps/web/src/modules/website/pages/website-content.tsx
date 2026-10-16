@@ -8,6 +8,7 @@ import { errorToast } from "@web/shared/lib/api-error";
 import { formatDateTime } from "@web/shared/lib/format";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
+import { openOutsideApp } from "@web/shared/lib/open-outside-app";
 import { AboutCard } from "@web/modules/website/components/cards/about-card";
 import { BookingCard } from "@web/modules/website/components/cards/booking-card";
 import { BrandCard } from "@web/modules/website/components/cards/brand-card";
@@ -153,6 +154,11 @@ export function WebsiteContent({ editor }: { readonly editor: WebsiteEditor }): 
                   href={`/site/${editor.site.clinic.slug}${previewPage.path}`}
                   target="_blank"
                   rel="noreferrer noopener"
+                  onClick={(event) => {
+                    if (openOutsideApp(event.currentTarget.href)) {
+                      event.preventDefault();
+                    }
+                  }}
                   data-testid="website-open"
                   className="pill-text inline-flex h-(--control-h) items-center gap-2 rounded-control border border-line bg-surface px-3.5 text-label font-medium text-ink hover:border-primary-600 hover:text-primary-700"
                 >
