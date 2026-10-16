@@ -135,17 +135,14 @@ export default tseslint.config(
               message: "Use the @web/… alias instead of a relative path.",
             },
             {
-              group: [
-                "@web/modules/*",
-                "@web/shared/*",
-                "@web/app/*",
-                "@web/i18n*",
-                "@web/App",
-                "@clinic/ui",
-                "@clinic/ui/*",
-              ],
+              group: ["@web/modules/*", "@web/shared/*", "@web/app/*", "@web/i18n*", "@web/App"],
               message:
-                "The booking entry ships its own bundle and must not import the dashboard app or the UI library. Write what it needs under src/booking, or move the shared piece to a token file.",
+                "The booking entry ships its own bundle and must not import the dashboard app. Write what it needs under src/booking.",
+            },
+            {
+              regex: "^@clinic/ui(/(lib|theme)(/.*)?)?$",
+              message:
+                "The booking entry takes a UI component by its exact file (@clinic/ui/components/<name>), never the barrel, so it carries only what it renders.",
             },
             {
               group: [
@@ -183,17 +180,14 @@ export default tseslint.config(
               message: "Use the @web/… alias instead of a relative path.",
             },
             {
-              group: [
-                "@web/modules/*",
-                "@web/shared/*",
-                "@web/app/*",
-                "@web/i18n*",
-                "@web/App",
-                "@clinic/ui",
-                "@clinic/ui/*",
-              ],
+              group: ["@web/modules/*", "@web/shared/*", "@web/app/*", "@web/i18n*", "@web/App"],
               message:
-                "The website entry ships its own bundle and must not import the dashboard app or the UI library. Write what it needs under src/site, or reuse src/booking.",
+                "The website entry ships its own bundle and must not import the dashboard app. Write what it needs under src/site, or reuse src/booking.",
+            },
+            {
+              regex: "^@clinic/ui(/(lib|theme)(/.*)?)?$",
+              message:
+                "The website entry takes a UI component by its exact file (@clinic/ui/components/<name>), never the barrel, so it carries only what it renders.",
             },
             {
               group: [

@@ -7,7 +7,7 @@ import {
 import { createContactMessageSchema } from "@shared/schemas/website";
 import { useId, useRef, useState, type FormEvent, type JSX, type ReactNode } from "react";
 import { Alert, Button, cx } from "@web/booking/ui";
-import { CountryPicker } from "@web/booking/country-picker";
+import { PhoneCountrySelect } from "@clinic/ui/components/phone-country-select";
 import { siteApi, siteFailureKey } from "@web/site/api";
 import { SiteIcon } from "@web/site/components/site-icon";
 import { useSite } from "@web/site/hooks/use-site";
@@ -207,7 +207,7 @@ export function ContactForm(): JSX.Element {
                 dir="ltr"
                 addon={
                   typedWhole ? undefined : (
-                    <CountryPicker
+                    <PhoneCountrySelect
                       country={country}
                       onChange={setCountry}
                       language={language}
