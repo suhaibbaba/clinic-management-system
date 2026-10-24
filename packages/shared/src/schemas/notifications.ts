@@ -57,6 +57,8 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: Record<NotificationTemplate, string
     "بخصوص طلبك العاجل في {clinic}: {reason}. للاستفسار تواصل معنا.",
   [NOTIFICATION_TEMPLATE.ASSISTANT_MESSAGE]: "{body}",
   [NOTIFICATION_TEMPLATE.DOCUMENT]: "{document} من {clinic}.",
+  [NOTIFICATION_TEMPLATE.PORTAL_CODE]:
+    "رمز الدخول إلى حسابك في {clinic} هو {code}. صالح لمدة {minutes} دقائق. لا تشاركه مع أحد.",
 };
 
 export function notificationSettings(settings: unknown): NotificationSettings {

@@ -71,8 +71,9 @@ core · patients · billing · appointments · booking · notifications · labs 
    `session_replication_role = replica` (the seed, test clean-up) gets past them.
 5. **Charts** use FDI numbering (11–48, 51–85). `chart_marks` links a treatment to a location
    generically per specialty.
-6. **Public booking is anonymous.** No patient accounts; the phone number is the identity. Slots are
-   computed, never stored.
+6. **Public booking is anonymous.** The phone number is the identity; a patient has no password. The
+   patient account on the website signs in with a one-time code sent to that phone and only reads (see
+   `ROLES.md`). Slots are computed, never stored.
 7. **State machines are code enums**, in `packages/shared`; transitions validated in services.
 8. **Every user-facing choice list is data**, in `lookup_options`, scoped per clinic and grouped by
    `list_key`. Adding an option is not a code change. `is_system` is a label, not a lock: every row

@@ -365,6 +365,7 @@ export const NOTIFICATION_TEMPLATE = {
   URGENT_DECLINED: "urgent_declined",
   ASSISTANT_MESSAGE: "assistant_message",
   DOCUMENT: "document",
+  PORTAL_CODE: "portal_code",
 } as const satisfies Record<string, string>;
 export type NotificationTemplate = EnumValue<typeof NOTIFICATION_TEMPLATE>;
 
@@ -379,6 +380,7 @@ export const NOTIFICATION_TEMPLATES = [
   NOTIFICATION_TEMPLATE.URGENT_DECLINED,
   NOTIFICATION_TEMPLATE.ASSISTANT_MESSAGE,
   NOTIFICATION_TEMPLATE.DOCUMENT,
+  NOTIFICATION_TEMPLATE.PORTAL_CODE,
 ] as const;
 
 export const NOTIFICATION_STATUS = {

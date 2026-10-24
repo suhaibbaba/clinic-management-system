@@ -47,4 +47,5 @@ export * from "@shared/schemas/timeline";
 export * from "@shared/schemas/tooth-history";
 export * from "@shared/schemas/users";
 export * from "@shared/schemas/visits";
+export * from "@shared/schemas/portal";
 export * from "@shared/schemas/website";

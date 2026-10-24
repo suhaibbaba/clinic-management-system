@@ -14,5 +14,6 @@ import { WebsiteService } from "@api/modules/website/services/website.service";
   imports: [DatabaseModule, AuditModule, StorageModule, ClinicsModule],
   controllers: [WebsiteController, WebsiteMessagesController, PublicSiteController],
   providers: [ClinicScopeService, WebsiteService, ContactMessagesService],
+  exports: [WebsiteService],
 })
 export class WebsiteModule {}

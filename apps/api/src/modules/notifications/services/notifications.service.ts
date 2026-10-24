@@ -55,7 +55,8 @@ export class NotificationsService {
         channel,
         template: input.template,
         vars:
-          input.template === NOTIFICATION_TEMPLATE.BOOKING_OTP
+          input.template === NOTIFICATION_TEMPLATE.BOOKING_OTP ||
+          input.template === NOTIFICATION_TEMPLATE.PORTAL_CODE
             ? { ...input.vars, code: "••••••" }
             : input.vars,
         status: NOTIFICATION_STATUS.QUEUED,
