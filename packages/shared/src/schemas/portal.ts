@@ -37,6 +37,8 @@ export type PortalPatientSummary = z.infer<typeof portalPatientSummarySchema>;
 
 export const portalAccountSchema = z.object({
   clinicSlug: z.string(),
+  currency: z.string(),
+  timeZone: z.string(),
   expiresAt: z.iso.datetime(),
   patients: z.array(portalPatientSummarySchema),
 });

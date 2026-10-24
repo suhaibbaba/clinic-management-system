@@ -10,7 +10,8 @@
     "contact": "تواصل معنا",
     "book": "احجز موعدك",
     "menu": "القائمة",
-    "switchLanguage": "اعرض الموقع بـ {{language}}"
+    "switchLanguage": "اعرض الموقع بـ {{language}}",
+    "account": "حسابي"
   },
   "hero": {
     "subtitle": "رعاية متكاملة بأحدث التقنيات وفي بيئة مريحة وآمنة",
@@ -118,7 +119,8 @@
     "throttled": "طلبات كثيرة خلال وقت قصير. حاول بعد قليل.",
     "closed": "استقبال الرسائل متوقف حالياً.",
     "server": "حدث خطأ لدينا. حاول بعد قليل.",
-    "generic": "حدث خطأ غير متوقع. حاول مجدداً."
+    "generic": "حدث خطأ غير متوقع. حاول مجدداً.",
+    "unauthorized": "انتهت جلستك. ادخل من جديد."
   },
   "home": {
     "contactNow": "تواصل معنا الآن",
@@ -154,5 +156,85 @@
   "testimonials": {
     "title": "ماذا يقول مرضانا",
     "rating": "التقييم {{count}} من {{max}}"
+  },
+  "portal": {
+    "title": "حسابي",
+    "subtitle": "مواعيدك وعلاجاتك وحسابك وملفاتك في مكان واحد",
+    "signInTitle": "ادخل إلى حسابك",
+    "signInIntro": "اكتب رقم الهاتف المسجّل في العيادة، وسنرسل لك رمز دخول.",
+    "phoneHint": "الرقم نفسه الذي سجّلته في العيادة.",
+    "sendCode": "أرسل رمز الدخول",
+    "codeTitle": "اكتب رمز الدخول",
+    "codeIntro": "أرسلنا رمزاً من 6 أرقام إلى {{phone}} إن كان مسجّلاً لدينا.",
+    "code": "رمز الدخول",
+    "codeInvalid": "اكتب الرمز المكوّن من 6 أرقام.",
+    "wrongCode": "الرمز غير صحيح أو انتهت صلاحيته. اطلب رمزاً جديداً.",
+    "verify": "دخول",
+    "changePhone": "تغيير الرقم",
+    "resend": "إعادة إرسال الرمز",
+    "signOut": "تسجيل الخروج",
+    "family": "أفراد العائلة على هذا الرقم",
+    "noPatients": "لا يوجد ملف مريض على هذا الرقم الآن. تواصل مع العيادة.",
+    "fileNumber": "رقم الملف {{number}}",
+    "sections": "أقسام الحساب",
+    "tabs": {
+      "overview": "نظرة عامة",
+      "appointments": "المواعيد",
+      "treatments": "العلاجات",
+      "billing": "الحساب",
+      "prescriptions": "الوصفات",
+      "files": "الملفات"
+    },
+    "upcoming": "المواعيد القادمة",
+    "history": "المواعيد السابقة",
+    "recentTreatments": "آخر العلاجات",
+    "visits": "الزيارات",
+    "statement": "كشف الحساب",
+    "complaint": "الشكوى",
+    "diagnosis": "التشخيص",
+    "medicalAlerts": "تنبيهات طبية",
+    "teeth": "السن {{teeth}}",
+    "open": "فتح",
+    "receipt": "إيصال {{number}}",
+    "reversal": "تصحيح",
+    "runningBalance": "الرصيد {{amount}}",
+    "money": {
+      "charged": "مجموع العلاجات",
+      "paid": "المدفوع",
+      "balance": "المتبقي"
+    },
+    "entry": {
+      "charge": "علاج",
+      "payment": "دفعة"
+    },
+    "empty": {
+      "upcoming": "لا مواعيد قادمة.",
+      "history": "لا مواعيد سابقة.",
+      "treatments": "لا علاجات مسجّلة بعد.",
+      "visits": "لا زيارات مسجّلة بعد.",
+      "statement": "لا حركات على الحساب بعد.",
+      "prescriptions": "لا وصفات بعد.",
+      "files": "لا ملفات بعد."
+    },
+    "regimen": {
+      "perDose": "{{count}} في الجرعة",
+      "timesPerDay": "{{count}} مرات يومياً",
+      "days": "لمدة {{count}} أيام"
+    },
+    "appointmentStatus": {
+      "requested": "بانتظار التأكيد",
+      "confirmed": "مؤكد",
+      "arrived": "وصلت",
+      "in_progress": "قيد العلاج",
+      "completed": "تم",
+      "no_show": "لم تحضر",
+      "cancelled": "ملغى"
+    },
+    "treatmentStatus": {
+      "planned": "مخطط",
+      "in_progress": "قيد التنفيذ",
+      "done": "تم",
+      "cancelled": "ملغى"
+    }
   }
 }

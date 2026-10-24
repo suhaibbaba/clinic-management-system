@@ -48,6 +48,7 @@ export function SiteHeader(): JSX.Element {
     (link) => link.section === null || site.content.sections.includes(link.section),
   );
   const bookable = useBookable();
+  const portal = site.content.sections.includes(SITE_SECTION.PORTAL);
 
   useEffect(() => {
     if (!open) {
@@ -123,6 +124,21 @@ export function SiteHeader(): JSX.Element {
           >
             {SITE_LANGUAGE_SHORT[other]}
           </button>
+
+          {portal && (
+            <SiteLink
+              to={SITE_PATH.ACCOUNT}
+              data-testid="site-header-account"
+              aria-label={t("nav.account")}
+              {...(page.kind === "account" && { "aria-current": "page" as const })}
+              className="pill-text inline-flex min-h-(--control-h) items-center gap-2 rounded-pill px-3 text-label font-medium text-primary-800 hover:bg-primary-50 aria-[current=page]:bg-primary-50"
+            >
+              <SiteIcon name="user" />
+              <span aria-hidden className="hidden xl:inline">
+                {t("nav.account")}
+              </span>
+            </SiteLink>
+          )}
 
           {bookable && (
             <SiteLink

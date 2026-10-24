@@ -8,6 +8,7 @@ import { SiteContext } from "@web/site/lib/site-context";
 import { pageTitle } from "@web/site/lib/page-title";
 import { isSiteLanguage } from "@web/site/lib/text";
 import { AboutPage } from "@web/site/pages/about-page";
+import { AccountPage } from "@web/site/pages/account-page";
 import { BookingPage } from "@web/site/pages/booking-page";
 import { ContactPage } from "@web/site/pages/contact-page";
 import { DoctorPage } from "@web/site/pages/doctor-page";
@@ -26,6 +27,7 @@ const SECTION_OF: Partial<Record<SitePageRoute["kind"], SiteSection>> = {
   about: SITE_SECTION.ABOUT,
   contact: SITE_SECTION.CONTACT,
   booking: SITE_SECTION.BOOKING,
+  account: SITE_SECTION.PORTAL,
 };
 
 function PageFor({ page }: { readonly page: SitePageRoute }): JSX.Element {
@@ -44,6 +46,8 @@ function PageFor({ page }: { readonly page: SitePageRoute }): JSX.Element {
       return <ContactPage />;
     case "booking":
       return <BookingPage />;
+    case "account":
+      return <AccountPage />;
     case "notFound":
       return <NotFoundPage />;
   }

@@ -52,7 +52,6 @@ describe("Patient portal (e2e)", () => {
   ) => context.app.inject({ method, url, headers, ...(payload !== undefined && { payload }) });
 
   const publish = async (
-    target: TestClinic,
     headers: Record<string, string>,
     sections: readonly SiteSection[],
   ): Promise<void> => {
@@ -165,8 +164,8 @@ describe("Patient portal (e2e)", () => {
       phone: familyPhone,
     });
 
-    await publish(clinic, admin, SITE_SECTIONS);
-    await publish(neighbour, auth(neighbourAdminToken), SITE_SECTIONS);
+    await publish(admin, SITE_SECTIONS);
+    await publish(auth(neighbourAdminToken), SITE_SECTIONS);
   });
 
   beforeEach(() => context.resetThrottle());
@@ -180,7 +179,6 @@ describe("Patient portal (e2e)", () => {
     const headers = auth(await context.login(closed.phones[USER_ROLE.ADMIN]));
 
     await publish(
-      closed,
       headers,
       SITE_SECTIONS.filter((section) => section !== SITE_SECTION.PORTAL),
     );
@@ -248,7 +246,7 @@ describe("Patient portal (e2e)", () => {
     const account = response.json() as PortalAccount;
 
     expect(response.statusCode).toBe(200);
-    expect(account.clinicSlug).toBe(clinic.slug);
+    expect(account).toMatchObject({ clinicSlug: clinic.slug, currency: expect.any(String) });
     expect(account.patients.map((patient) => patient.id).sort()).toEqual(
       [motherId, childId].sort(),
     );
@@ -365,7 +363,6 @@ describe("Patient portal (e2e)", () => {
     expect((await inject("GET", "/public/portal/account", { cookie })).statusCode).toBe(200);
 
     await publish(
-      neighbour,
       neighbourAdmin,
       SITE_SECTIONS.filter((section) => section !== SITE_SECTION.PORTAL),
     );

@@ -16,4 +16,15 @@ export const SITE_PARAM = {
   LANGUAGE: "lang",
   SPECIALTY: "specialty",
   DOCTOR: "doctor",
+  TAB: "tab",
+  PATIENT: "patient",
 } as const;
+
+export const PORTAL_TABS = [
+  "overview",
+  "appointments",
+  "treatments",
+  "billing",
+  "prescriptions",
+  "files",
+] as const;

@@ -5,89 +5,18 @@ import {
   type PhoneCountry,
 } from "@shared/constants/phone";
 import { createContactMessageSchema } from "@shared/schemas/website";
-import { useId, useRef, useState, type FormEvent, type JSX, type ReactNode } from "react";
+import { useId, useRef, useState, type FormEvent, type JSX } from "react";
 import { Alert, Button, cx } from "@web/booking/ui";
 import { PhoneCountrySelect } from "@clinic/ui/components/phone-country-select";
 import { siteApi, siteFailureKey } from "@web/site/api";
-import { SiteIcon } from "@web/site/components/site-icon";
+import { IconInput, Labelled } from "@web/site/components/site-field";
 import { useSite } from "@web/site/hooks/use-site";
+import { FIELD_BOX, fieldTone } from "@web/site/lib/field-style";
 import { pick } from "@web/site/lib/text";
 
 const EMPTY = { name: "", email: "", phone: "", topic: "", message: "" };
 
 type ContactField = keyof typeof EMPTY;
-
-const FIELD_BOX =
-  "w-full rounded-control border-[1.5px] bg-surface text-field text-ink placeholder:text-ink-subtle";
-
-const fieldTone = (error: string | undefined): string =>
-  error
-    ? "border-danger-600 shadow-field-error"
-    : "border-line-strong hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus";
-
-function Labelled({
-  id,
-  label,
-  error,
-  hint,
-  children,
-}: {
-  readonly id: string;
-  readonly label: string;
-  readonly error: string | undefined;
-  readonly hint?: string | undefined;
-  readonly children: ReactNode;
-}): JSX.Element {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-label font-medium text-ink">
-        {label}
-      </label>
-      {children}
-      {hint && !error && (
-        <span id={`${id}-hint`} className="text-label text-ink-muted">
-          {hint}
-        </span>
-      )}
-      {error && (
-        <span id={`${id}-error`} role="alert" className="text-label font-medium text-danger-700">
-          {error}
-        </span>
-      )}
-    </div>
-  );
-}
-
-function IconInput({
-  id,
-  icon,
-  error,
-  addon,
-  ...rest
-}: {
-  readonly id: string;
-  readonly icon: "user" | "mail" | "phone";
-  readonly error: string | undefined;
-  readonly addon?: ReactNode;
-} & Omit<JSX.IntrinsicElements["input"], "id">): JSX.Element {
-  return (
-    <div dir={addon ? "ltr" : undefined} className="flex gap-2">
-      {addon}
-      <div className="relative flex-1">
-        <SiteIcon
-          name={icon}
-          className="pointer-events-none absolute inset-y-0 start-3 my-auto text-ink-subtle"
-        />
-        <input
-          id={id}
-          {...(error && { "aria-invalid": true, "aria-describedby": `${id}-error` })}
-          className={cx(FIELD_BOX, "min-h-(--control-h) ps-10 pe-3", fieldTone(error))}
-          {...rest}
-        />
-      </div>
-    </div>
-  );
-}
 
 export function ContactForm(): JSX.Element {
   const { site, language, t, preview } = useSite();

@@ -11,6 +11,7 @@ export type SitePageRoute =
   | { readonly kind: "about" }
   | { readonly kind: "contact" }
   | { readonly kind: "booking" }
+  | { readonly kind: "account" }
   | { readonly kind: "notFound" };
 
 export const SITE_PATH = {
@@ -19,6 +20,7 @@ export const SITE_PATH = {
   ABOUT: "/about",
   CONTACT: "/contact",
   BOOKING: "/appointment",
+  ACCOUNT: "/account",
 } as const;
 
 export const SITE_PREVIEW_BASE = "/site/preview";
@@ -70,6 +72,8 @@ export function sitePage(pathname: string, base: string): SitePageRoute {
       return { kind: "contact" };
     case SITE_PATH.BOOKING:
       return { kind: "booking" };
+    case SITE_PATH.ACCOUNT:
+      return { kind: "account" };
     default:
       return { kind: "notFound" };
   }

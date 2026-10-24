@@ -10,7 +10,8 @@
     "contact": "Contact",
     "book": "Book an appointment",
     "menu": "Menu",
-    "switchLanguage": "View the site in {{language}}"
+    "switchLanguage": "View the site in {{language}}",
+    "account": "My account"
   },
   "hero": {
     "subtitle": "Complete care with modern technology, in a calm and safe setting",
@@ -118,7 +119,8 @@
     "throttled": "Too many requests in a short time. Try again shortly.",
     "closed": "Messages are switched off right now.",
     "server": "Something went wrong on our side. Try again shortly.",
-    "generic": "Something unexpected went wrong. Try again."
+    "generic": "Something unexpected went wrong. Try again.",
+    "unauthorized": "Your session has ended. Please sign in again."
   },
   "home": {
     "contactNow": "Contact us now",
@@ -154,5 +156,85 @@
   "testimonials": {
     "title": "What our patients say",
     "rating": "Rated {{count}} out of {{max}}"
+  },
+  "portal": {
+    "title": "My account",
+    "subtitle": "Your appointments, treatments, balance and files in one place",
+    "signInTitle": "Sign in to your account",
+    "signInIntro": "Enter the phone number the clinic has on file and we'll send you a sign-in code.",
+    "phoneHint": "The same number you gave the clinic.",
+    "sendCode": "Send the code",
+    "codeTitle": "Enter your code",
+    "codeIntro": "If {{phone}} is on file, we've sent it a 6-digit code.",
+    "code": "Sign-in code",
+    "codeInvalid": "Enter the 6-digit code.",
+    "wrongCode": "That code is wrong or has expired. Ask for a new one.",
+    "verify": "Sign in",
+    "changePhone": "Change number",
+    "resend": "Send a new code",
+    "signOut": "Sign out",
+    "family": "Family members on this number",
+    "noPatients": "There is no patient file on this number now. Please contact the clinic.",
+    "fileNumber": "File {{number}}",
+    "sections": "Account sections",
+    "tabs": {
+      "overview": "Overview",
+      "appointments": "Appointments",
+      "treatments": "Treatments",
+      "billing": "Balance",
+      "prescriptions": "Prescriptions",
+      "files": "Files"
+    },
+    "upcoming": "Upcoming appointments",
+    "history": "Past appointments",
+    "recentTreatments": "Latest treatments",
+    "visits": "Visits",
+    "statement": "Statement",
+    "complaint": "Complaint",
+    "diagnosis": "Diagnosis",
+    "medicalAlerts": "Medical alerts",
+    "teeth": "Tooth {{teeth}}",
+    "open": "Open",
+    "receipt": "Receipt {{number}}",
+    "reversal": "Correction",
+    "runningBalance": "Balance {{amount}}",
+    "money": {
+      "charged": "Treatments total",
+      "paid": "Paid",
+      "balance": "Remaining"
+    },
+    "entry": {
+      "charge": "Treatment",
+      "payment": "Payment"
+    },
+    "empty": {
+      "upcoming": "No upcoming appointments.",
+      "history": "No past appointments.",
+      "treatments": "No treatments recorded yet.",
+      "visits": "No visits recorded yet.",
+      "statement": "Nothing on the account yet.",
+      "prescriptions": "No prescriptions yet.",
+      "files": "No files yet."
+    },
+    "regimen": {
+      "perDose": "{{count}} per dose",
+      "timesPerDay": "{{count}} times a day",
+      "days": "for {{count}} days"
+    },
+    "appointmentStatus": {
+      "requested": "Awaiting confirmation",
+      "confirmed": "Confirmed",
+      "arrived": "Arrived",
+      "in_progress": "In treatment",
+      "completed": "Done",
+      "no_show": "Missed",
+      "cancelled": "Cancelled"
+    },
+    "treatmentStatus": {
+      "planned": "Planned",
+      "in_progress": "In progress",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    }
   }
 }
