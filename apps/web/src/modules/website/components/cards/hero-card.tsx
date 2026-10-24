@@ -20,6 +20,7 @@ export function HeroCard(): JSX.Element {
         path="hero.title"
         label="website.fields.title"
         hint="website.fields.heroTitleHint"
+        multiline
       />
       <DraftText path="hero.subtitle" label="website.fields.subtitle" multiline />
 

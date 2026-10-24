@@ -1,7 +1,6 @@
 import { SITE_SECTION } from "@clinic/shared";
 import type { JSX } from "react";
 import { PillLink } from "@web/site/components/pill-link";
-import { SectionHeading } from "@web/site/components/section-heading";
 import { SiteIcon } from "@web/site/components/site-icon";
 import { SiteImage } from "@web/site/components/site-image";
 import { useSite } from "@web/site/hooks/use-site";
@@ -13,7 +12,7 @@ export function AboutTeaser(): JSX.Element | null {
   const { site, language, t } = useSite();
   const { about, story } = site.content;
   const summary = pick(about.body, language).split(/\n{2,}/)[0] ?? "";
-  const pillars = about.pillars.slice(0, 3);
+  const badge = pick(story.badge, language);
 
   if (!site.content.sections.includes(SITE_SECTION.ABOUT)) {
     return null;
@@ -22,56 +21,64 @@ export function AboutTeaser(): JSX.Element | null {
   return (
     <section
       data-testid="site-about-teaser"
-      className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]"
+      aria-labelledby="about-teaser-title"
+      className="bg-primary-50/60"
     >
-      <div className="flex flex-col gap-6">
-        <SectionHeading
-          id="about-teaser"
-          eyebrow={orDefault(about.title, language, t("about.title"))}
-          title={orDefault(story.title, language, t("about.subtitle"))}
+      <div className="grid items-center gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+        <div
+          data-reveal
+          className="site-gutter-start flex flex-col items-start gap-4 px-4 pb-14 md:py-16 md:pe-8"
         >
-          {summary && <p className="mt-2 line-clamp-4 text-section text-ink-muted">{summary}</p>}
-        </SectionHeading>
-
-        {pillars.length > 0 && (
-          <ul
-            data-reveal-group
-            className="grid gap-4 sm:grid-cols-[repeat(auto-fit,minmax(10rem,1fr))]"
+          <p className="text-section font-medium text-primary-600">
+            {orDefault(about.title, language, t("about.title"))}
+          </p>
+          <h2
+            id="about-teaser-title"
+            className="text-title font-bold text-primary-900 md:text-headline"
           >
-            {pillars.map((pillar, position) => (
-              <li
-                key={position}
-                className="flex flex-col items-center gap-2 rounded-card border border-line bg-surface p-5 text-center shadow-card"
-              >
-                <SiteIcon name={pillar.icon} className="size-8 text-primary-600" />
-                <h3 className="text-heading font-bold text-primary-900">
-                  {pick(pillar.label, language)}
-                </h3>
-                {pick(pillar.text, language) && (
-                  <p className="text-label text-ink-muted">{pick(pillar.text, language)}</p>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
+            {orDefault(story.title, language, t("about.subtitle"))}
+          </h2>
+          {summary && <p className="line-clamp-4 text-section text-ink-muted">{summary}</p>}
+          <PillLink to={SITE_PATH.ABOUT} tone="dark" data-testid="site-about-more">
+            {t("home.aboutLink")}
+          </PillLink>
 
-        <PillLink
-          to={SITE_PATH.ABOUT}
-          tone="outline"
-          className="self-start"
-          data-testid="site-about-more"
-        >
-          {t("home.aboutLink")}
-        </PillLink>
-      </div>
+          {about.stats.length > 0 && (
+            <ul
+              data-testid="site-stats"
+              aria-label={t("home.statsLabel")}
+              data-reveal-group
+              className="mt-4 grid w-full grid-cols-2 gap-y-6 sm:grid-cols-4 sm:divide-x sm:divide-line"
+            >
+              {about.stats.map((stat, position) => (
+                <li key={position} className="flex flex-col items-center gap-1 px-2 text-center">
+                  <SiteIcon name={stat.icon} className="mb-1 size-8 text-primary-600" />
+                  <bdi className="text-title font-bold text-primary-900">{stat.value}</bdi>
+                  <span className="text-meta text-ink-muted">{pick(stat.label, language)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
-      <div data-reveal>
-        <SiteImage
-          src={imageOf(site, about.image) ?? imageOf(site, story.image)}
-          data-testid="site-about-teaser-image"
-          className="site-shape-soft aspect-[4/3] w-full shadow-float lg:aspect-[5/4]"
-          fallback={<SiteIcon name="smile" className="size-16" />}
-        />
+        <div className="relative order-first aspect-[4/3] md:order-none md:aspect-auto md:h-full md:min-h-[30rem]">
+          <SiteImage
+            src={imageOf(site, about.image) ?? imageOf(site, story.image)}
+            layer
+            data-testid="site-about-teaser-image"
+            className="md:site-arc-start"
+            fallback={<SiteIcon name="smile" className="size-16" />}
+          />
+          {badge && (
+            <p
+              data-testid="site-about-badge"
+              className="absolute start-4 top-4 flex items-center gap-2 rounded-card bg-surface/95 px-4 py-2.5 text-label font-bold text-primary-900 shadow-float md:start-auto md:end-8 md:top-8"
+            >
+              <SiteIcon name="award" className="size-6 text-primary-600" />
+              {badge}
+            </p>
+          )}
+        </div>
       </div>
     </section>
   );

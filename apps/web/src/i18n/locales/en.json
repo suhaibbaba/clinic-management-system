@@ -2775,19 +2775,24 @@
       "contact": "Contact",
       "contactHint": "Phone, email, address, hours and the map come from the clinic details.",
       "brand": "Brand and links",
-      "brandHint": "A short line shown over pictures, and the clinic's social accounts in the footer."
+      "brandHint": "A short line shown over pictures, and the clinic's social accounts in the footer.",
+      "cases": "Before and after",
+      "casesHint": "Real cases with a photo before treatment and one after, shown on the home page. A case appears once both photos are in.",
+      "testimonials": "Patient reviews",
+      "testimonialsHint": "What patients said about the clinic, with their rating, shown on the home page."
     },
     "sections": {
       "services": "Services",
       "doctors": "Doctors",
       "about": "About us",
       "booking": "Booking",
-      "contact": "Contact"
+      "contact": "Contact",
+      "portal": "Patient account"
     },
     "fields": {
       "title": "Title",
       "subtitle": "Description",
-      "heroTitleHint": "Leave empty to show the clinic's name.",
+      "heroTitleHint": "Leave empty to show the clinic's name. A second line shows in the brand colour.",
       "slide": "Photo {{number}}",
       "image": "Image",
       "promo": "Promo card title",
@@ -2929,6 +2934,24 @@
       "facebook": "Facebook",
       "whatsapp": "WhatsApp",
       "youtube": "YouTube"
+    },
+    "cases": {
+      "empty": "No cases yet. The section stays off the site until a case has both photos.",
+      "item": "Case {{number}}",
+      "title": "About this case",
+      "before": "Before photo",
+      "after": "After photo",
+      "add": "Add a case"
+    },
+    "testimonials": {
+      "empty": "No reviews yet. The section stays off the site until you add one.",
+      "item": "Review {{number}}",
+      "name": "Patient's name",
+      "text": "What they said",
+      "rating": "Rating",
+      "stars_one": "{{count}} star",
+      "stars_other": "{{count}} stars",
+      "add": "Add a review"
     }
   },
   "finance": {

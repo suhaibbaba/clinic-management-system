@@ -36,6 +36,7 @@ export const SITE_SECTION_LABELS: Record<SiteSection, string> = {
   about: "website.sections.about",
   booking: "website.sections.booking",
   contact: "website.sections.contact",
+  portal: "website.sections.portal",
 };
 
 export const SITE_SOCIAL_LABELS: Record<SiteSocial, string> = {

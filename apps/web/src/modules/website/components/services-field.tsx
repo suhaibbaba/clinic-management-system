@@ -3,6 +3,7 @@ import type { FocusEvent, JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Icon } from "@clinic/ui";
 import type { FieldErrors } from "@web/shared/lib/form-errors";
+import { IconSelect } from "@web/modules/website/components/icon-select";
 import { RowTools } from "@web/modules/website/components/row-tools";
 import { SiteImageField } from "@web/modules/website/components/site-image-field";
 import { TextPair } from "@web/modules/website/components/text-pair";
@@ -47,9 +48,14 @@ export function ServicesField({
           className="flex flex-col gap-3 rounded-panel border border-line bg-sunken p-3"
         >
           <div className="flex items-center justify-between gap-2">
-            <p className="text-label font-medium text-ink-muted">
+            <p className="flex-1 text-label font-medium text-ink-muted">
               {t("website.services.item", { number: index + 1 })}
             </p>
+            <IconSelect
+              data-testid={`services-field-${item.id}-icon`}
+              value={item.icon}
+              onChange={(icon) => onChange(replaceAt(items, index, { ...item, icon }))}
+            />
             <RowTools
               id={`services-field-${item.id}`}
               index={index}
@@ -108,7 +114,13 @@ export function ServicesField({
           onClick={() =>
             onChange([
               ...items,
-              { id: newItemId(), title: blankText(), description: blankText(), image: null },
+              {
+                id: newItemId(),
+                title: blankText(),
+                description: blankText(),
+                image: null,
+                icon: "tooth",
+              },
             ])
           }
         >

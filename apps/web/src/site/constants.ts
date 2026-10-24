@@ -12,10 +12,6 @@ export const SITE_LANGUAGE_SHORT: Record<SiteLanguage, string> = {
 
 export const HERO_SLIDE_MS = 6000;
 
-export const HOME_SERVICES = 6;
-
-export const HOME_DOCTORS = 4;
-
 export const SITE_PARAM = {
   LANGUAGE: "lang",
   SPECIALTY: "specialty",

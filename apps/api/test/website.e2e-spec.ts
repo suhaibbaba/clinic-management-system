@@ -27,6 +27,7 @@ const content = (overrides: Partial<SiteContent> = {}): SiteContent => ({
         title: { ar: "تنظيف", en: "Cleaning" },
         description: { ar: "", en: "" },
         image: null,
+        icon: "tooth",
       },
     ],
   },

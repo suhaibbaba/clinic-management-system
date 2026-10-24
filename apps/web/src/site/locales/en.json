@@ -16,7 +16,8 @@
     "subtitle": "Complete care with modern technology, in a calm and safe setting",
     "cta": "Book your appointment",
     "slides": "Clinic photos",
-    "slide": "Photo {{number}}"
+    "slide": "Photo {{number}}",
+    "services": "Explore our services"
   },
   "services": {
     "title": "Our services",
@@ -129,14 +130,29 @@
     "galleryTitle": "A place designed for you",
     "galleryLink": "Discover more",
     "contactLink": "All ways to reach us",
-    "ctaTitle": "Every smile tells a better story",
-    "ctaSubtitle": "Let us be part of yours"
+    "ctaTitle": "Book your appointment now",
+    "ctaSubtitle": "Our team is ready to welcome you and give your teeth the best care",
+    "callNow": "Call now"
   },
   "notFound": {
     "title": "Page not found",
     "home": "Back to the home page"
   },
   "carousel": {
-    "item": "Card {{number}} of {{total}}"
+    "item": "Card {{number}} of {{total}}",
+    "next": "Next",
+    "previous": "Previous"
+  },
+  "cases": {
+    "title": "Real success stories",
+    "before": "Before",
+    "after": "After",
+    "beforeOf": "{{title}} before treatment",
+    "afterOf": "{{title}} after treatment",
+    "compare": "Compare before and after: {{title}}"
+  },
+  "testimonials": {
+    "title": "What our patients say",
+    "rating": "Rated {{count}} out of {{max}}"
   }
 }

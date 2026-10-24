@@ -9,6 +9,7 @@ import { useBookable } from "@web/site/hooks/use-bookable";
 import { useSite } from "@web/site/hooks/use-site";
 import { nameIn } from "@web/site/lib/text";
 import { SITE_PATH, type SitePageRoute } from "@web/site/route";
+import { SiteTopBar } from "@web/site/sections/site-top-bar";
 
 const LINKS: readonly {
   readonly to: string;
@@ -72,9 +73,10 @@ export function SiteHeader(): JSX.Element {
   return (
     <header
       data-testid="site-header"
-      className="sticky top-0 z-30 border-b border-line/50 bg-surface/85 backdrop-blur-md"
+      className="sticky top-0 z-30 border-b border-line/50 bg-surface/90 backdrop-blur-md"
     >
-      <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 lg:py-4">
+      <SiteTopBar />
+      <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
         <SiteLink
           to="/"
           data-testid="site-brand"

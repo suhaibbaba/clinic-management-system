@@ -1,11 +1,27 @@
 import { describe, expect, it } from "vitest";
-import { groupHours, orDefault, pick, timeLabel, weekdayName } from "@web/site/lib/text";
+import {
+  groupHours,
+  orDefault,
+  pick,
+  timeLabel,
+  titleLines,
+  weekdayName,
+} from "@web/site/lib/text";
 
 describe("site text", () => {
   it("falls back to Arabic when the English is empty, and to the default when both are", () => {
     expect(pick({ ar: "خدماتنا", en: "" }, "en")).toBe("خدماتنا");
     expect(pick({ ar: "خدماتنا", en: "Services" }, "en")).toBe("Services");
     expect(orDefault({ ar: "", en: "" }, "ar", "fallback")).toBe("fallback");
+  });
+
+  it("splits a hero title into its lead line and the accented rest", () => {
+    expect(titleLines("رعاية متكاملة\nلصحة وجمال أسنانك")).toEqual([
+      "رعاية متكاملة",
+      "لصحة وجمال أسنانك",
+    ]);
+    expect(titleLines("One line")).toEqual(["One line", ""]);
+    expect(titleLines("A\r\n\nB\nC")).toEqual(["A", "B C"]);
   });
 });
 

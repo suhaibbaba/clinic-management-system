@@ -90,3 +90,9 @@ export function hoursSummary(schedule: readonly DaySchedule[]): HoursSummary | n
 
 export const mapsLink = (latitude: number, longitude: number): string =>
   `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+
+export function titleLines(title: string): readonly [string, string] {
+  const [lead = "", ...rest] = title.split(/\r?\n/).map((line) => line.trim());
+
+  return [lead, rest.filter(Boolean).join(" ")];
+}

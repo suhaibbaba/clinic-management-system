@@ -11,7 +11,7 @@ const BRAND: Record<SiteSocial, string> = {
   youtube: "bg-social-youtube",
 };
 
-export function SocialLinks(): JSX.Element | null {
+export function SocialLinks({ plain = false }: { readonly plain?: boolean }): JSX.Element | null {
   const { site, t } = useSite();
   const links = SITE_SOCIALS.filter((name) => site.content.brand.social[name] !== "");
 
@@ -22,8 +22,8 @@ export function SocialLinks(): JSX.Element | null {
   return (
     <ul
       aria-label={t("footer.social")}
-      data-testid="site-social"
-      className="flex items-center gap-2"
+      data-testid={plain ? "site-social-plain" : "site-social"}
+      className={cx("flex items-center", plain ? "gap-1" : "gap-2")}
     >
       {links.map((name) => (
         <li key={name}>
@@ -32,12 +32,16 @@ export function SocialLinks(): JSX.Element | null {
             target="_blank"
             rel="noreferrer noopener"
             aria-label={t(`footer.socials.${name}`)}
-            data-testid={`site-social-${name}`}
-            className={cx(
-              "inline-flex size-(--control-h) items-center justify-center rounded-pill text-ink-inverse shadow-float",
-              "transition-[translate,box-shadow,filter] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover hover:brightness-110",
-              BRAND[name],
-            )}
+            data-testid={`${plain ? "site-social-plain" : "site-social"}-${name}`}
+            className={
+              plain
+                ? "inline-flex size-(--control-h-sm) items-center justify-center rounded-pill text-ink-inverse/85 hover:bg-ink-inverse/10 hover:text-ink-inverse"
+                : cx(
+                    "inline-flex size-(--control-h) items-center justify-center rounded-pill text-ink-inverse shadow-float",
+                    "transition-[translate,box-shadow,filter] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover hover:brightness-110",
+                    BRAND[name],
+                  )
+            }
           >
             <SocialIcon name={name} />
           </a>

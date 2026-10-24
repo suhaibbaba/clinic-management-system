@@ -16,7 +16,8 @@
     "subtitle": "رعاية متكاملة بأحدث التقنيات وفي بيئة مريحة وآمنة",
     "cta": "احجز موعدك الآن",
     "slides": "صور العيادة",
-    "slide": "الصورة {{number}}"
+    "slide": "الصورة {{number}}",
+    "services": "تعرّف على خدماتنا"
   },
   "services": {
     "title": "خدماتنا",
@@ -129,14 +130,29 @@
     "galleryTitle": "مكان صُمّم لأجلك",
     "galleryLink": "اكتشف المزيد",
     "contactLink": "كل طرق التواصل",
-    "ctaTitle": "لأن كل ابتسامة تحكي قصة أجمل",
-    "ctaSubtitle": "دعنا نكون جزءاً من قصتك"
+    "ctaTitle": "احجز موعدك الآن",
+    "ctaSubtitle": "فريقنا جاهز لاستقبالك وتقديم أفضل رعاية لأسنانك",
+    "callNow": "اتصل الآن"
   },
   "notFound": {
     "title": "الصفحة غير موجودة",
     "home": "العودة إلى الرئيسية"
   },
   "carousel": {
-    "item": "البطاقة {{number}} من {{total}}"
+    "item": "البطاقة {{number}} من {{total}}",
+    "next": "التالي",
+    "previous": "السابق"
+  },
+  "cases": {
+    "title": "قصص نجاح حقيقية",
+    "before": "قبل",
+    "after": "بعد",
+    "beforeOf": "{{title}} قبل العلاج",
+    "afterOf": "{{title}} بعد العلاج",
+    "compare": "قارن قبل وبعد: {{title}}"
+  },
+  "testimonials": {
+    "title": "ماذا يقول مرضانا",
+    "rating": "التقييم {{count}} من {{max}}"
   }
 }
