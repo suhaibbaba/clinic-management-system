@@ -75,7 +75,6 @@ export function TreatmentForm({
   const doctorName = usePersonName();
   const fieldId = useId();
   const isEdit = treatment !== undefined;
-  const fixedTooth = isEdit ? undefined : defaults.tooth;
 
   const [procedureId, setProcedureId] = useState(treatment?.procedureId ?? "");
   const [doctorId, setDoctorId] = useState(
@@ -85,7 +84,7 @@ export function TreatmentForm({
     treatment?.status ?? defaults.status ?? "done",
   );
   const [teeth, setTeeth] = useState<number[]>(
-    fixedTooth !== undefined ? [fixedTooth] : treatment ? treatmentTeeth(treatment) : [],
+    treatment ? treatmentTeeth(treatment) : defaults.tooth !== undefined ? [defaults.tooth] : [],
   );
   const [surfaces, setSurfaces] = useState<SelectableSurface[]>(
     treatment ? selectable(treatmentSurfaces(treatment)) : [],
@@ -276,20 +275,18 @@ export function TreatmentForm({
           </div>
         )}
 
-        {fixedTooth === undefined && (
-          <div className="max-w-(--field-max)">
-            <div onBlur={form.leave("chartMarks")}>
-              <FormField
-                label="visits.teeth"
-                htmlFor={`${fieldId}-teeth`}
-                error={fieldError(errors, "chartMarks")}
-                optional
-              >
-                <TeethField id={`${fieldId}-teeth`} value={teeth} onChange={setTeeth} />
-              </FormField>
-            </div>
+        <div className="max-w-(--field-max)">
+          <div onBlur={form.leave("chartMarks")}>
+            <FormField
+              label="visits.teeth"
+              htmlFor={`${fieldId}-teeth`}
+              error={fieldError(errors, "chartMarks")}
+              optional
+            >
+              <TeethField id={`${fieldId}-teeth`} value={teeth} onChange={setTeeth} />
+            </FormField>
           </div>
-        )}
+        </div>
 
         {teeth.length === 1 && (
           <div className="flex flex-col gap-1.5">
