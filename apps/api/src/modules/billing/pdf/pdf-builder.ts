@@ -724,8 +724,24 @@ export class RtlPdf {
       });
     };
 
+    const headerSize = size - 0.5;
+    const headerLine = headerSize + 2;
+    const headings = columns.map((column, index) => {
+      const dir = autoDirection(column.header, this.pageDir);
+      return {
+        dir,
+        lines: this.wrap(column.header, (widths[index] ?? 0) - pad * 2, {
+          size: headerSize,
+          weight: "medium",
+          dir,
+          lines: 2,
+        }),
+      };
+    });
+    const headerLines = Math.max(1, ...headings.map((heading) => heading.lines.length));
+
     const header = (): void => {
-      const height = size + 14;
+      const height = size + 14 + (headerLines - 1) * headerLine;
       this.page.drawRectangle({
         x: this.left,
         y: this.cursor - height,
@@ -733,13 +749,16 @@ export class RtlPdf {
         height,
         color: rgb(...BAND),
       });
-      columns.forEach((column, index) => {
-        place(
-          column.header,
-          index,
-          { size: size - 0.5, weight: "medium", colour: MUTED },
-          this.cursor - height / 2 - size / 3,
-        );
+      headings.forEach((heading, index) => {
+        const top = this.cursor - (height - heading.lines.length * headerLine + 2) / 2;
+        heading.lines.forEach((text, line) => {
+          place(
+            text,
+            index,
+            { size: headerSize, weight: "medium", colour: MUTED, dir: heading.dir },
+            top - line * headerLine - size * 0.8,
+          );
+        });
       });
       this.cursor -= height;
     };
@@ -821,6 +840,17 @@ export class RtlPdf {
 
     this.ensure(lines.length * 20 + 16);
 
+    const valueColumn = Math.max(
+      ...lines.map((line) =>
+        this.widthOf(
+          line.value,
+          line.strong === true ? 12 : 10,
+          line.strong === true ? "bold" : "regular",
+          "ltr",
+        ),
+      ),
+    );
+
     for (const line of lines) {
       const strong = line.strong === true;
       const height = strong ? 26 : 18;
@@ -852,7 +882,10 @@ export class RtlPdf {
         weight,
         colour: strong ? ACCENT : INK,
         dir: "ltr",
-        x: this.xFor(valueWidth, "end", from + 8, to - 8),
+        x:
+          this.pageDir === "rtl"
+            ? from + 8 + valueColumn - valueWidth
+            : this.xFor(valueWidth, "end", from + 8, to - 8),
         y,
       });
       this.cursor -= height + 2;
