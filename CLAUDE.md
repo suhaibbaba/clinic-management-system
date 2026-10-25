@@ -71,8 +71,9 @@ core · patients · billing · appointments · booking · notifications · labs 
    `session_replication_role = replica` (the seed, test clean-up) gets past them.
 5. **Charts** use FDI numbering (11–48, 51–85). `chart_marks` links a treatment to a location
    generically per specialty.
-6. **Public booking is anonymous.** No patient accounts; the phone number is the identity. Slots are
-   computed, never stored.
+6. **Public booking is anonymous.** The phone number is the identity; a patient has no password. The
+   patient account on the website signs in with a one-time code sent to that phone and only reads (see
+   `ROLES.md`). Slots are computed, never stored.
 7. **State machines are code enums**, in `packages/shared`; transitions validated in services.
 8. **Every user-facing choice list is data**, in `lookup_options`, scoped per clinic and grouped by
    `list_key`. Adding an option is not a code change. `is_system` is a label, not a lock: every row
@@ -146,8 +147,11 @@ core · patients · billing · appointments · booking · notifications · labs 
   `constants.ts` are private. A helper, key or date window two modules need is written once in
   `shared/`, never copied. ESLint enforces it.
 - **One date and time format.** `shared/lib/format.ts` alone turns an instant into text, in the
-  clinic's time zone: `formatDate` "9 May 2026", `formatTime` "10:30 AM", `formatDateTime`
-  "9 May 2026 · 10:30 AM", `formatPeriod`. Never `toLocaleString` or a hand-joined date and time.
+  clinic's time zone: `formatDate` "09/05/2026", `formatTime` "10:30 AM", `formatDateTime`
+  "09/05/2026 · 10:30 AM", `formatPeriod`. Never `toLocaleString` or a hand-joined date and time.
+  Every date the product writes is DD/MM/YYYY and every time is AM/PM, in Arabic and English
+  alike: the booking pages, the patient account, printed documents and messages too
+  (`shortDate` and `clockTime` in `packages/shared`).
 - **RTL by default.** Gregorian dates, Arabic through i18n. `check:i18n` fails on an Arabic literal
   in a component and on a key missing from either locale.
 - Dropdowns read the clinic's lists through `useLookupOptions` / `useLookupLabels`, never a constant.

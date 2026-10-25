@@ -15,6 +15,7 @@ import {
   PublicSlotsQueryDto,
   CreateBookingDto,
   CreateUrgentRequestDto,
+  SkipOtpDto,
   VerifyOtpDto,
   TokenParamDto,
   CancelBookingDto,
@@ -64,6 +65,13 @@ export class BookingController {
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   verify(@Param() params: SlugParamDto, @Body() body: VerifyOtpDto): Promise<ManagedBooking> {
     return this.booking.verifyOtp(params.clinicSlug, body.token, body.code);
+  }
+
+  @Post(":clinicSlug/skip-otp")
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  skipOtp(@Param() params: SlugParamDto, @Body() body: SkipOtpDto): Promise<BookingReceipt> {
+    return this.booking.skipOtp(params.clinicSlug, body.token);
   }
 
   @Get("manage/:token")

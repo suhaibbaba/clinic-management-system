@@ -1,4 +1,5 @@
 import type { DaySchedule, PersonName, SiteLanguage, SiteText } from "@clinic/shared";
+import { clockTime } from "@shared/time/zone";
 
 export const pick = (text: SiteText, language: SiteLanguage): string =>
   (language === "en" ? text.en : text.ar) || text.ar;
@@ -47,14 +48,10 @@ export function weekdayName(weekday: number, language: SiteLanguage): string {
   );
 }
 
-export function timeLabel(time: string, language: SiteLanguage): string {
+export function timeLabel(time: string): string {
   const [hours = 0, minutes = 0] = time.split(":").map(Number);
 
-  return new Intl.DateTimeFormat(language === "ar" ? "ar-u-nu-latn" : "en", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "UTC",
-  }).format(new Date(Date.UTC(2024, 0, 7, hours, minutes)));
+  return clockTime(hours * 60 + minutes);
 }
 
 export interface HoursSummary {
@@ -90,3 +87,28 @@ export function hoursSummary(schedule: readonly DaySchedule[]): HoursSummary | n
 
 export const mapsLink = (latitude: number, longitude: number): string =>
   `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+
+export const mapsSearchLink = (query: string): string =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+
+export const mapEmbed = (
+  pin: { readonly lat: number; readonly lng: number } | null,
+  address: string | null,
+  span: number,
+): string | null => {
+  if (pin) {
+    const box = [pin.lng - span, pin.lat - span, pin.lng + span, pin.lat + span].join("%2C");
+
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${box}&layer=mapnik&marker=${pin.lat}%2C${pin.lng}`;
+  }
+
+  return address
+    ? `https://maps.google.com/maps?q=${encodeURIComponent(address)}&z=16&output=embed`
+    : null;
+};
+
+export function titleLines(title: string): readonly [string, string] {
+  const [lead = "", ...rest] = title.split(/\r?\n/).map((line) => line.trim());
+
+  return [lead, rest.filter(Boolean).join(" ")];
+}

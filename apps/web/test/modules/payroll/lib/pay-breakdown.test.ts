@@ -84,6 +84,27 @@ describe("payBreakdown", () => {
     ]);
   });
 
+  it("does not repeat the total when the share alone already shows it", () => {
+    const groups = payBreakdown(
+      line({ plan: "percentage", base: "0.00", sharePayable: "400.00", expected: "400.00" }),
+      totals,
+    );
+
+    expect(groups.at(-1)?.rows.map((row) => row.key)).toEqual(["received", "owed"]);
+  });
+
+  it("skips the net line when there is nothing to take off the revenue", () => {
+    const groups = payBreakdown(line({ plan: "percentage" }), {
+      ...totals,
+      tax: "0.00",
+      overhead: "0.00",
+      materials: "0.00",
+      net: "1000.00",
+    });
+
+    expect(groups[0]?.rows.map((row) => row.key)).toEqual(["revenue", "clinicShare", "share"]);
+  });
+
   it("leaves out a tax, expense or material line that comes to nothing", () => {
     const groups = payBreakdown(line({ plan: "percentage" }), {
       ...totals,

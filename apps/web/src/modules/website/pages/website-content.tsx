@@ -12,12 +12,14 @@ import { openOutsideApp } from "@web/shared/lib/open-outside-app";
 import { AboutCard } from "@web/modules/website/components/cards/about-card";
 import { BookingCard } from "@web/modules/website/components/cards/booking-card";
 import { BrandCard } from "@web/modules/website/components/cards/brand-card";
+import { CasesCard } from "@web/modules/website/components/cards/cases-card";
 import { ContactCard } from "@web/modules/website/components/cards/contact-card";
 import { DoctorsCard } from "@web/modules/website/components/cards/doctors-card";
 import { GalleryCard } from "@web/modules/website/components/cards/gallery-card";
 import { HeroCard } from "@web/modules/website/components/cards/hero-card";
 import { ServicesCard } from "@web/modules/website/components/cards/services-card";
 import { StoryCard } from "@web/modules/website/components/cards/story-card";
+import { TestimonialsCard } from "@web/modules/website/components/cards/testimonials-card";
 import { EditorCard } from "@web/modules/website/components/editor-card";
 import { SectionsField } from "@web/modules/website/components/sections-field";
 import { SitePreview } from "@web/modules/website/components/site-preview";
@@ -195,6 +197,8 @@ export function WebsiteContent({ editor }: { readonly editor: WebsiteEditor }): 
           <DoctorsCard doctors={editor.site.doctors} />
           <AboutCard />
           <GalleryCard />
+          <CasesCard />
+          <TestimonialsCard />
           <BookingCard />
           <ContactCard />
         </div>

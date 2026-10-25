@@ -169,3 +169,92 @@ html {
 [data-reveal-group][data-revealed] > :nth-child(n + 6) {
   animation-delay: 450ms;
 }
+
+@utility site-arc-start {
+  border-start-start-radius: 34% 50%;
+  border-end-start-radius: 34% 50%;
+}
+
+@utility site-hero-wash {
+  background-image:
+    radial-gradient(700px 380px at 0% 0%, var(--color-primary-100), transparent 70%),
+    linear-gradient(180deg, var(--color-primary-50), var(--color-surface));
+}
+
+@utility site-band-wash {
+  background-image:
+    radial-gradient(
+      520px 260px at 0% 100%,
+      color-mix(in oklab, var(--color-primary-500) 45%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(
+      110deg,
+      var(--color-primary-900),
+      var(--color-primary-800) 55%,
+      var(--color-primary-700)
+    );
+}
+
+@keyframes site-marquee {
+  to {
+    translate: -50% 0;
+  }
+}
+
+@keyframes site-marquee-rtl {
+  to {
+    translate: 50% 0;
+  }
+}
+
+.site-marquee {
+  animation: site-marquee var(--marquee-duration) linear infinite;
+}
+
+[dir="rtl"] .site-marquee {
+  animation-name: site-marquee-rtl;
+}
+
+.site-marquee:hover,
+.site-marquee:focus-within {
+  animation-play-state: paused;
+}
+
+@utility site-marquee-mask {
+  mask-image: linear-gradient(90deg, transparent, black 4%, black 96%, transparent);
+}
+
+@utility site-fill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--color-primary-700);
+  transform-origin: bottom;
+  scale: 1 0;
+  transition: scale 500ms ease-out;
+
+  .group:is(:hover, :focus-visible, :has(:focus-visible)) & {
+    scale: 1 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@utility site-fill-ink {
+  transition: color 300ms ease-out;
+
+  .group:is(:hover, :focus-visible, :has(:focus-visible)) & {
+    color: var(--color-ink-inverse);
+  }
+}
+
+@utility site-fill-soft {
+  transition: color 300ms ease-out;
+
+  .group:is(:hover, :focus-visible, :has(:focus-visible)) & {
+    color: color-mix(in oklab, var(--color-ink-inverse) 85%, transparent);
+  }
+}

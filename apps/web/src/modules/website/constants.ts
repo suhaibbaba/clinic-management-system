@@ -17,6 +17,7 @@ export const PREVIEW_PAGES = [
   { value: "about", path: "/about", label: "website.preview.pages.about" },
   { value: "contact", path: "/contact", label: "website.preview.pages.contact" },
   { value: "booking", path: "/appointment", label: "website.preview.pages.booking" },
+  { value: "account", path: "/account", label: "website.preview.pages.account" },
 ] as const;
 
 export const MESSAGES_STATUS_PARAM = "status";
@@ -36,6 +37,7 @@ export const SITE_SECTION_LABELS: Record<SiteSection, string> = {
   about: "website.sections.about",
   booking: "website.sections.booking",
   contact: "website.sections.contact",
+  portal: "website.sections.portal",
 };
 
 export const SITE_SOCIAL_LABELS: Record<SiteSocial, string> = {

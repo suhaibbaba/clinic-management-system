@@ -1,5 +1,6 @@
 import type { PersonName } from "@clinic/shared";
 import { personName } from "@shared/text/person-name";
+import { clockTime, shortDate } from "@shared/time/zone";
 
 const DATE_LOCALE = "ar-SY-u-ca-gregory-nu-latn";
 
@@ -39,19 +40,14 @@ export interface DayChip {
 const noon = (iso: string): Date => new Date(`${iso}T12:00:00`);
 
 export function weekTitle(from: string, to: string): string {
-  return stripBidiMarks(
-    new Intl.DateTimeFormat(DATE_LOCALE, {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }).formatRange(noon(from), noon(to)),
-  );
+  return `\u2066${shortDate(from)} – ${shortDate(to)}\u2069`;
 }
 
+const weekdayOf = (at: Date): string =>
+  stripBidiMarks(at.toLocaleDateString(DATE_LOCALE, { weekday: "long" }));
+
 export function dayTitle(iso: string): string {
-  return stripBidiMarks(
-    noon(iso).toLocaleDateString(DATE_LOCALE, { weekday: "long", day: "numeric", month: "long" }),
-  );
+  return `${weekdayOf(noon(iso))} ${shortDate(iso)}`;
 }
 
 export function dayChips(from: string, count: number, maxDaysAhead: number): DayChip[] {
@@ -66,7 +62,7 @@ export function dayChips(from: string, count: number, maxDaysAhead: number): Day
 
     const at = noon(date);
     const distance = daysFromToday(date);
-    const weekday = stripBidiMarks(at.toLocaleDateString(DATE_LOCALE, { weekday: "long" }));
+    const weekday = weekdayOf(at);
 
     chips.push({
       date,
@@ -106,17 +102,13 @@ const inClinicZone = (iso: string): Date => {
 export function formatTime(iso: string): string {
   const at = inClinicZone(iso);
 
-  return `${pad(at.getHours())}:${pad(at.getMinutes())}`;
+  return clockTime(at.getHours() * 60 + at.getMinutes());
 }
 
 export function formatLongDate(iso: string): string {
-  return stripBidiMarks(
-    inClinicZone(iso).toLocaleDateString(DATE_LOCALE, {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-    }),
-  );
+  const at = inClinicZone(iso);
+
+  return `${weekdayOf(at)} ${shortDate(isoDate(at))}`;
 }
 
 export function clinicDate(iso: string): string {

@@ -9,11 +9,13 @@ import {
   ALLOWED_CLINIC_LOGO_MIME_TYPES,
   CLINIC_MODULE,
   MAX_SITE_IMAGE_BYTES,
+  SITE_SECTION,
   USER_ROLE,
   bookingSettings,
   defaultSiteContent,
   siteContentSchema,
   siteImageKeys,
+  type PersonName,
   type PresignSiteImageInput,
   type PresignSiteImageResponse,
   type PublicSite,
@@ -231,6 +233,29 @@ export class WebsiteService implements OnModuleInit {
     }
 
     return { id: clinic.id, content: readContent(row.published) };
+  }
+
+  async requirePortalClinic(slug: string): Promise<{ id: string; name: PersonName }> {
+    const clinic = await this.liveClinic(eq(clinics.slug, slug));
+
+    if (!(await this.portalOpen(clinic.id))) {
+      throw new NotFoundException("Clinic not found");
+    }
+
+    return { id: clinic.id, name: toPersonName(clinic.nameAr, clinic.nameEn) };
+  }
+
+  async portalOpen(clinicId: string): Promise<boolean> {
+    const [row] = await this.db
+      .select({ published: siteContent.published })
+      .from(siteContent)
+      .innerJoin(clinics, eq(clinics.id, siteContent.clinicId))
+      .where(and(eq(siteContent.clinicId, clinicId), isNull(clinics.deletedAt), offersWebsite))
+      .limit(1);
+
+    return Boolean(
+      row?.published && readContent(row.published).sections.includes(SITE_SECTION.PORTAL),
+    );
   }
 
   private async publicSite(clinic: ClinicRow): Promise<PublicSite> {

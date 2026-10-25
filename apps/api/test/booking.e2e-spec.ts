@@ -10,6 +10,7 @@ import {
   localWeekday,
 } from "@clinic/shared";
 import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
+import { RemindersScheduler } from "@api/modules/notifications/services/reminders.scheduler";
 import type { SendNotification } from "@api/modules/notifications/lib/notifications";
 import { and, eq, sql } from "drizzle-orm";
 import { hashCode } from "@api/modules/booking/lib/booking";
@@ -214,7 +215,7 @@ describe("Public booking (e2e)", () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it("lists doctors by name and specialty only", async () => {
+    it("lists doctors by name, specialty and photo only", async () => {
       const response = await context.app.inject({
         method: "GET",
         url: `/public/booking/${clinic.slug}/doctors`,
@@ -223,7 +224,7 @@ describe("Public booking (e2e)", () => {
       expect(response.statusCode).toBe(200);
       const [doctor] = response.json() as Record<string, unknown>[];
 
-      expect(Object.keys(doctor ?? {}).sort()).toEqual(["id", "name", "specialty"]);
+      expect(Object.keys(doctor ?? {}).sort()).toEqual(["id", "name", "photoUrl", "specialty"]);
       expect(doctor).not.toHaveProperty("weeklySchedule");
       expect(doctor).not.toHaveProperty("userId");
     });
@@ -348,6 +349,54 @@ describe("Public booking (e2e)", () => {
         .where(eq(appointments.id, appointmentId));
 
       expect(appointment?.status).toBe(APPOINTMENT_STATUS.REQUESTED);
+    });
+
+    it("lets the patient skip the code and leaves the booking for the staff", async () => {
+      const token = await held();
+      const appointmentId = appointmentIdOf(token);
+
+      const skipped = await context.app.inject({
+        method: "POST",
+        url: `/public/booking/${clinic.slug}/skip-otp`,
+        payload: { token },
+      });
+
+      expect(skipped.statusCode).toBe(200);
+      expect(skipped.json()).toMatchObject({ status: "pending_confirmation" });
+
+      await context.db
+        .update(appointments)
+        .set({ createdAt: new Date(Date.now() - 24 * 60 * 60_000) })
+        .where(eq(appointments.id, appointmentId));
+      await context.app.get(RemindersScheduler).releaseExpiredHolds();
+
+      const [row] = await context.db
+        .select({ status: appointments.status })
+        .from(appointments)
+        .where(eq(appointments.id, appointmentId));
+      expect(row?.status).toBe(APPOINTMENT_STATUS.REQUESTED);
+
+      const pending = await context.app.inject({
+        method: "GET",
+        url: "/appointments/pending-confirmation",
+        headers: auth(receptionToken),
+      });
+      const { items } = pending.json() as { items: { id: string }[] };
+      expect(items.map((item) => item.id)).toContain(appointmentId);
+    });
+
+    it("will not skip the code of a booking that is already confirmed", async () => {
+      const token = await confirmed();
+
+      expect(
+        (
+          await context.app.inject({
+            method: "POST",
+            url: `/public/booking/${clinic.slug}/skip-otp`,
+            payload: { token },
+          })
+        ).statusCode,
+      ).toBe(404);
     });
 
     it("rejects a code that has expired, in the same words as a wrong one", async () => {

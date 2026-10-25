@@ -1816,13 +1816,15 @@
         "reverse": "Reverse a Stock Movement",
         "shoppingList": "See the Shopping List",
         "shoppingListPdf": "Print the Shopping List",
-        "update": "Edit an Item"
+        "update": "Edit an Item",
+        "sendShoppingList": "Send the Shopping List by WhatsApp"
       },
       "lab-ledger": {
         "balance": "See a Lab's Balance",
         "listPayments": "See a Lab's Payments",
         "statement": "See a Lab's Statement",
-        "statementPdf": "Print a Lab's Statement"
+        "statementPdf": "Print a Lab's Statement",
+        "sendStatement": "Send a Lab's Statement by WhatsApp"
       },
       "lab-orders": {
         "cancel": "Cancel a Lab Order",
@@ -1842,7 +1844,8 @@
         "send": "Send an Order to the Lab",
         "update": "Edit a Lab Order",
         "setPrice": "Set the Price of Lab Work",
-        "stages": "See Lab Order Counts by Stage"
+        "stages": "See Lab Order Counts by Stage",
+        "sendSheet": "Send a Lab Order by WhatsApp"
       },
       "lab-payments": {
         "create": "Record a Payment to a Lab",
@@ -1885,7 +1888,8 @@
       "patient-billing": {
         "balance": "See a Patient's Balance",
         "statement": "See a Patient's Statement",
-        "statementPdf": "Print a Patient's Statement"
+        "statementPdf": "Print a Patient's Statement",
+        "sendStatement": "Send a Patient's Statement by WhatsApp"
       },
       "patients": {
         "create": "Add a Patient",
@@ -1904,7 +1908,8 @@
         "receipt": "Print a Receipt",
         "remove": "Delete a Payment",
         "reverse": "Reverse a Payment",
-        "viewDeleted": "See Deleted Payments"
+        "viewDeleted": "See Deleted Payments",
+        "sendReceipt": "Send a Receipt to the Patient by WhatsApp"
       },
       "pending-bookings": {
         "confirm": "Accept an online booking",
@@ -1997,7 +2002,9 @@
         "settlement": "View a Doctor's Settlement",
         "terms": "Set a Doctor's Clinic Share",
         "payout": "Pay a Doctor",
-        "payoutPdf": "Print a Doctor Payout"
+        "payoutPdf": "Print a Doctor Payout",
+        "settlementPdf": "Print a Doctor's Settlement",
+        "sendSettlement": "Send a Doctor's Settlement by WhatsApp"
       },
       "settlement-treatments": {
         "update": "Adjust a Treatment's Materials and Share"
@@ -2012,7 +2019,12 @@
         "payRules": "View the Percentage Rules",
         "setPayRules": "Change the Percentage Rules",
         "plans": "View an Employee's Pay Plan",
-        "setPlan": "Change an Employee's Pay Plan"
+        "setPlan": "Change an Employee's Pay Plan",
+        "shareTerms": "View an Employee's Percentage",
+        "setShareTerms": "Change an Employee's Percentage",
+        "ownerDraws": "View the Owner's Profit",
+        "monthPdf": "Print a Month's Payroll",
+        "sendMonth": "Send a Month's Payroll by WhatsApp"
       },
       "payroll-adjustments": {
         "reverse": "Reverse an Extra or Cut"
@@ -2049,6 +2061,24 @@
         "list": "View website messages",
         "update": "Mark a message as handled",
         "remove": "Delete a website message"
+      },
+      "expenses": {
+        "list": "View the Expenses",
+        "create": "Record an Expense",
+        "reverse": "Reverse an Expense"
+      },
+      "ai.list": "See My Assistant Conversations",
+      "ai.messages": "Open an Assistant Conversation",
+      "ai.rename": "Rename an Assistant Conversation",
+      "ai.remove": "Delete an Assistant Conversation",
+      "ai-actions.settings": "See the Assistant's Action Settings",
+      "ai-actions.update-settings": "Change the Assistant's Action Settings",
+      "ai-actions.read": "Open an Action the Assistant Proposed",
+      "ai-actions.confirm": "Approve an Action the Assistant Proposed",
+      "ai-actions.cancel": "Cancel an Action the Assistant Proposed",
+      "patient-documents": {
+        "treatmentPlan": "Print a Treatment Plan",
+        "sendTreatmentPlan": "Send a Treatment Plan to the Patient by WhatsApp"
       }
     },
     "hints": {
@@ -2079,7 +2109,9 @@
       "payroll-adjustments": "Extras and cuts added to an employee’s month on the Payroll screen, and reversing one entered by mistake.",
       "staff-payments": "Salary payments recorded on the Payroll screen, and reversing one entered by mistake.",
       "settlement-treatments": "A visiting doctor’s settlement: the materials and the doctor’s share on each treatment.",
-      "website": "The Website screen: the clinic's public page, publishing it, and contact form messages."
+      "website": "The Website screen: the clinic's public page, publishing it, and contact form messages.",
+      "expenses": "The Expenses tab of the Profit and Expenses screen: recording a clinic expense and reversing one entered by mistake.",
+      "doctor-settlements": "A doctor's settlement on the Payroll screen: their treatments, the clinic's share, paying them and printing the statement."
     },
     "intro": "Every line here is one action in the app. Switch it off and its button leaves that role’s screens and the action is refused if attempted; switch it back whenever you like. What you change belongs to this clinic alone.",
     "resources": {
@@ -2117,7 +2149,8 @@
       "doctor-extra-hours": "Doctors",
       "translations": "Interface Text",
       "me": "My account",
-      "website": "Website"
+      "website": "Website",
+      "expenses": "Expenses"
     },
     "subtitle": "What each role is able to do",
     "title": "Permissions",
@@ -2666,15 +2699,15 @@
       "materials": "Lab and materials",
       "net": "Net",
       "clinicShare": "Clinic share",
-      "doctorShare": "Doctor's share",
-      "waiting": "Waiting on patient payment",
-      "share": "Share due",
+      "doctorShare": "Their share of treatments",
+      "waiting": "Not yet paid by patients",
+      "share": "Due to them now",
       "salary": "Monthly salary",
       "bonus": "Bonus",
       "deduction": "Deduction",
       "expected": "Total expected",
-      "received": "Paid",
-      "owed": "Remaining",
+      "received": "Paid to them",
+      "owed": "Left to pay them",
       "bases": {
         "treatments": "Their treatments",
         "collections": "Patient payments this month",
@@ -2683,17 +2716,25 @@
       "percentShare": "Their share"
     },
     "patients": {
-      "title_one": "1 patient this month",
-      "title_other": "{{count}} patients this month",
       "patient": "Patient",
       "amount": "Amount",
       "patientPaid": "Patient paid",
-      "paidInFull": "Paid in full",
       "paidPart": "Paid {{percent}}%",
       "notPaid": "Not paid",
       "share": "Doctor's share",
       "doctorPaid": "Paid to doctor",
-      "edit": "Adjust the share for {{name}}"
+      "edit": "Adjust the share for {{name}}",
+      "collectedTitle": "Paid by the patient",
+      "waitingTitle": "Waiting for the patient",
+      "treatments_one": "1 treatment",
+      "treatments_other": "{{count}} treatments",
+      "shareTotal": "Their share",
+      "waitingHint": "Their share of each treatment becomes ready once the patient pays.",
+      "noPrice": "No price",
+      "shareWhenPaid": "Share once paid",
+      "readySoFar": "Ready so far",
+      "noneCollected": "No patient has paid yet this month",
+      "paidInFull": "Paid in full"
     },
     "entryKinds": {
       "extra": "Bonus",
@@ -2727,7 +2768,69 @@
       "ownClinicPercent": "Clinic's share % for this doctor"
     },
     "payPercent": "Pay Percentage",
-    "closeDraw": "The owner's draw of {{amount}} is recorded and next month starts from zero"
+    "closeDraw": "The owner's draw of {{amount}} is recorded and next month starts from zero",
+    "summary": {
+      "share": "Their share of this month's treatments",
+      "shareCaption_one": "1 treatment · clinic takes {{percent}}%",
+      "shareCaption_other": "{{count}} treatments · clinic takes {{percent}}%",
+      "ready": "Paid by patients — ready for them",
+      "readyCaption_one": "1 treatment paid by the patient",
+      "readyCaption_other": "{{count}} treatments paid by patients",
+      "waiting": "Waiting for patients to pay",
+      "waitingCaption_one": "1 treatment · theirs once the patient pays",
+      "waitingCaption_other": "{{count}} treatments · theirs once patients pay",
+      "bar": "How much of their share patients have paid",
+      "readyShare": "{{percent}}% ready",
+      "waitingShare": "{{percent}}% waiting for patients"
+    },
+    "steps": {
+      "title": "How we got to {{amount}}",
+      "owed": "Left to pay them now",
+      "parts": {
+        "prices": "Prices before discount",
+        "discount": "Discount given to patients",
+        "tax": "Tax",
+        "overhead": "Operating expenses",
+        "materials": "Lab and materials"
+      },
+      "prices": {
+        "title": "Their treatment prices this month",
+        "detail_one": "1 treatment.",
+        "detail_other": "{{count}} treatments."
+      },
+      "share": {
+        "title": "Their share",
+        "detail": "The clinic takes {{percent}}% ({{clinic}}); the rest is theirs."
+      },
+      "collected": {
+        "title": "What patients paid the clinic",
+        "detail_one": "1 patient paid, out of {{total}}. {{unpaid}} is still unpaid.",
+        "detail_other": "{{count}} patients paid, out of {{total}}. {{unpaid}} is still unpaid.",
+        "detail_zero": "No patient has paid yet, out of {{total}}. {{unpaid}} is still unpaid."
+      },
+      "collectedShare": {
+        "title": "Their share of what patients paid",
+        "detail": "Their share is {{percent}}% of what patients paid. {{waiting}} of it is paid once the rest pay."
+      },
+      "salary": {
+        "title": "Monthly salary",
+        "detail": "The salary set for this month."
+      },
+      "bonus": {
+        "title": "Bonuses",
+        "detail": "Added to their pay this month."
+      },
+      "deduction": {
+        "title": "Deductions",
+        "detail": "Taken off their pay this month."
+      },
+      "paidOut": {
+        "title": "Paid to them this month",
+        "detail_one": "1 payment.",
+        "detail_other": "{{count}} payments.",
+        "detail_zero": "No payments yet."
+      }
+    }
   },
   "earnings": {
     "title": "My Earnings",
@@ -2775,19 +2878,24 @@
       "contact": "Contact",
       "contactHint": "Phone, email, address, hours and the map come from the clinic details.",
       "brand": "Brand and links",
-      "brandHint": "A short line shown over pictures, and the clinic's social accounts in the footer."
+      "brandHint": "A short line shown over pictures, and the clinic's social accounts in the footer.",
+      "cases": "Before and after",
+      "casesHint": "Real cases with a photo before treatment and one after, shown on the home page. A case appears once both photos are in.",
+      "testimonials": "Patient reviews",
+      "testimonialsHint": "What patients said about the clinic, with their rating, shown on the home page."
     },
     "sections": {
       "services": "Services",
       "doctors": "Doctors",
       "about": "About us",
       "booking": "Booking",
-      "contact": "Contact"
+      "contact": "Contact",
+      "portal": "Patient account"
     },
     "fields": {
       "title": "Title",
       "subtitle": "Description",
-      "heroTitleHint": "Leave empty to show the clinic's name.",
+      "heroTitleHint": "Leave empty to show the clinic's name. A second line shows in the brand colour.",
       "slide": "Photo {{number}}",
       "image": "Image",
       "promo": "Promo card title",
@@ -2900,7 +3008,8 @@
         "doctors": "Doctors",
         "about": "About us",
         "contact": "Contact",
-        "booking": "Booking"
+        "booking": "Booking",
+        "account": "Patient account"
       }
     },
     "messages": {
@@ -2929,6 +3038,24 @@
       "facebook": "Facebook",
       "whatsapp": "WhatsApp",
       "youtube": "YouTube"
+    },
+    "cases": {
+      "empty": "No cases yet. The section stays off the site until a case has both photos.",
+      "item": "Case {{number}}",
+      "title": "About this case",
+      "before": "Before photo",
+      "after": "After photo",
+      "add": "Add a case"
+    },
+    "testimonials": {
+      "empty": "No reviews yet. The section stays off the site until you add one.",
+      "item": "Review {{number}}",
+      "name": "Patient's name",
+      "text": "What they said",
+      "rating": "Rating",
+      "stars_one": "{{count}} star",
+      "stars_other": "{{count}} stars",
+      "add": "Add a review"
     }
   },
   "finance": {

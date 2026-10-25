@@ -5,89 +5,19 @@ import {
   type PhoneCountry,
 } from "@shared/constants/phone";
 import { createContactMessageSchema } from "@shared/schemas/website";
-import { useId, useRef, useState, type FormEvent, type JSX, type ReactNode } from "react";
+import { useId, useRef, useState, type FormEvent, type JSX } from "react";
 import { Alert, Button, cx } from "@web/booking/ui";
 import { PhoneCountrySelect } from "@clinic/ui/components/phone-country-select";
 import { siteApi, siteFailureKey } from "@web/site/api";
-import { SiteIcon } from "@web/site/components/site-icon";
+import { IconInput, Labelled } from "@web/site/components/site-field";
 import { useSite } from "@web/site/hooks/use-site";
+import { FIELD_BOX, fieldTone } from "@web/site/lib/field-style";
+import { revealField } from "@web/site/lib/reveal-field";
 import { pick } from "@web/site/lib/text";
 
-const EMPTY = { name: "", email: "", phone: "", topic: "", message: "" };
+const EMPTY = { name: "", phone: "", topic: "", message: "" };
 
 type ContactField = keyof typeof EMPTY;
-
-const FIELD_BOX =
-  "w-full rounded-control border-[1.5px] bg-surface text-field text-ink placeholder:text-ink-subtle";
-
-const fieldTone = (error: string | undefined): string =>
-  error
-    ? "border-danger-600 shadow-field-error"
-    : "border-line-strong hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus";
-
-function Labelled({
-  id,
-  label,
-  error,
-  hint,
-  children,
-}: {
-  readonly id: string;
-  readonly label: string;
-  readonly error: string | undefined;
-  readonly hint?: string | undefined;
-  readonly children: ReactNode;
-}): JSX.Element {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-label font-medium text-ink">
-        {label}
-      </label>
-      {children}
-      {hint && !error && (
-        <span id={`${id}-hint`} className="text-label text-ink-muted">
-          {hint}
-        </span>
-      )}
-      {error && (
-        <span id={`${id}-error`} role="alert" className="text-label font-medium text-danger-700">
-          {error}
-        </span>
-      )}
-    </div>
-  );
-}
-
-function IconInput({
-  id,
-  icon,
-  error,
-  addon,
-  ...rest
-}: {
-  readonly id: string;
-  readonly icon: "user" | "mail" | "phone";
-  readonly error: string | undefined;
-  readonly addon?: ReactNode;
-} & Omit<JSX.IntrinsicElements["input"], "id">): JSX.Element {
-  return (
-    <div dir={addon ? "ltr" : undefined} className="flex gap-2">
-      {addon}
-      <div className="relative flex-1">
-        <SiteIcon
-          name={icon}
-          className="pointer-events-none absolute inset-y-0 start-3 my-auto text-ink-subtle"
-        />
-        <input
-          id={id}
-          {...(error && { "aria-invalid": true, "aria-describedby": `${id}-error` })}
-          className={cx(FIELD_BOX, "min-h-(--control-h) ps-10 pe-3", fieldTone(error))}
-          {...rest}
-        />
-      </div>
-    </div>
-  );
-}
 
 export function ContactForm(): JSX.Element {
   const { site, language, t, preview } = useSite();
@@ -106,7 +36,6 @@ export function ContactForm(): JSX.Element {
   const body = {
     name: values.name.trim(),
     phone: joinPhone(country, values.phone) ?? "",
-    email: values.email.trim() === "" ? null : values.email.trim(),
     topic: values.topic === "" ? null : values.topic,
     message: values.message.trim(),
   };
@@ -125,9 +54,13 @@ export function ContactForm(): JSX.Element {
     setTouched(true);
 
     if (!parsed.success) {
-      requestAnimationFrame(() =>
-        form.current?.querySelector<HTMLElement>("[aria-invalid=true]")?.focus(),
-      );
+      requestAnimationFrame(() => {
+        const first = form.current?.querySelector<HTMLElement>("[aria-invalid=true]");
+
+        if (first) {
+          revealField(first.closest<HTMLElement>("[data-part=labelled]") ?? first, first);
+        }
+      });
       return;
     }
 
@@ -180,23 +113,23 @@ export function ContactForm(): JSX.Element {
         >
           {failure && <Alert>{failure}</Alert>}
 
-          <Labelled id={`${base}-name`} label={t("contact.form.name")} error={errorFor("name")}>
-            <IconInput
-              id={`${base}-name`}
-              icon="user"
-              data-testid="site-contact-name"
-              autoComplete="name"
-              value={values.name}
-              error={errorFor("name")}
-              onChange={(event) => set("name")(event.target.value)}
-            />
-          </Labelled>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Labelled id={`${base}-name`} label={t("contact.form.name")} error={errorFor("name")}>
+              <IconInput
+                id={`${base}-name`}
+                icon="user"
+                data-testid="site-contact-name"
+                autoComplete="name"
+                placeholder={t("contact.form.placeholder.name")}
+                value={values.name}
+                error={errorFor("name")}
+                onChange={(event) => set("name")(event.target.value)}
+              />
+            </Labelled>
 
-          <div className="flex flex-col gap-4">
             <Labelled
               id={`${base}-phone`}
               label={t("contact.form.phone")}
-              hint={t("contact.form.phoneHint")}
               error={errorFor("phone")}
             >
               <IconInput
@@ -217,29 +150,11 @@ export function ContactForm(): JSX.Element {
                   )
                 }
                 data-testid="site-contact-phone-field"
-                {...(!errorFor("phone") && { "aria-describedby": `${base}-phone-hint` })}
                 autoComplete="tel"
+                placeholder={t("contact.form.placeholder.phone")}
                 value={values.phone}
                 error={errorFor("phone")}
                 onChange={(event) => set("phone")(event.target.value)}
-              />
-            </Labelled>
-
-            <Labelled
-              id={`${base}-email`}
-              label={`${t("contact.form.email")} (${t("contact.form.optional")})`}
-              error={errorFor("email")}
-            >
-              <IconInput
-                id={`${base}-email`}
-                icon="mail"
-                type="email"
-                dir="ltr"
-                data-testid="site-contact-email-field"
-                autoComplete="email"
-                value={values.email}
-                error={errorFor("email")}
-                onChange={(event) => set("email")(event.target.value)}
               />
             </Labelled>
           </div>
@@ -286,6 +201,7 @@ export function ContactForm(): JSX.Element {
               data-testid="site-contact-message"
               rows={5}
               maxLength={2000}
+              placeholder={t("contact.form.placeholder.message")}
               value={values.message}
               {...(errorFor("message") && {
                 "aria-invalid": true,

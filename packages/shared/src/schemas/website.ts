@@ -15,6 +15,9 @@ export const SITE_FEATURES_MAX = 4;
 export const SITE_SERVICES_MAX = 12;
 export const SITE_TOPICS_MAX = 8;
 export const SITE_GALLERY_MAX = 3;
+export const SITE_CASES_MAX = 8;
+export const SITE_TESTIMONIALS_MAX = 8;
+export const SITE_RATING_MAX = 5;
 
 export const SITE_ICONS = [
   "users",
@@ -44,6 +47,7 @@ export const SITE_SECTION = {
   ABOUT: "about",
   BOOKING: "booking",
   CONTACT: "contact",
+  PORTAL: "portal",
 } as const;
 export const SITE_SECTIONS = Object.values(SITE_SECTION);
 export type SiteSection = (typeof SITE_SECTION)[keyof typeof SITE_SECTION];
@@ -84,6 +88,7 @@ export const siteServiceSchema = z.object({
   title: requiredSiteText(80),
   description: siteText(240),
   image: siteImage,
+  icon: z.enum(SITE_ICONS).default("tooth"),
 });
 export type SiteService = z.infer<typeof siteServiceSchema>;
 
@@ -99,6 +104,29 @@ const siteLinkSchema = z
 
 export const SITE_SOCIALS = ["instagram", "facebook", "whatsapp", "youtube"] as const;
 export type SiteSocial = (typeof SITE_SOCIALS)[number];
+
+export const siteCaseSchema = z.object({
+  before: siteImage,
+  after: siteImage,
+  title: optionalText(80),
+});
+export type SiteCase = z.infer<typeof siteCaseSchema>;
+
+export const siteTestimonialSchema = z.object({
+  name: z.string().trim().min(1).max(60),
+  text: requiredSiteText(300),
+  rating: z.number().int().min(1).max(SITE_RATING_MAX),
+});
+export type SiteTestimonial = z.infer<typeof siteTestimonialSchema>;
+
+const siteShowcase = <T extends z.ZodType>(item: T, max: number) =>
+  z
+    .object({
+      title: optionalText(120),
+      subtitle: optionalText(200),
+      items: z.array(item).max(max),
+    })
+    .default({ title: blankText, subtitle: blankText, items: [] });
 
 export const siteDoctorProfileSchema = z.object({
   doctorId: uuidSchema,
@@ -196,6 +224,8 @@ export const siteContentSchema = z.object({
       images: z.array(siteImageKeySchema).max(SITE_GALLERY_MAX),
     })
     .default({ eyebrow: blankText, title: blankText, body: blankText, images: [] }),
+  cases: siteShowcase(siteCaseSchema, SITE_CASES_MAX),
+  testimonials: siteShowcase(siteTestimonialSchema, SITE_TESTIMONIALS_MAX),
   booking: z.object({ title: siteText(80), subtitle: siteText(200), image: siteImage }),
   contact: z.object({
     title: siteText(80),
@@ -216,7 +246,7 @@ const blank = (): SiteText => ({ ar: "", en: "" });
 
 export function defaultSiteContent(): SiteContent {
   return {
-    sections: [...SITE_SECTIONS],
+    sections: SITE_SECTIONS.filter((section) => section !== SITE_SECTION.PORTAL),
     brand: {
       tagline: blank(),
       social: { instagram: "", facebook: "", whatsapp: "", youtube: "" },
@@ -264,6 +294,8 @@ export function defaultSiteContent(): SiteContent {
       cta: { title: blank(), subtitle: blank(), image: null },
     },
     gallery: { eyebrow: blank(), title: blank(), body: blank(), images: [] },
+    cases: { title: blank(), subtitle: blank(), items: [] },
+    testimonials: { title: blank(), subtitle: blank(), items: [] },
     booking: { title: blank(), subtitle: blank(), image: null },
     contact: {
       title: blank(),
@@ -298,6 +330,7 @@ export function siteImageKeys(content: SiteContent): string[] {
     content.about.quote.image,
     content.booking.image,
     ...content.gallery.images,
+    ...content.cases.items.flatMap((item) => [item.before, item.after]),
   ];
 
   return [...new Set(keys.filter((key): key is string => key !== null))];

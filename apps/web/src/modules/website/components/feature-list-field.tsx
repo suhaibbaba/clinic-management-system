@@ -1,11 +1,11 @@
-import { SITE_FEATURES_MAX, SITE_ICONS, type SiteFeature, type SiteIcon } from "@clinic/shared";
+import { SITE_FEATURES_MAX, type SiteFeature } from "@clinic/shared";
 import type { FocusEvent, JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Icon, Select } from "@clinic/ui";
+import { Button, Icon } from "@clinic/ui";
 import type { FieldErrors } from "@web/shared/lib/form-errors";
+import { IconSelect } from "@web/modules/website/components/icon-select";
 import { RowTools } from "@web/modules/website/components/row-tools";
 import { TextPair } from "@web/modules/website/components/text-pair";
-import { SITE_ICON_GLYPHS } from "@web/modules/website/constants";
 import { blankText, moveItem, removeAt, replaceAt } from "@web/modules/website/lib/site-draft";
 
 export function FeatureListField({
@@ -36,19 +36,10 @@ export function FeatureListField({
           className="flex flex-col gap-3 rounded-panel border border-line bg-sunken p-3"
         >
           <div className="flex items-center justify-between gap-2">
-            <Select
-              aria-label={t("website.feature.icon")}
+            <IconSelect
               data-testid={`feature-list-${id}-${index}-icon`}
-              className="w-48"
               value={item.icon}
-              options={SITE_ICONS.map((icon) => ({
-                value: icon,
-                label: t(`website.icons.${icon}`),
-                icon: <Icon name={SITE_ICON_GLYPHS[icon]} />,
-              }))}
-              onChange={(event) =>
-                onChange(replaceAt(items, index, { ...item, icon: event.target.value as SiteIcon }))
-              }
+              onChange={(icon) => onChange(replaceAt(items, index, { ...item, icon }))}
             />
             <RowTools
               id={`feature-list-${id}-${index}`}

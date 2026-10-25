@@ -6,11 +6,12 @@ import {
   clinicScheduleSettings,
   DEFAULT_TIME_ZONE,
   localDate,
+  shortDate,
 } from "@clinic/shared";
-import { and, eq, gt, isNull, lt } from "drizzle-orm";
+import { and, eq, gt, isNotNull, isNull, lt, notExists } from "drizzle-orm";
 import { notificationName } from "@api/common/person-name";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { appointments, clinics, doctors, patients, users } from "@api/database/schema";
+import { appointments, bookingOtps, clinics, doctors, patients, users } from "@api/database/schema";
 import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
 import { REMINDERS, WINDOW, MINUTE } from "@api/modules/notifications/constants";
 import { timeIn } from "@api/common/lib/time";
@@ -86,7 +87,7 @@ export class RemindersScheduler {
           vars: {
             clinic: notificationName({ ar: row.clinicNameAr, en: row.clinicNameEn }),
             doctor: notificationName({ ar: row.doctorNameAr, en: row.doctorNameEn }),
-            date: localDate(row.startsAt, zone),
+            date: shortDate(localDate(row.startsAt, zone)),
             time: timeIn(zone, row.startsAt),
           },
         });
@@ -108,7 +109,21 @@ export class RemindersScheduler {
       .from(appointments)
       .innerJoin(clinics, eq(clinics.id, appointments.clinicId))
       .where(
-        and(isNull(appointments.deletedAt), eq(appointments.status, APPOINTMENT_STATUS.REQUESTED)),
+        and(
+          isNull(appointments.deletedAt),
+          eq(appointments.status, APPOINTMENT_STATUS.REQUESTED),
+          notExists(
+            this.db
+              .select({ id: bookingOtps.id })
+              .from(bookingOtps)
+              .where(
+                and(
+                  eq(bookingOtps.appointmentId, appointments.id),
+                  isNotNull(bookingOtps.skippedAt),
+                ),
+              ),
+          ),
+        ),
       );
 
     let released = 0;

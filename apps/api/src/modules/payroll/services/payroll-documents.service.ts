@@ -1,7 +1,9 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import {
   LOOKUP_LIST,
+  PAY_BASIS,
   addMoney,
+  subtractMoney,
   personName,
   type Money,
   type PayrollMonth,
@@ -24,6 +26,7 @@ import { doctors, users } from "@api/database/schema";
 import { LookupsService } from "@api/modules/lookups/services/lookups.service";
 import { DoctorSettlementsService } from "@api/modules/payroll/services/doctor-settlements.service";
 import { PayrollService } from "@api/modules/payroll/services/payroll.service";
+import { collectedRevenue, totalDiscount } from "@api/modules/payroll/lib/doctor-settlements";
 
 @Injectable()
 export class PayrollDocumentsService {
@@ -93,13 +96,34 @@ export class PayrollDocumentsService {
       );
     }
 
+    const { totals } = settlement;
+    const discount = totalDiscount(settlement.treatments);
+    const shown = (label: string, amount: Money): { label: string; value: string }[] =>
+      Number(amount) === 0 ? [] : [{ label, value: money(amount) }];
+    const followsPatients = settlement.basis === PAY_BASIS.COLLECTED;
+
     pdf.totals([
-      { label: text.totalRevenue, value: money(settlement.totals.revenue) },
-      { label: text.totalTax, value: money(settlement.totals.tax) },
-      { label: text.totalOverhead, value: money(settlement.totals.overhead) },
-      { label: text.totalMaterials, value: money(settlement.totals.materials) },
-      { label: text.totalClinicShare, value: money(settlement.totals.clinicShare) },
-      { label: text.totalDoctorShare, value: money(settlement.totals.doctorShare) },
+      ...shown(
+        text.totalPrices,
+        Number(discount) === 0 ? "0.00" : addMoney(totals.revenue, discount),
+      ),
+      ...shown(text.totalDiscount, discount),
+      { label: text.totalRevenue, value: money(totals.revenue) },
+      ...shown(text.totalTax, totals.tax),
+      ...shown(text.totalOverhead, totals.overhead),
+      ...shown(text.totalMaterials, totals.materials),
+      {
+        label: `${text.totalClinicShare} ${settlement.clinicSharePercent}%`,
+        value: money(totals.clinicShare),
+      },
+      { label: text.totalDoctorShare, value: money(totals.doctorShare) },
+      ...(followsPatients
+        ? [
+            { label: text.collected, value: money(collectedRevenue(settlement.treatments)) },
+            { label: text.collectedShare, value: money(totals.payable) },
+            ...shown(text.waiting, subtractMoney(totals.doctorShare, totals.payable)),
+          ]
+        : []),
       { label: text.paid, value: money(settlement.paid) },
       { label: text.balance, value: money(settlement.balance), strong: true },
     ]);

@@ -9,6 +9,9 @@ import {
   USER_ROLE,
   type SettlementItem,
   addMoney,
+  formatMinorUnits,
+  toMinorUnits,
+  type Money,
   type SettlementLineStatus,
   type SettlementTotals,
   type SettlementTreatment,
@@ -428,3 +431,16 @@ export function totalsOf(lines: readonly SettlementTreatment[]): SettlementTotal
     },
   );
 }
+
+export function collectedRevenue(lines: readonly SettlementTreatment[]): Money {
+  return formatMinorUnits(
+    lines.reduce(
+      (sum, line) =>
+        sum + Math.round((toMinorUnits(line.revenue) * Math.min(line.collectedPercent, 100)) / 100),
+      0,
+    ),
+  );
+}
+
+export const totalDiscount = (lines: readonly SettlementTreatment[]): Money =>
+  lines.reduce((sum, line) => addMoney(sum, line.discount), "0.00");

@@ -10,13 +10,15 @@
     "contact": "تواصل معنا",
     "book": "احجز موعدك",
     "menu": "القائمة",
-    "switchLanguage": "اعرض الموقع بـ {{language}}"
+    "account": "حسابي",
+    "language": "اللغة"
   },
   "hero": {
     "subtitle": "رعاية متكاملة بأحدث التقنيات وفي بيئة مريحة وآمنة",
-    "cta": "احجز موعدك الآن",
+    "cta": "احجز الآن",
     "slides": "صور العيادة",
-    "slide": "الصورة {{number}}"
+    "slide": "الصورة {{number}}",
+    "services": "تعرّف على خدماتنا"
   },
   "services": {
     "title": "خدماتنا",
@@ -69,7 +71,6 @@
     "form": {
       "title": "أرسل لنا رسالة",
       "name": "الاسم الكامل",
-      "email": "البريد الإلكتروني",
       "phone": "رقم الهاتف",
       "message": "رسالتك",
       "optional": "اختياري",
@@ -80,14 +81,17 @@
       "invalid": {
         "name": "اكتب اسمك الكامل.",
         "phone": "اكتب رقم هاتف صحيحاً.",
-        "email": "اكتب بريداً إلكترونياً صحيحاً أو اتركه فارغاً.",
         "message": "اكتب رسالتك في خمسة أحرف على الأقل."
       },
       "subtitle": "سنكون سعداء بالتواصل معك",
       "topic": "نوع الاستفسار",
       "topicNone": "اختر نوع الاستفسار",
       "country": "رمز الدولة",
-      "phoneHint": "اكتب رقماً عليه واتساب لنرد عليك بسرعة."
+      "placeholder": {
+        "name": "مثال: أحمد خالد",
+        "phone": "59 123 4567",
+        "message": "كيف يمكننا مساعدتك؟"
+      }
     },
     "onMap": "الموقع على الخريطة",
     "emailNote": "سنرد على رسالتك في أقرب وقت ممكن",
@@ -117,7 +121,8 @@
     "throttled": "طلبات كثيرة خلال وقت قصير. حاول بعد قليل.",
     "closed": "استقبال الرسائل متوقف حالياً.",
     "server": "حدث خطأ لدينا. حاول بعد قليل.",
-    "generic": "حدث خطأ غير متوقع. حاول مجدداً."
+    "generic": "حدث خطأ غير متوقع. حاول مجدداً.",
+    "unauthorized": "انتهت جلستك. ادخل من جديد."
   },
   "home": {
     "contactNow": "تواصل معنا الآن",
@@ -129,14 +134,124 @@
     "galleryTitle": "مكان صُمّم لأجلك",
     "galleryLink": "اكتشف المزيد",
     "contactLink": "كل طرق التواصل",
-    "ctaTitle": "لأن كل ابتسامة تحكي قصة أجمل",
-    "ctaSubtitle": "دعنا نكون جزءاً من قصتك"
+    "ctaTitle": "احجز موعدك الآن",
+    "ctaSubtitle": "فريقنا جاهز لاستقبالك وتقديم أفضل رعاية لأسنانك",
+    "callNow": "اتصل الآن"
   },
   "notFound": {
     "title": "الصفحة غير موجودة",
     "home": "العودة إلى الرئيسية"
   },
   "carousel": {
-    "item": "البطاقة {{number}} من {{total}}"
+    "item": "البطاقة {{number}} من {{total}}",
+    "next": "التالي",
+    "previous": "السابق"
+  },
+  "cases": {
+    "title": "قصص نجاح حقيقية",
+    "before": "قبل",
+    "after": "بعد",
+    "beforeOf": "{{title}} قبل العلاج",
+    "afterOf": "{{title}} بعد العلاج",
+    "compare": "قارن قبل وبعد: {{title}}"
+  },
+  "testimonials": {
+    "title": "ماذا يقول مرضانا",
+    "rating": "التقييم {{count}} من {{max}}"
+  },
+  "portal": {
+    "title": "حسابي",
+    "subtitle": "مواعيدك وعلاجاتك وحسابك وملفاتك في مكان واحد",
+    "signInTitle": "ادخل إلى حسابك",
+    "signInIntro": "اكتب رقم الهاتف المسجّل في العيادة، وسنرسل لك رمز دخول.",
+    "phoneHint": "الرقم نفسه الذي سجّلته في العيادة.",
+    "sendCode": "أرسل رمز الدخول",
+    "codeTitle": "اكتب رمز الدخول",
+    "codeIntro": "أرسلنا رمزاً من 6 أرقام إلى {{phone}} إن كان مسجّلاً لدينا.",
+    "code": "رمز الدخول",
+    "codeInvalid": "اكتب الرمز المكوّن من 6 أرقام.",
+    "wrongCode": "الرمز غير صحيح أو انتهت صلاحيته. اطلب رمزاً جديداً.",
+    "verify": "دخول",
+    "changePhone": "تغيير الرقم",
+    "resend": "إعادة إرسال الرمز",
+    "signOut": "تسجيل الخروج",
+    "family": "أفراد العائلة على هذا الرقم",
+    "noPatients": "لا يوجد ملف مريض على هذا الرقم الآن. تواصل مع العيادة.",
+    "fileNumber": "رقم الملف {{number}}",
+    "sections": "أقسام الحساب",
+    "tabs": {
+      "overview": "نظرة عامة",
+      "appointments": "المواعيد",
+      "treatments": "العلاجات",
+      "billing": "الحساب",
+      "prescriptions": "الوصفات",
+      "files": "الملفات"
+    },
+    "upcoming": "المواعيد القادمة",
+    "history": "المواعيد السابقة",
+    "recentTreatments": "آخر العلاجات",
+    "visits": "الزيارات",
+    "statement": "كشف الحساب",
+    "complaint": "الشكوى",
+    "diagnosis": "التشخيص",
+    "medicalAlerts": "تنبيهات طبية",
+    "teeth": "السن {{teeth}}",
+    "receipt": "إيصال {{number}}",
+    "reversal": "تصحيح",
+    "runningBalance": "الرصيد {{amount}}",
+    "money": {
+      "charged": "مجموع العلاجات",
+      "paid": "المدفوع",
+      "balance": "المتبقي"
+    },
+    "entry": {
+      "charge": "علاج",
+      "payment": "دفعة"
+    },
+    "empty": {
+      "upcoming": "لا مواعيد قادمة.",
+      "history": "لا مواعيد سابقة.",
+      "treatments": "لا علاجات مسجّلة بعد.",
+      "visits": "لا زيارات مسجّلة بعد.",
+      "statement": "لا حركات على الحساب بعد.",
+      "prescriptions": "لا وصفات بعد.",
+      "files": "لا ملفات بعد."
+    },
+    "regimen": {
+      "perDose": "{{count}} في الجرعة",
+      "timesPerDay": "{{count}} مرات يومياً",
+      "days": "لمدة {{count}} أيام"
+    },
+    "appointmentStatus": {
+      "requested": "بانتظار التأكيد",
+      "confirmed": "مؤكد",
+      "arrived": "وصلت",
+      "in_progress": "قيد العلاج",
+      "completed": "تم",
+      "no_show": "لم تحضر",
+      "cancelled": "ملغى"
+    },
+    "treatmentStatus": {
+      "planned": "مخطط",
+      "in_progress": "قيد التنفيذ",
+      "done": "تم",
+      "cancelled": "ملغى"
+    },
+    "accountMenu": "قائمة الحساب",
+    "myProfile": "ملفي الشخصي",
+    "greeting": {
+      "morning": "صباح الخير،",
+      "evening": "مساء الخير،"
+    },
+    "nextVisitTitle": "موعدك القادم",
+    "nextVisit": "موعدك القادم {{date}}",
+    "noUpcoming": "لا مواعيد قادمة",
+    "noUpcomingHint": "احجز زيارتك القادمة بخطوات قليلة.",
+    "bookNow": "احجز موعدك الآن",
+    "viewAll": "عرض الكل",
+    "balanceSummary": "ملخص الحساب",
+    "showMore": "عرض {{count}} أخرى",
+    "showLess": "عرض أقل",
+    "drugCount": "عدد الأدوية: {{count}}"
   }
 }

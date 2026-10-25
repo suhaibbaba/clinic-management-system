@@ -1,13 +1,16 @@
 import { SITE_SECTION, type PublicSite, type SiteSection } from "@clinic/shared";
 import { useCallback, useEffect, useMemo, type JSX } from "react";
 import { SITE_PARAM } from "@web/site/constants";
+import { usePortalAccount } from "@web/site/hooks/use-portal-account";
 import { useReveal } from "@web/site/hooks/use-reveal";
 import { useSiteLocation } from "@web/site/hooks/use-site-location";
 import { translator } from "@web/site/i18n";
 import { SiteContext } from "@web/site/lib/site-context";
 import { pageTitle } from "@web/site/lib/page-title";
+import { PortalContext } from "@web/site/lib/portal-context";
 import { isSiteLanguage } from "@web/site/lib/text";
 import { AboutPage } from "@web/site/pages/about-page";
+import { AccountPage } from "@web/site/pages/account-page";
 import { BookingPage } from "@web/site/pages/booking-page";
 import { ContactPage } from "@web/site/pages/contact-page";
 import { DoctorPage } from "@web/site/pages/doctor-page";
@@ -26,6 +29,7 @@ const SECTION_OF: Partial<Record<SitePageRoute["kind"], SiteSection>> = {
   about: SITE_SECTION.ABOUT,
   contact: SITE_SECTION.CONTACT,
   booking: SITE_SECTION.BOOKING,
+  account: SITE_SECTION.PORTAL,
 };
 
 function PageFor({ page }: { readonly page: SitePageRoute }): JSX.Element {
@@ -44,6 +48,8 @@ function PageFor({ page }: { readonly page: SitePageRoute }): JSX.Element {
       return <ContactPage />;
     case "booking":
       return <BookingPage />;
+    case "account":
+      return <AccountPage />;
     case "notFound":
       return <NotFoundPage />;
   }
@@ -70,6 +76,7 @@ export function SitePage({
       (section === SITE_SECTION.BOOKING && !site.clinic.bookingEnabled))
       ? { kind: "notFound" }
       : routed;
+  const portal = usePortalAccount(!preview && site.content.sections.includes(SITE_SECTION.PORTAL));
 
   const href = useCallback(
     (path: string, extra: Record<string, string> = {}) => {
@@ -105,28 +112,30 @@ export function SitePage({
 
   return (
     <SiteContext.Provider value={value}>
-      <a
-        href="#site-main"
-        className="sr-only z-50 rounded-control bg-surface px-4 py-2 text-value text-primary-700 shadow-float focus:not-sr-only focus:fixed focus:start-4 focus:top-4"
-      >
-        {t("skip")}
-      </a>
-      <div
-        data-testid="site-page"
-        className="flex min-h-full min-w-0 flex-col overflow-x-clip bg-surface wrap-break-word"
-      >
-        <SiteHeader />
-        <main
-          id="site-main"
-          tabIndex={-1}
-          data-page={page.kind}
-          key={page.kind === "doctor" ? `doctor-${page.id}` : page.kind}
-          className="site-page-enter min-w-0 flex-1 outline-none"
+      <PortalContext.Provider value={portal}>
+        <a
+          href="#site-main"
+          className="sr-only z-50 rounded-control bg-surface px-4 py-2 text-value text-primary-700 shadow-float focus:not-sr-only focus:fixed focus:start-4 focus:top-4"
         >
-          <PageFor page={page} />
-        </main>
-        <SiteFooter />
-      </div>
+          {t("skip")}
+        </a>
+        <div
+          data-testid="site-page"
+          className="flex min-h-full min-w-0 flex-col overflow-x-clip bg-surface wrap-break-word"
+        >
+          <SiteHeader />
+          <main
+            id="site-main"
+            tabIndex={-1}
+            data-page={page.kind}
+            key={page.kind === "doctor" ? `doctor-${page.id}` : page.kind}
+            className="site-page-enter min-w-0 flex-1 outline-none"
+          >
+            <PageFor page={page} />
+          </main>
+          <SiteFooter />
+        </div>
+      </PortalContext.Provider>
     </SiteContext.Provider>
   );
 }

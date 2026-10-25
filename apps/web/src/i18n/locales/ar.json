@@ -1880,13 +1880,15 @@
         "reverse": "عكس حركة مستودع",
         "shoppingList": "عرض قائمة المشتريات",
         "shoppingListPdf": "طباعة قائمة المشتريات",
-        "update": "تعديل صنف"
+        "update": "تعديل صنف",
+        "sendShoppingList": "إرسال قائمة المشتريات عبر واتساب"
       },
       "lab-ledger": {
         "balance": "عرض رصيد مختبر",
         "listPayments": "عرض دفعات مختبر",
         "statement": "عرض كشف حساب مختبر",
-        "statementPdf": "طباعة كشف حساب مختبر"
+        "statementPdf": "طباعة كشف حساب مختبر",
+        "sendStatement": "إرسال كشف حساب مختبر عبر واتساب"
       },
       "lab-orders": {
         "cancel": "إلغاء طلب مختبر",
@@ -1906,7 +1908,8 @@
         "send": "إرسال طلب إلى المختبر",
         "update": "تعديل طلب مختبر",
         "setPrice": "تحديد سعر عمل المختبر",
-        "stages": "عرض عدد طلبات المختبر في كل مرحلة"
+        "stages": "عرض عدد طلبات المختبر في كل مرحلة",
+        "sendSheet": "إرسال طلب مختبر عبر واتساب"
       },
       "lab-payments": {
         "create": "تسجيل دفعة لمختبر",
@@ -1949,7 +1952,8 @@
       "patient-billing": {
         "balance": "عرض رصيد المريض",
         "statement": "عرض كشف حساب المريض",
-        "statementPdf": "طباعة كشف حساب المريض"
+        "statementPdf": "طباعة كشف حساب المريض",
+        "sendStatement": "إرسال كشف حساب المريض عبر واتساب"
       },
       "patients": {
         "create": "إضافة مريض",
@@ -1968,7 +1972,8 @@
         "receipt": "طباعة إيصال",
         "remove": "حذف دفعة",
         "reverse": "عكس دفعة",
-        "viewDeleted": "عرض الدفعات المحذوفة"
+        "viewDeleted": "عرض الدفعات المحذوفة",
+        "sendReceipt": "إرسال إيصال للمريض عبر واتساب"
       },
       "pending-bookings": {
         "confirm": "قبول حجز إلكتروني",
@@ -2061,7 +2066,9 @@
         "settlement": "عرض تسوية طبيب",
         "terms": "تحديد نسبة العيادة من طبيب",
         "payout": "الدفع لطبيب",
-        "payoutPdf": "طباعة سند دفع لطبيب"
+        "payoutPdf": "طباعة سند دفع لطبيب",
+        "settlementPdf": "طباعة تسوية طبيب",
+        "sendSettlement": "إرسال تسوية طبيب عبر واتساب"
       },
       "settlement-treatments": {
         "update": "تعديل مواد ونسبة معالجة في التسوية"
@@ -2076,7 +2083,12 @@
         "payRules": "عرض قواعد النسبة",
         "setPayRules": "تعديل قواعد النسبة",
         "plans": "عرض طريقة دفع موظف",
-        "setPlan": "تغيير طريقة دفع موظف"
+        "setPlan": "تغيير طريقة دفع موظف",
+        "shareTerms": "عرض نسبة موظف",
+        "setShareTerms": "تغيير نسبة موظف",
+        "ownerDraws": "عرض أرباح المالك",
+        "monthPdf": "طباعة رواتب الشهر",
+        "sendMonth": "إرسال رواتب الشهر عبر واتساب"
       },
       "payroll-adjustments": {
         "reverse": "عكس إضافة أو خصم"
@@ -2113,6 +2125,24 @@
         "list": "عرض رسائل الموقع",
         "update": "تعليم رسالة كمُعالجة",
         "remove": "حذف رسالة من الموقع"
+      },
+      "expenses": {
+        "list": "عرض المصاريف",
+        "create": "تسجيل مصروف",
+        "reverse": "عكس مصروف"
+      },
+      "ai.list": "عرض محادثاتي مع المساعد",
+      "ai.messages": "فتح محادثة مع المساعد",
+      "ai.rename": "إعادة تسمية محادثة مع المساعد",
+      "ai.remove": "حذف محادثة مع المساعد",
+      "ai-actions.settings": "عرض إعدادات إجراءات المساعد",
+      "ai-actions.update-settings": "تعديل إعدادات إجراءات المساعد",
+      "ai-actions.read": "فتح إجراء اقترحه المساعد",
+      "ai-actions.confirm": "الموافقة على إجراء اقترحه المساعد",
+      "ai-actions.cancel": "إلغاء إجراء اقترحه المساعد",
+      "patient-documents": {
+        "treatmentPlan": "طباعة خطة علاج",
+        "sendTreatmentPlan": "إرسال خطة علاج للمريض عبر واتساب"
       }
     },
     "hints": {
@@ -2143,7 +2173,9 @@
       "payroll-adjustments": "الإضافات والخصومات على راتب الموظف في شاشة «الرواتب»، وعكس ما سُجِّل منها بالخطأ.",
       "staff-payments": "دفعات الرواتب المسجّلة في شاشة «الرواتب»، وعكس دفعة سُجِّلت بالخطأ.",
       "settlement-treatments": "تسوية الطبيب الزائر: المواد ونصيب الطبيب في كل معالجة.",
-      "website": "شاشة «الموقع الإلكتروني»: محتوى صفحة العيادة العامة ونشرها، ورسائل نموذج التواصل."
+      "website": "شاشة «الموقع الإلكتروني»: محتوى صفحة العيادة العامة ونشرها، ورسائل نموذج التواصل.",
+      "expenses": "تبويب «المصاريف» في شاشة «الأرباح والمصاريف»: تسجيل مصروف للعيادة، وعكس ما سُجِّل منه بالخطأ.",
+      "doctor-settlements": "تسوية الطبيب في شاشة «الرواتب»: علاجاته، وحصة العيادة، والدفع له وطباعة الكشف."
     },
     "intro": "كل سطر هنا إجراء واحد في التطبيق. أطفئه فيختفي زرّه عن الدور ويُرفض الإجراء إن حاول تنفيذه، وأعِده متى شئت — والتعديل يخص هذه العيادة وحدها.",
     "resources": {
@@ -2181,7 +2213,8 @@
       "doctor-extra-hours": "الأطباء",
       "translations": "نصوص الواجهة",
       "me": "حسابي",
-      "website": "الموقع الإلكتروني"
+      "website": "الموقع الإلكتروني",
+      "expenses": "المصاريف"
     },
     "subtitle": "ما الذي يستطيع كل دور فعله",
     "title": "الصلاحيات",
@@ -2754,15 +2787,15 @@
       "materials": "المختبر والمواد",
       "net": "الصافي",
       "clinicShare": "حصة العيادة",
-      "doctorShare": "حصة الطبيب",
-      "waiting": "بانتظار دفع المريض",
-      "share": "الحصة المستحقة",
+      "doctorShare": "حصته من العلاجات",
+      "waiting": "لم يدفعها المرضى بعد",
+      "share": "مستحق له الآن",
       "salary": "الراتب الشهري",
       "bonus": "مكافأة",
       "deduction": "خصم",
       "expected": "إجمالي المستحق",
-      "received": "المدفوع",
-      "owed": "المتبقي",
+      "received": "صُرف له",
+      "owed": "المتبقي له",
       "bases": {
         "treatments": "علاجاته",
         "collections": "دفعات المرضى هذا الشهر",
@@ -2771,21 +2804,29 @@
       "percentShare": "حصته"
     },
     "patients": {
-      "title_zero": "لا مرضى هذا الشهر",
-      "title_one": "مريض واحد هذا الشهر",
-      "title_two": "مريضان هذا الشهر",
-      "title_few": "{{count}} مرضى هذا الشهر",
-      "title_many": "{{count}} مريضًا هذا الشهر",
-      "title_other": "{{count}} مريض هذا الشهر",
       "patient": "المريض",
       "amount": "المبلغ",
       "patientPaid": "دفع المريض",
-      "paidInFull": "مدفوع بالكامل",
       "paidPart": "مدفوع {{percent}}%",
       "notPaid": "غير مدفوع",
       "share": "حصة الطبيب",
       "doctorPaid": "الدفع للطبيب",
-      "edit": "تعديل الحصة لـ {{name}}"
+      "edit": "تعديل الحصة لـ {{name}}",
+      "collectedTitle": "دفعها المريض",
+      "waitingTitle": "بانتظار دفع المريض",
+      "treatments_zero": "لا علاجات",
+      "treatments_one": "علاج واحد",
+      "treatments_two": "علاجان",
+      "treatments_few": "{{count}} علاجات",
+      "treatments_many": "{{count}} علاجًا",
+      "treatments_other": "{{count}} علاج",
+      "shareTotal": "حصته منها",
+      "waitingHint": "تصبح حصته من كل علاج جاهزة له حين يدفع المريض.",
+      "noPrice": "بلا سعر",
+      "shareWhenPaid": "حصته عند الدفع",
+      "readySoFar": "جاهز منها",
+      "noneCollected": "لم يدفع أي مريض بعد هذا الشهر",
+      "paidInFull": "مدفوع بالكامل"
     },
     "entryKinds": {
       "extra": "مكافأة",
@@ -2819,7 +2860,91 @@
       "ownClinicPercent": "نسبة العيادة % لهذا الطبيب"
     },
     "payPercent": "دفع النسبة",
-    "closeDraw": "يُسجَّل سحب المالك بمبلغ {{amount}} ويبدأ الشهر التالي من الصفر"
+    "closeDraw": "يُسجَّل سحب المالك بمبلغ {{amount}} ويبدأ الشهر التالي من الصفر",
+    "summary": {
+      "share": "حصته من علاجات الشهر",
+      "shareCaption_zero": "لا علاجات · للعيادة {{percent}}%",
+      "shareCaption_one": "علاج واحد · للعيادة {{percent}}%",
+      "shareCaption_two": "علاجان · للعيادة {{percent}}%",
+      "shareCaption_few": "{{count}} علاجات · للعيادة {{percent}}%",
+      "shareCaption_many": "{{count}} علاجًا · للعيادة {{percent}}%",
+      "shareCaption_other": "{{count}} علاج · للعيادة {{percent}}%",
+      "ready": "دفعها المرضى — جاهزة له",
+      "readyCaption_zero": "لا علاجات مدفوعة بعد",
+      "readyCaption_one": "علاج واحد دفعه المريض",
+      "readyCaption_two": "علاجان دفعهما المرضى",
+      "readyCaption_few": "{{count}} علاجات دفعها المرضى",
+      "readyCaption_many": "{{count}} علاجًا دفعها المرضى",
+      "readyCaption_other": "{{count}} علاج دفعه المرضى",
+      "waiting": "بانتظار دفع المرضى",
+      "waitingCaption_zero": "لا شيء بانتظار المرضى",
+      "waitingCaption_one": "علاج واحد · تصبح له حين يدفع المريض",
+      "waitingCaption_two": "علاجان · تصبح له حين يدفع المرضى",
+      "waitingCaption_few": "{{count}} علاجات · تصبح له حين يدفع المرضى",
+      "waitingCaption_many": "{{count}} علاجًا · تصبح له حين يدفع المرضى",
+      "waitingCaption_other": "{{count}} علاج · تصبح له حين يدفع المرضى",
+      "bar": "ما دفعه المرضى من حصته",
+      "readyShare": "جاهزة {{percent}}%",
+      "waitingShare": "بانتظار المرضى {{percent}}%"
+    },
+    "steps": {
+      "title": "كيف وصلنا إلى {{amount}}",
+      "owed": "المتبقي له الآن",
+      "parts": {
+        "prices": "الأسعار قبل الخصم",
+        "discount": "خصم أُعطي للمرضى",
+        "tax": "الضريبة",
+        "overhead": "المصاريف التشغيلية",
+        "materials": "المختبر والمواد"
+      },
+      "prices": {
+        "title": "أسعار علاجاته هذا الشهر",
+        "detail_zero": "لا علاجات هذا الشهر.",
+        "detail_one": "علاج واحد.",
+        "detail_two": "علاجان.",
+        "detail_few": "{{count}} علاجات.",
+        "detail_many": "{{count}} علاجًا.",
+        "detail_other": "{{count}} علاج."
+      },
+      "share": {
+        "title": "حصته منها",
+        "detail": "العيادة تأخذ {{percent}}% ({{clinic}})، والباقي له."
+      },
+      "collected": {
+        "title": "ما دفعه المرضى للعيادة",
+        "detail_zero": "لم يدفع أي مريض بعد من أصل {{total}}. {{unpaid}} لم تُدفع بعد.",
+        "detail_one": "دفع مريض واحد من أصل {{total}}. {{unpaid}} لم تُدفع بعد.",
+        "detail_two": "دفع مريضان من أصل {{total}}. {{unpaid}} لم تُدفع بعد.",
+        "detail_few": "دفع {{count}} مرضى من أصل {{total}}. {{unpaid}} لم تُدفع بعد.",
+        "detail_many": "دفع {{count}} مريضًا من أصل {{total}}. {{unpaid}} لم تُدفع بعد.",
+        "detail_other": "دفع {{count}} مريض من أصل {{total}}. {{unpaid}} لم تُدفع بعد."
+      },
+      "collectedShare": {
+        "title": "ما دفعه المرضى من حصته",
+        "detail": "حصته {{percent}}% مما دفعه المرضى. {{waiting}} من حصته تُصرف حين يدفع الباقون."
+      },
+      "salary": {
+        "title": "راتبه الشهري",
+        "detail": "الراتب المحدد لهذا الشهر."
+      },
+      "bonus": {
+        "title": "مكافآت",
+        "detail": "أُضيفت إلى أجره هذا الشهر."
+      },
+      "deduction": {
+        "title": "خصومات من أجره",
+        "detail": "خُصمت من أجره هذا الشهر."
+      },
+      "paidOut": {
+        "title": "صُرف له هذا الشهر",
+        "detail_zero": "لا دفعات بعد.",
+        "detail_one": "دفعة واحدة.",
+        "detail_two": "دفعتان.",
+        "detail_few": "{{count}} دفعات.",
+        "detail_many": "{{count}} دفعة.",
+        "detail_other": "{{count}} دفعة."
+      }
+    }
   },
   "earnings": {
     "title": "أرباحي",
@@ -2867,19 +2992,24 @@
       "contact": "تواصل معنا",
       "contactHint": "الهاتف والبريد والعنوان وساعات العمل والخريطة من بيانات العيادة.",
       "brand": "الهوية والروابط",
-      "brandHint": "عبارة قصيرة تظهر على الصور، وروابط حسابات العيادة في التذييل."
+      "brandHint": "عبارة قصيرة تظهر على الصور، وروابط حسابات العيادة في التذييل.",
+      "cases": "قبل وبعد",
+      "casesHint": "حالات حقيقية بصورتين قبل العلاج وبعده، تظهر في الصفحة الرئيسية. تظهر الحالة حين تكتمل صورتاها.",
+      "testimonials": "آراء المرضى",
+      "testimonialsHint": "ما قاله المرضى عن العيادة مع التقييم، تظهر في الصفحة الرئيسية."
     },
     "sections": {
       "services": "الخدمات",
       "doctors": "الأطباء",
       "about": "من نحن",
       "booking": "الحجز",
-      "contact": "تواصل معنا"
+      "contact": "تواصل معنا",
+      "portal": "حساب المريض"
     },
     "fields": {
       "title": "العنوان",
       "subtitle": "الوصف",
-      "heroTitleHint": "اتركه فارغاً لعرض اسم العيادة.",
+      "heroTitleHint": "اتركه فارغاً لعرض اسم العيادة. السطر الثاني يظهر بلون الهوية.",
       "slide": "الصورة {{number}}",
       "image": "الصورة",
       "promo": "عنوان البطاقة الترويجية",
@@ -2992,7 +3122,8 @@
         "doctors": "أطباؤنا",
         "about": "من نحن",
         "contact": "تواصل معنا",
-        "booking": "الحجز"
+        "booking": "الحجز",
+        "account": "حساب المريض"
       }
     },
     "messages": {
@@ -3021,6 +3152,28 @@
       "facebook": "Facebook",
       "whatsapp": "WhatsApp",
       "youtube": "YouTube"
+    },
+    "cases": {
+      "empty": "لا حالات بعد. القسم لا يظهر في الموقع حتى تضيف حالة بصورتيها.",
+      "item": "الحالة {{number}}",
+      "title": "وصف الحالة",
+      "before": "صورة قبل",
+      "after": "صورة بعد",
+      "add": "إضافة حالة"
+    },
+    "testimonials": {
+      "empty": "لا آراء بعد. القسم لا يظهر في الموقع حتى تضيف رأياً.",
+      "item": "الرأي {{number}}",
+      "name": "اسم المريض",
+      "text": "ما قاله",
+      "rating": "التقييم",
+      "stars_zero": "بلا نجوم",
+      "stars_one": "نجمة واحدة",
+      "stars_two": "نجمتان",
+      "stars_few": "{{count}} نجوم",
+      "stars_many": "{{count}} نجمة",
+      "stars_other": "{{count}} نجمة",
+      "add": "إضافة رأي"
     }
   },
   "finance": {

@@ -422,6 +422,10 @@ body {
   :where(*)::after {
     outline-color: var(--color-success-500);
   }
+
+  :where(a[href], [role="link"]) {
+    cursor: pointer;
+  }
 }
 
 :focus-visible {

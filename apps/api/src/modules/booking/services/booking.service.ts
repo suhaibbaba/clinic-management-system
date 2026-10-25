@@ -15,9 +15,11 @@ import {
   BOOKING_CONFIRMATION_MODE,
   bookingSettings,
   clinicScheduleSettings,
+  notificationSettings,
   DEFAULT_TIME_ZONE,
   joinPatientName,
   localDate,
+  shortDate,
   NOTIFICATION_TEMPLATE,
   USER_ROLE,
   occupiesSlot,
@@ -25,6 +27,8 @@ import {
   type CreateBookingInput,
   type CreateUrgentRequestInput,
   type ManagedBooking,
+  type PortalBookingInput,
+  type PortalBookingReceipt,
   type PublicClinic,
   type PublicDoctor,
   type PublicSlots,
@@ -90,6 +94,7 @@ export class BookingService {
       bookingEnabled: clinic.booking.enabled,
       confirmationMode: clinic.booking.confirmationMode,
       maxDaysAhead: clinic.booking.maxDaysAhead,
+      messageChannel: clinic.messageChannel,
     };
   }
 
@@ -102,6 +107,7 @@ export class BookingService {
         nameAr: users.nameAr,
         nameEn: users.nameEn,
         specialty: specialties.name,
+        photoKey: users.photoKey,
       })
       .from(doctors)
       .innerJoin(users, eq(users.id, doctors.userId))
@@ -117,11 +123,14 @@ export class BookingService {
       )
       .orderBy(asc(users.nameAr));
 
-    return rows.map((row) => ({
-      id: row.id,
-      name: toPersonName(row.nameAr, row.nameEn),
-      specialty: row.specialty,
-    }));
+    return Promise.all(
+      rows.map(async (row) => ({
+        id: row.id,
+        name: toPersonName(row.nameAr, row.nameEn),
+        specialty: row.specialty,
+        photoUrl: row.photoKey ? (await this.storage.createBrandingUrl(row.photoKey)).url : null,
+      })),
+    );
   }
 
   async slots(slug: string, query: PublicSlotsQuery): Promise<PublicSlots> {
@@ -193,38 +202,7 @@ export class BookingService {
     await this.requireMessageQuota(clinic.id, phone);
 
     const patientId = await this.linkOrCreatePatient(clinic.id, phone, input);
-    const duration = await this.durationFor(clinic.id, input.doctorId);
-
-    let appointmentId: string;
-
-    try {
-      const [row] = await this.db
-        .insert(appointments)
-        .values({
-          clinicId: clinic.id,
-          patientId,
-          doctorId: input.doctorId,
-          startsAt: new Date(input.startsAt),
-          durationMinutes: duration,
-          type: APPOINTMENT_TYPE.CHECKUP,
-          status: APPOINTMENT_STATUS.REQUESTED,
-          reason: input.reason ?? null,
-        })
-        .returning({ id: appointments.id });
-
-      if (!row) {
-        throw new Error("Failed to hold the slot");
-      }
-
-      appointmentId = row.id;
-    } catch (error) {
-      if (isOverlapConflict(error)) {
-        throw new BadRequestException("That time is no longer available");
-      }
-
-      throw error;
-    }
-
+    const appointmentId = await this.holdSlot(clinic, patientId, input);
     const holdExpiresAt = new Date(Date.now() + clinic.booking.holdMinutes * 60_000);
     const token = this.tokens.sign(appointmentId);
 
@@ -245,6 +223,62 @@ export class BookingService {
       otpExpiresInSeconds: OTP_TTL_SECONDS,
       holdExpiresAt: holdExpiresAt.toISOString(),
     };
+  }
+
+  async bookForAccount(
+    slug: string,
+    account: { readonly clinicId: string; readonly phone: string },
+    input: PortalBookingInput,
+  ): Promise<PortalBookingReceipt> {
+    const clinic = await this.requireBookingEnabled(slug);
+
+    if (clinic.id !== account.clinicId) {
+      throw new NotFoundException("Clinic not found");
+    }
+
+    this.requireWithinWindow(clinic, input.startsAt);
+    await this.requireOfferedSlot(clinic, input.doctorId, input.startsAt);
+
+    const family = await this.db
+      .select({ id: patients.id, phone: patients.phone })
+      .from(patients)
+      .where(
+        and(
+          eq(patients.clinicId, clinic.id),
+          isNull(patients.deletedAt),
+          sql`regexp_replace(${patients.phone}, '[^0-9]', '', 'g') = ${account.phone}`,
+        ),
+      );
+    const phone = family[0]?.phone;
+
+    if (!phone) {
+      throw new NotFoundException("No patient on this phone");
+    }
+
+    await this.requireUnderActiveLimit(clinic, phone);
+    await this.requireMessageQuota(clinic.id, phone);
+
+    const patientId = input.newPatient
+      ? await this.createPatient(clinic.id, phone, input.newPatient)
+      : family.find((member) => member.id === input.patientId)?.id;
+
+    if (!patientId) {
+      throw new NotFoundException("Patient not found");
+    }
+
+    const appointmentId = await this.holdSlot(clinic, patientId, input);
+    const token = this.tokens.sign(appointmentId);
+
+    if (clinic.booking.confirmationMode === BOOKING_CONFIRMATION_MODE.MANUAL) {
+      return { token, booking: null };
+    }
+
+    await this.db
+      .update(appointments)
+      .set({ status: APPOINTMENT_STATUS.CONFIRMED, updatedAt: new Date() })
+      .where(and(eq(appointments.id, appointmentId), eq(appointments.clinicId, clinic.id)));
+
+    return { token, booking: await this.announceConfirmed(clinic, appointmentId, token) };
   }
 
   async verifyOtp(slug: string, token: string, code: string): Promise<ManagedBooking> {
@@ -304,23 +338,52 @@ export class BookingService {
       throw invalid;
     }
 
-    const booking = await this.loadManaged(clinic, appointmentId);
+    return this.announceConfirmed(clinic, appointmentId, token);
+  }
 
-    await this.notifications.send({
-      clinicId: clinic.id,
-      to: await this.phoneFor(appointmentId),
-      template: NOTIFICATION_TEMPLATE.BOOKING_CONFIRMED,
-      appointmentId,
-      vars: {
-        clinic: notificationName(clinic.name),
-        doctor: notificationName(booking.doctorName),
-        date: localDate(new Date(booking.startsAt), clinic.timeZone),
-        time: timeIn(clinic.timeZone, new Date(booking.startsAt)),
-        link: this.manageLink(token),
-      },
-    });
+  async skipOtp(slug: string, token: string): Promise<BookingReceipt> {
+    const clinic = await this.requireBookingEnabled(slug);
+    const appointmentId = this.tokens.verify(token);
 
-    return booking;
+    const [held] = await this.db
+      .select({ createdAt: appointments.createdAt })
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.id, appointmentId),
+          eq(appointments.clinicId, clinic.id),
+          eq(appointments.status, APPOINTMENT_STATUS.REQUESTED),
+          isNull(appointments.deletedAt),
+        ),
+      )
+      .limit(1);
+
+    const [skipped] = held
+      ? await this.db
+          .update(bookingOtps)
+          .set({ skippedAt: new Date() })
+          .where(
+            and(
+              eq(bookingOtps.appointmentId, appointmentId),
+              eq(bookingOtps.clinicId, clinic.id),
+              isNull(bookingOtps.consumedAt),
+            ),
+          )
+          .returning({ id: bookingOtps.id })
+      : [];
+
+    if (!held || !skipped) {
+      throw new NotFoundException("Booking not found");
+    }
+
+    return {
+      token,
+      status: "pending_confirmation",
+      otpExpiresInSeconds: null,
+      holdExpiresAt: new Date(
+        held.createdAt.getTime() + clinic.booking.holdMinutes * 60_000,
+      ).toISOString(),
+    };
   }
 
   async view(token: string): Promise<ManagedBooking> {
@@ -353,7 +416,7 @@ export class BookingService {
       appointmentId,
       vars: {
         clinic: notificationName(clinic.name),
-        date: localDate(existing.startsAt, clinic.timeZone),
+        date: shortDate(localDate(existing.startsAt, clinic.timeZone)),
         time: timeIn(clinic.timeZone, existing.startsAt),
       },
     });
@@ -437,6 +500,70 @@ export class BookingService {
     }
   }
 
+  private async holdSlot(
+    clinic: ClinicContext,
+    patientId: string,
+    input: {
+      readonly doctorId: string;
+      readonly startsAt: string;
+      readonly reason?: string | null | undefined;
+    },
+  ): Promise<string> {
+    const duration = await this.durationFor(clinic.id, input.doctorId);
+
+    try {
+      const [row] = await this.db
+        .insert(appointments)
+        .values({
+          clinicId: clinic.id,
+          patientId,
+          doctorId: input.doctorId,
+          startsAt: new Date(input.startsAt),
+          durationMinutes: duration,
+          type: APPOINTMENT_TYPE.CHECKUP,
+          status: APPOINTMENT_STATUS.REQUESTED,
+          reason: input.reason ?? null,
+        })
+        .returning({ id: appointments.id });
+
+      if (!row) {
+        throw new Error("Failed to hold the slot");
+      }
+
+      return row.id;
+    } catch (error) {
+      if (isOverlapConflict(error)) {
+        throw new BadRequestException("That time is no longer available");
+      }
+
+      throw error;
+    }
+  }
+
+  private async announceConfirmed(
+    clinic: ClinicContext,
+    appointmentId: string,
+    token: string,
+  ): Promise<ManagedBooking> {
+    const booking = await this.loadManaged(clinic, appointmentId);
+
+    await this.notifications.send({
+      clinicId: clinic.id,
+      to: await this.phoneFor(appointmentId),
+      template: NOTIFICATION_TEMPLATE.BOOKING_CONFIRMED,
+      appointmentId,
+      vars: {
+        clinic: notificationName(clinic.name),
+        doctor: notificationName(booking.doctorName),
+        date: shortDate(localDate(new Date(booking.startsAt), clinic.timeZone)),
+        time: timeIn(clinic.timeZone, new Date(booking.startsAt)),
+        link: this.manageLink(token),
+      },
+    });
+
+    return booking;
+  }
+
   private async linkOrCreatePatient(
     clinicId: string,
     phone: string,
@@ -454,10 +581,14 @@ export class BookingService {
       )
       .limit(1);
 
-    if (existing) {
-      return existing.id;
-    }
+    return existing?.id ?? this.createPatient(clinicId, phone, name);
+  }
 
+  private async createPatient(
+    clinicId: string,
+    phone: string,
+    name: { readonly firstName: string; readonly lastName: string },
+  ): Promise<string> {
     const fileNumber = await this.nextFileNumber(clinicId);
 
     const [created] = await this.db
@@ -593,6 +724,7 @@ export class BookingService {
       country: row.country,
       timeZone: clinicScheduleSettings(row.settings).timezone || DEFAULT_TIME_ZONE,
       booking: bookingSettings(row.settings),
+      messageChannel: notificationSettings(row.settings).channel,
     };
   }
 

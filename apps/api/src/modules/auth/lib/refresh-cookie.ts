@@ -2,6 +2,7 @@ import type { CookieSerializeOptions } from "@fastify/cookie";
 import type { ConfigService } from "@nestjs/config";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Env } from "@api/config/env.schema";
+import { secureCookie } from "@api/common/lib/cookie-security";
 
 export const REFRESH_COOKIE_NAME = "clinic_refresh_token";
 
@@ -26,9 +27,7 @@ export function refreshCookieSecurity(context: RefreshCookieContext): {
   secure: boolean;
   sameSite: Env["AUTH_COOKIE_SAMESITE"];
 } {
-  const secure =
-    context.mode === "always" ||
-    (context.mode === "auto" && (context.production || context.clientProtocol === "https"));
+  const secure = secureCookie(context.mode, context.production, context.clientProtocol);
 
   if (context.sameSite === "none") {
     return secure ? { secure, sameSite: "none" } : { secure, sameSite: "lax" };

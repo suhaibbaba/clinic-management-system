@@ -33,6 +33,7 @@ describe("site sections", () => {
       SITE_SECTION.DOCTORS,
       SITE_SECTION.ABOUT,
       SITE_SECTION.BOOKING,
+      SITE_SECTION.PORTAL,
     ]);
   });
 

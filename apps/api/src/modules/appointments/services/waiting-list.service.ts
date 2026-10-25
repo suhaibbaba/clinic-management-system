@@ -4,6 +4,7 @@ import {
   APPOINTMENT_TYPE,
   canTransitionWaitingListEntry,
   localDate,
+  shortDate,
   NOTIFICATION_TEMPLATE,
   WAITING_LIST_PRIORITY,
   WAITING_LIST_PRIORITY_RANK,
@@ -231,7 +232,7 @@ export class WaitingListService implements OnModuleInit {
 
       await this.notify(actor.clinicId, entry, NOTIFICATION_TEMPLATE.URGENT_SCHEDULED, {
         doctor: notificationName(appointment.doctorName),
-        date: localDate(startsAt, timeZone),
+        date: shortDate(localDate(startsAt, timeZone)),
         time: timeIn(timeZone, startsAt),
       });
     }

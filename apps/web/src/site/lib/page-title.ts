@@ -30,6 +30,8 @@ function heading(
       return orDefault(content.contact.title, language, t("nav.contact"));
     case "booking":
       return orDefault(content.booking.title, language, t("nav.booking"));
+    case "account":
+      return t("portal.title");
     case "notFound":
       return t("notFound.title");
   }

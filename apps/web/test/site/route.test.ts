@@ -25,6 +25,7 @@ describe("site pages", () => {
     expect(sitePage("/doctors", "")).toEqual({ kind: "doctors" });
     expect(sitePage(`/doctors/${id}`, "")).toEqual({ kind: "doctor", id });
     expect(sitePage("/appointment", "")).toEqual({ kind: "booking" });
+    expect(sitePage("/account", "")).toEqual({ kind: "account" });
     expect(sitePage("/contact/", "")).toEqual({ kind: "contact" });
   });
 

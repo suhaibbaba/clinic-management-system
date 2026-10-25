@@ -40,6 +40,8 @@ export const SITE_DOCTOR_PROFILES: readonly Omit<SiteDoctorSeed, "doctorId">[] =
   },
 ];
 
+const blankPair = { ar: "", en: "" };
+
 export function siteContent(
   photo: (name: SitePhoto) => string,
   doctors: readonly SiteDoctorSeed[],
@@ -57,8 +59,8 @@ export function siteContent(
     },
     hero: {
       title: {
-        ar: "ابتسامة صحية تبدأ من هنا",
-        en: "A healthy smile starts here",
+        ar: "رعاية متكاملة\nلصحة وجمال أسنانك",
+        en: "Complete care\nfor a healthy, beautiful smile",
       },
       subtitle: {
         ar: "رعاية أسنان متكاملة لكل العائلة في قلب نابلس: فحص، تنظيف، تجميل، زراعة وتقويم، بأحدث الأجهزة وبأيدي فريق يهتم بك.",
@@ -130,6 +132,7 @@ export function siteContent(
             en: "A full examination with digital X-rays, scaling and polishing.",
           },
           image: photo("examination"),
+          icon: "stethoscope",
         },
         {
           id: "whitening",
@@ -139,6 +142,7 @@ export function siteContent(
             en: "Safe in-clinic whitening with visible results from the first session.",
           },
           image: photo("whitening"),
+          icon: "sparkles",
         },
         {
           id: "implants",
@@ -148,6 +152,7 @@ export function siteContent(
             en: "Replace missing teeth with high-quality implants built to last.",
           },
           image: photo("instruments"),
+          icon: "tooth",
         },
         {
           id: "root-canal",
@@ -157,6 +162,7 @@ export function siteContent(
             en: "Precise canal treatment that saves your natural tooth and ends the pain.",
           },
           image: photo("consultation-chair"),
+          icon: "shield",
         },
         {
           id: "kids",
@@ -166,6 +172,7 @@ export function siteContent(
             en: "Friendly visits for children, fluoride, sealants and advice for parents.",
           },
           image: photo("child-checkup"),
+          icon: "smile",
         },
         {
           id: "cosmetic",
@@ -175,6 +182,7 @@ export function siteContent(
             en: "Veneers and digital smile design shaped to your face.",
           },
           image: photo("confident-smile"),
+          icon: "gem",
         },
       ],
       promo: {
@@ -326,6 +334,60 @@ export function siteContent(
         en: "The clinic is designed to be bright and calm, with fully equipped treatment rooms.",
       },
       images: [photo("treatment-room"), photo("waiting-room"), photo("consultation-chair")],
+    },
+    cases: {
+      title: { ar: "قصص نجاح حقيقية", en: "Real success stories" },
+      subtitle: {
+        ar: "شاهد الفرق واستمع إلى تجارب مرضانا",
+        en: "See the difference our patients made",
+      },
+      items: [
+        {
+          title: { ar: "تبييض الأسنان", en: "Teeth whitening" },
+          before: photo("examination"),
+          after: photo("whitening"),
+        },
+        {
+          title: { ar: "ابتسامة هوليوود", en: "Smile makeover" },
+          before: photo("hygiene"),
+          after: photo("confident-smile"),
+        },
+        {
+          title: { ar: "تقويم الأسنان", en: "Orthodontics" },
+          before: photo("instruments"),
+          after: photo("smile"),
+        },
+      ],
+    },
+    testimonials: {
+      title: { ar: "ماذا يقول مرضانا", en: "What our patients say" },
+      subtitle: blankPair,
+      items: [
+        {
+          name: "سناء محمود",
+          text: {
+            ar: "اهتمام كبير وتفاصيل دقيقة، والعيادة مجهزة بأحدث التقنيات.",
+            en: "Great care and attention to detail, in a clinic with the latest equipment.",
+          },
+          rating: 5,
+        },
+        {
+          name: "خالد ناصر",
+          text: {
+            ar: "تجربة مريحة والنتائج كانت أفضل مما توقعت. شكراً للفريق الرائع.",
+            en: "A comfortable experience and results beyond what I expected. Thank you to a great team.",
+          },
+          rating: 5,
+        },
+        {
+          name: "مريم أحمد",
+          text: {
+            ar: "خدمة مميزة واهتمام طبي رائع. أنصح بعيادة أبو عبيد لكل من يبحث عن رعاية أسنان احترافية.",
+            en: "Outstanding service and wonderful medical care. I recommend the clinic to anyone looking for professional dental care.",
+          },
+          rating: 5,
+        },
+      ],
     },
     booking: {
       title: { ar: "احجز موعدك", en: "Book an appointment" },

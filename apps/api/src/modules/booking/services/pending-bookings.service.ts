@@ -5,6 +5,7 @@ import {
   clinicScheduleSettings,
   DEFAULT_TIME_ZONE,
   localDate,
+  shortDate,
   NOTIFICATION_TEMPLATE,
   type CalendarAppointment,
 } from "@clinic/shared";
@@ -46,7 +47,7 @@ export class PendingBookingsService {
       vars: {
         clinic: clinic.name,
         doctor: notificationName(appointment.doctorName),
-        date: localDate(new Date(appointment.startsAt), clinic.timeZone),
+        date: shortDate(localDate(new Date(appointment.startsAt), clinic.timeZone)),
         time: timeIn(clinic.timeZone, new Date(appointment.startsAt)),
         link: this.manageLink(appointment.id),
       },
@@ -72,7 +73,7 @@ export class PendingBookingsService {
       appointmentId: appointment.id,
       vars: {
         clinic: clinic.name,
-        date: localDate(new Date(appointment.startsAt), clinic.timeZone),
+        date: shortDate(localDate(new Date(appointment.startsAt), clinic.timeZone)),
         time: timeIn(clinic.timeZone, new Date(appointment.startsAt)),
       },
     });

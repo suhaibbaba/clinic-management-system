@@ -12,6 +12,7 @@ Authoritative spec for authorization. Every endpoint must map to a row here befo
 | Technician | `technician` | Clinic technician handling labs & inventory |
 | Receptionist | `receptionist` | Front desk: registration, appointments, payments |
 | Public | — | Anonymous patient on the booking page (no account) |
+| Patient | — | A patient signed in on the clinic's website with a one-time code sent to their phone; see [Patient account](#patient-account-website-section-portal) |
 
 Users belong to one clinic and have exactly one role (v1). `admin` implicitly passes every role check within their clinic.
 
@@ -158,6 +159,30 @@ A visiting doctor is a contractor, not staff. Only `admin` creates one, from the
 
 The defaults above, like every other role's, are what the permissions screen starts from; `admin` may widen or narrow them per clinic.
 
+### Patient account (website section `portal`)
+Only while the clinic's published website shows the `portal` section; switching it off answers 404 to
+sign-in and 401 to every open session at once.
+
+- **Identity is the phone number.** There is no password. The patient asks for a code (`POST
+  /public/portal/:slug/code`), which goes over the clinic's message channel only when a live patient has
+  that number; the answer is the same either way. A code lasts 5 minutes, allows 5 tries, is used once,
+  and a phone gets at most one a minute and five an hour. The session is an opaque token in an
+  `httpOnly`, `SameSite=Strict` cookie, stored only as a hash, and ends after 12 hours or on sign-out.
+- **Scope is every live patient of that clinic carrying that phone** (a family that shares a number sees
+  each member). Any other patient, attachment or clinic is a 404.
+- **Read only, but for booking.** The patient sees: name, file number, phone, date of birth, allergies and chronic
+  conditions; appointments (time, doctor, status); treatments (name, status, date, doctor, teeth, price,
+  discount); visits (date, doctor, complaint, diagnosis); prescriptions; balance and statement; and the
+  list of their attachments, each opened through a short-lived signed link (a picture also carries one
+  for its preview).
+- **Booking** (`POST /public/portal/:slug/bookings`) is the one write: for a patient on the account, or
+  for a new person, created as a patient on the same phone. It asks for no code — the session already
+  proved the phone — and follows the clinic's confirmation mode. The slot, window, active-booking limit
+  and message quota are the public booking's own rules.
+- **Never sent:** staff notes on the patient, visits, appointments, treatments or payments (a payment's
+  note is not its statement description here), examination findings, material costs, doctor shares,
+  discount reasons, deleted rows, storage keys.
+
 ## Field-level response schemas
 
 Define per-entity serializers in `packages/shared`:
@@ -187,6 +212,7 @@ For each role, one test per ✗ cell that matters most:
 - technician reading billing endpoints → 403
 - any authenticated user querying another clinic's resource id → 404
 - public endpoint accessing anything beyond slots/booking → 401
+- patient account: a patient on another phone or in another clinic, or another patient's attachment → 404; no or a forged session → 401; a used, expired or over-tried code → 401
 - non-admin reading audit log or soft-deleted rows → 403
 - receptionist writing a clinic closure → 403 (they read them: a closure they cannot see is a day they will book into)
 - any role editing or deleting a clinic note somebody else wrote → 403; the admin → allowed

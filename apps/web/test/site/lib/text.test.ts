@@ -1,11 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { groupHours, orDefault, pick, timeLabel, weekdayName } from "@web/site/lib/text";
+import {
+  groupHours,
+  mapEmbed,
+  mapsSearchLink,
+  orDefault,
+  pick,
+  timeLabel,
+  titleLines,
+  weekdayName,
+} from "@web/site/lib/text";
 
 describe("site text", () => {
   it("falls back to Arabic when the English is empty, and to the default when both are", () => {
     expect(pick({ ar: "خدماتنا", en: "" }, "en")).toBe("خدماتنا");
     expect(pick({ ar: "خدماتنا", en: "Services" }, "en")).toBe("Services");
     expect(orDefault({ ar: "", en: "" }, "ar", "fallback")).toBe("fallback");
+  });
+
+  it("splits a hero title into its lead line and the accented rest", () => {
+    expect(titleLines("رعاية متكاملة\nلصحة وجمال أسنانك")).toEqual([
+      "رعاية متكاملة",
+      "لصحة وجمال أسنانك",
+    ]);
+    expect(titleLines("One line")).toEqual(["One line", ""]);
+    expect(titleLines("A\r\n\nB\nC")).toEqual(["A", "B C"]);
   });
 });
 
@@ -30,7 +48,25 @@ describe("opening hours", () => {
   });
 
   it("writes a clock time with Latin digits in both languages", () => {
-    expect(timeLabel("20:30", "en")).toBe("8:30 PM");
-    expect(timeLabel("08:00", "ar")).toMatch(/^8:00/);
+    expect(timeLabel("20:30")).toBe("8:30 PM");
+    expect(timeLabel("08:00")).toBe("8:00 AM");
+  });
+});
+
+describe("clinic map", () => {
+  it("frames the pin when the clinic has coordinates", () => {
+    expect(mapEmbed({ lat: 32, lng: 35 }, "Nablus", 0.5)).toContain(
+      "openstreetmap.org/export/embed.html?bbox=34.5%2C31.5%2C35.5%2C32.5",
+    );
+  });
+
+  it("searches the address when there is no pin, and draws nothing without either", () => {
+    expect(mapEmbed(null, "Tunis Street, Nablus", 0.01)).toBe(
+      "https://maps.google.com/maps?q=Tunis%20Street%2C%20Nablus&z=16&output=embed",
+    );
+    expect(mapsSearchLink("Rafidia & Co")).toBe(
+      "https://www.google.com/maps/search/?api=1&query=Rafidia%20%26%20Co",
+    );
+    expect(mapEmbed(null, null, 0.01)).toBeNull();
   });
 });

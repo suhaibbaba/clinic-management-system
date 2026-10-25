@@ -4,12 +4,15 @@ import { SectionHeading } from "@web/site/components/section-heading";
 import { SiteIcon } from "@web/site/components/site-icon";
 import { SiteImage } from "@web/site/components/site-image";
 import { SITE_PARAM } from "@web/site/constants";
+import { usePortal } from "@web/site/hooks/use-portal";
 import { useSite } from "@web/site/hooks/use-site";
 import { imageOf } from "@web/site/lib/images";
 import { orDefault } from "@web/site/lib/text";
 
 export function BookingPage(): JSX.Element {
   const { site, language, t, params } = useSite();
+  const portal = usePortal();
+  const signedIn = portal.state.status === "ready" ? portal.state.account : undefined;
   const { booking } = site.content;
   const image = imageOf(site, booking.image);
   const doctorId = params.get(SITE_PARAM.DOCTOR) ?? undefined;
@@ -25,32 +28,38 @@ export function BookingPage(): JSX.Element {
           subtitle={orDefault(booking.subtitle, language, t("booking.subtitle"))}
         />
 
-        <div className="mt-10 grid grid-cols-1 overflow-hidden rounded-card border border-line bg-surface shadow-card md:grid-cols-[minmax(0,1fr)_20rem]">
-          <div dir="rtl" lang="ar" className="p-5 md:p-8">
-            {site.clinic.bookingEnabled ? (
-              <BookingWizard
-                key={doctorId ?? ""}
-                slug={site.clinic.slug}
-                inline
-                initialDoctorId={doctorId}
-              />
-            ) : (
-              <p data-testid="site-booking-closed" className="text-value text-ink-muted">
-                {t("booking.closed")}
-              </p>
-            )}
-          </div>
-          <aside className="site-panel-wash relative hidden flex-col justify-end md:flex">
-            <SiteImage
-              src={image}
-              layer
-              fallback={<SiteIcon name="calendar" className="size-16" />}
+        <div
+          aria-hidden
+          className="mt-8 flex items-center gap-4 overflow-hidden rounded-card border border-line bg-surface shadow-card"
+        >
+          <SiteImage
+            src={image}
+            className="h-24 w-36 shrink-0 sm:w-48"
+            fallback={<SiteIcon name="calendar" className="size-10" />}
+          />
+          <p className="flex items-center gap-2 py-4 pe-5 text-heading font-bold text-primary-900">
+            <SiteIcon name="sparkles" className="size-5 text-primary-500" />
+            {t("booking.aside")}
+          </p>
+        </div>
+
+        <div dir="rtl" lang="ar" className="mt-6">
+          {site.clinic.bookingEnabled ? (
+            <BookingWizard
+              key={`${doctorId ?? ""}-${signedIn ? "account" : "guest"}`}
+              slug={site.clinic.slug}
+              inline
+              initialDoctorId={doctorId}
+              account={signedIn && { patients: signedIn.patients, onBooked: portal.refresh }}
             />
-            <p className="relative m-4 flex flex-col gap-2 rounded-panel bg-surface/90 p-5 text-heading font-bold text-primary-900 backdrop-blur">
-              <SiteIcon name="sparkles" className="size-5 text-primary-500" />
-              {t("booking.aside")}
+          ) : (
+            <p
+              data-testid="site-booking-closed"
+              className="rounded-card border border-line bg-surface p-6 text-value text-ink-muted"
+            >
+              {t("booking.closed")}
             </p>
-          </aside>
+          )}
         </div>
       </div>
     </section>

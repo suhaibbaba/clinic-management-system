@@ -81,6 +81,19 @@ export function localDate(instant: Date, timeZone: string): string {
   return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
+export function shortDate(isoDate: string): string {
+  const [year = "", month = "", day = ""] = isoDate.slice(0, 10).split("-");
+
+  return `${day}/${month}/${year}`;
+}
+
+export function clockTime(minuteOfDay: number): string {
+  const hours = Math.floor(minuteOfDay / 60) % 24;
+  const minutes = Math.floor(minuteOfDay % 60);
+
+  return `${((hours + 11) % 12) + 1}:${String(minutes).padStart(2, "0")} ${hours < 12 ? "AM" : "PM"}`;
+}
+
 export function localWeekday(isoDate: string, timeZone: string): number {
   const noon = instantFromLocal(isoDate, 12 * 60, timeZone);
   const parts = localParts(noon, timeZone);
