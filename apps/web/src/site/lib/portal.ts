@@ -2,11 +2,12 @@ import type {
   PortalAccount,
   PortalAppointment,
   PortalPrescription,
+  PortalTreatment,
   SiteLanguage,
 } from "@clinic/shared";
 import { APPOINTMENT_STATUS } from "@shared/enums";
 import { currencySymbol, formatWholeMoney, subtractMoney } from "@shared/schemas/money";
-import { PORTAL_TABS } from "@web/site/constants";
+import { PORTAL_PAGE_TAIL, PORTAL_TABS } from "@web/site/constants";
 import type { Translate } from "@web/site/i18n";
 
 export type PortalTab = (typeof PORTAL_TABS)[number];
@@ -15,29 +16,74 @@ const LOCALES: Record<SiteLanguage, string> = { ar: "ar-u-nu-latn", en: "en-GB" 
 
 const stripBidiMarks = (text: string): string => text.replaceAll(/[‎‏؜]/g, "");
 
-export function portalDate(iso: string, language: SiteLanguage, timeZone: string): string {
+export function portalDate(iso: string, timeZone: string): string {
+  const { day, month, year } = portalDateParts(iso, timeZone);
+
+  return `${day}/${month}/${year}`;
+}
+
+export function portalTime(iso: string, timeZone: string): string {
   return stripBidiMarks(
-    new Intl.DateTimeFormat(LOCALES[language], {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      timeZone,
-    }).format(new Date(iso)),
+    new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone }).format(
+      new Date(iso),
+    ),
   );
 }
 
-export function portalTime(iso: string, language: SiteLanguage, timeZone: string): string {
+export const portalDateTime = (iso: string, timeZone: string): string =>
+  `${portalDate(iso, timeZone)} · ${portalTime(iso, timeZone)}`;
+
+export interface PortalDateParts {
+  readonly day: string;
+  readonly month: string;
+  readonly year: string;
+}
+
+export function portalDateParts(iso: string, timeZone: string): PortalDateParts {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone,
+  }).formatToParts(new Date(iso));
+  const part = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((entry) => entry.type === type)?.value ?? "";
+
+  return { day: part("day"), month: part("month"), year: part("year") };
+}
+
+export function portalWeekday(iso: string, language: SiteLanguage, timeZone: string): string {
   return stripBidiMarks(
-    new Intl.DateTimeFormat(language === "ar" ? LOCALES.ar : "en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      timeZone,
-    }).format(new Date(iso)),
+    new Intl.DateTimeFormat(LOCALES[language], { weekday: "long", timeZone }).format(new Date(iso)),
   );
 }
 
-export const portalDateTime = (iso: string, language: SiteLanguage, timeZone: string): string =>
-  `${portalDate(iso, language, timeZone)} · ${portalTime(iso, language, timeZone)}`;
+export function partOfDay(now: Date, timeZone: string): "morning" | "evening" {
+  const hour = Number(
+    new Intl.DateTimeFormat("en-GB", { hour: "numeric", hourCycle: "h23", timeZone }).format(now),
+  );
+
+  return hour < 12 ? "morning" : "evening";
+}
+
+export type PortalTone = "success" | "warning" | "neutral" | "primary";
+
+export function appointmentTone(status: PortalAppointment["status"]): PortalTone {
+  switch (status) {
+    case APPOINTMENT_STATUS.COMPLETED:
+      return "success";
+    case APPOINTMENT_STATUS.NO_SHOW:
+      return "warning";
+    case APPOINTMENT_STATUS.CANCELLED:
+      return "neutral";
+    default:
+      return "primary";
+  }
+}
+
+export function treatmentTone(status: PortalTreatment["status"]): PortalTone {
+  return status === "done" ? "success" : status === "cancelled" ? "neutral" : "warning";
+}
 
 export const portalMoney = (amount: string, currency: string): string =>
   `\u2066${formatWholeMoney(amount)}\u00A0${currencySymbol(currency)}\u2069`;
@@ -83,3 +129,6 @@ export function regimenText(item: PortalPrescription["items"][number], t: Transl
     .filter((part): part is string => typeof part === "string" && part !== "")
     .join(" · ");
 }
+
+export const revealedCount = (wanted: number, total: number): number =>
+  total - wanted <= PORTAL_PAGE_TAIL ? total : wanted;

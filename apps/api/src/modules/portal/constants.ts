@@ -13,3 +13,9 @@ export const PORTAL_SESSION_BYTES = 32;
 export const PORTAL_COOKIE_NAME = "clinic_portal_session";
 
 export const PORTAL_RECORD_LIMIT = 200;
+
+export const PORTAL_PREVIEW_MIME_TYPES: readonly string[] = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];

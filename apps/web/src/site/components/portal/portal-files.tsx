@@ -4,6 +4,7 @@ import { Alert } from "@web/booking/ui";
 import { portalApi, siteFailureKey } from "@web/site/api";
 import { PortalPanel } from "@web/site/components/portal/portal-panel";
 import { SiteIcon } from "@web/site/components/site-icon";
+import { SiteImage } from "@web/site/components/site-image";
 import type { PortalFormat } from "@web/site/hooks/use-portal-format";
 import { useSite } from "@web/site/hooks/use-site";
 
@@ -49,32 +50,58 @@ export function PortalFiles({
       <PortalPanel
         title={t("portal.tabs.files")}
         empty={t("portal.empty.files")}
+        icon="files"
+        paged
+        grid="tiles"
         data-testid="site-portal-files"
       >
         {files.map((file) => (
-          <li key={file.id} data-testid={`site-portal-file-${file.id}`} className="py-1">
+          <li key={file.id} data-testid={`site-portal-file-${file.id}`} className="flex">
             <button
               type="button"
               aria-busy={opening === file.id}
               onClick={() => void open(file)}
-              className="flex w-full cursor-pointer items-center gap-3 rounded-panel px-2 py-2 text-start hover:bg-primary-50"
+              className="flex w-full cursor-pointer flex-col overflow-hidden rounded-panel border border-line text-start transition-colors hover:border-primary-300 aria-busy:opacity-60"
             >
-              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-pill bg-primary-50 text-primary-600">
-                <SiteIcon
-                  name={file.mime.startsWith("image/") ? "eye" : "send"}
-                  className="size-5"
-                />
+              <span aria-hidden data-part="preview" className="relative block h-32 bg-canvas">
+                {file.previewUrl ? (
+                  <SiteImage
+                    src={file.previewUrl}
+                    layer
+                    wash={false}
+                    fallback={
+                      <span className="inline-flex size-14 items-center justify-center rounded-pill bg-surface text-primary-600 shadow-pill">
+                        <SiteIcon
+                          name={file.mime.startsWith("image/") ? "eye" : "files"}
+                          className="size-7"
+                        />
+                      </span>
+                    }
+                  />
+                ) : (
+                  <span className="absolute inset-0 flex items-center justify-center">
+                    <span className="inline-flex size-14 items-center justify-center rounded-pill bg-surface text-primary-600 shadow-pill">
+                      <SiteIcon
+                        name={file.mime.startsWith("image/") ? "eye" : "files"}
+                        className="size-7"
+                      />
+                    </span>
+                  </span>
+                )}
               </span>
-              <span className="flex min-w-0 flex-1 flex-col">
-                <bdi className="truncate text-value font-bold text-primary-900">
+              <span className="flex min-w-0 flex-col gap-1.5 p-3.5">
+                <bdi className="block truncate text-value font-bold text-primary-900">
                   {file.filename}
                 </bdi>
-                <span className="text-label text-ink-muted">
-                  {format.date(file.createdAt)}
-                  {file.tooth !== null && ` · ${t("portal.teeth", { teeth: file.tooth })}`}
+                <span className="flex flex-wrap items-center gap-2 text-label text-ink-muted">
+                  <span>{format.date(file.createdAt)}</span>
+                  {file.tooth !== null && (
+                    <span className="pill-text inline-flex min-h-(--control-h-sm) items-center rounded-chip border border-line px-2 text-meta text-primary-700">
+                      {t("portal.teeth", { teeth: file.tooth })}
+                    </span>
+                  )}
                 </span>
               </span>
-              <span className="text-label font-medium text-primary-700">{t("portal.open")}</span>
             </button>
           </li>
         ))}

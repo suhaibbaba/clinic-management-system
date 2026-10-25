@@ -18,8 +18,8 @@ export function useHoursText(): { readonly days: string; readonly time: string }
             to: weekdayName(summary.to, language),
           }),
     time: t("contact.hoursTime", {
-      opens: timeLabel(summary.opens, language),
-      closes: timeLabel(summary.closes, language),
+      opens: timeLabel(summary.opens),
+      closes: timeLabel(summary.closes),
     }),
   };
 }

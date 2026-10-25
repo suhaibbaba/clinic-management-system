@@ -304,6 +304,8 @@ describe("Patient portal (e2e)", () => {
 
     expect(record.attachments.map((entry) => entry.id)).toEqual([own!.id]);
     expect(record.attachments[0]).not.toHaveProperty("r2Key");
+    expect(record.attachments[0]).not.toHaveProperty("key");
+    expect(record.attachments[0]?.previewUrl).toEqual(expect.any(String));
     expect((await link(motherId, own!.id)).json()).toMatchObject({ url: expect.any(String) });
     expect((await link(motherId, stranger!.id)).statusCode).toBe(404);
     expect((await link(strangerId, stranger!.id)).statusCode).toBe(404);

@@ -1,13 +1,19 @@
 import type { PortalAccount, PortalAppointment } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
 import {
+  appointmentTone,
   chosenPatient,
   netPrice,
+  partOfDay,
   portalDate,
+  portalDateParts,
   portalDateTime,
   portalMoney,
   portalTab,
+  portalWeekday,
+  revealedCount,
   splitAppointments,
+  treatmentTone,
 } from "@web/site/lib/portal";
 
 const doctor = { ar: "د. سارة", en: "Dr Sara" };
@@ -22,10 +28,47 @@ const appointment = (id: string, startsAt: string, status: PortalAppointment["st
 
 describe("patient account helpers", () => {
   it("writes a date in the clinic's time zone, not the browser's", () => {
-    expect(portalDate("2026-05-08T22:30:00.000Z", "en", "Asia/Hebron")).toBe("9 May 2026");
-    expect(portalDateTime("2026-05-09T07:30:00.000Z", "en", "Asia/Hebron")).toBe(
-      "9 May 2026 · 10:30 AM",
-    );
+    expect(portalDate("2026-05-08T22:30:00.000Z", "Asia/Hebron")).toBe("09/05/2026");
+    expect(portalDateTime("2026-05-09T07:30:00.000Z", "Asia/Hebron")).toBe("09/05/2026 · 10:30 AM");
+  });
+
+  it("splits a date into day, numbered month and year in the clinic's time zone", () => {
+    expect(portalDateParts("2026-05-08T22:30:00.000Z", "Asia/Hebron")).toEqual({
+      day: "09",
+      month: "05",
+      year: "2026",
+    });
+    expect(portalDateParts("2026-06-30T09:00:00.000Z", "Asia/Hebron")).toEqual({
+      day: "30",
+      month: "06",
+      year: "2026",
+    });
+    expect(portalWeekday("2026-05-08T22:30:00.000Z", "en", "Asia/Hebron")).toBe("Saturday");
+  });
+
+  it("greets by the clinic's hour, not the browser's", () => {
+    expect(partOfDay(new Date("2026-05-09T08:59:00.000Z"), "Asia/Hebron")).toBe("morning");
+    expect(partOfDay(new Date("2026-05-09T09:00:00.000Z"), "Asia/Hebron")).toBe("evening");
+    expect(partOfDay(new Date("2026-05-08T21:30:00.000Z"), "Asia/Hebron")).toBe("morning");
+  });
+
+  it("shows a tail of one or two rows at once instead of behind another button", () => {
+    expect(revealedCount(5, 11)).toBe(5);
+    expect(revealedCount(10, 11)).toBe(11);
+    expect(revealedCount(10, 12)).toBe(12);
+    expect(revealedCount(10, 13)).toBe(10);
+    expect(revealedCount(5, 6)).toBe(6);
+    expect(revealedCount(5, 3)).toBe(3);
+  });
+
+  it("colours each status apart", () => {
+    expect(appointmentTone("completed")).toBe("success");
+    expect(appointmentTone("no_show")).toBe("warning");
+    expect(appointmentTone("cancelled")).toBe("neutral");
+    expect(appointmentTone("confirmed")).toBe("primary");
+    expect(treatmentTone("done")).toBe("success");
+    expect(treatmentTone("cancelled")).toBe("neutral");
+    expect(treatmentTone("planned")).toBe("warning");
   });
 
   it("shows money whole, with the currency's symbol", () => {

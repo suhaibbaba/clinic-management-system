@@ -103,6 +103,7 @@ export const portalAttachmentSchema = z.object({
   sizeBytes: z.number().int().nonnegative(),
   tooth: z.number().int().nullable(),
   createdAt: z.iso.datetime(),
+  previewUrl: z.url().nullable(),
 });
 export type PortalAttachment = z.infer<typeof portalAttachmentSchema>;
 

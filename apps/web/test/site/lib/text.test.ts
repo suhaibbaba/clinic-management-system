@@ -46,7 +46,7 @@ describe("opening hours", () => {
   });
 
   it("writes a clock time with Latin digits in both languages", () => {
-    expect(timeLabel("20:30", "en")).toBe("8:30 PM");
-    expect(timeLabel("08:00", "ar")).toMatch(/^8:00/);
+    expect(timeLabel("20:30")).toBe("8:30 PM");
+    expect(timeLabel("08:00")).toBe("8:00 AM");
   });
 });

@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import type { PortalFileLink, PortalRecord } from "@clinic/shared";
+import type { PortalAttachment, PortalFileLink, PortalRecord } from "@clinic/shared";
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { toPersonName } from "@api/common/person-name";
 import { DATABASE, type Database } from "@api/database/database.module";
@@ -18,7 +18,7 @@ import {
 } from "@api/database/schema";
 import { LedgerService } from "@api/modules/billing/services/ledger.service";
 import { StorageService } from "@api/modules/storage/services/storage.service";
-import { PORTAL_RECORD_LIMIT } from "@api/modules/portal/constants";
+import { PORTAL_PREVIEW_MIME_TYPES, PORTAL_RECORD_LIMIT } from "@api/modules/portal/constants";
 import { phoneKeyOf } from "@api/modules/portal/lib/portal-code";
 import {
   doctorUser,
@@ -153,6 +153,7 @@ export class PortalRecordsService {
             sizeBytes: attachments.sizeBytes,
             tooth: attachments.tooth,
             createdAt: attachments.createdAt,
+            key: attachments.r2Key,
           })
           .from(attachments)
           .where(
@@ -227,7 +228,28 @@ export class PortalRecordsService {
         notes: row.notes,
       })),
       statement: statement.entries.map(statementLine).reverse(),
-      attachments: files.map((row) => ({ ...row, createdAt: toIso(row.createdAt) })),
+      attachments: await Promise.all(files.map((row) => this.withPreview(row))),
+    };
+  }
+
+  private async withPreview({
+    key,
+    ...row
+  }: {
+    readonly id: string;
+    readonly filename: string;
+    readonly mime: string;
+    readonly sizeBytes: number;
+    readonly tooth: number | null;
+    readonly createdAt: Date;
+    readonly key: string;
+  }): Promise<PortalAttachment> {
+    return {
+      ...row,
+      createdAt: toIso(row.createdAt),
+      previewUrl: PORTAL_PREVIEW_MIME_TYPES.includes(row.mime)
+        ? (await this.storage.createDownloadUrl(key)).url
+        : null,
     };
   }
 

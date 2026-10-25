@@ -2,6 +2,7 @@ import type { PortalRecord } from "@clinic/shared";
 import type { JSX } from "react";
 import { cx } from "@web/booking/ui";
 import { PortalPanel } from "@web/site/components/portal/portal-panel";
+import { SiteIcon } from "@web/site/components/site-icon";
 import type { PortalFormat } from "@web/site/hooks/use-portal-format";
 import { useSite } from "@web/site/hooks/use-site";
 
@@ -45,6 +46,62 @@ export function PortalBalance({
   );
 }
 
+export function PortalBalanceSummary({
+  balance,
+  format,
+}: {
+  readonly balance: PortalRecord["balance"];
+  readonly format: PortalFormat;
+}): JSX.Element {
+  const { t } = useSite();
+  const owes = !balance.balance.startsWith("-") && balance.balance !== "0.00";
+
+  return (
+    <section
+      data-testid="site-portal-balance-summary"
+      className="flex flex-col gap-4 rounded-card border border-line bg-surface p-6 shadow-card"
+    >
+      <h3 className="flex items-center gap-2 text-heading font-bold text-primary-900">
+        <SiteIcon name="wallet" className="size-5 text-primary-600" />
+        {t("portal.balanceSummary")}
+      </h3>
+      <div
+        data-part="remaining"
+        className={cx(
+          "flex items-center justify-between gap-3 rounded-panel border p-4",
+          owes ? "border-warning-300 bg-warning-50" : "border-success-100 bg-success-50",
+        )}
+      >
+        <span
+          className={cx(
+            "flex items-center gap-2 text-value font-medium",
+            owes ? "text-warning-800" : "text-success-800",
+          )}
+        >
+          <SiteIcon name={owes ? "alert" : "check"} className="size-5" />
+          {t("portal.money.balance")}
+        </span>
+        <bdi
+          data-testid="site-portal-balance-summary-balance"
+          className={cx("text-title font-bold", owes ? "text-warning-800" : "text-success-800")}
+        >
+          {format.money(balance.balance)}
+        </bdi>
+      </div>
+      <dl className="grid grid-cols-2 gap-3">
+        {(["charged", "paid"] as const).map((key) => (
+          <div key={key} className="flex flex-col gap-0.5 rounded-panel bg-canvas px-4 py-3">
+            <dt className="text-meta text-ink-muted">{t(`portal.money.${key}`)}</dt>
+            <dd className="text-heading font-bold text-primary-900">
+              <bdi>{format.money(balance[key])}</bdi>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
 export function PortalStatement({
   statement,
   format,
@@ -58,6 +115,8 @@ export function PortalStatement({
     <PortalPanel
       title={t("portal.statement")}
       empty={t("portal.empty.statement")}
+      icon="wallet"
+      paged
       data-testid="site-portal-statement"
     >
       {statement.map((entry) => (

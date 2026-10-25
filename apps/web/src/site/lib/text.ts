@@ -1,4 +1,5 @@
 import type { DaySchedule, PersonName, SiteLanguage, SiteText } from "@clinic/shared";
+import { clockTime } from "@shared/time/zone";
 
 export const pick = (text: SiteText, language: SiteLanguage): string =>
   (language === "en" ? text.en : text.ar) || text.ar;
@@ -47,14 +48,10 @@ export function weekdayName(weekday: number, language: SiteLanguage): string {
   );
 }
 
-export function timeLabel(time: string, language: SiteLanguage): string {
+export function timeLabel(time: string): string {
   const [hours = 0, minutes = 0] = time.split(":").map(Number);
 
-  return new Intl.DateTimeFormat(language === "ar" ? "ar-u-nu-latn" : "en", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "UTC",
-  }).format(new Date(Date.UTC(2024, 0, 7, hours, minutes)));
+  return clockTime(hours * 60 + minutes);
 }
 
 export interface HoursSummary {

@@ -10,8 +10,8 @@
     "contact": "تواصل معنا",
     "book": "احجز موعدك",
     "menu": "القائمة",
-    "switchLanguage": "اعرض الموقع بـ {{language}}",
-    "account": "حسابي"
+    "account": "حسابي",
+    "language": "اللغة"
   },
   "hero": {
     "subtitle": "رعاية متكاملة بأحدث التقنيات وفي بيئة مريحة وآمنة",
@@ -194,7 +194,6 @@
     "diagnosis": "التشخيص",
     "medicalAlerts": "تنبيهات طبية",
     "teeth": "السن {{teeth}}",
-    "open": "فتح",
     "receipt": "إيصال {{number}}",
     "reversal": "تصحيح",
     "runningBalance": "الرصيد {{amount}}",
@@ -235,6 +234,22 @@
       "in_progress": "قيد التنفيذ",
       "done": "تم",
       "cancelled": "ملغى"
-    }
+    },
+    "accountMenu": "قائمة الحساب",
+    "myProfile": "ملفي الشخصي",
+    "greeting": {
+      "morning": "صباح الخير،",
+      "evening": "مساء الخير،"
+    },
+    "nextVisitTitle": "موعدك القادم",
+    "nextVisit": "موعدك القادم {{date}}",
+    "noUpcoming": "لا مواعيد قادمة",
+    "noUpcomingHint": "احجز زيارتك القادمة بخطوات قليلة.",
+    "bookNow": "احجز موعدك الآن",
+    "viewAll": "عرض الكل",
+    "balanceSummary": "ملخص الحساب",
+    "showMore": "عرض {{count}} أخرى",
+    "showLess": "عرض أقل",
+    "drugCount": "عدد الأدوية: {{count}}"
   }
 }

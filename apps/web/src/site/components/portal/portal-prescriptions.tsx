@@ -1,5 +1,6 @@
 import type { PortalPrescription } from "@clinic/shared";
 import type { JSX } from "react";
+import { PortalDateBlock } from "@web/site/components/portal/portal-date-block";
 import { PortalPanel } from "@web/site/components/portal/portal-panel";
 import type { PortalFormat } from "@web/site/hooks/use-portal-format";
 import { useSite } from "@web/site/hooks/use-site";
@@ -19,17 +20,31 @@ export function PortalPrescriptions({
     <PortalPanel
       title={t("portal.tabs.prescriptions")}
       empty={t("portal.empty.prescriptions")}
+      icon="pill"
+      paged
+      grid="cards"
       data-testid="site-portal-prescriptions"
     >
       {prescriptions.map((prescription) => (
         <li
           key={prescription.id}
           data-testid={`site-portal-prescription-${prescription.id}`}
-          className="flex flex-col gap-2 py-3"
+          className="flex flex-col gap-3 rounded-panel border border-line p-4"
         >
-          <span className="text-label text-ink-muted">
-            {format.date(prescription.createdAt)} · {nameIn(prescription.doctor, language)}
-          </span>
+          <div className="flex items-center gap-3">
+            <PortalDateBlock
+              iso={prescription.createdAt}
+              parts={format.dateParts(prescription.createdAt)}
+            />
+            <span className="flex min-w-0 flex-col">
+              <span className="text-value font-bold text-primary-900">
+                {nameIn(prescription.doctor, language)}
+              </span>
+              <span className="text-label text-ink-muted">
+                {t("portal.drugCount", { count: prescription.items.length })}
+              </span>
+            </span>
+          </div>
           <ul className="flex flex-col gap-1.5">
             {prescription.items.map((item, position) => {
               const details = regimenText(item, t);

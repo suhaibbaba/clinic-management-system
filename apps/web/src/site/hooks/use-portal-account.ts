@@ -1,5 +1,5 @@
 import type { PortalAccount } from "@clinic/shared";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { isSignedOut, portalApi } from "@web/site/api";
 
 export type PortalState =
@@ -64,5 +64,8 @@ export function usePortalAccount(enabled: boolean): PortalAccountState {
 
   const retry = useCallback(() => setAttempt((count) => count + 1), []);
 
-  return { state, signedIn, signOut, expired, retry };
+  return useMemo(
+    () => ({ state, signedIn, signOut, expired, retry }),
+    [state, signedIn, signOut, expired, retry],
+  );
 }

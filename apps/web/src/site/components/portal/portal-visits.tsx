@@ -18,6 +18,8 @@ export function PortalVisits({
     <PortalPanel
       title={t("portal.visits")}
       empty={t("portal.empty.visits")}
+      icon="stethoscope"
+      paged
       data-testid="site-portal-visits"
     >
       {visits.map((visit) => (

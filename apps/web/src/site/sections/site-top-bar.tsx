@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { SiteIcon } from "@web/site/components/site-icon";
+import { SiteLanguageMenu } from "@web/site/components/site-language-menu";
 import { SocialLinks } from "@web/site/components/social-links";
 import { useHoursText } from "@web/site/hooks/use-hours-text";
 import { useSite } from "@web/site/hooks/use-site";
@@ -12,20 +13,17 @@ export function SiteTopBar(): JSX.Element {
   const tagline = pick(site.content.brand.tagline, language);
 
   return (
-    <div
-      data-testid="site-top-bar"
-      className="hidden bg-primary-900 text-meta text-ink-inverse/85 md:block"
-    >
-      <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-1.5">
+    <div data-testid="site-top-bar" className="bg-primary-900 text-meta text-ink-inverse/85">
+      <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-1">
         {tagline && (
-          <p className="flex min-w-0 items-center gap-2 truncate">
+          <p className="hidden min-w-0 items-center gap-2 truncate md:flex">
             <SiteIcon name="sparkles" className="size-4 text-primary-300" />
             {tagline}
           </p>
         )}
-        <ul className="ms-auto flex items-center gap-5">
+        <ul className="ms-auto flex min-w-0 items-center gap-5">
           {hours && (
-            <li className="flex items-center gap-1.5">
+            <li className="hidden items-center gap-1.5 md:flex">
               <SiteIcon name="clock" className="size-4 text-primary-300" />
               <span>{hours.days}</span>
               <bdi className="tabular-nums">{hours.time}</bdi>
@@ -50,7 +48,10 @@ export function SiteTopBar(): JSX.Element {
             </li>
           )}
         </ul>
-        <SocialLinks plain />
+        <div className="hidden md:block">
+          <SocialLinks plain />
+        </div>
+        <SiteLanguageMenu />
       </div>
     </div>
   );

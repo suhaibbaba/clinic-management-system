@@ -4,21 +4,30 @@ import {
   ArrowLeft,
   Award,
   Building2,
+  CalendarClock,
   CalendarDays,
+  CalendarPlus,
   Check,
+  CircleAlert,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clock,
   Eye,
+  Files,
   Gem,
   Heart,
+  History,
+  LayoutDashboard,
+  LogOut,
   Mail,
   MapPin,
   Menu,
   Monitor,
+  Moon,
   Navigation,
   Phone,
+  Pill,
   Play,
   Quote,
   Send,
@@ -26,10 +35,12 @@ import {
   Smile,
   Sparkles,
   Star,
+  Sun,
   Target,
   Stethoscope,
   User,
   Users,
+  Wallet,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -38,7 +49,18 @@ import { ToothGlyph } from "@web/site/components/tooth-glyph";
 import { cx } from "@web/booking/ui";
 
 type UiIcon =
+  | "alert"
   | "arrow-end"
+  | "calendar-clock"
+  | "calendar-plus"
+  | "dashboard"
+  | "files"
+  | "history"
+  | "log-out"
+  | "moon"
+  | "pill"
+  | "sun"
+  | "wallet"
   | "check"
   | "chevron-down"
   | "chevron-start"
@@ -86,6 +108,17 @@ const ICONS: Record<SiteIconName | UiIcon, LucideIcon> = {
   play: Play,
   quote: Quote,
   x: X,
+  alert: CircleAlert,
+  "calendar-clock": CalendarClock,
+  "calendar-plus": CalendarPlus,
+  dashboard: LayoutDashboard,
+  files: Files,
+  history: History,
+  "log-out": LogOut,
+  moon: Moon,
+  pill: Pill,
+  sun: Sun,
+  wallet: Wallet,
 };
 
 const MIRRORED = new Set<string>(["arrow-end", "chevron-start", "chevron-end"]);

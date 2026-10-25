@@ -1,11 +1,12 @@
-import { SITE_SECTION, type SiteLanguage, type SiteSection } from "@clinic/shared";
+import { SITE_SECTION, type SiteSection } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { cx } from "@web/booking/ui";
+import { PortalUserMenu } from "@web/site/components/portal/portal-user-menu";
 import { SiteIcon } from "@web/site/components/site-icon";
 import { SiteLink } from "@web/site/components/site-link";
 import { SiteLogo } from "@web/site/components/site-logo";
-import { SITE_LANGUAGE_LABELS, SITE_LANGUAGE_SHORT, SITE_PARAM } from "@web/site/constants";
 import { useBookable } from "@web/site/hooks/use-bookable";
+import { usePortal } from "@web/site/hooks/use-portal";
 import { useSite } from "@web/site/hooks/use-site";
 import { nameIn } from "@web/site/lib/text";
 import { SITE_PATH, type SitePageRoute } from "@web/site/route";
@@ -40,9 +41,9 @@ const LINKS: readonly {
 ];
 
 export function SiteHeader(): JSX.Element {
-  const { site, language, t, page, setParams } = useSite();
+  const { site, language, t, page } = useSite();
   const [open, setOpen] = useState(false);
-  const other: SiteLanguage = language === "ar" ? "en" : "ar";
+  const account = usePortal();
   const name = nameIn(site.clinic.name, language);
   const links = LINKS.filter(
     (link) => link.section === null || site.content.sections.includes(link.section),
@@ -114,18 +115,14 @@ export function SiteHeader(): JSX.Element {
         </nav>
 
         <div className="ms-auto flex shrink-0 items-center gap-2 lg:ms-0">
-          <button
-            type="button"
-            lang={other}
-            data-testid="site-language"
-            aria-label={t("nav.switchLanguage", { language: SITE_LANGUAGE_LABELS[other] })}
-            onClick={() => setParams({ [SITE_PARAM.LANGUAGE]: other === "ar" ? null : other })}
-            className="pill-text inline-flex min-h-(--control-h) cursor-pointer items-center rounded-pill px-3 text-label font-medium text-ink-muted hover:bg-primary-50 hover:text-primary-700"
-          >
-            {SITE_LANGUAGE_SHORT[other]}
-          </button>
+          {portal && account.state.status === "ready" && (
+            <PortalUserMenu
+              account={account.state.account}
+              onSignOut={() => void account.signOut()}
+            />
+          )}
 
-          {portal && (
+          {portal && account.state.status !== "ready" && (
             <SiteLink
               to={SITE_PATH.ACCOUNT}
               data-testid="site-header-account"
