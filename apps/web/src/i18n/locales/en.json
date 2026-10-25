@@ -1816,13 +1816,15 @@
         "reverse": "Reverse a Stock Movement",
         "shoppingList": "See the Shopping List",
         "shoppingListPdf": "Print the Shopping List",
-        "update": "Edit an Item"
+        "update": "Edit an Item",
+        "sendShoppingList": "Send the Shopping List by WhatsApp"
       },
       "lab-ledger": {
         "balance": "See a Lab's Balance",
         "listPayments": "See a Lab's Payments",
         "statement": "See a Lab's Statement",
-        "statementPdf": "Print a Lab's Statement"
+        "statementPdf": "Print a Lab's Statement",
+        "sendStatement": "Send a Lab's Statement by WhatsApp"
       },
       "lab-orders": {
         "cancel": "Cancel a Lab Order",
@@ -1842,7 +1844,8 @@
         "send": "Send an Order to the Lab",
         "update": "Edit a Lab Order",
         "setPrice": "Set the Price of Lab Work",
-        "stages": "See Lab Order Counts by Stage"
+        "stages": "See Lab Order Counts by Stage",
+        "sendSheet": "Send a Lab Order by WhatsApp"
       },
       "lab-payments": {
         "create": "Record a Payment to a Lab",
@@ -1885,7 +1888,8 @@
       "patient-billing": {
         "balance": "See a Patient's Balance",
         "statement": "See a Patient's Statement",
-        "statementPdf": "Print a Patient's Statement"
+        "statementPdf": "Print a Patient's Statement",
+        "sendStatement": "Send a Patient's Statement by WhatsApp"
       },
       "patients": {
         "create": "Add a Patient",
@@ -1904,7 +1908,8 @@
         "receipt": "Print a Receipt",
         "remove": "Delete a Payment",
         "reverse": "Reverse a Payment",
-        "viewDeleted": "See Deleted Payments"
+        "viewDeleted": "See Deleted Payments",
+        "sendReceipt": "Send a Receipt to the Patient by WhatsApp"
       },
       "pending-bookings": {
         "confirm": "Accept an online booking",
@@ -1997,7 +2002,9 @@
         "settlement": "View a Doctor's Settlement",
         "terms": "Set a Doctor's Clinic Share",
         "payout": "Pay a Doctor",
-        "payoutPdf": "Print a Doctor Payout"
+        "payoutPdf": "Print a Doctor Payout",
+        "settlementPdf": "Print a Doctor's Settlement",
+        "sendSettlement": "Send a Doctor's Settlement by WhatsApp"
       },
       "settlement-treatments": {
         "update": "Adjust a Treatment's Materials and Share"
@@ -2012,7 +2019,12 @@
         "payRules": "View the Percentage Rules",
         "setPayRules": "Change the Percentage Rules",
         "plans": "View an Employee's Pay Plan",
-        "setPlan": "Change an Employee's Pay Plan"
+        "setPlan": "Change an Employee's Pay Plan",
+        "shareTerms": "View an Employee's Percentage",
+        "setShareTerms": "Change an Employee's Percentage",
+        "ownerDraws": "View the Owner's Profit",
+        "monthPdf": "Print a Month's Payroll",
+        "sendMonth": "Send a Month's Payroll by WhatsApp"
       },
       "payroll-adjustments": {
         "reverse": "Reverse an Extra or Cut"
@@ -2049,6 +2061,24 @@
         "list": "View website messages",
         "update": "Mark a message as handled",
         "remove": "Delete a website message"
+      },
+      "expenses": {
+        "list": "View the Expenses",
+        "create": "Record an Expense",
+        "reverse": "Reverse an Expense"
+      },
+      "ai.list": "See My Assistant Conversations",
+      "ai.messages": "Open an Assistant Conversation",
+      "ai.rename": "Rename an Assistant Conversation",
+      "ai.remove": "Delete an Assistant Conversation",
+      "ai-actions.settings": "See the Assistant's Action Settings",
+      "ai-actions.update-settings": "Change the Assistant's Action Settings",
+      "ai-actions.read": "Open an Action the Assistant Proposed",
+      "ai-actions.confirm": "Approve an Action the Assistant Proposed",
+      "ai-actions.cancel": "Cancel an Action the Assistant Proposed",
+      "patient-documents": {
+        "treatmentPlan": "Print a Treatment Plan",
+        "sendTreatmentPlan": "Send a Treatment Plan to the Patient by WhatsApp"
       }
     },
     "hints": {
@@ -2079,7 +2109,9 @@
       "payroll-adjustments": "Extras and cuts added to an employee’s month on the Payroll screen, and reversing one entered by mistake.",
       "staff-payments": "Salary payments recorded on the Payroll screen, and reversing one entered by mistake.",
       "settlement-treatments": "A visiting doctor’s settlement: the materials and the doctor’s share on each treatment.",
-      "website": "The Website screen: the clinic's public page, publishing it, and contact form messages."
+      "website": "The Website screen: the clinic's public page, publishing it, and contact form messages.",
+      "expenses": "The Expenses tab of the Profit and Expenses screen: recording a clinic expense and reversing one entered by mistake.",
+      "doctor-settlements": "A doctor's settlement on the Payroll screen: their treatments, the clinic's share, paying them and printing the statement."
     },
     "intro": "Every line here is one action in the app. Switch it off and its button leaves that role’s screens and the action is refused if attempted; switch it back whenever you like. What you change belongs to this clinic alone.",
     "resources": {
@@ -2117,7 +2149,8 @@
       "doctor-extra-hours": "Doctors",
       "translations": "Interface Text",
       "me": "My account",
-      "website": "Website"
+      "website": "Website",
+      "expenses": "Expenses"
     },
     "subtitle": "What each role is able to do",
     "title": "Permissions",
