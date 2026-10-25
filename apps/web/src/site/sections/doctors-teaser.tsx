@@ -2,6 +2,7 @@ import { SITE_SECTION } from "@clinic/shared";
 import type { JSX } from "react";
 import { PillLink } from "@web/site/components/pill-link";
 import { ShowcaseHeading } from "@web/site/components/showcase-heading";
+import { CardFill } from "@web/site/components/card-fill";
 import { SiteIcon } from "@web/site/components/site-icon";
 import { SiteImage } from "@web/site/components/site-image";
 import { SiteLink } from "@web/site/components/site-link";
@@ -51,7 +52,7 @@ export function DoctorsTeaser(): JSX.Element | null {
                 key={doctor.id}
                 to={`${SITE_PATH.DOCTORS}/${doctor.id}`}
                 data-testid={`site-doctor-tile-${doctor.id}`}
-                className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card transition-[box-shadow,translate] hover:-translate-y-0.5 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card transition-colors duration-300 hover:border-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
               >
                 <SiteImage
                   src={doctor.photoUrl}
@@ -59,16 +60,19 @@ export function DoctorsTeaser(): JSX.Element | null {
                   className="aspect-[4/3.4] w-full"
                   fallback={<SiteIcon name="stethoscope" className="size-12" />}
                 />
-                <span className="flex items-start gap-2 p-4">
+                <span className="relative isolate flex flex-1 items-start gap-2 p-4">
+                  <CardFill />
                   <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="text-section font-bold text-primary-900">{name}</span>
-                    <span className="text-label text-ink-muted">
+                    <span className="site-fill-ink text-section font-bold text-primary-900">
+                      {name}
+                    </span>
+                    <span className="site-fill-soft text-label text-ink-muted">
                       {(profile && pick(profile.title, language)) || doctor.specialty}
                     </span>
                   </span>
                   <span
                     aria-hidden
-                    className="inline-flex size-7 shrink-0 items-center justify-center rounded-pill border border-line text-primary-700 group-hover:border-primary-600 group-hover:bg-primary-600 group-hover:text-ink-inverse"
+                    className="inline-flex size-7 shrink-0 items-center justify-center rounded-pill border border-line text-primary-700 group-hover:border-ink-inverse/40 group-hover:bg-surface"
                   >
                     <SiteIcon name="arrow-end" className="size-4" />
                   </span>

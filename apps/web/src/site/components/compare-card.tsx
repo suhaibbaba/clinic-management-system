@@ -1,4 +1,5 @@
 import { useId, useState, type JSX } from "react";
+import { CardFill } from "@web/site/components/card-fill";
 import { SiteImage } from "@web/site/components/site-image";
 import { useSite } from "@web/site/hooks/use-site";
 
@@ -21,8 +22,9 @@ export function CompareCard({
   return (
     <figure
       data-testid={testId}
-      className="flex flex-col gap-2 overflow-hidden rounded-card border border-line bg-surface p-2 shadow-card"
+      className="group relative isolate flex h-full flex-col gap-2 overflow-hidden rounded-card border border-line bg-surface p-2 shadow-card transition-colors duration-300 hover:border-primary-700"
     >
+      <CardFill />
       <div className="relative aspect-[4/3] overflow-hidden rounded-panel has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-primary-600">
         <SiteImage src={before} layer alt={t("cases.beforeOf", { title })} />
         <div className="absolute inset-0" style={{ clipPath }}>
@@ -57,7 +59,7 @@ export function CompareCard({
         />
       </div>
       {title && (
-        <figcaption className="px-2 pb-1 text-center text-label font-bold text-primary-900">
+        <figcaption className="site-fill-ink px-2 pb-1 text-center text-label font-bold text-primary-900">
           {title}
         </figcaption>
       )}

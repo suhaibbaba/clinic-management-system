@@ -9,6 +9,8 @@ const TONES = {
   outline:
     "border border-primary-300 bg-surface text-primary-700 hover:border-primary-600 hover:bg-primary-50",
   inverse: "bg-surface text-primary-800 shadow-float hover:bg-primary-50",
+  "outline-inverse":
+    "border border-ink-inverse/60 text-ink-inverse hover:border-ink-inverse hover:bg-ink-inverse/10",
 } as const;
 
 export function PillLink({

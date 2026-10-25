@@ -66,9 +66,6 @@ export function HeroSection(): JSX.Element {
                 arrow={false}
                 data-testid="site-hero-services"
               >
-                <span className="inline-flex size-7 items-center justify-center rounded-pill bg-primary-900 text-ink-inverse">
-                  <SiteIcon name="chevron-end" className="size-4" />
-                </span>
                 {t("hero.services")}
               </PillLink>
             )}

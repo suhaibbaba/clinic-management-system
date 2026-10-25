@@ -25,7 +25,7 @@ export function ServicesPage(): JSX.Element {
       <div className="mx-auto flex max-w-6xl flex-col gap-12 px-4 py-12">
         <Carousel
           label={t("nav.services")}
-          grid="sm:grid sm:grid-cols-2 sm:gap-5 lg:grid-cols-3"
+          grid="sm:grid sm:grid-cols-[repeat(auto-fit,minmax(18rem,22rem))] sm:justify-center sm:gap-5"
           data-testid="site-services"
         >
           {services.items.map((service) => (

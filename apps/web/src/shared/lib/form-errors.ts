@@ -61,13 +61,37 @@ export function shownErrors(errors: FieldErrors, left: readonly string[]): Field
   );
 }
 
+const SETTLE_MS = 900;
+
 export function revealFirstError(root: ParentNode | null = document): void {
   requestAnimationFrame(() => {
     const field = root?.querySelector<HTMLElement>('[data-part="form-field-error"]')?.parentElement;
+    const target = field?.querySelector<HTMLElement>("input:not([type=hidden]), textarea, button");
 
-    field?.scrollIntoView({ behavior: "smooth", block: "center" });
-    field
-      ?.querySelector<HTMLElement>("input:not([type=hidden]), textarea, button")
-      ?.focus({ preventScroll: true });
+    if (!field) {
+      return;
+    }
+
+    const { top, bottom } = field.getBoundingClientRect();
+
+    if (top >= window.innerHeight * 0.15 && bottom <= window.innerHeight) {
+      target?.focus({ preventScroll: true });
+      return;
+    }
+
+    let settled = false;
+    const settle = (): void => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      document.removeEventListener("scrollend", settle, true);
+      target?.focus({ preventScroll: true });
+    };
+
+    document.addEventListener("scrollend", settle, true);
+    window.setTimeout(settle, SETTLE_MS);
+    field.scrollIntoView({ behavior: "smooth", block: "center" });
   });
 }

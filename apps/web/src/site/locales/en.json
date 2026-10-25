@@ -1,97 +1,99 @@
 {
   "skip": "Skip to content",
   "nav": {
-    "label": "Site sections",
+    "label": "Site Sections",
     "home": "Home",
     "services": "Services",
     "doctors": "Doctors",
-    "about": "About us",
+    "about": "About Us",
     "booking": "Book",
     "contact": "Contact",
-    "book": "Book an appointment",
+    "book": "Book an Appointment",
     "menu": "Menu",
-    "account": "My account",
+    "account": "My Account",
     "language": "Language"
   },
   "hero": {
     "subtitle": "Complete care with modern technology, in a calm and safe setting",
-    "cta": "Book your appointment",
-    "slides": "Clinic photos",
+    "cta": "Book Now",
+    "slides": "Clinic Photos",
     "slide": "Photo {{number}}",
-    "services": "Explore our services"
+    "services": "Explore Our Services"
   },
   "services": {
-    "title": "Our services",
+    "title": "Our Services",
     "subtitle": "Complete care for everything you need",
     "book": "Book {{name}}",
     "promo": "A consultation is where better health begins",
-    "promoCta": "Book your appointment",
-    "eyebrow": "Our services",
-    "pageTitle": "Complete care for your smile"
+    "promoCta": "Book Your Appointment",
+    "eyebrow": "Our Services",
+    "pageTitle": "Complete Care for Your Smile"
   },
   "doctors": {
-    "title": "Our doctors",
+    "title": "Our Doctors",
     "subtitle": "A specialist team caring for you to the highest standard",
     "filter": "Specialty",
-    "all": "All specialties",
+    "all": "All Specialties",
     "book": "Book",
     "bookWith": "Book with {{name}}",
     "empty": "No doctors in this specialty.",
     "promo": "Choose your doctor and book with ease",
-    "promoCta": "Book now",
-    "profile": "View profile",
+    "promoCta": "Book Now",
+    "profile": "View Profile",
     "profileOf": "View {{name}}'s profile",
-    "back": "All doctors",
+    "back": "All Doctors",
     "notFound": "This doctor is not available."
   },
   "about": {
-    "title": "About us",
+    "title": "About Us",
     "subtitle": "We care about your health because you deserve the best",
-    "cta": "Book an appointment",
-    "why": "Why choose us"
+    "cta": "Book an Appointment",
+    "why": "Why Choose Us"
   },
   "booking": {
-    "title": "Book an appointment",
+    "title": "Book an Appointment",
     "subtitle": "A few quick, simple steps",
     "aside": "A step towards better health",
     "closed": "Online booking is unavailable right now. Please call us instead."
   },
   "contact": {
-    "title": "Contact us",
+    "title": "Contact Us",
     "subtitle": "We are here to answer your questions",
-    "phone": "Call us",
-    "email": "Email us",
-    "address": "Find us",
-    "hours": "Opening hours",
+    "phone": "Call Us",
+    "email": "Email Us",
+    "address": "Find Us",
+    "hours": "Opening Hours",
     "closedDay": "Closed",
     "dayRange": "{{from}} – {{to}}",
     "welcome": "You are always welcome at our clinic",
     "map": "Map of {{name}}",
     "directions": "Directions",
     "form": {
-      "title": "Send us a message",
-      "name": "Full name",
-      "email": "Email",
-      "phone": "Phone number",
-      "message": "Your message",
+      "title": "Send Us a Message",
+      "name": "Full Name",
+      "phone": "Phone Number",
+      "message": "Your Message",
       "optional": "Optional",
-      "send": "Send message",
+      "send": "Send Message",
       "sent": "Your message has arrived. We will be in touch soon.",
-      "another": "Send another message",
+      "another": "Send Another Message",
       "preview": "Sending works once the site is published.",
       "invalid": {
         "name": "Write your full name.",
         "phone": "Write a valid phone number.",
-        "email": "Write a valid email, or leave it empty.",
         "message": "Write at least five characters."
       },
       "subtitle": "We would be glad to hear from you",
-      "topic": "Enquiry type",
-      "topicNone": "Choose an enquiry type",
-      "country": "Country code",
-      "phoneHint": "Use a number that has WhatsApp so we can reply quickly."
+      "topic": "Enquiry Type",
+      "topicNone": "Choose an Enquiry Type",
+      "country": "Country Code",
+      "placeholder": {
+        "name": "e.g. Ahmad Khaled",
+        "phone": "59 123 4567",
+        "message": "How can we help you?"
+      }
     },
-    "onMap": "See it on the map",
+    "onMap": "See It on the Map",
     "emailNote": "We will reply as soon as we can",
     "subtitleDefault": "We are always here for you",
     "hoursSpan": "{{from}} – {{to}}",
@@ -99,7 +101,7 @@
   },
   "footer": {
     "rights": "© {{year}} {{name}}. All rights reserved.",
-    "social": "Follow us",
+    "social": "Follow Us",
     "socials": {
       "instagram": "Instagram",
       "facebook": "Facebook",
@@ -111,7 +113,7 @@
     "waiting": "Waiting for the preview…"
   },
   "common": {
-    "retry": "Try again"
+    "retry": "Try Again"
   },
   "errors": {
     "notFound": "This site is not available.",
@@ -123,18 +125,18 @@
     "unauthorized": "Your session has ended. Please sign in again."
   },
   "home": {
-    "contactNow": "Contact us now",
-    "statsLabel": "Our numbers",
-    "aboutLink": "More about us",
-    "servicesAll": "All services",
-    "doctorsAll": "Meet our doctors",
-    "galleryEyebrow": "Our home",
-    "galleryTitle": "A place designed for you",
-    "galleryLink": "Discover more",
-    "contactLink": "All ways to reach us",
-    "ctaTitle": "Book your appointment now",
+    "contactNow": "Contact Us Now",
+    "statsLabel": "Our Numbers",
+    "aboutLink": "More About Us",
+    "servicesAll": "All Services",
+    "doctorsAll": "Meet Our Doctors",
+    "galleryEyebrow": "Our Home",
+    "galleryTitle": "A Place Designed for You",
+    "galleryLink": "Discover More",
+    "contactLink": "All Ways to Reach Us",
+    "ctaTitle": "Book Your Appointment Now",
     "ctaSubtitle": "Our team is ready to welcome you and give your teeth the best care",
-    "callNow": "Call now"
+    "callNow": "Call Now"
   },
   "notFound": {
     "title": "Page not found",
@@ -146,7 +148,7 @@
     "previous": "Previous"
   },
   "cases": {
-    "title": "Real success stories",
+    "title": "Real Success Stories",
     "before": "Before",
     "after": "After",
     "beforeOf": "{{title}} before treatment",
@@ -154,29 +156,29 @@
     "compare": "Compare before and after: {{title}}"
   },
   "testimonials": {
-    "title": "What our patients say",
+    "title": "What Our Patients Say",
     "rating": "Rated {{count}} out of {{max}}"
   },
   "portal": {
-    "title": "My account",
+    "title": "My Account",
     "subtitle": "Your appointments, treatments, balance and files in one place",
-    "signInTitle": "Sign in to your account",
+    "signInTitle": "Sign In to Your Account",
     "signInIntro": "Enter the phone number the clinic has on file and we'll send you a sign-in code.",
     "phoneHint": "The same number you gave the clinic.",
-    "sendCode": "Send the code",
-    "codeTitle": "Enter your code",
+    "sendCode": "Send the Code",
+    "codeTitle": "Enter Your Code",
     "codeIntro": "If {{phone}} is on file, we've sent it a 6-digit code.",
-    "code": "Sign-in code",
+    "code": "Sign-In Code",
     "codeInvalid": "Enter the 6-digit code.",
     "wrongCode": "That code is wrong or has expired. Ask for a new one.",
     "verify": "Sign in",
-    "changePhone": "Change number",
-    "resend": "Send a new code",
+    "changePhone": "Change Number",
+    "resend": "Send a New Code",
     "signOut": "Sign out",
-    "family": "Family members on this number",
+    "family": "Family Members on This Number",
     "noPatients": "There is no patient file on this number now. Please contact the clinic.",
     "fileNumber": "File {{number}}",
-    "sections": "Account sections",
+    "sections": "Account Sections",
     "tabs": {
       "overview": "Overview",
       "appointments": "Appointments",
@@ -185,20 +187,20 @@
       "prescriptions": "Prescriptions",
       "files": "Files"
     },
-    "upcoming": "Upcoming appointments",
-    "history": "Past appointments",
-    "recentTreatments": "Latest treatments",
+    "upcoming": "Upcoming Appointments",
+    "history": "Past Appointments",
+    "recentTreatments": "Latest Treatments",
     "visits": "Visits",
     "statement": "Statement",
     "complaint": "Complaint",
     "diagnosis": "Diagnosis",
-    "medicalAlerts": "Medical alerts",
+    "medicalAlerts": "Medical Alerts",
     "teeth": "Tooth {{teeth}}",
     "receipt": "Receipt {{number}}",
     "reversal": "Correction",
     "runningBalance": "Balance {{amount}}",
     "money": {
-      "charged": "Treatments total",
+      "charged": "Treatments Total",
       "paid": "Paid",
       "balance": "Remaining"
     },
@@ -221,35 +223,35 @@
       "days": "for {{count}} days"
     },
     "appointmentStatus": {
-      "requested": "Awaiting confirmation",
+      "requested": "Awaiting Confirmation",
       "confirmed": "Confirmed",
       "arrived": "Arrived",
-      "in_progress": "In treatment",
+      "in_progress": "In Treatment",
       "completed": "Done",
       "no_show": "Missed",
       "cancelled": "Cancelled"
     },
     "treatmentStatus": {
       "planned": "Planned",
-      "in_progress": "In progress",
+      "in_progress": "In Progress",
       "done": "Done",
       "cancelled": "Cancelled"
     },
-    "accountMenu": "Account menu",
-    "myProfile": "My profile",
+    "accountMenu": "Account Menu",
+    "myProfile": "My Profile",
     "greeting": {
       "morning": "Good morning,",
       "evening": "Good evening,"
     },
-    "nextVisitTitle": "Your next visit",
+    "nextVisitTitle": "Your Next Visit",
     "nextVisit": "Next visit {{date}}",
-    "noUpcoming": "No upcoming visits",
+    "noUpcoming": "No Upcoming Visits",
     "noUpcomingHint": "Book your next visit in a few steps.",
-    "bookNow": "Book now",
-    "viewAll": "View all",
+    "bookNow": "Book Now",
+    "viewAll": "View All",
     "balanceSummary": "Balance",
     "showMore": "Show {{count}} more",
-    "showLess": "Show less",
+    "showLess": "Show Less",
     "drugCount": "Medicines: {{count}}"
   }
 }

@@ -73,7 +73,10 @@ export function Slider({
         id={`${testId}-list`}
         aria-label={label}
         data-reveal-group
-        className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pt-1 pb-3 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
+        className={cx(
+          "-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pt-1 pb-3 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden",
+          !overflows && "justify-center",
+        )}
       >
         {items.map((child, index) => (
           <li key={index} className={cx("min-w-0 shrink-0 snap-start", item)}>

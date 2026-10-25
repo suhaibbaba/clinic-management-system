@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   groupHours,
+  mapEmbed,
+  mapsSearchLink,
   orDefault,
   pick,
   timeLabel,
@@ -48,5 +50,23 @@ describe("opening hours", () => {
   it("writes a clock time with Latin digits in both languages", () => {
     expect(timeLabel("20:30")).toBe("8:30 PM");
     expect(timeLabel("08:00")).toBe("8:00 AM");
+  });
+});
+
+describe("clinic map", () => {
+  it("frames the pin when the clinic has coordinates", () => {
+    expect(mapEmbed({ lat: 32, lng: 35 }, "Nablus", 0.5)).toContain(
+      "openstreetmap.org/export/embed.html?bbox=34.5%2C31.5%2C35.5%2C32.5",
+    );
+  });
+
+  it("searches the address when there is no pin, and draws nothing without either", () => {
+    expect(mapEmbed(null, "Tunis Street, Nablus", 0.01)).toBe(
+      "https://maps.google.com/maps?q=Tunis%20Street%2C%20Nablus&z=16&output=embed",
+    );
+    expect(mapsSearchLink("Rafidia & Co")).toBe(
+      "https://www.google.com/maps/search/?api=1&query=Rafidia%20%26%20Co",
+    );
+    expect(mapEmbed(null, null, 0.01)).toBeNull();
   });
 });

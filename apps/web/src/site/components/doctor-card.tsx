@@ -1,6 +1,7 @@
 import type { PublicSiteDoctor } from "@clinic/shared";
 import type { JSX } from "react";
 import { PillLink } from "@web/site/components/pill-link";
+import { CardFill } from "@web/site/components/card-fill";
 import { SiteIcon } from "@web/site/components/site-icon";
 import { SiteImage } from "@web/site/components/site-image";
 import { SiteLink } from "@web/site/components/site-link";
@@ -27,7 +28,7 @@ export function DoctorCard({
   return (
     <article
       data-testid={`site-doctor-${doctor.id}`}
-      className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card transition-shadow hover:shadow-card-hover"
+      className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card transition-colors duration-300 hover:border-primary-700"
     >
       <SiteLink to={profilePath} tabIndex={-1} aria-hidden>
         <SiteImage
@@ -37,10 +38,11 @@ export function DoctorCard({
           fallback={<SiteIcon name="stethoscope" className="size-12" />}
         />
       </SiteLink>
-      <div className="flex flex-1 flex-col items-center gap-1.5 p-4 text-center">
-        <h3 className="text-heading font-bold text-primary-900">{name}</h3>
-        <p className="text-label font-medium text-primary-600">{title}</p>
-        {bio && <p className="line-clamp-2 text-label text-ink-muted">{bio}</p>}
+      <div className="relative isolate flex flex-1 flex-col items-center gap-1.5 p-4 text-center">
+        <CardFill />
+        <h3 className="site-fill-ink text-heading font-bold text-primary-900">{name}</h3>
+        <p className="site-fill-soft text-label font-medium text-primary-600">{title}</p>
+        {bio && <p className="site-fill-soft line-clamp-2 text-label text-ink-muted">{bio}</p>}
         <div className="mt-auto grid w-full grid-cols-[repeat(auto-fit,minmax(6.5rem,1fr))] gap-2 pt-4">
           {bookable && (
             <PillLink

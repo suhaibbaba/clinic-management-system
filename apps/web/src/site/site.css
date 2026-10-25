@@ -195,3 +195,66 @@ html {
       var(--color-primary-700)
     );
 }
+
+@keyframes site-marquee {
+  to {
+    translate: -50% 0;
+  }
+}
+
+@keyframes site-marquee-rtl {
+  to {
+    translate: 50% 0;
+  }
+}
+
+.site-marquee {
+  animation: site-marquee var(--marquee-duration) linear infinite;
+}
+
+[dir="rtl"] .site-marquee {
+  animation-name: site-marquee-rtl;
+}
+
+.site-marquee:hover,
+.site-marquee:focus-within {
+  animation-play-state: paused;
+}
+
+@utility site-marquee-mask {
+  mask-image: linear-gradient(90deg, transparent, black 4%, black 96%, transparent);
+}
+
+@utility site-fill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--color-primary-700);
+  transform-origin: bottom;
+  scale: 1 0;
+  transition: scale 500ms ease-out;
+
+  .group:is(:hover, :focus-visible, :has(:focus-visible)) & {
+    scale: 1 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@utility site-fill-ink {
+  transition: color 300ms ease-out;
+
+  .group:is(:hover, :focus-visible, :has(:focus-visible)) & {
+    color: var(--color-ink-inverse);
+  }
+}
+
+@utility site-fill-soft {
+  transition: color 300ms ease-out;
+
+  .group:is(:hover, :focus-visible, :has(:focus-visible)) & {
+    color: color-mix(in oklab, var(--color-ink-inverse) 85%, transparent);
+  }
+}

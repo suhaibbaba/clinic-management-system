@@ -10,7 +10,7 @@ import { Tagline } from "@web/site/components/tagline";
 import { useHoursText } from "@web/site/hooks/use-hours-text";
 import { useSite } from "@web/site/hooks/use-site";
 import { imageOf } from "@web/site/lib/images";
-import { mapsLink, nameIn, orDefault, pick } from "@web/site/lib/text";
+import { mapEmbed, mapsLink, mapsSearchLink, nameIn, orDefault, pick } from "@web/site/lib/text";
 
 const MAP_SPAN = 0.006;
 
@@ -25,6 +25,12 @@ export function ContactPage(): JSX.Element {
       ? { lat: clinic.latitude, lng: clinic.longitude }
       : null;
   const note = pick(contact.note, language);
+  const map = mapEmbed(pin, clinic.address, MAP_SPAN);
+  const directions = pin
+    ? mapsLink(pin.lat, pin.lng)
+    : clinic.address
+      ? mapsSearchLink(clinic.address)
+      : null;
 
   return (
     <>
@@ -61,7 +67,7 @@ export function ContactPage(): JSX.Element {
         >
           {contact.formEnabled && <ContactForm />}
 
-          {pin && (
+          {map && (
             <div
               data-testid="site-map"
               className="flex flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card"
@@ -71,26 +77,23 @@ export function ContactPage(): JSX.Element {
                 loading="lazy"
                 referrerPolicy="no-referrer"
                 className="site-placeholder block h-80 w-full flex-1 border-0 bg-primary-50 lg:h-auto lg:min-h-96"
-                src={`https://www.openstreetmap.org/export/embed.html?bbox=${[
-                  pin.lng - MAP_SPAN,
-                  pin.lat - MAP_SPAN,
-                  pin.lng + MAP_SPAN,
-                  pin.lat + MAP_SPAN,
-                ].join("%2C")}&layer=mapnik&marker=${pin.lat}%2C${pin.lng}`}
+                src={map}
               />
               <div className="flex flex-col items-start gap-1 p-5">
                 <h2 className="text-heading font-bold text-primary-900">{t("contact.address")}</h2>
                 {clinic.address && <p className="text-label text-ink-muted">{clinic.address}</p>}
-                <a
-                  href={mapsLink(pin.lat, pin.lng)}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  data-testid="site-map-directions"
-                  className="mt-2 inline-flex items-center gap-1.5 text-label font-medium text-primary-700 hover:text-primary-900"
-                >
-                  <SiteIcon name="directions" className="size-4" />
-                  {t("contact.directions")}
-                </a>
+                {directions && (
+                  <a
+                    href={directions}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    data-testid="site-map-directions"
+                    className="mt-2 inline-flex items-center gap-1.5 text-label font-medium text-primary-700 hover:text-primary-900"
+                  >
+                    <SiteIcon name="directions" className="size-4" />
+                    {t("contact.directions")}
+                  </a>
+                )}
               </div>
             </div>
           )}

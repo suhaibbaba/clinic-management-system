@@ -2,6 +2,7 @@ import { SITE_RATING_MAX } from "@clinic/shared";
 import type { JSX } from "react";
 import { cx } from "@web/booking/ui";
 import { ShowcaseHeading } from "@web/site/components/showcase-heading";
+import { CardFill } from "@web/site/components/card-fill";
 import { SiteIcon } from "@web/site/components/site-icon";
 import { Slider } from "@web/site/components/slider";
 import { useSite } from "@web/site/hooks/use-site";
@@ -35,14 +36,17 @@ export function TestimonialsSection(): JSX.Element | null {
           <figure
             key={position}
             data-testid={`site-testimonial-${position + 1}`}
-            className="flex h-full flex-col gap-4 rounded-card border border-line bg-surface p-5 shadow-card"
+            className="group relative isolate flex h-full flex-col gap-4 overflow-hidden rounded-card border border-line bg-surface p-5 shadow-card transition-colors duration-300 hover:border-primary-700"
           >
+            <CardFill />
             <SiteIcon name="quote" className="size-7 text-primary-200" />
-            <blockquote className="flex-1 text-value text-ink-muted">
+            <blockquote className="site-fill-soft flex-1 text-value text-ink-muted">
               {pick(item.text, language)}
             </blockquote>
             <figcaption className="flex items-center justify-between gap-3">
-              <span className="text-section font-bold text-primary-900">{item.name}</span>
+              <span className="site-fill-ink text-section font-bold text-primary-900">
+                {item.name}
+              </span>
               <span
                 role="img"
                 aria-label={t("testimonials.rating", { count: item.rating, max: SITE_RATING_MAX })}

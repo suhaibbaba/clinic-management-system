@@ -1,8 +1,11 @@
 import type { JSX, ReactNode } from "react";
+import { cx } from "@web/booking/ui";
 import { PillLink } from "@web/site/components/pill-link";
 import { SiteIcon } from "@web/site/components/site-icon";
+import { SiteImage } from "@web/site/components/site-image";
 import { useBookable } from "@web/site/hooks/use-bookable";
 import { useSite } from "@web/site/hooks/use-site";
+import { imageOf } from "@web/site/lib/images";
 import { mapsLink, orDefault, pick } from "@web/site/lib/text";
 import { SITE_PATH } from "@web/site/route";
 
@@ -27,13 +30,13 @@ function ContactChip({
         <SiteIcon name={icon} className="size-5" />
       </span>
       <span className="flex min-w-0 flex-col">
-        <span className="truncate text-section font-bold text-primary-900">{children}</span>
+        <span className="truncate text-label font-bold text-primary-900">{children}</span>
         <span className="text-meta text-ink-muted">{label}</span>
       </span>
     </>
   );
   const className =
-    "flex min-w-0 items-center gap-3 rounded-card bg-surface px-4 py-3 shadow-float sm:min-w-56";
+    "flex min-w-0 items-center gap-3 rounded-pill bg-surface py-2 ps-2 pe-5 shadow-float";
 
   return href ? (
     <a
@@ -56,37 +59,34 @@ export function BookingBand(): JSX.Element {
   const { clinic } = site;
   const { cta } = site.content.about;
   const bookable = useBookable();
+  const image = imageOf(site, cta.image);
 
   return (
     <section
       data-testid="site-booking-band"
       aria-labelledby="booking-band-title"
-      className="site-band-wash relative mt-6 overflow-hidden rounded-t-[3rem] text-ink-inverse"
+      className="relative isolate mt-6 overflow-hidden"
     >
-      <div className="relative mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 md:flex-row md:items-center">
-        <SiteIcon
-          name="tooth"
-          className="pointer-events-none absolute -bottom-10 start-[38%] hidden size-56 text-ink-inverse/10 md:block"
+      {image && (
+        <SiteImage
+          src={image}
+          layer
+          data-testid="site-booking-band-image"
+          className="hidden lg:block lg:end-auto lg:w-[30%]"
         />
-        <div data-reveal className="relative flex flex-1 flex-col items-start gap-2">
-          <h2 id="booking-band-title" className="text-title font-bold md:text-headline">
-            {orDefault(cta.title, language, t("home.ctaTitle"))}
-          </h2>
-          <p className="max-w-md text-section text-ink-inverse/85">
-            {pick(cta.subtitle, language) || t("home.ctaSubtitle")}
-          </p>
-          {bookable && (
-            <PillLink
-              to={SITE_PATH.BOOKING}
-              tone="inverse"
-              className="mt-3"
-              data-testid="site-booking-band-book"
-            >
-              {t("hero.cta")}
-            </PillLink>
-          )}
-        </div>
-        <div className="relative flex flex-col gap-3 sm:flex-row">
+      )}
+      <div
+        className={cx(
+          "site-band-wash relative grid overflow-hidden text-ink-inverse",
+          "md:grid-cols-[auto_minmax(0,1fr)_12rem] lg:grid-cols-[auto_minmax(0,1fr)_16rem]",
+          image && "lg:ms-[24%] lg:rounded-s-[8rem_50%]",
+        )}
+      >
+        <SiteIcon
+          name="sparkles"
+          className="pointer-events-none absolute -top-6 end-[30%] size-40 text-ink-inverse/5"
+        />
+        <div className="relative flex min-w-0 flex-col justify-center gap-3 px-5 pt-8 md:w-80 md:py-12 md:ps-8 md:pe-2 lg:ps-0">
           {clinic.phone && (
             <ContactChip
               icon="phone"
@@ -113,6 +113,37 @@ export function BookingBand(): JSX.Element {
             </ContactChip>
           )}
         </div>
+        <div
+          data-reveal
+          className="relative order-first flex flex-col items-center gap-2 px-5 pt-12 text-center md:order-none md:py-12"
+        >
+          <h2 id="booking-band-title" className="text-title font-bold md:text-headline">
+            {orDefault(cta.title, language, t("home.ctaTitle"))}
+          </h2>
+          <p className="max-w-md text-section text-ink-inverse/85">
+            {pick(cta.subtitle, language) || t("home.ctaSubtitle")}
+          </p>
+          {bookable && (
+            <PillLink
+              to={SITE_PATH.BOOKING}
+              tone="outline-inverse"
+              size="lg"
+              className="mt-4"
+              data-testid="site-booking-band-book"
+            >
+              <SiteIcon name="calendar" />
+              {t("hero.cta")}
+            </PillLink>
+          )}
+        </div>
+        <div aria-hidden className="relative hidden items-center justify-center py-8 md:flex">
+          <span className="absolute inset-y-6 aspect-square rounded-pill bg-ink-inverse/10 blur-2xl" />
+          <SiteIcon
+            name="tooth"
+            className="relative size-40 -rotate-12 fill-ink-inverse stroke-primary-100 drop-shadow-2xl lg:size-48"
+          />
+        </div>
+        <span aria-hidden className="pb-10 md:hidden" />
       </div>
     </section>
   );

@@ -88,6 +88,25 @@ export function hoursSummary(schedule: readonly DaySchedule[]): HoursSummary | n
 export const mapsLink = (latitude: number, longitude: number): string =>
   `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
 
+export const mapsSearchLink = (query: string): string =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+
+export const mapEmbed = (
+  pin: { readonly lat: number; readonly lng: number } | null,
+  address: string | null,
+  span: number,
+): string | null => {
+  if (pin) {
+    const box = [pin.lng - span, pin.lat - span, pin.lng + span, pin.lat + span].join("%2C");
+
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${box}&layer=mapnik&marker=${pin.lat}%2C${pin.lng}`;
+  }
+
+  return address
+    ? `https://maps.google.com/maps?q=${encodeURIComponent(address)}&z=16&output=embed`
+    : null;
+};
+
 export function titleLines(title: string): readonly [string, string] {
   const [lead = "", ...rest] = title.split(/\r?\n/).map((line) => line.trim());
 
