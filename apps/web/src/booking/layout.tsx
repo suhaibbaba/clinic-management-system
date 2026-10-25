@@ -1,41 +1,27 @@
 import { useEffect, type JSX, type ReactNode } from "react";
 import { STEP_KEYS } from "@web/booking/constants";
 import { t } from "@web/booking/i18n";
-import { Button, cx, Img } from "@web/booking/ui";
+import { cx, Img } from "@web/booking/ui";
 
 export function PageShell({
   clinicName,
   logoUrl,
   children,
-  footer,
   inline = false,
 }: {
   readonly clinicName: string | undefined;
   readonly logoUrl?: string | null;
   readonly children: ReactNode;
-  readonly footer?: ReactNode;
   readonly inline?: boolean;
 }): JSX.Element {
   const name = clinicName ?? t("page.title");
 
-  useEffect(() => {
-    if (inline) {
-      return;
-    }
-
-    document.title =
-      clinicName === undefined ? t("page.title") : `${t("page.title")} — ${clinicName}`;
-  }, [clinicName, inline]);
+  useDocumentTitle(clinicName, inline);
 
   if (inline) {
     return (
       <div data-testid="booking-shell" data-part="inline" className="flex flex-col">
         <div data-testid="booking-main">{children}</div>
-        {footer && (
-          <div data-testid="booking-footer" className="mt-4">
-            {footer}
-          </div>
-        )}
       </div>
     );
   }
@@ -60,121 +46,183 @@ export function PageShell({
       <main data-testid="booking-main" className="mx-auto w-full max-w-[480px] flex-1 px-4 pb-6">
         {children}
       </main>
-
-      {footer && (
-        <div
-          data-testid="booking-footer"
-          className={cx(
-            "sticky bottom-0 z-10 border-t border-line bg-surface",
-            "px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]",
-          )}
-        >
-          <div className="mx-auto w-full max-w-[480px]">{footer}</div>
-        </div>
-      )}
     </div>
   );
 }
 
-export function StepHeader({
+function useDocumentTitle(clinicName: string | undefined, inline: boolean): void {
+  useEffect(() => {
+    if (inline) {
+      return;
+    }
+
+    document.title =
+      clinicName === undefined ? t("page.title") : `${t("page.title")} — ${clinicName}`;
+  }, [clinicName, inline]);
+}
+
+export function BookingBoard({
+  clinicName,
+  logoUrl,
+  phone,
+  inline,
   current,
-  title,
-  steps = STEP_KEYS,
-  level = 1,
+  choices,
+  panel,
+  bar,
 }: {
+  readonly clinicName: string;
+  readonly logoUrl: string | null | undefined;
+  readonly phone: string | null;
+  readonly inline: boolean;
   readonly current: number;
-  readonly title: string;
-  readonly steps?: readonly string[];
-  readonly level?: 1 | 2;
+  readonly choices: ReactNode;
+  readonly panel: ReactNode;
+  readonly bar?: ReactNode;
 }): JSX.Element {
-  const Heading = level === 1 ? "h1" : "h2";
-  const progress = steps.length > 1 ? (current - 1) / (steps.length - 1) : 1;
+  useDocumentTitle(clinicName, inline);
+
+  const grid = (
+    <div
+      data-testid="booking-board"
+      className={cx(
+        "mx-auto flex w-full max-w-6xl flex-col items-start gap-6 lg:flex-row",
+        !inline && "relative -mt-16 px-4 pb-28 lg:pb-10",
+      )}
+    >
+      <div data-testid="booking-choices" className="flex w-full min-w-0 flex-1 flex-col gap-5">
+        {choices}
+      </div>
+      <aside
+        id="booking-panel"
+        data-testid="booking-panel"
+        aria-label={t("board.yourAppointment")}
+        className="w-full shrink-0 overflow-hidden rounded-card border border-line bg-surface shadow-float lg:sticky lg:top-6 lg:w-96"
+      >
+        {panel}
+      </aside>
+    </div>
+  );
+
+  if (inline) {
+    return (
+      <div data-testid="booking-shell" data-part="inline" className="flex flex-col gap-6">
+        <StepPills current={current} tone="light" />
+        {grid}
+        {bar}
+      </div>
+    );
+  }
 
   return (
-    <div data-testid="booking-step-header" className="mb-5">
-      <ol
-        data-testid="booking-stepper"
-        aria-label={t("steps.counter", { current, total: steps.length })}
-        className="relative mb-5 flex justify-between"
-      >
-        <span
-          aria-hidden
-          className="absolute top-4 h-0.5 rounded-pill bg-neutral-200"
-          style={{ insetInline: `calc(100% / ${steps.length} / 2)` }}
-        >
+    <div data-testid="booking-shell" className="flex min-h-full flex-col bg-canvas">
+      <header data-testid="booking-header" className="border-b border-line bg-surface">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
+          {logoUrl !== null && logoUrl !== undefined && (
+            <Img src={logoUrl} alt="" width={104} height={44} priority data-testid="booking-logo" />
+          )}
           <span
-            data-part="progress"
-            className="booking-progress absolute inset-y-0 start-0 rounded-pill bg-primary-600"
-            style={{ width: `${progress * 100}%` }}
-          />
-        </span>
-
-        {steps.map((key, index) => {
-          const number = index + 1;
-          const state = number < current ? "done" : number === current ? "current" : "next";
-
-          return (
-            <li
-              key={key}
-              data-state={state}
-              {...(state === "current" && { "aria-current": "step" as const })}
-              className="relative z-10 flex flex-1 flex-col items-center gap-1.5 text-center"
+            data-testid="booking-clinic-name"
+            className="text-value font-bold tracking-[-0.02em] text-primary-900"
+          >
+            {clinicName}
+          </span>
+          {phone && (
+            <a
+              href={`tel:${phone}`}
+              data-testid="booking-phone"
+              className="pill-text ms-auto inline-flex min-h-(--control-h) items-center rounded-pill bg-canvas px-3 text-label font-medium text-ink-muted hover:text-primary-800"
             >
-              <span
-                className={cx(
-                  "booking-step-dot pill-text inline-flex size-8 items-center justify-center rounded-pill border-2 text-label font-medium tabular-nums",
-                  state === "next"
-                    ? "border-neutral-200 bg-surface text-ink-subtle"
-                    : "border-primary-600 bg-primary-600 text-ink-inverse",
-                  state === "current" && "shadow-field-focus",
-                )}
-              >
-                {state === "done" ? (
-                  <svg
-                    aria-hidden
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2.5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="size-4"
-                  >
-                    <path d="M5 12.5l4.5 4.5L19 7.5" />
-                  </svg>
-                ) : (
-                  number
-                )}
-              </span>
-              <span
-                className={cx(
-                  "text-micro font-medium transition-colors duration-300",
-                  state === "next" ? "text-ink-subtle" : "text-primary-800",
-                )}
-              >
-                {t(key)}
-              </span>
-            </li>
-          );
-        })}
-      </ol>
+              <bdi dir="ltr">{phone}</bdi>
+            </a>
+          )}
+        </div>
+      </header>
 
-      <p
-        aria-live="polite"
-        data-testid="booking-step-counter"
-        className="text-label font-medium text-ink-muted"
-      >
-        {t("steps.counter", { current, total: steps.length })}
-      </p>
+      <section className="bg-primary-900 text-ink-inverse">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-4 px-4 pt-7 pb-24">
+          <div className="flex flex-col gap-1.5">
+            <h1 className="text-headline font-bold">{t("board.title")}</h1>
+            <p className="text-value text-ink-inverse/80">{t("board.subtitle")}</p>
+          </div>
+          <StepPills current={current} tone="dark" />
+        </div>
+      </section>
 
-      <Heading
-        key={title}
-        data-testid="booking-step-title"
-        className="booking-step mt-1 text-title font-medium text-primary-900"
-      >
-        {title}
-      </Heading>
+      <main data-testid="booking-main" className="flex-1">
+        {grid}
+      </main>
+      {bar}
     </div>
+  );
+}
+
+function StepPills({
+  current,
+  tone,
+}: {
+  readonly current: number;
+  readonly tone: "light" | "dark";
+}): JSX.Element {
+  return (
+    <ol
+      data-testid="booking-stepper"
+      aria-label={t("steps.counter", { current, total: STEP_KEYS.length })}
+      className="flex flex-wrap gap-2"
+    >
+      {STEP_KEYS.map((key, index) => {
+        const number = index + 1;
+        const done = number < current;
+        const active = number === current;
+
+        return (
+          <li
+            key={key}
+            data-state={done ? "done" : active ? "current" : "next"}
+            {...(active && { "aria-current": "step" as const })}
+            className={cx(
+              "pill-text inline-flex min-h-(--control-h) items-center gap-2 rounded-pill border ps-1.5 pe-3.5 text-label font-medium",
+              tone === "dark"
+                ? done || active
+                  ? "border-ink-inverse/20 bg-ink-inverse/15 text-ink-inverse"
+                  : "border-ink-inverse/15 text-ink-inverse/70"
+                : done || active
+                  ? "border-primary-200 bg-primary-50 text-primary-900"
+                  : "border-line bg-surface text-ink-muted",
+            )}
+          >
+            <span
+              aria-hidden
+              className={cx(
+                "inline-flex size-6 items-center justify-center rounded-pill text-micro font-bold",
+                done || active
+                  ? "bg-primary-500 text-ink-inverse"
+                  : tone === "dark"
+                    ? "bg-ink-inverse/10 text-ink-inverse"
+                    : "bg-canvas text-ink-muted",
+              )}
+            >
+              {done ? (
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="size-3.5"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              ) : (
+                number
+              )}
+            </span>
+            {t(key)}
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
@@ -201,69 +249,6 @@ export function FullPageMessage({
         </p>
       )}
       {action}
-    </div>
-  );
-}
-
-interface StepAction {
-  readonly testId: string;
-  readonly onClick: () => void;
-  readonly disabled?: boolean;
-}
-
-export function StepNav({
-  back,
-  next,
-}: {
-  readonly back?: StepAction;
-  readonly next?: StepAction;
-}): JSX.Element {
-  return (
-    <div data-testid="booking-step-nav" className="flex items-center justify-between gap-4">
-      {back && (
-        <Button
-          variant="ghost"
-          data-testid={back.testId}
-          onClick={back.onClick}
-          className="px-4 text-value"
-        >
-          <svg
-            aria-hidden
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="size-4 ltr:-scale-x-100"
-          >
-            <path d="m9 18 6-6-6-6" />
-          </svg>
-          {t("common.back")}
-        </Button>
-      )}
-      {next && (
-        <Button
-          data-testid={next.testId}
-          disabled={next.disabled}
-          onClick={next.onClick}
-          className="ms-auto min-w-32 rounded-pill px-7 text-value shadow-nav-active"
-        >
-          {t("common.next")}
-          <svg
-            aria-hidden
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="size-4 ltr:-scale-x-100"
-          >
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </Button>
-      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { isBookingPhone } from "@shared/constants/booking";
 import { joinPhone, type PhoneCountry } from "@shared/constants/phone";
 import { PhoneCountrySelect } from "@clinic/ui/components/phone-country-select";
-import { useState, type FormEvent, type JSX } from "react";
+import { useState, type FormEvent, type JSX, type ReactNode } from "react";
 import { t } from "@web/booking/i18n";
 import { isBookingNameComplete, NameFields } from "@web/booking/steps/name-fields";
 import { Button, Field } from "@web/booking/ui";
@@ -20,12 +20,14 @@ export function DetailsStep({
   onSubmit,
   busy,
   summary,
+  ready,
 }: {
   readonly details: BookingDetails;
   readonly onChange: (details: BookingDetails) => void;
   readonly onSubmit: () => void;
   readonly busy: boolean;
-  readonly summary: JSX.Element;
+  readonly summary?: ReactNode;
+  readonly ready: boolean;
 }): JSX.Element {
   const [touched, setTouched] = useState(false);
 
@@ -39,7 +41,7 @@ export function DetailsStep({
     event.preventDefault();
     setTouched(true);
 
-    if (!nameError && !phoneError) {
+    if (ready && !nameError && !phoneError) {
       onSubmit();
     }
   };
@@ -92,9 +94,15 @@ export function DetailsStep({
 
       <p className="text-label text-ink-muted">{t("details.terms")}</p>
 
-      <Button type="submit" full data-testid="details-submit" busy={busy}>
+      <Button type="submit" full data-testid="details-submit" busy={busy} disabled={!ready}>
         {t("details.submit")}
       </Button>
+
+      {!ready && (
+        <p data-testid="details-pick-time" className="text-center text-label text-ink-muted">
+          {t("board.pickTimeFirst")}
+        </p>
+      )}
     </form>
   );
 }

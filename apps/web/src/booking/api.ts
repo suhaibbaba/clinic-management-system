@@ -1,6 +1,8 @@
 import type {
   BookingReceipt,
   ManagedBooking,
+  PortalBookingInput,
+  PortalBookingReceipt,
   PublicClinic,
   PublicDoctor,
   PublicSlots,
@@ -8,6 +10,8 @@ import type {
 } from "@clinic/shared";
 
 const BASE = "/api/public/booking";
+
+const PORTAL_BASE = "/api/public/portal";
 
 export type BookingFailure =
   | "network"
@@ -68,11 +72,12 @@ async function request<TResult>(
   path: string,
   intent: Intent,
   init?: { method: "POST"; body: unknown },
+  base = BASE,
 ): Promise<TResult> {
   let response: Response;
 
   try {
-    response = await fetch(`${BASE}${path}`, {
+    response = await fetch(`${base}${path}`, {
       method: init?.method ?? "GET",
       headers: init
         ? { "content-type": "application/json", accept: "application/json" }
@@ -112,6 +117,9 @@ export const bookingApi = {
     },
   ): Promise<BookingReceipt> => request(`/${encode(slug)}`, "book", { method: "POST", body }),
 
+  bookForAccount: (slug: string, body: PortalBookingInput): Promise<PortalBookingReceipt> =>
+    request(`/${encode(slug)}/bookings`, "book", { method: "POST", body }, PORTAL_BASE),
+
   requestUrgent: (
     slug: string,
     body: {
@@ -126,6 +134,9 @@ export const bookingApi = {
 
   verifyOtp: (slug: string, token: string, code: string): Promise<ManagedBooking> =>
     request(`/${encode(slug)}/verify-otp`, "verify", { method: "POST", body: { token, code } }),
+
+  skipOtp: (slug: string, token: string): Promise<BookingReceipt> =>
+    request(`/${encode(slug)}/skip-otp`, "verify", { method: "POST", body: { token } }),
 
   managed: (token: string): Promise<ManagedBooking> =>
     request(`/manage/${encode(token)}`, "manage"),

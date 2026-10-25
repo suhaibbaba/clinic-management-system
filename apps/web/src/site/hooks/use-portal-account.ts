@@ -14,6 +14,7 @@ export interface PortalAccountState {
   readonly signOut: () => Promise<void>;
   readonly expired: () => void;
   readonly retry: () => void;
+  readonly refresh: () => void;
 }
 
 export function usePortalAccount(enabled: boolean): PortalAccountState {
@@ -64,8 +65,15 @@ export function usePortalAccount(enabled: boolean): PortalAccountState {
 
   const retry = useCallback(() => setAttempt((count) => count + 1), []);
 
+  const refresh = useCallback(() => {
+    portalApi
+      .account()
+      .then((account) => setState({ status: "ready", account }))
+      .catch(() => {});
+  }, []);
+
   return useMemo(
-    () => ({ state, signedIn, signOut, expired, retry }),
-    [state, signedIn, signOut, expired, retry],
+    () => ({ state, signedIn, signOut, expired, retry, refresh }),
+    [state, signedIn, signOut, expired, retry, refresh],
   );
 }

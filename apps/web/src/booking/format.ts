@@ -40,7 +40,7 @@ export interface DayChip {
 const noon = (iso: string): Date => new Date(`${iso}T12:00:00`);
 
 export function weekTitle(from: string, to: string): string {
-  return `${shortDate(from)} – ${shortDate(to)}`;
+  return `\u2066${shortDate(from)} – ${shortDate(to)}\u2069`;
 }
 
 const weekdayOf = (at: Date): string =>

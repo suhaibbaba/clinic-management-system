@@ -166,6 +166,7 @@ export function Img({
   width,
   height,
   priority = false,
+  fit = "contain",
   fallback,
   "data-testid": testId,
 }: {
@@ -175,6 +176,7 @@ export function Img({
   readonly width: number;
   readonly height: number;
   readonly priority?: boolean;
+  readonly fit?: "contain" | "cover";
   readonly fallback?: ReactNode;
 }): JSX.Element {
   const [state, setState] = useState<"loading" | "loaded" | "failed">("loading");
@@ -204,7 +206,8 @@ export function Img({
           {...(priority ? { loading: "eager", fetchPriority: "high" } : { loading: "lazy" })}
           decoding="async"
           className={cx(
-            "size-full object-contain transition-opacity duration-[120ms]",
+            "size-full transition-opacity duration-[120ms]",
+            fit === "cover" ? "object-cover" : "object-contain",
             state === "loaded" ? "opacity-100" : "opacity-0",
           )}
         />
