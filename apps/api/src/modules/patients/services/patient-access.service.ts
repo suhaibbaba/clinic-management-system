@@ -96,47 +96,7 @@ export class PatientAccessService {
       return sql`false`;
     }
 
-    return or(
-      exists(
-        this.db
-          .select({ present: sql`1` })
-          .from(assigned)
-          .where(
-            and(
-              eq(assigned.clinicId, actor.clinicId),
-              isNull(assigned.deletedAt),
-              eq(assigned.id, patientIdColumn),
-              eq(assigned.assignedDoctorId, own.id),
-            ),
-          ),
-      ),
-      exists(
-        this.db
-          .select({ present: sql`1` })
-          .from(appointments)
-          .where(
-            this.scope.where(
-              appointments,
-              actor.clinicId,
-              eq(appointments.patientId, patientIdColumn),
-              eq(appointments.doctorId, own.id),
-            ),
-          ),
-      ),
-      exists(
-        this.db
-          .select({ present: sql`1` })
-          .from(performedProcedures)
-          .where(
-            this.scope.where(
-              performedProcedures,
-              actor.clinicId,
-              eq(performedProcedures.patientId, patientIdColumn),
-              eq(performedProcedures.doctorId, own.id),
-            ),
-          ),
-      ),
-    );
+    return this.doctorFilter(actor.clinicId, own.id, patientIdColumn);
   }
 
   async requireDoctor(
@@ -168,5 +128,51 @@ export class PatientAccessService {
 
   seesFinancialData(actor: AuthenticatedUser): Promise<boolean> {
     return this.permissions.can(actor, RULE.PATIENTS_FINANCIAL);
+  }
+
+  doctorFilter(clinicId: string, doctorId: string, patientIdColumn: PgColumn): SQL {
+    return (
+      or(
+        exists(
+          this.db
+            .select({ present: sql`1` })
+            .from(assigned)
+            .where(
+              and(
+                eq(assigned.clinicId, clinicId),
+                isNull(assigned.deletedAt),
+                eq(assigned.id, patientIdColumn),
+                eq(assigned.assignedDoctorId, doctorId),
+              ),
+            ),
+        ),
+        exists(
+          this.db
+            .select({ present: sql`1` })
+            .from(appointments)
+            .where(
+              this.scope.where(
+                appointments,
+                clinicId,
+                eq(appointments.patientId, patientIdColumn),
+                eq(appointments.doctorId, doctorId),
+              ),
+            ),
+        ),
+        exists(
+          this.db
+            .select({ present: sql`1` })
+            .from(performedProcedures)
+            .where(
+              this.scope.where(
+                performedProcedures,
+                clinicId,
+                eq(performedProcedures.patientId, patientIdColumn),
+                eq(performedProcedures.doctorId, doctorId),
+              ),
+            ),
+        ),
+      ) ?? sql`false`
+    );
   }
 }

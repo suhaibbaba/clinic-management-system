@@ -709,7 +709,9 @@
     },
     "deleted": "The patient's file was deleted",
     "assignedDoctor": "Treating Doctor",
-    "assignedDoctorHint": "The doctor who follows this patient. It can be changed later."
+    "assignedDoctorHint": "The doctor who follows this patient. It can be changed later.",
+    "doctorFilter": "Doctor",
+    "allDoctors": "All doctors"
   },
   "chart": {
     "title": "Tooth Chart",

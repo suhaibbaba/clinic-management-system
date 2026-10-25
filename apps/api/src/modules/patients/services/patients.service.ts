@@ -57,6 +57,10 @@ export class PatientsService implements OnModuleInit {
       filters.push(LedgerService.owesFilter(actor.clinicId, patients.id));
     }
 
+    if (query.doctorId) {
+      filters.push(this.access.doctorFilter(actor.clinicId, query.doctorId, patients.id));
+    }
+
     if (query.visitedSince) {
       filters.push(
         exists(

@@ -135,6 +135,7 @@ export const listPatientsQuerySchema = paginationQuerySchema.extend({
   gender: z.enum(GENDERS).optional(),
   hasBalance: z.stringbool().optional(),
   visitedSince: calendarDateSchema.optional(),
+  doctorId: uuidSchema.optional(),
   sort: z.enum(PATIENT_SORTS).optional(),
   dir: z.enum(SORT_DIRECTIONS).optional(),
 });
