@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { AppConfigModule } from "@api/config/config.module";
 import { DatabaseModule } from "@api/database/database.module";
 import { BillingModule } from "@api/modules/billing/billing.module";
+import { BookingModule } from "@api/modules/booking/booking.module";
 import { NotificationsModule } from "@api/modules/notifications/notifications.module";
 import { PortalController } from "@api/modules/portal/controllers/portal.controller";
 import { PortalAuthService } from "@api/modules/portal/services/portal-auth.service";
@@ -15,6 +16,7 @@ import { WebsiteModule } from "@api/modules/website/website.module";
     DatabaseModule,
     AppConfigModule,
     BillingModule,
+    BookingModule,
     NotificationsModule,
     StorageModule,
     WebsiteModule,

@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { BOOKING_NAME_LENGTH } from "@shared/constants/booking";
-import { BOOKING_CONFIRMATION_MODE, BOOKING_CONFIRMATION_MODES } from "@shared/enums";
+import {
+  BOOKING_CONFIRMATION_MODE,
+  BOOKING_CONFIRMATION_MODES,
+  NOTIFICATION_CHANNELS,
+} from "@shared/enums";
 import { isoDateSchema, slotSchema } from "@shared/schemas/appointments";
 import { personNameSchema } from "@shared/schemas/person-name";
 import { phoneSchema, timeOfDaySchema, uuidSchema } from "@shared/schemas/common";
@@ -45,6 +49,7 @@ export const publicClinicSchema = z.object({
   bookingEnabled: z.boolean(),
   confirmationMode: z.enum(BOOKING_CONFIRMATION_MODES),
   maxDaysAhead: z.number().int(),
+  messageChannel: z.enum(NOTIFICATION_CHANNELS),
 });
 export type PublicClinic = z.infer<typeof publicClinicSchema>;
 
@@ -52,6 +57,7 @@ export const publicDoctorSchema = z.object({
   id: uuidSchema,
   name: personNameSchema,
   specialty: z.string(),
+  photoUrl: z.url().nullable(),
 });
 export type PublicDoctor = z.infer<typeof publicDoctorSchema>;
 
@@ -97,6 +103,9 @@ export const verifyOtpSchema = z.object({
     .regex(/^\d{6}$/, "Expected a six-digit code"),
 });
 export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;
+
+export const skipOtpSchema = z.object({ token: z.string().min(10) });
+export type SkipOtpInput = z.infer<typeof skipOtpSchema>;
 
 export const managedBookingSchema = z.object({
   status: z.string(),

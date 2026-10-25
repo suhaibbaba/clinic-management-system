@@ -170,10 +170,15 @@ sign-in and 401 to every open session at once.
   `httpOnly`, `SameSite=Strict` cookie, stored only as a hash, and ends after 12 hours or on sign-out.
 - **Scope is every live patient of that clinic carrying that phone** (a family that shares a number sees
   each member). Any other patient, attachment or clinic is a 404.
-- **Read only.** The patient sees: name, file number, phone, date of birth, allergies and chronic
+- **Read only, but for booking.** The patient sees: name, file number, phone, date of birth, allergies and chronic
   conditions; appointments (time, doctor, status); treatments (name, status, date, doctor, teeth, price,
   discount); visits (date, doctor, complaint, diagnosis); prescriptions; balance and statement; and the
-  list of their attachments, each opened through a short-lived signed link.
+  list of their attachments, each opened through a short-lived signed link (a picture also carries one
+  for its preview).
+- **Booking** (`POST /public/portal/:slug/bookings`) is the one write: for a patient on the account, or
+  for a new person, created as a patient on the same phone. It asks for no code — the session already
+  proved the phone — and follows the clinic's confirmation mode. The slot, window, active-booking limit
+  and message quota are the public booking's own rules.
 - **Never sent:** staff notes on the patient, visits, appointments, treatments or payments (a payment's
   note is not its statement description here), examination findings, material costs, doctor shares,
   discount reasons, deleted rows, storage keys.

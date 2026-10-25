@@ -1,15 +1,23 @@
 import {
+  APPOINTMENT_STATUS,
+  BOOKING_CONFIRMATION_MODE,
+  NOTIFICATION_TEMPLATE,
   PAYMENT_METHOD,
   SITE_SECTIONS,
   SITE_SECTION,
   USER_ROLE,
+  addDays,
   defaultSiteContent,
+  instantFromLocal,
+  localDate,
+  localWeekday,
   type PortalAccount,
+  type PortalBookingReceipt,
   type PortalRecord,
   type SiteSection,
 } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-import { attachments, clinics, portalCodes } from "@api/database/schema";
+import { appointments, attachments, clinics, portalCodes } from "@api/database/schema";
 import type { SendNotification } from "@api/modules/notifications/lib/notifications";
 import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
 import { PORTAL_COOKIE_NAME } from "@api/modules/portal/constants";
@@ -42,6 +50,7 @@ describe("Patient portal (e2e)", () => {
   let childId: string;
   let strangerId: string;
   let neighbourPatientId: string;
+  let doctorId: string;
   const sent: SendNotification[] = [];
 
   const inject = (
@@ -122,7 +131,9 @@ describe("Patient portal (e2e)", () => {
 
     const adminToken = await context.login(clinic.phones[USER_ROLE.ADMIN]);
     admin = auth(adminToken);
-    const { doctorId, catalogId } = await seedClinicFixtures(context, clinic, adminToken);
+    const fixtures = await seedClinicFixtures(context, clinic, adminToken);
+    doctorId = fixtures.doctorId;
+    const { catalogId } = fixtures;
 
     familyPhone = uniquePhone();
     motherId = await createPatient(context, adminToken, {
@@ -356,6 +367,111 @@ describe("Patient portal (e2e)", () => {
 
     expect((await inject("DELETE", "/public/portal/session", { cookie })).statusCode).toBe(204);
     expect((await inject("GET", "/public/portal/account", { cookie })).statusCode).toBe(401);
+  });
+
+  describe("booking", () => {
+    const TIME_ZONE = "Asia/Damascus";
+    let slotIndex = 0;
+
+    const nextSlot = (): string => {
+      let day = localDate(new Date(), TIME_ZONE);
+
+      do {
+        day = addDays(day, 1);
+      } while (localWeekday(day, TIME_ZONE) !== 1);
+
+      const index = slotIndex;
+      slotIndex += 1;
+
+      return instantFromLocal(day, 9 * 60 + index * 30, TIME_ZONE).toISOString();
+    };
+
+    const book = (cookie: string | undefined, payload: object) =>
+      inject("POST", `/public/portal/${clinic.slug}/bookings`, cookie ? { cookie } : {}, payload);
+
+    beforeAll(async () => {
+      await context.db
+        .update(clinics)
+        .set({
+          workingHours: [{ weekday: 1, ranges: [{ start: "09:00", end: "17:00" }] }],
+          settings: {
+            ...notificationSettings,
+            timezone: TIME_ZONE,
+            booking: {
+              enabled: true,
+              maxDaysAhead: 45,
+              minHoursBefore: 2,
+              confirmationMode: BOOKING_CONFIRMATION_MODE.OTP,
+              holdMinutes: 15,
+              maxActivePerPhone: 5,
+            },
+          },
+        })
+        .where(eq(clinics.id, clinic.id));
+    });
+
+    it("books for a member of the family without a code, and confirms it", async () => {
+      const cookie = await signIn(familyPhone);
+      const response = await book(cookie, { doctorId, startsAt: nextSlot(), patientId: childId });
+
+      expect(response.statusCode).toBe(201);
+
+      const receipt = response.json() as PortalBookingReceipt;
+      expect(receipt.booking?.status).toBe(APPOINTMENT_STATUS.CONFIRMED);
+
+      const [row] = await context.db
+        .select({ patientId: appointments.patientId })
+        .from(appointments)
+        .where(
+          eq(
+            appointments.id,
+            Buffer.from(receipt.token.split(".")[1] ?? "", "base64url").toString("utf8"),
+          ),
+        );
+      expect(row?.patientId).toBe(childId);
+      expect(
+        sent.some((message) => message.template === NOTIFICATION_TEMPLATE.BOOKING_CONFIRMED),
+      ).toBe(true);
+    });
+
+    it("adds a new person on the same phone and books for them", async () => {
+      const cookie = await signIn(familyPhone);
+      const response = await book(cookie, {
+        doctorId,
+        startsAt: nextSlot(),
+        newPatient: { firstName: "Sara", lastName: "Saleh" },
+      });
+
+      expect(response.statusCode).toBe(201);
+
+      const account = (
+        await inject("GET", "/public/portal/account", { cookie })
+      ).json() as PortalAccount;
+      const sara = account.patients.find((patient) => patient.firstName === "Sara");
+      expect(sara).toBeDefined();
+      expect(account.patients).toHaveLength(3);
+    });
+
+    it("never books for a patient off the account", async () => {
+      const cookie = await signIn(familyPhone);
+
+      expect(
+        (await book(cookie, { doctorId, startsAt: nextSlot(), patientId: strangerId })).statusCode,
+      ).toBe(404);
+      expect(
+        (
+          await book(cookie, {
+            doctorId,
+            startsAt: nextSlot(),
+            patientId: childId,
+            newPatient: { firstName: "Sara", lastName: "Saleh" },
+          })
+        ).statusCode,
+      ).toBe(400);
+      expect(
+        (await book(undefined, { doctorId, startsAt: nextSlot(), patientId: childId })).statusCode,
+      ).toBe(401);
+    });
   });
 
   it("closes open sessions when the clinic switches the account off", async () => {

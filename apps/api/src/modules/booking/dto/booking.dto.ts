@@ -2,6 +2,7 @@ import { createZodDto } from "nestjs-zod";
 import {
   createBookingSchema,
   createUrgentRequestSchema,
+  skipOtpSchema,
   verifyOtpSchema,
   rescheduleBookingSchema,
   cancelBookingSchema,
@@ -24,3 +25,5 @@ export class PublicSlotsQueryDto extends createZodDto(publicSlotsQuerySchema) {}
 export class SlugParamDto extends createZodDto(slugParamSchema) {}
 
 export class TokenParamDto extends createZodDto(tokenParamSchema) {}
+
+export class SkipOtpDto extends createZodDto(skipOtpSchema) {}

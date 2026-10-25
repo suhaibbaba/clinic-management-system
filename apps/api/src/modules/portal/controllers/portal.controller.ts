@@ -16,6 +16,7 @@ import { Throttle } from "@nestjs/throttler";
 import type { FastifyReply } from "fastify";
 import type {
   PortalAccount,
+  PortalBookingReceipt,
   PortalCodeReceipt,
   PortalFileLink,
   PortalRecord,
@@ -25,6 +26,7 @@ import type { Env } from "@api/config/env.schema";
 import { PORTAL_COOKIE_NAME } from "@api/modules/portal/constants";
 import {
   PortalAttachmentParamDto,
+  PortalBookingDto,
   PortalPatientParamDto,
   PortalSlugParamDto,
   RequestPortalCodeDto,
@@ -36,6 +38,7 @@ import {
   type PortalSessionContext,
   type RequestWithPortal,
 } from "@api/modules/portal/lib/portal-session";
+import { BookingService } from "@api/modules/booking/services/booking.service";
 import { PortalAuthService } from "@api/modules/portal/services/portal-auth.service";
 import { PortalRecordsService } from "@api/modules/portal/services/portal-records.service";
 import { PortalSessionGuard } from "@api/modules/portal/services/portal-session.guard";
@@ -46,6 +49,7 @@ export class PortalController {
   constructor(
     private readonly auth: PortalAuthService,
     private readonly records: PortalRecordsService,
+    private readonly booking: BookingService,
     private readonly config: ConfigService<Env, true>,
   ) {}
 
@@ -103,6 +107,17 @@ export class PortalController {
     @Param() params: PortalAttachmentParamDto,
   ): Promise<PortalFileLink> {
     return this.records.fileLink(session, params.patientId, params.attachmentId);
+  }
+
+  @Post(":clinicSlug/bookings")
+  @UseGuards(PortalSessionGuard)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  book(
+    @PortalSession() session: PortalSessionContext,
+    @Param() params: PortalSlugParamDto,
+    @Body() body: PortalBookingDto,
+  ): Promise<PortalBookingReceipt> {
+    return this.booking.bookForAccount(params.clinicSlug, session, body);
   }
 
   @Delete("session")

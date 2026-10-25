@@ -1,9 +1,11 @@
 import { z } from "zod";
+import { BOOKING_NAME_LENGTH } from "@shared/constants/booking";
 import {
   APPOINTMENT_STATUSES,
   LEDGER_ENTRY_KINDS,
   PERFORMED_PROCEDURE_STATUSES,
 } from "@shared/enums";
+import { managedBookingSchema } from "@shared/schemas/booking";
 import { phoneSchema, uuidSchema } from "@shared/schemas/common";
 import { moneySchema, signedMoneySchema } from "@shared/schemas/money";
 import { personNameSchema } from "@shared/schemas/person-name";
@@ -145,3 +147,31 @@ export const portalFileLinkSchema = z.object({
   expiresAt: z.iso.datetime(),
 });
 export type PortalFileLink = z.infer<typeof portalFileLinkSchema>;
+
+const portalBookingNameSchema = z
+  .string()
+  .trim()
+  .min(BOOKING_NAME_LENGTH.min)
+  .max(BOOKING_NAME_LENGTH.max);
+
+export const portalBookingSchema = z
+  .object({
+    doctorId: uuidSchema,
+    startsAt: z.iso.datetime(),
+    reason: z.string().trim().max(300).nullish(),
+    patientId: uuidSchema.optional(),
+    newPatient: z
+      .object({ firstName: portalBookingNameSchema, lastName: portalBookingNameSchema })
+      .optional(),
+  })
+  .refine((input) => (input.patientId === undefined) !== (input.newPatient === undefined), {
+    message: "Choose one patient on the account or name a new one",
+    path: ["patientId"],
+  });
+export type PortalBookingInput = z.infer<typeof portalBookingSchema>;
+
+export const portalBookingReceiptSchema = z.object({
+  token: z.string(),
+  booking: managedBookingSchema.nullable(),
+});
+export type PortalBookingReceipt = z.infer<typeof portalBookingReceiptSchema>;

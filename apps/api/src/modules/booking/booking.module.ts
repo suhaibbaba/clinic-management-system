@@ -20,6 +20,6 @@ import { StorageModule } from "@api/modules/storage/storage.module";
   ],
   controllers: [BookingController, PendingBookingsController],
   providers: [BookingService, BookingTokenService, PendingBookingsService],
-  exports: [BookingTokenService],
+  exports: [BookingService, BookingTokenService],
 })
 export class BookingModule {}
