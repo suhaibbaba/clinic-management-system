@@ -1,7 +1,7 @@
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useParams } from "react-router-dom";
-import { Badge, Button, Icon, PersonName, TabPanel, Tabs, useTabParam } from "@clinic/ui";
+import { Badge, Button, Icon, Money, PersonName, TabPanel, Tabs, useTabParam } from "@clinic/ui";
 import { SkeletonForm } from "@clinic/ui/components/skeleton";
 import {
   AdjustmentModal,
@@ -10,10 +10,12 @@ import {
 import { MonthSwitcher } from "@web/modules/payroll/components/month-switcher";
 import { PayCalculator } from "@web/modules/payroll/components/pay-calculator";
 import { PayEntriesList } from "@web/modules/payroll/components/pay-entries-list";
+import { PayStepsCard } from "@web/modules/payroll/components/pay-steps-card";
 import { PaySettingsForm } from "@web/modules/payroll/components/pay-settings-form";
 import { SalaryPaymentModal } from "@web/modules/payroll/components/salary-payment-modal";
 import { SharePatients } from "@web/modules/payroll/components/share-patients";
 import { SharePayoutModal } from "@web/modules/payroll/components/share-payout-modal";
+import { ShareSummary } from "@web/modules/payroll/components/share-summary";
 import { TreatmentShareModal } from "@web/modules/payroll/components/treatment-share-modal";
 import { PERSON_TABS } from "@web/modules/payroll/constants";
 import { usePayrollMonth } from "@web/modules/payroll/hooks/use-payroll-month";
@@ -24,6 +26,7 @@ import { DocumentActions } from "@web/shared/components/document-actions";
 import { monthDays } from "@web/shared/lib/months";
 import { canSeeSettlement } from "@web/shared/permissions/doctors";
 import { useSession } from "@web/shared/providers/session";
+import { useCurrency } from "@web/shared/queries/clinic";
 import type { SettlementTreatment } from "@clinic/shared";
 
 type Tab = (typeof PERSON_TABS)[number];
@@ -32,6 +35,7 @@ export function PersonPayPage(): JSX.Element {
   const { t } = useTranslation();
   const { userId = "" } = useParams<{ userId: string }>();
   const { can } = useSession();
+  const currency = useCurrency();
   const monthState = usePayrollMonth();
   const { month, thisMonth } = monthState;
   const [tab, setTab] = useTabParam<Tab>("tab", PERSON_TABS, "statement");
@@ -131,6 +135,7 @@ export function PersonPayPage(): JSX.Element {
               onClick={() => setPayingShare(true)}
             >
               {t("payroll.payShare")}
+              {share && <Money amount={share.balance} currency={currency} />}
             </Button>
           )}
           {actions.paySalary && (
@@ -158,8 +163,19 @@ export function PersonPayPage(): JSX.Element {
       <TabPanel id={tab}>
         {tab === "statement" && (
           <div className="flex flex-col gap-6">
+            {share && (
+              <ShareSummary
+                totals={share.totals}
+                treatments={share.treatments}
+                clinicPercent={share.clinicSharePercent}
+              />
+            )}
             <div className="grid gap-6 lg:grid-cols-[minmax(0,var(--form-max))_minmax(0,1fr)]">
-              <PayCalculator line={line} totals={share?.totals} rates={rates} />
+              {share ? (
+                <PayStepsCard line={line} settlement={share} />
+              ) : (
+                <PayCalculator line={line} totals={undefined} rates={rates} />
+              )}
               <PayEntriesList line={line} payouts={share?.payouts ?? []} closed={closed} />
             </div>
             {withShare && (

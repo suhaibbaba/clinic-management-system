@@ -2699,15 +2699,15 @@
       "materials": "Lab and materials",
       "net": "Net",
       "clinicShare": "Clinic share",
-      "doctorShare": "Doctor's share",
-      "waiting": "Waiting on patient payment",
-      "share": "Share due",
+      "doctorShare": "Their share of treatments",
+      "waiting": "Not yet paid by patients",
+      "share": "Due to them now",
       "salary": "Monthly salary",
       "bonus": "Bonus",
       "deduction": "Deduction",
       "expected": "Total expected",
-      "received": "Paid",
-      "owed": "Remaining",
+      "received": "Paid to them",
+      "owed": "Left to pay them",
       "bases": {
         "treatments": "Their treatments",
         "collections": "Patient payments this month",
@@ -2716,17 +2716,25 @@
       "percentShare": "Their share"
     },
     "patients": {
-      "title_one": "1 patient this month",
-      "title_other": "{{count}} patients this month",
       "patient": "Patient",
       "amount": "Amount",
       "patientPaid": "Patient paid",
-      "paidInFull": "Paid in full",
       "paidPart": "Paid {{percent}}%",
       "notPaid": "Not paid",
       "share": "Doctor's share",
       "doctorPaid": "Paid to doctor",
-      "edit": "Adjust the share for {{name}}"
+      "edit": "Adjust the share for {{name}}",
+      "collectedTitle": "Paid by the patient",
+      "waitingTitle": "Waiting for the patient",
+      "treatments_one": "1 treatment",
+      "treatments_other": "{{count}} treatments",
+      "shareTotal": "Their share",
+      "waitingHint": "Their share of each treatment becomes ready once the patient pays.",
+      "noPrice": "No price",
+      "shareWhenPaid": "Share once paid",
+      "readySoFar": "Ready so far",
+      "noneCollected": "No patient has paid yet this month",
+      "paidInFull": "Paid in full"
     },
     "entryKinds": {
       "extra": "Bonus",
@@ -2760,7 +2768,69 @@
       "ownClinicPercent": "Clinic's share % for this doctor"
     },
     "payPercent": "Pay Percentage",
-    "closeDraw": "The owner's draw of {{amount}} is recorded and next month starts from zero"
+    "closeDraw": "The owner's draw of {{amount}} is recorded and next month starts from zero",
+    "summary": {
+      "share": "Their share of this month's treatments",
+      "shareCaption_one": "1 treatment · clinic takes {{percent}}%",
+      "shareCaption_other": "{{count}} treatments · clinic takes {{percent}}%",
+      "ready": "Paid by patients — ready for them",
+      "readyCaption_one": "1 treatment paid by the patient",
+      "readyCaption_other": "{{count}} treatments paid by patients",
+      "waiting": "Waiting for patients to pay",
+      "waitingCaption_one": "1 treatment · theirs once the patient pays",
+      "waitingCaption_other": "{{count}} treatments · theirs once patients pay",
+      "bar": "How much of their share patients have paid",
+      "readyShare": "{{percent}}% ready",
+      "waitingShare": "{{percent}}% waiting for patients"
+    },
+    "steps": {
+      "title": "How we got to {{amount}}",
+      "owed": "Left to pay them now",
+      "parts": {
+        "prices": "Prices before discount",
+        "discount": "Discount given to patients",
+        "tax": "Tax",
+        "overhead": "Operating expenses",
+        "materials": "Lab and materials"
+      },
+      "prices": {
+        "title": "Their treatment prices this month",
+        "detail_one": "1 treatment.",
+        "detail_other": "{{count}} treatments."
+      },
+      "share": {
+        "title": "Their share",
+        "detail": "The clinic takes {{percent}}% ({{clinic}}); the rest is theirs."
+      },
+      "collected": {
+        "title": "What patients paid the clinic",
+        "detail_one": "1 patient paid, out of {{total}}. {{unpaid}} is still unpaid.",
+        "detail_other": "{{count}} patients paid, out of {{total}}. {{unpaid}} is still unpaid.",
+        "detail_zero": "No patient has paid yet, out of {{total}}. {{unpaid}} is still unpaid."
+      },
+      "collectedShare": {
+        "title": "Their share of what patients paid",
+        "detail": "Their share is {{percent}}% of what patients paid. {{waiting}} of it is paid once the rest pay."
+      },
+      "salary": {
+        "title": "Monthly salary",
+        "detail": "The salary set for this month."
+      },
+      "bonus": {
+        "title": "Bonuses",
+        "detail": "Added to their pay this month."
+      },
+      "deduction": {
+        "title": "Deductions",
+        "detail": "Taken off their pay this month."
+      },
+      "paidOut": {
+        "title": "Paid to them this month",
+        "detail_one": "1 payment.",
+        "detail_other": "{{count}} payments.",
+        "detail_zero": "No payments yet."
+      }
+    }
   },
   "earnings": {
     "title": "My Earnings",

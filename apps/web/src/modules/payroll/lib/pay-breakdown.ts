@@ -20,16 +20,19 @@ const isZero = (amount: string): boolean => Number(amount) === 0;
 
 function shareRows(line: PayrollLine, totals: SettlementTotals): BreakdownRow[] {
   const waiting = subtractMoney(totals.doctorShare, totals.payable);
-  const costs: BreakdownRow[] = [
+  const allCosts: BreakdownRow[] = [
     { key: "tax", label: "payroll.calc.tax", amount: totals.tax, sign: "minus" },
     { key: "overhead", label: "payroll.calc.overhead", amount: totals.overhead, sign: "minus" },
     { key: "materials", label: "payroll.calc.materials", amount: totals.materials, sign: "minus" },
   ];
+  const costs = allCosts.filter((row) => !isZero(row.amount));
 
   return [
     { key: "revenue", label: "payroll.calc.revenue", amount: totals.revenue, sign: "plus" },
-    ...costs.filter((row) => !isZero(row.amount)),
-    { key: "net", label: "payroll.calc.net", amount: totals.net, sign: "result" },
+    ...costs,
+    ...(costs.length === 0
+      ? []
+      : [{ key: "net", label: "payroll.calc.net", amount: totals.net, sign: "result" as const }]),
     {
       key: "clinicShare",
       label: "payroll.calc.clinicShare",
@@ -113,14 +116,23 @@ export function payBreakdown(
         ? percentRows(line)
         : [];
   const salary = salaryRows(line);
-
-  return [
+  const parts = [
     ...(share.length > 0 ? [{ key: "share" as const, rows: share }] : []),
     ...(salary.length > 0 ? [{ key: "salary" as const, rows: salary }] : []),
+  ];
+  const lastRow = parts.length === 1 ? parts[0]?.rows.at(-1) : undefined;
+  const repeatsExpected =
+    lastRow?.sign === "result" && Number(lastRow.amount) === Number(line.expected);
+  const expected: BreakdownRow[] = repeatsExpected
+    ? []
+    : [{ key: "expected", label: "payroll.calc.expected", amount: line.expected, sign: "result" }];
+
+  return [
+    ...parts,
     {
       key: "total",
       rows: [
-        { key: "expected", label: "payroll.calc.expected", amount: line.expected, sign: "result" },
+        ...expected,
         { key: "received", label: "payroll.calc.received", amount: line.received, sign: "minus" },
         { key: "owed", label: "payroll.calc.owed", amount: line.owed, sign: "result" },
       ],
