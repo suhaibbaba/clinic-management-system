@@ -15,17 +15,20 @@ import {
   PhoneLink,
   RowMenu,
   SegmentedControl,
+  Select,
   Table,
   TotalBadge,
   type Column,
   useConfirm,
   usePageParams,
+  usePersonName,
   useToast,
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
 import { Money } from "@web/shared/components/money";
 import { canSeeBilling } from "@web/shared/permissions/billing";
 import { useClinic } from "@web/shared/queries/clinic";
+import { useDoctors } from "@web/shared/queries/doctors";
 import { PatientFormModal } from "@web/modules/patients/components/patient-form-modal";
 import {
   canCreatePatient,
@@ -72,20 +75,26 @@ export function PatientsPage(): JSX.Element {
     raw === PATIENTS_BALANCE_FILTER || raw === PATIENTS_VISITED_FILTER ? raw : "all";
   const sortBy: PatientSort | null = params.get("sort") === "balance" ? "balance" : null;
   const sortDir: SortDirection = params.get("dir") === "asc" ? "asc" : "desc";
+  const doctorId = params.get("doctor") ?? "";
+  const doctors = useDoctors({ limit: 100 });
+  const doctorName = usePersonName();
 
   const writeParams = (next: {
     readonly filter?: PatientFilter;
     readonly sort?: PatientSort | null;
     readonly dir?: SortDirection;
+    readonly doctor?: string;
   }): void => {
     const nextFilter = next.filter ?? filter;
     const nextSort = next.sort === undefined ? sortBy : next.sort;
     const nextDir = next.dir ?? sortDir;
+    const nextDoctor = next.doctor ?? doctorId;
 
     setParams(
       {
         ...(search.trim() !== "" && { q: search }),
         ...(nextFilter !== "all" && { filter: nextFilter }),
+        ...(nextDoctor !== "" && { doctor: nextDoctor }),
         ...(nextSort !== null && { sort: nextSort }),
         ...(nextSort !== null && nextDir === "asc" && { dir: nextDir }),
         ...(perPage !== DEFAULT_PER_PAGE && { perPage: String(perPage) }),
@@ -94,6 +103,7 @@ export function PatientsPage(): JSX.Element {
     );
   };
   const setFilter = (next: PatientFilter): void => writeParams({ filter: next });
+  const setDoctor = (next: string): void => writeParams({ doctor: next });
 
   const debouncedSearch = useDebounced(search);
 
@@ -141,6 +151,7 @@ export function PatientsPage(): JSX.Element {
     ...(debouncedSearch.trim() !== "" && { search: debouncedSearch.trim() }),
     ...(filter === PATIENTS_BALANCE_FILTER && showBalance && { hasBalance: true }),
     ...(filter === PATIENTS_VISITED_FILTER && { visitedSince: startOfThisMonth() }),
+    ...(doctorId !== "" && { doctorId }),
     ...(sortBy !== null && showBalance && { sort: sortBy, dir: sortDir }),
   });
 
@@ -271,7 +282,7 @@ export function PatientsPage(): JSX.Element {
   }, [showClinical, showBalance, showEdit, showDelete, destroy, currency, t]);
 
   const canCreate = canCreatePatient(can);
-  const isSearching = search.trim() !== "";
+  const isSearching = search.trim() !== "" || doctorId !== "";
   const rows = query.data?.items ?? [];
 
   return (
@@ -315,9 +326,23 @@ export function PatientsPage(): JSX.Element {
           ]}
         />
 
-        {query.data !== undefined && (
-          <TotalBadge data-testid="patients-count" total={query.data.total} />
-        )}
+        <div className="flex w-full flex-wrap items-center gap-2.5 sm:w-auto">
+          <Select
+            className="w-full sm:w-52"
+            data-testid="patients-doctor-filter"
+            aria-label={t("patients.doctorFilter")}
+            placeholder={t("patients.allDoctors")}
+            value={doctorId}
+            options={(doctors.data?.items ?? []).map((doctor) => ({
+              value: doctor.id,
+              label: doctorName(doctor.user.name),
+            }))}
+            onChange={(event) => setDoctor(event.target.value)}
+          />
+          {query.data !== undefined && (
+            <TotalBadge data-testid="patients-count" total={query.data.total} />
+          )}
+        </div>
       </div>
 
       <Table

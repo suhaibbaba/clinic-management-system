@@ -21,6 +21,9 @@ describe("Patients (e2e)", () => {
   let ahmadId: string;
   let ahmadFileNumber: string;
   let laylaPhone: string;
+  let fixtures: ReturnType<typeof seedClinicFixtures> | undefined;
+  const clinicFixtures = (): ReturnType<typeof seedClinicFixtures> =>
+    (fixtures ??= seedClinicFixtures(context, clinic, tokens[USER_ROLE.ADMIN]));
 
   beforeAll(async () => {
     context = await createTestContext();
@@ -357,7 +360,7 @@ describe("Patients (e2e)", () => {
   });
   describe("?visitedSince", () => {
     it("returns only patients seen on or after the date, once each", async () => {
-      const fixtures = await seedClinicFixtures(context, clinic, tokens[USER_ROLE.ADMIN]);
+      const fixtures = await clinicFixtures();
 
       const seen = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
         ...nameParts("مريض زار العيادة"),
@@ -398,6 +401,45 @@ describe("Patients (e2e)", () => {
         method: "GET",
         url: `/patients?visitedSince=${LATEST_YEAR}-01-01&limit=100`,
         headers: auth(tokens[USER_ROLE.DOCTOR]),
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect((response.json() as { total: number }).total).toBe(0);
+    });
+  });
+  describe("?doctorId", () => {
+    it("returns the patients assigned to, booked with or treated by that doctor", async () => {
+      const fixtures = await clinicFixtures();
+
+      const theirs = await createPatient(context, tokens[USER_ROLE.ADMIN], {
+        ...nameParts("مريض الطبيب"),
+        phone: uniquePhone(),
+        assignedDoctorId: fixtures.doctorId,
+      });
+      const someoneElse = await createPatient(context, tokens[USER_ROLE.ADMIN], {
+        ...nameParts("مريض طبيب آخر"),
+        phone: uniquePhone(),
+      });
+
+      const response = await context.app.inject({
+        method: "GET",
+        url: `/patients?doctorId=${fixtures.doctorId}&limit=100`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const ids = (response.json() as { items: { id: string }[] }).items.map((row) => row.id);
+
+      expect(ids).toContain(theirs);
+      expect(ids).not.toContain(someoneElse);
+    });
+
+    it("finds nobody for a doctor outside the clinic", async () => {
+      const response = await context.app.inject({
+        method: "GET",
+        url: "/patients?doctorId=00000000-0000-4000-8000-000000000000",
+        headers: auth(tokens[USER_ROLE.ADMIN]),
       });
 
       expect(response.statusCode).toBe(200);

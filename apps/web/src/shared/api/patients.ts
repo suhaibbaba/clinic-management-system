@@ -9,6 +9,7 @@ export const listPatients = (query: Partial<ListPatientsQuery>): Promise<Paginat
       search: query.search,
       hasBalance: query.hasBalance,
       visitedSince: query.visitedSince,
+      doctorId: query.doctorId,
       sort: query.sort,
       dir: query.dir,
     },
