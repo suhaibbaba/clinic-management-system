@@ -45,17 +45,20 @@ export function PortalPrescriptions({
               </span>
             </span>
           </div>
-          <ul className="flex flex-col gap-1.5">
+          <ul className="flex flex-col divide-y divide-line border-t border-line">
             {prescription.items.map((item, position) => {
               const details = regimenText(item, t);
 
               return (
-                <li
-                  key={position}
-                  className="flex flex-col rounded-panel bg-primary-50/60 px-3 py-2"
-                >
-                  <bdi className="text-value font-bold text-primary-900">{item.drug}</bdi>
-                  {details && <span className="text-label text-ink-muted">{details}</span>}
+                <li key={position} data-part="drug" className="flex gap-2.5 py-2.5">
+                  <span
+                    aria-hidden
+                    className="mt-2 size-1.5 shrink-0 rounded-pill bg-primary-600"
+                  />
+                  <span className="flex min-w-0 flex-col items-start gap-0.5">
+                    <bdi className="text-value font-bold text-primary-900">{item.drug}</bdi>
+                    {details && <bdi className="text-label text-ink-muted">{details}</bdi>}
+                  </span>
                 </li>
               );
             })}
