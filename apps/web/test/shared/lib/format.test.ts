@@ -21,13 +21,13 @@ beforeAll(() => {
 });
 
 describe("one date and time format across the app", () => {
-  it("writes a date as day, short month and year in the clinic's zone", () => {
-    expect(plain(formatDate("2026-05-09T07:30:00.000Z"))).toBe("9 May 2026");
-    expect(plain(formatDate("2026-05-08T22:30:00.000Z"))).toBe("9 May 2026");
+  it("writes a date as DD/MM/YYYY in the clinic's zone", () => {
+    expect(plain(formatDate("2026-05-09T07:30:00.000Z"))).toBe("09/05/2026");
+    expect(plain(formatDate("2026-05-08T22:30:00.000Z"))).toBe("09/05/2026");
   });
 
   it("reads a bare calendar date as that day, whatever the zone", () => {
-    expect(plain(formatDate("2026-05-09"))).toBe("9 May 2026");
+    expect(plain(formatDate("2026-05-09"))).toBe("09/05/2026");
   });
 
   it("writes a time on a 12-hour clock with AM or PM, never ص or م", () => {
@@ -36,15 +36,15 @@ describe("one date and time format across the app", () => {
   });
 
   it("joins date and time with a middle dot and no Arabic comma", () => {
-    expect(plain(formatDateTime("2026-05-09T07:30:00.000Z"))).toBe("9 May 2026 · 10:30 AM");
+    expect(plain(formatDateTime("2026-05-09T07:30:00.000Z"))).toBe("09/05/2026 · 10:30 AM");
   });
 
   it("names the day once for a period within one day", () => {
     expect(plain(formatPeriod("2026-05-09T07:30:00.000Z", "2026-05-09T08:00:00.000Z"))).toBe(
-      "9 May 2026 · 10:30 AM – 11:00 AM",
+      "09/05/2026 · 10:30 AM – 11:00 AM",
     );
     expect(plain(formatPeriod("2026-05-09T07:30:00.000Z", "2026-05-10T08:00:00.000Z"))).toBe(
-      "9 May 2026 · 10:30 AM – 10 May 2026 · 11:00 AM",
+      "09/05/2026 · 10:30 AM – 10/05/2026 · 11:00 AM",
     );
   });
 

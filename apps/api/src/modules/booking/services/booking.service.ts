@@ -18,6 +18,7 @@ import {
   DEFAULT_TIME_ZONE,
   joinPatientName,
   localDate,
+  shortDate,
   NOTIFICATION_TEMPLATE,
   USER_ROLE,
   occupiesSlot,
@@ -314,7 +315,7 @@ export class BookingService {
       vars: {
         clinic: notificationName(clinic.name),
         doctor: notificationName(booking.doctorName),
-        date: localDate(new Date(booking.startsAt), clinic.timeZone),
+        date: shortDate(localDate(new Date(booking.startsAt), clinic.timeZone)),
         time: timeIn(clinic.timeZone, new Date(booking.startsAt)),
         link: this.manageLink(token),
       },
@@ -353,7 +354,7 @@ export class BookingService {
       appointmentId,
       vars: {
         clinic: notificationName(clinic.name),
-        date: localDate(existing.startsAt, clinic.timeZone),
+        date: shortDate(localDate(existing.startsAt, clinic.timeZone)),
         time: timeIn(clinic.timeZone, existing.startsAt),
       },
     });

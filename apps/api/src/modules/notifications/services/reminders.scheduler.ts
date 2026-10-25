@@ -6,6 +6,7 @@ import {
   clinicScheduleSettings,
   DEFAULT_TIME_ZONE,
   localDate,
+  shortDate,
 } from "@clinic/shared";
 import { and, eq, gt, isNull, lt } from "drizzle-orm";
 import { notificationName } from "@api/common/person-name";
@@ -86,7 +87,7 @@ export class RemindersScheduler {
           vars: {
             clinic: notificationName({ ar: row.clinicNameAr, en: row.clinicNameEn }),
             doctor: notificationName({ ar: row.doctorNameAr, en: row.doctorNameEn }),
-            date: localDate(row.startsAt, zone),
+            date: shortDate(localDate(row.startsAt, zone)),
             time: timeIn(zone, row.startsAt),
           },
         });

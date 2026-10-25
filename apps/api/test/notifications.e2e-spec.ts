@@ -300,7 +300,8 @@ describe("Notifications and schedulers (e2e)", () => {
       expect(forTomorrow.map((row) => row.template)).toEqual([NOTIFICATION_TEMPLATE.REMINDER_24H]);
       expect(forSoon.map((row) => row.template)).toEqual([NOTIFICATION_TEMPLATE.REMINDER_2H]);
       expect(forTomorrow[0]?.vars["doctor"]).toMatch(/^طبيب اختبار/);
-      expect(forTomorrow[0]?.vars["time"]).toMatch(/^\d{2}:\d{2}$/);
+      expect(forTomorrow[0]?.vars["time"]).toMatch(/^\d{1,2}:\d{2} (AM|PM)$/);
+      expect(forTomorrow[0]?.vars["date"]).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
     });
 
     it("counts a failed reminder as sent, so a dead gateway is not retried forever", async () => {

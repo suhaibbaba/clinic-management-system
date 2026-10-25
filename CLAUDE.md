@@ -147,8 +147,11 @@ core · patients · billing · appointments · booking · notifications · labs 
   `constants.ts` are private. A helper, key or date window two modules need is written once in
   `shared/`, never copied. ESLint enforces it.
 - **One date and time format.** `shared/lib/format.ts` alone turns an instant into text, in the
-  clinic's time zone: `formatDate` "9 May 2026", `formatTime` "10:30 AM", `formatDateTime`
-  "9 May 2026 · 10:30 AM", `formatPeriod`. Never `toLocaleString` or a hand-joined date and time.
+  clinic's time zone: `formatDate` "09/05/2026", `formatTime` "10:30 AM", `formatDateTime`
+  "09/05/2026 · 10:30 AM", `formatPeriod`. Never `toLocaleString` or a hand-joined date and time.
+  Every date the product writes is DD/MM/YYYY and every time is AM/PM, in Arabic and English
+  alike: the booking pages, the patient account, printed documents and messages too
+  (`shortDate` and `clockTime` in `packages/shared`).
 - **RTL by default.** Gregorian dates, Arabic through i18n. `check:i18n` fails on an Arabic literal
   in a component and on a key missing from either locale.
 - Dropdowns read the clinic's lists through `useLookupOptions` / `useLookupLabels`, never a constant.

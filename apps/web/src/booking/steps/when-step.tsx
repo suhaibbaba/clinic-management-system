@@ -1,7 +1,7 @@
 import type { PublicSlots } from "@clinic/shared";
 import type { JSX, ReactNode } from "react";
 import { failureKey } from "@web/booking/api";
-import { dayTitle, weekTitle, type DayChip } from "@web/booking/format";
+import { dayTitle, formatTime, weekTitle, type DayChip } from "@web/booking/format";
 import { t } from "@web/booking/i18n";
 import { Alert, Button, Skeleton, cx } from "@web/booking/ui";
 import type { AsyncState } from "@web/booking/use-async";
@@ -177,7 +177,7 @@ function SlotGroup({
                 type="button"
                 data-testid={`when-slot-${slot.start}`}
                 aria-pressed={active}
-                aria-label={t("when.chooseSlot", { time: slot.start })}
+                aria-label={t("when.chooseSlot", { time: formatTime(slot.startsAt) })}
                 onClick={() => onSelect(slot)}
                 dir="ltr"
                 className={cx(
@@ -189,7 +189,7 @@ function SlotGroup({
                 )}
               >
                 {active && <Glyph path={CHECK} className="size-3.5" />}
-                {slot.start}
+                {formatTime(slot.startsAt)}
               </button>
             </li>
           );

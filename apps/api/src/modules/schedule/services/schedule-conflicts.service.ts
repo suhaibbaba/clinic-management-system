@@ -5,6 +5,7 @@ import {
   clinicScheduleSettings,
   DEFAULT_TIME_ZONE,
   localDate,
+  shortDate,
   NOTIFICATION_TEMPLATE,
   SCHEDULE_CONFLICT_ERROR,
   type ConflictingAppointment,
@@ -124,7 +125,7 @@ export class ScheduleConflictsService {
         appointmentId: conflict.id,
         vars: {
           clinic: clinic?.nameAr ?? "",
-          date: localDate(startsAt, zone),
+          date: shortDate(localDate(startsAt, zone)),
           time: timeIn(zone, startsAt),
         },
       });

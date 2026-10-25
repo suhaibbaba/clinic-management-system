@@ -239,7 +239,7 @@ describe("Billing", () => {
 
       const row = (await screen.findByTestId("statement-deleted")).closest("tr") as HTMLElement;
       expect(within(row).getByTestId("statement-deleted-by")).toHaveTextContent("سائد أبو عبيد");
-      expect(within(row).getByTestId("statement-deleted-by")).toHaveTextContent("20 Sep 2026");
+      expect(within(row).getByTestId("statement-deleted-by")).toHaveTextContent("20/09/2026");
       expect(within(row).queryByRole("button", { name: ar.billing.entryMenu })).toBeNull();
       expect(row).toHaveTextContent("—");
     });

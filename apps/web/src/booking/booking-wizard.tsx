@@ -8,6 +8,7 @@ import {
   bookingName,
   dayChips,
   daysFromToday,
+  formatTime,
   learnClinicOffset,
   todayIso,
 } from "@web/booking/format";
@@ -459,7 +460,7 @@ export function BookingWizard({
                 <p className="mt-1 text-value font-medium text-ink">{bookingName(doctor?.name)}</p>
                 <p className="text-value text-ink">
                   <span dir="ltr" className="inline-block w-fit whitespace-nowrap tabular-nums">
-                    {slot?.start}
+                    {slot && formatTime(slot.startsAt)}
                   </span>
                 </p>
               </Card>

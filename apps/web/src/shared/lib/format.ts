@@ -38,8 +38,11 @@ export function dayMonthYear(iso: string): {
 }
 
 const dateText = (iso: string): string => {
-  const { day, month, year } = dayMonthYear(iso);
-  return `${day} ${month} ${year}`;
+  const parts = partsOf(iso, { day: "2-digit", month: "2-digit", year: "numeric" });
+  const read = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((part) => part.type === type)?.value ?? "";
+
+  return `${read("day")}/${read("month")}/${read("year")}`;
 };
 
 const timeText = (iso: string): string => formatMinute(minutesOf(iso));
