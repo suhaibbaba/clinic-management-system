@@ -25,6 +25,7 @@ import { StorageService } from "@api/modules/storage/services/storage.service";
 import { clinics, specialties, users } from "@api/database/schema";
 import { INVALID_CREDENTIALS, PHONE_MIN_DIGITS } from "@api/modules/auth/constants";
 import { UserRow } from "@api/modules/auth/lib/auth";
+import { phoneDigitsOf, phoneMatches } from "@api/common/lib/phone";
 
 @Injectable()
 export class AuthService {
@@ -207,14 +208,15 @@ export class AuthService {
       return undefined;
     }
 
-    const storedDigits = sql<string>`regexp_replace(${users.phone}, '[^0-9]', '', 'g')`;
     const matches = await this.db
       .select()
       .from(users)
       .where(
         and(
           isNull(users.deletedAt),
-          international ? eq(storedDigits, digits) : like(storedDigits, `%${digits}`),
+          international
+            ? phoneMatches(users.phone, digits)
+            : like(phoneDigitsOf(users.phone), `%${digits}`),
         ),
       )
       .limit(2);

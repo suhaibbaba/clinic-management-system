@@ -1,7 +1,7 @@
-import { isFdiTooth } from "@clinic/shared";
 import { useState, type JSX, type KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon, Input } from "@clinic/ui";
+import { parseTeethInput } from "@web/shared/lib/teeth-input";
 
 export function TeethField({
   id,
@@ -19,9 +19,9 @@ export function TeethField({
   const [invalid, setInvalid] = useState(false);
 
   const add = (raw: string): void => {
-    const parsed = Number(raw.trim());
+    const parsed = parseTeethInput(raw);
 
-    if (!Number.isInteger(parsed) || !isFdiTooth(parsed)) {
+    if (parsed === null || (single && parsed.length > 1)) {
       setInvalid(raw.trim() !== "");
       return;
     }
@@ -30,9 +30,9 @@ export function TeethField({
     setDraft("");
 
     if (single) {
-      onChange([parsed]);
-    } else if (!value.includes(parsed)) {
-      onChange([...value, parsed].sort((a, b) => a - b));
+      onChange(parsed);
+    } else {
+      onChange([...new Set([...value, ...parsed])].sort((a, b) => a - b));
     }
   };
 
@@ -78,7 +78,7 @@ export function TeethField({
         id={id}
         data-testid="teeth-field-input"
         dir="ltr"
-        inputMode="numeric"
+        inputMode="tel"
         placeholder="46"
         value={draft}
         hasError={invalid}

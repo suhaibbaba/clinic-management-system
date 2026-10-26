@@ -19,7 +19,6 @@ import {
 import { LedgerService } from "@api/modules/billing/services/ledger.service";
 import { StorageService } from "@api/modules/storage/services/storage.service";
 import { PORTAL_PREVIEW_MIME_TYPES, PORTAL_RECORD_LIMIT } from "@api/modules/portal/constants";
-import { phoneKeyOf } from "@api/modules/portal/lib/portal-code";
 import {
   doctorUser,
   statementLine,
@@ -27,6 +26,7 @@ import {
   toIso,
 } from "@api/modules/portal/lib/portal-record";
 import { type PortalSessionContext } from "@api/modules/portal/lib/portal-session";
+import { phoneMatches } from "@api/common/lib/phone";
 
 @Injectable()
 export class PortalRecordsService {
@@ -294,7 +294,7 @@ export class PortalRecordsService {
           eq(patients.id, patientId),
           eq(patients.clinicId, session.clinicId),
           isNull(patients.deletedAt),
-          eq(phoneKeyOf(patients.phone), session.phone),
+          phoneMatches(patients.phone, session.phone),
         ),
       )
       .limit(1);

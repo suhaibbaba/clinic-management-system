@@ -10,6 +10,9 @@ import {
   areaState,
   buildToothStates,
   deriveToothSummaries,
+  hasOutcomeShape,
+  hasShape,
+  healthyTooth,
   procedureToothState,
   type OutcomeLookup,
   type ToothStates,
@@ -272,6 +275,29 @@ describe("tooth state derivation", () => {
       expect(summaries.get(16)?.state).toBe(TOOTH_STATE.PLANNED);
     });
 
+    it("keeps what a planned or unfinished treatment will become", () => {
+      const summaries = deriveToothSummaries(
+        [
+          makeProcedure(14, { procedureId: CATALOG.bridge, status: "planned" }),
+          makeProcedure(15, {
+            procedureId: CATALOG.bridge,
+            status: PERFORMED_PROCEDURE_STATUS.IN_PROGRESS,
+          }),
+          makeProcedure(16, { procedureId: CATALOG.bridge, status: "cancelled" }),
+        ],
+        OUTCOMES,
+        STATES,
+      );
+
+      expect(summaries.get(14)?.outcomes).toEqual([TOOTH_STATE.BRIDGE]);
+      expect(summaries.get(15)?.outcomes).toEqual([TOOTH_STATE.BRIDGE]);
+      expect(summaries.has(16)).toBe(false);
+      const planned = summaries.get(14) ?? healthyTooth(14);
+
+      expect(hasOutcomeShape(planned, "bridge", STATES)).toBe(true);
+      expect(hasShape(planned, "bridge", STATES)).toBe(false);
+    });
+
     it("ignores a procedure with no chart mark at all", () => {
       const wholeMouth = makeProcedure(46, { chartMarks: [] });
 
@@ -296,6 +322,7 @@ describe("tooth state derivation", () => {
       state: states[0]!,
       states,
       surfaces: [],
+      outcomes: [],
       procedureCount: states.length,
     });
 

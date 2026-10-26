@@ -75,7 +75,6 @@ export function TreatmentForm({
   const doctorName = usePersonName();
   const fieldId = useId();
   const isEdit = treatment !== undefined;
-  const fixedTooth = isEdit ? undefined : defaults.tooth;
 
   const [procedureId, setProcedureId] = useState(treatment?.procedureId ?? "");
   const [doctorId, setDoctorId] = useState(
@@ -85,7 +84,7 @@ export function TreatmentForm({
     treatment?.status ?? defaults.status ?? "done",
   );
   const [teeth, setTeeth] = useState<number[]>(
-    fixedTooth !== undefined ? [fixedTooth] : treatment ? treatmentTeeth(treatment) : [],
+    treatment ? treatmentTeeth(treatment) : defaults.tooth !== undefined ? [defaults.tooth] : [],
   );
   const [surfaces, setSurfaces] = useState<SelectableSurface[]>(
     treatment ? selectable(treatmentSurfaces(treatment)) : [],
@@ -230,6 +229,7 @@ export function TreatmentForm({
                 <MoneyInput
                   id={`${fieldId}-price`}
                   data-testid="treatment-field-price"
+                  placeholder="0"
                   currency={currency}
                   value={price}
                   onChange={(event) => setPrice(event.target.value)}
@@ -247,6 +247,7 @@ export function TreatmentForm({
                 <MoneyInput
                   id={`${fieldId}-discount`}
                   data-testid="treatment-field-discount"
+                  placeholder="0"
                   currency={currency}
                   value={discount}
                   onChange={(event) => setDiscount(event.target.value)}
@@ -268,6 +269,7 @@ export function TreatmentForm({
                 <Input
                   id={`${fieldId}-reason`}
                   data-testid="treatment-field-discount-reason"
+                  placeholder={t("common.placeholders.discountReason")}
                   value={discountReason}
                   onChange={(event) => setDiscountReason(event.target.value)}
                 />
@@ -276,20 +278,18 @@ export function TreatmentForm({
           </div>
         )}
 
-        {fixedTooth === undefined && (
-          <div className="max-w-(--field-max)">
-            <div onBlur={form.leave("chartMarks")}>
-              <FormField
-                label="visits.teeth"
-                htmlFor={`${fieldId}-teeth`}
-                error={fieldError(errors, "chartMarks")}
-                optional
-              >
-                <TeethField id={`${fieldId}-teeth`} value={teeth} onChange={setTeeth} />
-              </FormField>
-            </div>
+        <div className="max-w-(--field-max)">
+          <div onBlur={form.leave("chartMarks")}>
+            <FormField
+              label="visits.teeth"
+              htmlFor={`${fieldId}-teeth`}
+              error={fieldError(errors, "chartMarks")}
+              optional
+            >
+              <TeethField id={`${fieldId}-teeth`} value={teeth} onChange={setTeeth} />
+            </FormField>
           </div>
-        )}
+        </div>
 
         {teeth.length === 1 && (
           <div className="flex flex-col gap-1.5">
@@ -308,6 +308,7 @@ export function TreatmentForm({
             <Textarea
               id={`${fieldId}-notes`}
               data-testid="treatment-field-notes"
+              placeholder={t("common.placeholders.note")}
               rows={2}
               value={notes}
               onChange={(event) => setNotes(event.target.value)}

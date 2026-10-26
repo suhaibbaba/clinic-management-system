@@ -17,6 +17,7 @@ import { PATIENTS_ENTITY } from "@api/common/constants/audit-entities";
 import { PatientRef, isUniqueViolation } from "@api/modules/patients/lib/patient-registration";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { FILE_NUMBER_ATTEMPTS, FILE_NUMBER_WIDTH } from "@api/modules/patients/constants";
+import { phoneMatches } from "@api/common/lib/phone";
 
 @Injectable()
 export class PatientRegistrationService {
@@ -80,18 +81,10 @@ export class PatientRegistrationService {
     actor: AuthenticatedUser,
     phone: string,
   ): Promise<void> {
-    const digits = phone.replaceAll(/\D/g, "");
-
     const [existing] = await executor
       .select()
       .from(patients)
-      .where(
-        this.scope.where(
-          patients,
-          actor.clinicId,
-          sql`regexp_replace(${patients.phone}, '[^0-9]', '', 'g') = ${digits}`,
-        ),
-      )
+      .where(this.scope.where(patients, actor.clinicId, phoneMatches(patients.phone, phone)))
       .limit(1);
 
     if (existing) {

@@ -26,10 +26,10 @@ import {
   hashPortalCode,
   hashSessionToken,
   phoneKey,
-  phoneKeyOf,
   portalCodeMatches,
 } from "@api/modules/portal/lib/portal-code";
 import { type PortalSessionContext } from "@api/modules/portal/lib/portal-session";
+import { phoneMatches } from "@api/common/lib/phone";
 
 @Injectable()
 export class PortalAuthService {
@@ -200,7 +200,7 @@ export class PortalAuthService {
         and(
           eq(patients.clinicId, clinicId),
           isNull(patients.deletedAt),
-          eq(phoneKeyOf(patients.phone), phone),
+          phoneMatches(patients.phone, phone),
         ),
       )
       .orderBy(desc(patients.createdAt));

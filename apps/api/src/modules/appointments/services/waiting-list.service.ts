@@ -35,6 +35,7 @@ import { PatientRegistrationService } from "@api/modules/patients/services/patie
 import { WAITING_LIST_ENTITY } from "@api/common/constants/audit-entities";
 import { toWaitingListEntry, WaitingListRow } from "@api/modules/appointments/lib/waiting-list";
 import { timeIn } from "@api/common/lib/time";
+import { phoneMatches } from "@api/common/lib/phone";
 
 @Injectable()
 export class WaitingListService implements OnModuleInit {
@@ -300,9 +301,7 @@ export class WaitingListService implements OnModuleInit {
           clinicId,
           eq(waitingList.source, WAITING_LIST_SOURCE.ONLINE),
           isNull(waitingList.resolvedAt),
-          phone === undefined
-            ? undefined
-            : sql`regexp_replace(${patients.phone}, '[^0-9]', '', 'g') = ${phone}`,
+          phone === undefined ? undefined : phoneMatches(patients.phone, phone),
         ),
       );
 

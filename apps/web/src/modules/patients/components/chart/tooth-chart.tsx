@@ -9,6 +9,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { useTranslation } from "react-i18next";
+import { TOOTH_STATE } from "@clinic/shared";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import {
   layoutRow,
@@ -23,6 +24,7 @@ import {
 } from "@web/modules/patients/lib/chart/tooth-shapes";
 import {
   areaState,
+  hasOutcomeShape,
   hasShape,
   healthyTooth,
   type ToothStates,
@@ -176,7 +178,9 @@ function bridgeSpan(
 ): BridgeSpan {
   const isBridge = (at: number): boolean => {
     const slot = slots[at];
-    return slot !== undefined && hasShape(summarise(summaries, slot.tooth), "bridge", states);
+    return (
+      slot !== undefined && hasOutcomeShape(summarise(summaries, slot.tooth), "bridge", states)
+    );
   };
 
   if (!isBridge(index)) {
@@ -226,7 +230,7 @@ function Tooth({
   const root = states.info(areaState(summary, "root", states)).style;
   const stateLabel = states.info(summary.state).label;
   const implantStyle = states.info(areaState(summary, "root", states)).style;
-  const bridgeStyle = crown;
+  const bridgeStyle = states.info(TOOTH_STATE.BRIDGE).style;
 
   const label =
     summary.procedureCount === 0

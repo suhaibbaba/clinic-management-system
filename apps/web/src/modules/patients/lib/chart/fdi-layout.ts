@@ -1,4 +1,4 @@
-import { FDI_DECIDUOUS_TEETH, FDI_PERMANENT_TEETH } from "@clinic/shared";
+import { FDI_ARCHES } from "@clinic/shared";
 import { toothTypeOf, type ToothType } from "@web/modules/patients/lib/chart/tooth-shapes";
 
 export type Dentition = "permanent" | "deciduous";
@@ -12,22 +12,7 @@ export interface ToothSlot {
 }
 
 export function archRow(dentition: Dentition, arch: Arch): readonly number[] {
-  const all = dentition === "permanent" ? FDI_PERMANENT_TEETH : FDI_DECIDUOUS_TEETH;
-  const quadrants = dentition === "permanent" ? [1, 2, 3, 4] : [5, 6, 7, 8];
-
-  const [upperRight, upperLeft, lowerLeft, lowerRight] = quadrants as [
-    number,
-    number,
-    number,
-    number,
-  ];
-
-  const inQuadrant = (quadrant: number): number[] =>
-    all.filter((tooth) => Math.floor(tooth / 10) === quadrant);
-
-  return arch === "upper"
-    ? [...inQuadrant(upperRight).reverse(), ...inQuadrant(upperLeft)]
-    : [...inQuadrant(lowerRight).reverse(), ...inQuadrant(lowerLeft)];
+  return FDI_ARCHES[(dentition === "deciduous" ? 2 : 0) + (arch === "lower" ? 1 : 0)] ?? [];
 }
 
 export function layoutRow(dentition: Dentition, arch: Arch): ToothSlot[] {

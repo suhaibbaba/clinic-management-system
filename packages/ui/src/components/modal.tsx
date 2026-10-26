@@ -46,7 +46,7 @@ export function Modal({
         <Dialog.Overlay
           {...part("overlay")}
           className={cn(
-            "fixed inset-0 z-40 bg-ink/40",
+            "fixed inset-0 z-50 bg-ink/40",
             "data-[state=open]:animate-[fade-in_200ms_ease-out]",
             "data-[state=closed]:animate-[fade-out_150ms_ease-in]",
           )}

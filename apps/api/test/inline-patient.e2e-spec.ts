@@ -140,6 +140,21 @@ describe("Inline patient registration (e2e)", () => {
     });
   });
 
+  it("treats a +972 number as the patient already saved under +970", async () => {
+    const national = `59${String(Math.floor(Math.random() * 10_000_000)).padStart(7, "0")}`;
+    const existingId = await createPatient(context, token, {
+      ...nameParts("مريض من غزة"),
+      phone: `+970${national}`,
+    });
+
+    const response = await book("10:00", {
+      newPatient: { ...nameParts("اسم آخر"), phone: `+972${national}` },
+    });
+
+    expect(response.statusCode).toBe(409);
+    expect(response.json()).toMatchObject({ existingPatient: { id: existingId } });
+  });
+
   it("refuses a body that names a patient both ways, or neither", async () => {
     const both = await book("12:00", {
       patientId: crypto.randomUUID(),
