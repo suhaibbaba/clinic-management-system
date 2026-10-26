@@ -176,11 +176,20 @@ export function hasShape(
   return summary.states.some((state) => states.info(state).shape === shape);
 }
 
+export function hasOutcomeShape(
+  summary: ToothSummary,
+  shape: NonNullable<ToothChartBehaviour["shape"]>,
+  states: ToothStates,
+): boolean {
+  return summary.outcomes.some((outcome) => states.info(outcome).shape === shape);
+}
+
 export interface ToothSummary {
   readonly tooth: number;
   readonly state: ToothState;
   readonly states: readonly ToothState[];
   readonly surfaces: readonly string[];
+  readonly outcomes: readonly string[];
   readonly procedureCount: number;
 }
 
@@ -210,7 +219,10 @@ export function deriveToothSummaries(
   outcomes: OutcomeLookup,
   states: ToothStates,
 ): Map<number, ToothSummary> {
-  const byTooth = new Map<number, { states: ToothState[]; surfaces: Set<string>; count: number }>();
+  const byTooth = new Map<
+    number,
+    { states: ToothState[]; surfaces: Set<string>; outcomes: Set<string>; count: number }
+  >();
 
   for (const procedure of procedures) {
     if (procedure.status === PERFORMED_PROCEDURE_STATUS.CANCELLED) {
@@ -218,6 +230,7 @@ export function deriveToothSummaries(
     }
 
     const state = procedureToothState(procedure, outcomes);
+    const outcome = outcomes.get(procedure.procedureId);
 
     for (const mark of procedure.chartMarks ?? []) {
       const location = mark.location as { tooth?: number; surfaces?: string[] };
@@ -229,12 +242,16 @@ export function deriveToothSummaries(
       const entry = byTooth.get(location.tooth) ?? {
         states: [],
         surfaces: new Set<string>(),
+        outcomes: new Set<string>(),
         count: 0,
       };
 
       entry.count += 1;
       if (state) {
         entry.states.push(state);
+      }
+      if (outcome) {
+        entry.outcomes.add(outcome);
       }
       for (const surface of location.surfaces ?? []) {
         entry.surfaces.add(surface);
@@ -252,6 +269,7 @@ export function deriveToothSummaries(
       state: states.dominant(entry.states),
       states: states.precedence.filter((state) => entry.states.includes(state)),
       surfaces: [...entry.surfaces],
+      outcomes: [...entry.outcomes],
       procedureCount: entry.count,
     });
   }
@@ -265,6 +283,7 @@ export function healthyTooth(tooth: number): ToothSummary {
     state: HEALTHY,
     states: [HEALTHY],
     surfaces: [],
+    outcomes: [],
     procedureCount: 0,
   };
 }
