@@ -229,6 +229,7 @@ export function TreatmentForm({
                 <MoneyInput
                   id={`${fieldId}-price`}
                   data-testid="treatment-field-price"
+                  placeholder="0"
                   currency={currency}
                   value={price}
                   onChange={(event) => setPrice(event.target.value)}
@@ -246,6 +247,7 @@ export function TreatmentForm({
                 <MoneyInput
                   id={`${fieldId}-discount`}
                   data-testid="treatment-field-discount"
+                  placeholder="0"
                   currency={currency}
                   value={discount}
                   onChange={(event) => setDiscount(event.target.value)}
@@ -267,6 +269,7 @@ export function TreatmentForm({
                 <Input
                   id={`${fieldId}-reason`}
                   data-testid="treatment-field-discount-reason"
+                  placeholder={t("common.placeholders.discountReason")}
                   value={discountReason}
                   onChange={(event) => setDiscountReason(event.target.value)}
                 />
@@ -305,6 +308,7 @@ export function TreatmentForm({
             <Textarea
               id={`${fieldId}-notes`}
               data-testid="treatment-field-notes"
+              placeholder={t("common.placeholders.note")}
               rows={2}
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
