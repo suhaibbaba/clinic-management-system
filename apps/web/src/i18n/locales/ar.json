@@ -25,10 +25,10 @@
     "optional": "اختياري",
     "delete": "حذف",
     "placeholders": {
-      "identifier": "09XXXXXXXX",
+      "identifier": "05XXXXXXXX",
       "password": "••••••••",
       "fullName": "مثال: أحمد خالد الحسن",
-      "phone": "09XXXXXXXX",
+      "phone": "05XXXXXXXX",
       "email": "name@clinic.com",
       "address": "المدينة، الحي، الشارع",
       "emergencyName": "اسم قريب أو مرافق",

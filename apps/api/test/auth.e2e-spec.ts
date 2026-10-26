@@ -179,6 +179,23 @@ describe("Auth (e2e)", () => {
     });
   });
 
+  describe("Palestinian and Israeli numbers", () => {
+    it("signs in under either prefix, or with none", async () => {
+      const other = await context.createClinic();
+      const national = `59${String(Math.floor(Math.random() * 10_000_000)).padStart(7, "0")}`;
+      await context.db
+        .update(users)
+        .set({ phone: `+970${national}` })
+        .where(eq(users.phone, other.phones[USER_ROLE.DOCTOR]));
+
+      expect((await login(`+970${national}`)).statusCode).toBe(200);
+      expect((await login(`+972${national}`)).statusCode).toBe(200);
+      expect((await login(`00972${national}`)).statusCode).toBe(200);
+      expect((await login(`0${national}`)).statusCode).toBe(200);
+      expect((await login(`+962${national}`)).statusCode).toBe(401);
+    });
+  });
+
   describe("refresh", () => {
     it("rotates the refresh cookie and returns a working access token", async () => {
       const loggedIn = await login(clinic.phones[USER_ROLE.DOCTOR]);

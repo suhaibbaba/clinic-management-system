@@ -20,6 +20,7 @@ import {
   type PresignUserPhotoResponse,
   type UpdateUserInput,
   type User,
+  isSamePhone,
 } from "@clinic/shared";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { AuditService } from "@api/modules/audit/services/audit.service";
@@ -45,6 +46,7 @@ import {
   UserRow,
   toUser,
 } from "@api/modules/users/lib/users";
+import { phoneMatches } from "@api/common/lib/phone";
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -384,8 +386,8 @@ export class UsersService implements OnModuleInit {
     executor: DatabaseExecutor = this.db,
   ): Promise<void> {
     const identifierMatches = email
-      ? or(eq(users.phone, phone), eq(sql`lower(${users.email})`, email.toLowerCase()))
-      : eq(users.phone, phone);
+      ? or(phoneMatches(users.phone, phone), eq(sql`lower(${users.email})`, email.toLowerCase()))
+      : phoneMatches(users.phone, phone);
 
     const [clash] = await executor
       .select({ phone: users.phone, email: users.email })
@@ -404,7 +406,9 @@ export class UsersService implements OnModuleInit {
     }
 
     throw new ConflictException(
-      clash.phone === phone ? "Phone number is already in use" : "Email is already in use",
+      isSamePhone(clash.phone, phone)
+        ? "Phone number is already in use"
+        : "Email is already in use",
     );
   }
 }

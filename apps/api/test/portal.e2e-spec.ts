@@ -278,6 +278,21 @@ describe("Patient portal (e2e)", () => {
     expect(record.treatments[0]).not.toHaveProperty("notes");
   });
 
+  it("finds a patient saved under +970 when the phone is given under +972", async () => {
+    const national = `56${String(Math.floor(Math.random() * 10_000_000)).padStart(7, "0")}`;
+    const patientId = await createPatient(
+      context,
+      await context.login(clinic.phones[USER_ROLE.ADMIN]),
+      { firstName: "سلمى", lastName: "عودة", phone: `+970${national}` },
+    );
+    const cookie = await signIn(`+972${national}`);
+    const account = (
+      await inject("GET", "/public/portal/account", { cookie })
+    ).json() as PortalAccount;
+
+    expect(account.patients.map((patient) => patient.id)).toEqual([patientId]);
+  });
+
   it("answers 404 for a patient on another phone or in another clinic", async () => {
     const cookie = await signIn(familyPhone);
 

@@ -25,10 +25,10 @@
     "optional": "Optional",
     "delete": "Delete",
     "placeholders": {
-      "identifier": "09XXXXXXXX",
+      "identifier": "05XXXXXXXX",
       "password": "••••••••",
       "fullName": "e.g. Ahmad Khaled Al-Hasan",
-      "phone": "09XXXXXXXX",
+      "phone": "05XXXXXXXX",
       "email": "name@clinic.com",
       "address": "City, district, street",
       "emergencyName": "A relative or companion",

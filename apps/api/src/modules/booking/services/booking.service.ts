@@ -68,6 +68,7 @@ import {
   OTP_MAX_ATTEMPTS,
   OTP_TTL_SECONDS,
 } from "@api/modules/booking/constants";
+import { phoneMatches } from "@api/common/lib/phone";
 
 @Injectable()
 export class BookingService {
@@ -576,7 +577,7 @@ export class BookingService {
         and(
           eq(patients.clinicId, clinicId),
           isNull(patients.deletedAt),
-          sql`regexp_replace(${patients.phone}, '[^0-9]', '', 'g') = ${phoneDigits(phone)}`,
+          phoneMatches(patients.phone, phone),
         ),
       )
       .limit(1);
@@ -631,7 +632,7 @@ export class BookingService {
           isNull(appointments.deletedAt),
           eq(appointments.status, APPOINTMENT_STATUS.REQUESTED),
           gte(appointments.startsAt, new Date()),
-          sql`regexp_replace(${patients.phone}, '[^0-9]', '', 'g') = ${phoneDigits(phone)}`,
+          phoneMatches(patients.phone, phone),
         ),
       );
 

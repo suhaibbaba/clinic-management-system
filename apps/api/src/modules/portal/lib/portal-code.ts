@@ -1,13 +1,8 @@
 import { createHash, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
-import { PORTAL_CODE_LENGTH } from "@clinic/shared";
-import { sql, type SQL } from "drizzle-orm";
-import { type PgColumn } from "drizzle-orm/pg-core";
+import { canonicalPhoneDigits, PORTAL_CODE_LENGTH } from "@clinic/shared";
 import { PORTAL_SESSION_BYTES } from "@api/modules/portal/constants";
 
-export const phoneKey = (phone: string): string => phone.replaceAll(/\D/g, "").replace(/^00/, "");
-
-export const phoneKeyOf = (column: PgColumn): SQL =>
-  sql`regexp_replace(regexp_replace(${column}, '[^0-9]', '', 'g'), '^00', '')`;
+export const phoneKey = (phone: string): string => canonicalPhoneDigits(phone);
 
 export const generatePortalCode = (): string =>
   String(randomInt(0, 10 ** PORTAL_CODE_LENGTH)).padStart(PORTAL_CODE_LENGTH, "0");

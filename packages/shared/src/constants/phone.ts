@@ -85,3 +85,19 @@ export function splitPhone(
 }
 
 export const INTERNATIONAL_PHONE_PATTERN = /^\+\d{7,15}$/;
+
+const SHARED_NUMBERING_DIALS = ["970", "972"] as const;
+
+export function phoneDigitVariants(phone: string): string[] {
+  const digits = phone.replace(/\D/g, "").replace(/^00/, "");
+  const dial = SHARED_NUMBERING_DIALS.find((code) => digits.startsWith(code));
+
+  return dial
+    ? SHARED_NUMBERING_DIALS.map((code) => `${code}${digits.slice(dial.length)}`)
+    : [digits];
+}
+
+export const canonicalPhoneDigits = (phone: string): string => phoneDigitVariants(phone)[0] ?? "";
+
+export const isSamePhone = (a: string, b: string): boolean =>
+  canonicalPhoneDigits(a) === canonicalPhoneDigits(b);

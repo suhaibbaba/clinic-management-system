@@ -522,6 +522,23 @@ describe("Public booking (e2e)", () => {
       expect(rows[0]?.fullName).toBe("مريض قديم");
     });
 
+    it("links a number booked under +972 to the patient saved under +970", async () => {
+      const national = `59${String(Math.floor(Math.random() * 10_000_000)).padStart(7, "0")}`;
+      const patientId = await createPatient(context, receptionToken, {
+        ...nameParts("مريض قديم"),
+        phone: `+970${national}`,
+      });
+
+      const token = await held({ phone: `+972${national}`, ...nameParts("اسم مختلف") });
+
+      const [appointment] = await context.db
+        .select({ patientId: appointments.patientId })
+        .from(appointments)
+        .where(eq(appointments.id, appointmentIdOf(token)));
+
+      expect(appointment?.patientId).toBe(patientId);
+    });
+
     it("flags a record it created itself, and attributes it to nobody", async () => {
       const token = await held({ ...nameParts("زائر مجهول") });
 
