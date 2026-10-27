@@ -1,5 +1,8 @@
 import { ConflictException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import {
+  AUDIT_ACTION,
+  addMoney,
+  toMinorUnits,
   type CreateSupplierInput,
   type ListSuppliersQuery,
   type Paginated,
@@ -13,10 +16,21 @@ import { arabicNameSearch } from "@api/common/database/arabic-search";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
-import { DATABASE, type Database } from "@api/database/database.module";
-import { suppliers } from "@api/database/schema";
-import { SUPPLIERS_ENTITY } from "@api/common/constants/audit-entities";
-import { toSupplier, SupplierRow, toMoneyString } from "@api/modules/inventory/lib/suppliers";
+import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
+import { supplierOpeningBalances, suppliers } from "@api/database/schema";
+import { AuditService } from "@api/modules/audit/services/audit.service";
+import {
+  SUPPLIER_OPENING_BALANCES_ENTITY,
+  SUPPLIERS_ENTITY,
+} from "@api/common/constants/audit-entities";
+import {
+  EMPTY_ACCOUNT,
+  toSupplier,
+  SupplierAccount,
+  SupplierRow,
+  toAccount,
+} from "@api/modules/inventory/lib/suppliers";
+import { negate } from "@api/common/lib/money";
 
 @Injectable()
 export class SuppliersService implements OnModuleInit {
@@ -24,6 +38,7 @@ export class SuppliersService implements OnModuleInit {
     @Inject(DATABASE) private readonly db: Database,
     private readonly scope: ClinicScopeService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly audit: AuditService,
   ) {}
 
   onModuleInit(): void {
@@ -81,7 +96,7 @@ export class SuppliersService implements OnModuleInit {
     return toPaginated(
       rows.map((row) => ({
         ...toSupplier(row),
-        ...(summaries.get(row.id) ?? { purchased: "0.00", itemCount: 0 }),
+        ...(summaries.get(row.id) ?? EMPTY_ACCOUNT),
       })),
       totals?.value ?? 0,
       query,
@@ -92,31 +107,37 @@ export class SuppliersService implements OnModuleInit {
     const row = await this.requireRow(actor.clinicId, id);
     const summary = await this.summarise(actor.clinicId, [id]);
 
-    return { ...toSupplier(row), ...(summary.get(id) ?? { purchased: "0.00", itemCount: 0 }) };
+    return { ...toSupplier(row), ...(summary.get(id) ?? EMPTY_ACCOUNT) };
   }
 
   async create(actor: AuthenticatedUser, input: CreateSupplierInput): Promise<Supplier> {
     await this.assertNameIsFree(actor.clinicId, input.name);
 
-    const [row] = await this.db
-      .insert(suppliers)
-      .values({
-        clinicId: actor.clinicId,
-        name: input.name,
-        phone: input.phone ?? null,
-        contactPerson: input.contactPerson ?? null,
-        notes: input.notes ?? null,
-        ...(input.isActive !== undefined && { isActive: input.isActive }),
-        createdBy: actor.id,
-        updatedBy: actor.id,
-      })
-      .returning();
+    return this.db.transaction(async (tx) => {
+      const [row] = await tx
+        .insert(suppliers)
+        .values({
+          clinicId: actor.clinicId,
+          name: input.name,
+          phone: input.phone ?? null,
+          contactPerson: input.contactPerson ?? null,
+          notes: input.notes ?? null,
+          ...(input.isActive !== undefined && { isActive: input.isActive }),
+          createdBy: actor.id,
+          updatedBy: actor.id,
+        })
+        .returning();
 
-    if (!row) {
-      throw new Error("Failed to create the supplier");
-    }
+      if (!row) {
+        throw new Error("Failed to create the supplier");
+      }
 
-    return toSupplier(row);
+      if (input.openingBalance !== undefined) {
+        await this.setOpeningBalance(tx, actor, row.id, input.openingBalance);
+      }
+
+      return toSupplier(row);
+    });
   }
 
   async update(
@@ -130,25 +151,31 @@ export class SuppliersService implements OnModuleInit {
       await this.assertNameIsFree(actor.clinicId, input.name, id);
     }
 
-    const [row] = await this.db
-      .update(suppliers)
-      .set({
-        ...(input.name !== undefined && { name: input.name }),
-        ...(input.phone !== undefined && { phone: input.phone ?? null }),
-        ...(input.contactPerson !== undefined && { contactPerson: input.contactPerson ?? null }),
-        ...(input.notes !== undefined && { notes: input.notes ?? null }),
-        ...(input.isActive !== undefined && { isActive: input.isActive }),
-        updatedAt: new Date(),
-        updatedBy: actor.id,
-      })
-      .where(this.scope.where(suppliers, actor.clinicId, eq(suppliers.id, id)))
-      .returning();
+    return this.db.transaction(async (tx) => {
+      const [row] = await tx
+        .update(suppliers)
+        .set({
+          ...(input.name !== undefined && { name: input.name }),
+          ...(input.phone !== undefined && { phone: input.phone ?? null }),
+          ...(input.contactPerson !== undefined && { contactPerson: input.contactPerson ?? null }),
+          ...(input.notes !== undefined && { notes: input.notes ?? null }),
+          ...(input.isActive !== undefined && { isActive: input.isActive }),
+          updatedAt: new Date(),
+          updatedBy: actor.id,
+        })
+        .where(this.scope.where(suppliers, actor.clinicId, eq(suppliers.id, id)))
+        .returning();
 
-    if (!row) {
-      throw new Error("Failed to update the supplier");
-    }
+      if (!row) {
+        throw new Error("Failed to update the supplier");
+      }
 
-    return toSupplier(row);
+      if (input.openingBalance !== undefined) {
+        await this.setOpeningBalance(tx, actor, id, input.openingBalance);
+      }
+
+      return toSupplier(row);
+    });
   }
 
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
@@ -164,10 +191,73 @@ export class SuppliersService implements OnModuleInit {
     return this.scope.findOneOrFail<SupplierRow>(suppliers, clinicId, id);
   }
 
+  private async setOpeningBalance(
+    tx: DatabaseExecutor,
+    actor: AuthenticatedUser,
+    supplierId: string,
+    amount: string,
+  ): Promise<void> {
+    const standing = await tx
+      .select()
+      .from(supplierOpeningBalances)
+      .where(
+        and(
+          eq(supplierOpeningBalances.clinicId, actor.clinicId),
+          eq(supplierOpeningBalances.supplierId, supplierId),
+          isNull(supplierOpeningBalances.reversesId),
+          isNull(supplierOpeningBalances.reversedAt),
+          isNull(supplierOpeningBalances.deletedAt),
+        ),
+      )
+      .for("update");
+
+    const current = standing.reduce((sum, row) => addMoney(sum, row.amount), "0.00");
+
+    if (toMinorUnits(current) === toMinorUnits(amount)) {
+      return;
+    }
+
+    const stamp = { createdBy: actor.id, updatedBy: actor.id };
+
+    for (const row of standing) {
+      await tx
+        .update(supplierOpeningBalances)
+        .set({ reversedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
+        .where(eq(supplierOpeningBalances.id, row.id));
+
+      await tx.insert(supplierOpeningBalances).values({
+        clinicId: actor.clinicId,
+        supplierId,
+        amount: negate(row.amount),
+        reversesId: row.id,
+        ...stamp,
+      });
+    }
+
+    if (toMinorUnits(amount) !== 0) {
+      await tx
+        .insert(supplierOpeningBalances)
+        .values({ clinicId: actor.clinicId, supplierId, amount, ...stamp });
+    }
+
+    await this.audit.record(
+      {
+        clinicId: actor.clinicId,
+        userId: actor.id,
+        action: AUDIT_ACTION.UPDATE,
+        entity: SUPPLIER_OPENING_BALANCES_ENTITY,
+        entityId: supplierId,
+        oldValue: { openingBalance: current },
+        newValue: { openingBalance: amount },
+      },
+      tx,
+    );
+  }
+
   private async summarise(
     clinicId: string,
     supplierIds: readonly string[],
-  ): Promise<Map<string, { purchased: string; itemCount: number }>> {
+  ): Promise<Map<string, SupplierAccount>> {
     if (supplierIds.length === 0) {
       return new Map();
     }
@@ -179,29 +269,39 @@ export class SuppliersService implements OnModuleInit {
 
     const rows = await this.db.execute<{
       supplier_id: string;
+      opening: string;
       purchased: string;
-      item_count: number;
+      paid: string;
+      last_purchase_at: Date | string | null;
     }>(sql`
       with scoped as (select unnest(array[${ids}]) as supplier_id)
       select
         s.supplier_id::text as supplier_id,
         coalesce((
-          select sum(quantity * unit_price) from stock_movements
+          select sum(amount) from supplier_opening_balances
+          where clinic_id = ${clinicId} and supplier_id = s.supplier_id and deleted_at is null
+        ), 0)::text as opening,
+        coalesce((
+          select round(sum(quantity * unit_price), 2) from stock_movements
           where clinic_id = ${clinicId} and supplier_id = s.supplier_id
             and type = 'purchase' and unit_price is not null
         ), 0)::text as purchased,
+        coalesce((
+          select sum(amount) from supplier_payments
+          where clinic_id = ${clinicId} and supplier_id = s.supplier_id and deleted_at is null
+        ), 0)::text as paid,
         (
-          select count(*)::int from inventory_items
-          where clinic_id = ${clinicId} and default_supplier_id = s.supplier_id
-            and deleted_at is null
-        ) as item_count
+          select max(created_at) from stock_movements
+          where clinic_id = ${clinicId} and supplier_id = s.supplier_id
+            and type = 'purchase' and reverses_id is null and reversed_at is null
+        ) as last_purchase_at
       from scoped s
     `);
 
     return new Map(
       [...rows].map((row) => [
         row.supplier_id,
-        { purchased: toMoneyString(row.purchased), itemCount: Number(row.item_count) },
+        toAccount(row.opening, row.purchased, row.paid, row.last_purchase_at),
       ]),
     );
   }

@@ -1,4 +1,5 @@
 import {
+  PAYMENT_METHOD,
   STOCK_ERROR,
   ITEM_CATEGORY,
   ITEM_UNIT,
@@ -11,6 +12,7 @@ import {
   type StockMovement,
   type StockMovementRow,
   type SupplierStatement,
+  type SupplierSummary,
   type TimelineEntry,
   type UserRole,
 } from "@clinic/shared";
@@ -522,9 +524,9 @@ describe("Inventory (e2e)", () => {
 
     expect(response.statusCode).toBe(200);
     const statement = response.json() as SupplierStatement;
-    const lines = statement.lines.filter((line) => line.itemId === itemId);
+    const lines = statement.entries.filter((entry) => entry.itemId === itemId);
 
-    expect(lines.map((line) => line.total)).toEqual(["30.00", "12.00", null]);
+    expect(lines.map((entry) => entry.amount)).toEqual(["30.00", "12.00", null]);
   });
 
   it("lets an admin archive a supplier: gone as a default, kept on past purchases", async () => {
@@ -564,6 +566,242 @@ describe("Inventory (e2e)", () => {
     });
     const movements = (history.json() as Paginated<StockMovementRow>).items;
     expect(movements[0]?.supplierName).toMatch(/^Archived Supplies/);
+  });
+
+  describe("a supplier's account", () => {
+    const newSupplier = async (payload: Record<string, unknown> = {}): Promise<string> => {
+      const response = await context.app.inject({
+        method: "POST",
+        url: "/suppliers",
+        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        payload: { name: `حساب مورّد ${uniquePhone()}`, ...payload },
+      });
+      expect(response.statusCode).toBe(201);
+
+      return (response.json() as { id: string }).id;
+    };
+
+    const account = async (id: string): Promise<SupplierSummary> =>
+      (
+        await context.app.inject({
+          method: "GET",
+          url: `/suppliers/${id}`,
+          headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        })
+      ).json() as SupplierSummary;
+
+    const pay = (id: string, amount: string, token = tokens[USER_ROLE.TECHNICIAN]) =>
+      context.app.inject({
+        method: "POST",
+        url: "/supplier-payments",
+        headers: auth(token),
+        payload: { supplierId: id, amount, method: PAYMENT_METHOD.CASH },
+      });
+
+    it("owes a purchase until it is paid, in part or in full", async () => {
+      const id = await newSupplier();
+      const itemId = await createItem({ name: `بند حساب ${uniquePhone()}` });
+
+      expect(
+        (await move("purchase", { itemId, quantity: "3", unitPrice: "600", supplierId: id }))
+          .statusCode,
+      ).toBe(201);
+      expect(await account(id)).toMatchObject({
+        purchased: "1800.00",
+        paid: "0.00",
+        balance: "1800.00",
+      });
+
+      expect((await pay(id, "500")).statusCode).toBe(201);
+      expect(await account(id)).toMatchObject({ paid: "500.00", balance: "1300.00" });
+    });
+
+    it("records what was paid at purchase with the purchase", async () => {
+      const id = await newSupplier();
+      const itemId = await createItem({ name: `بند دفعة ${uniquePhone()}` });
+
+      const bought = await move("purchase", {
+        itemId,
+        quantity: "2",
+        unitPrice: "100",
+        supplierId: id,
+        paidNow: "150",
+        paymentMethod: PAYMENT_METHOD.CASH,
+      });
+
+      expect(bought.statusCode).toBe(201);
+      expect(await account(id)).toMatchObject({
+        purchased: "200.00",
+        paid: "150.00",
+        balance: "50.00",
+      });
+    });
+
+    it("refuses a payment at purchase above the purchase total, and records nothing", async () => {
+      const id = await newSupplier();
+      const itemId = await createItem({ name: `بند زائد ${uniquePhone()}` });
+
+      const bought = await move("purchase", {
+        itemId,
+        quantity: "1",
+        unitPrice: "100",
+        supplierId: id,
+        paidNow: "101",
+        paymentMethod: PAYMENT_METHOD.CASH,
+      });
+
+      expect(bought.statusCode).toBe(400);
+      expect(await account(id)).toMatchObject({ purchased: "0.00", paid: "0.00" });
+    });
+
+    it("starts from an opening balance and changes it by reversal, never in place", async () => {
+      const id = await newSupplier({ openingBalance: "700" });
+      expect(await account(id)).toMatchObject({ openingBalance: "700.00", balance: "700.00" });
+
+      const edited = await context.app.inject({
+        method: "PATCH",
+        url: `/suppliers/${id}`,
+        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        payload: { openingBalance: "400" },
+      });
+      expect(edited.statusCode).toBe(200);
+      expect(await account(id)).toMatchObject({ openingBalance: "400.00", balance: "400.00" });
+
+      const statement = (
+        await context.app.inject({
+          method: "GET",
+          url: `/suppliers/${id}/statement`,
+          headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        })
+      ).json() as SupplierStatement;
+
+      expect(statement.entries.map((entry) => entry.amount)).toEqual([
+        "700.00",
+        "-700.00",
+        "400.00",
+      ]);
+      expect(statement.closingBalance).toBe("400.00");
+    });
+
+    it("lists purchases and payments in one statement with a running balance", async () => {
+      const id = await newSupplier({ openingBalance: "100" });
+      const itemId = await createItem({ name: `بند كشف ${uniquePhone()}` });
+
+      await move("purchase", { itemId, quantity: "1", unitPrice: "300", supplierId: id });
+      await pay(id, "250");
+
+      const statement = (
+        await context.app.inject({
+          method: "GET",
+          url: `/suppliers/${id}/statement`,
+          headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        })
+      ).json() as SupplierStatement;
+
+      expect(statement.entries.map((entry) => [entry.kind, entry.runningBalance])).toEqual([
+        ["opening", "100.00"],
+        ["purchase", "400.00"],
+        ["payment", "150.00"],
+      ]);
+      expect(statement).toMatchObject({ purchased: "300.00", paid: "250.00" });
+    });
+
+    it("lets only an admin reverse a payment, which puts the debt back", async () => {
+      const id = await newSupplier({ openingBalance: "300" });
+      const paid = (await pay(id, "300")).json() as { id: string };
+
+      const byTechnician = await context.app.inject({
+        method: "PATCH",
+        url: `/supplier-payments/${paid.id}/reverse`,
+        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        payload: { reason: "دفعة مكررة" },
+      });
+      expect(byTechnician.statusCode).toBe(403);
+
+      const byAdmin = await context.app.inject({
+        method: "PATCH",
+        url: `/supplier-payments/${paid.id}/reverse`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+        payload: { reason: "دفعة مكررة" },
+      });
+      expect(byAdmin.statusCode).toBe(200);
+      expect(await account(id)).toMatchObject({ paid: "0.00", balance: "300.00" });
+    });
+
+    it("edits a purchase by reversing it and recording the corrected one", async () => {
+      const id = await newSupplier();
+      const itemId = await createItem({ name: `بند تعديل ${uniquePhone()}` });
+      const bought = (
+        await move("purchase", { itemId, quantity: "3", unitPrice: "600", supplierId: id })
+      ).json() as StockMovement;
+
+      const corrected = await context.app.inject({
+        method: "PATCH",
+        url: `/inventory/movements/${bought.id}/correct`,
+        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        payload: { quantity: "2", unitPrice: "550", reason: "خطأ في الكمية" },
+      });
+
+      expect(corrected.statusCode).toBe(200);
+      expect(corrected.json()).toMatchObject({ quantity: "2", supplierId: id, itemId });
+      expect(await account(id)).toMatchObject({ purchased: "1100.00", balance: "1100.00" });
+      expect((await readItem(itemId)).quantity).toBe("2");
+
+      const again = await context.app.inject({
+        method: "PATCH",
+        url: `/inventory/movements/${bought.id}/correct`,
+        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        payload: { quantity: "1", unitPrice: "550", reason: "مرة ثانية" },
+      });
+      expect(again.statusCode).toBe(400);
+    });
+
+    it("deletes a purchase by reversal, which takes it off what is owed", async () => {
+      const id = await newSupplier();
+      const itemId = await createItem({ name: `بند حذف ${uniquePhone()}` });
+      const bought = (
+        await move("purchase", { itemId, quantity: "1", unitPrice: "400", supplierId: id })
+      ).json() as StockMovement;
+
+      const reversed = await context.app.inject({
+        method: "PATCH",
+        url: `/inventory/movements/${bought.id}/reverse`,
+        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        payload: { reason: "سُجّل خطأ" },
+      });
+
+      expect(reversed.statusCode).toBe(200);
+      expect(await account(id)).toMatchObject({ purchased: "0.00", balance: "0.00" });
+    });
+
+    it("corrects only a purchase", async () => {
+      const itemId = await createItem({ name: `بند استهلاك ${uniquePhone()}` });
+      await move("purchase", { itemId, quantity: "5" });
+      const used = (await move("consume", { itemId, quantity: "1" })).json() as StockMovement;
+
+      const response = await context.app.inject({
+        method: "PATCH",
+        url: `/inventory/movements/${used.id}/correct`,
+        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        payload: { quantity: "2", reason: "ليس شراء" },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("keeps a receptionist away from supplier payments", async () => {
+      const id = await newSupplier();
+
+      expect((await pay(id, "10", tokens[USER_ROLE.RECEPTIONIST])).statusCode).toBe(403);
+    });
+
+    it("answers 404 for another clinic's supplier", async () => {
+      const other = await context.createClinic();
+      const otherAdmin = await context.login(other.phones[USER_ROLE.ADMIN]);
+      const id = await newSupplier();
+
+      expect((await pay(id, "10", otherAdmin)).statusCode).toBe(404);
+    });
   });
 
   it("prints the shopping list as a PDF", async () => {

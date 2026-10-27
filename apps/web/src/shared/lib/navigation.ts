@@ -205,6 +205,11 @@ const BACK_ROUTES: readonly (BackTarget & { readonly pattern: RegExp })[] = [
     to: "/inventory",
     label: "nav.inventory",
   },
+  {
+    pattern: /^\/inventory\/suppliers\/[^/]+$/,
+    to: "/inventory?tab=suppliers",
+    label: "nav.inventory",
+  },
   { pattern: /^\/doctors\/[^/]+$/, to: "/users?view=doctors", label: "nav.users" },
   { pattern: /^\/payroll\/[^/]+$/, to: "/finance", label: "nav.finance" },
   { pattern: /^\/profile$/, to: "/dashboard", label: "nav.dashboard" },

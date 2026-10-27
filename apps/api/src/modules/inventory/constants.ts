@@ -8,3 +8,5 @@ export const EMPTY: ItemStock = {
   isExpiring: false,
   isExpired: false,
 };
+
+export const SUPPLIER_PAYMENT_CAPABILITY = "supplier-payments.create";

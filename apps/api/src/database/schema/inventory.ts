@@ -10,7 +10,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
-import { clinics } from "@api/database/schema/core";
+import { clinics, users } from "@api/database/schema/core";
 import { normalizedName } from "@api/database/schema/normalized-name";
 import { patients, performedProcedures } from "@api/database/schema/patients";
 
@@ -103,4 +103,49 @@ export const stockMovements = pgTable(
     index("stock_movements_expiry_idx").on(table.clinicId, table.itemId, table.expiryDate),
     index("stock_movements_reverses_idx").on(table.reversesId),
   ],
+);
+
+export const supplierPayments = pgTable(
+  "supplier_payments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    supplierId: uuid("supplier_id")
+      .notNull()
+      .references(() => suppliers.id),
+    movementId: uuid("movement_id").references(() => stockMovements.id),
+    amount: money("amount").notNull(),
+    method: text("method").notNull(),
+    note: text("note"),
+    reversesId: uuid("reverses_id"),
+    reversedAt: timestamp("reversed_at", { withTimezone: true }),
+    paidBy: uuid("paid_by").references(() => users.id),
+    ...auditColumns,
+    ...softDeleteColumn,
+  },
+  (table) => [
+    index("supplier_payments_supplier_idx").on(table.clinicId, table.supplierId, table.createdAt),
+    index("supplier_payments_reverses_idx").on(table.reversesId),
+  ],
+);
+
+export const supplierOpeningBalances = pgTable(
+  "supplier_opening_balances",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    supplierId: uuid("supplier_id")
+      .notNull()
+      .references(() => suppliers.id),
+    amount: money("amount").notNull(),
+    reversesId: uuid("reverses_id"),
+    reversedAt: timestamp("reversed_at", { withTimezone: true }),
+    ...auditColumns,
+    ...softDeleteColumn,
+  },
+  (table) => [index("supplier_opening_balances_supplier_idx").on(table.clinicId, table.supplierId)],
 );

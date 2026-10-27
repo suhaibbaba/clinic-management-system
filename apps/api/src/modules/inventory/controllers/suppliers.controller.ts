@@ -43,7 +43,8 @@ export class SuppliersController {
 
   @AiTool({
     group: "inventory",
-    description: "The clinic's suppliers by name. Use to find a supplierId.",
+    description:
+      "The clinic's suppliers by name, each with purchased, paid and the balance still owed. Use to find a supplierId.",
   })
   @Get()
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
@@ -69,7 +70,8 @@ export class SuppliersController {
 
   @AiTool({
     group: "inventory",
-    description: "What was bought from one supplier over dates.",
+    description:
+      "One supplier's account over dates: opening balance, purchases and payments, and what is still owed.",
   })
   @Get(":id/statement")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)

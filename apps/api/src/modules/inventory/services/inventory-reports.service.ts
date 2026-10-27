@@ -1,29 +1,33 @@
 import { Inject, Injectable } from "@nestjs/common";
 import {
   MOVEMENT_TYPE,
-  formatMinorUnits,
-  formatThousandths,
-  toMinorUnits,
-  toThousandths,
   type InventoryAlerts,
   type ShoppingList,
   type StatementRangeQuery,
   type SupplierStatement,
-  type SupplierStatementLine,
 } from "@clinic/shared";
-import { and, asc, eq, gte, isNull, lt, type SQL } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { inventoryItems, stockMovements, suppliers } from "@api/database/schema";
+import {
+  inventoryItems,
+  stockMovements,
+  supplierOpeningBalances,
+  supplierPayments,
+  suppliers,
+} from "@api/database/schema";
 import { InventoryItemsService } from "@api/modules/inventory/services/inventory-items.service";
 import { StockService } from "@api/modules/inventory/services/stock.service";
 import { SuppliersService } from "@api/modules/inventory/services/suppliers.service";
+import { byUrgency, byExpiry, toShoppingLine } from "@api/modules/inventory/lib/inventory-reports";
 import {
-  byUrgency,
-  byExpiry,
-  toShoppingLine,
-  lineTotal,
-} from "@api/modules/inventory/lib/inventory-reports";
+  byOccurrence,
+  ledgerStatement,
+  openingLine,
+  paymentLine,
+  purchaseLine,
+  SupplierLedgerLine,
+} from "@api/modules/inventory/lib/supplier-ledger";
 
 @Injectable()
 export class InventoryReportsService {
@@ -63,56 +67,56 @@ export class InventoryReportsService {
   ): Promise<SupplierStatement> {
     const supplier = await this.suppliersService.requireRow(actor.clinicId, supplierId);
 
-    const filters: (SQL | undefined)[] = [
-      eq(stockMovements.clinicId, actor.clinicId),
-      eq(stockMovements.supplierId, supplierId),
-      eq(stockMovements.type, MOVEMENT_TYPE.PURCHASE),
-    ];
+    const [openingRows, purchaseRows, paymentRows] = await Promise.all([
+      this.db
+        .select()
+        .from(supplierOpeningBalances)
+        .where(
+          and(
+            eq(supplierOpeningBalances.clinicId, actor.clinicId),
+            eq(supplierOpeningBalances.supplierId, supplierId),
+            isNull(supplierOpeningBalances.deletedAt),
+          ),
+        ),
+      this.db
+        .select({
+          movement: stockMovements,
+          itemName: inventoryItems.name,
+          unit: inventoryItems.unit,
+        })
+        .from(stockMovements)
+        .innerJoin(inventoryItems, eq(inventoryItems.id, stockMovements.itemId))
+        .where(
+          and(
+            eq(stockMovements.clinicId, actor.clinicId),
+            eq(stockMovements.supplierId, supplierId),
+            eq(stockMovements.type, MOVEMENT_TYPE.PURCHASE),
+          ),
+        ),
+      this.db
+        .select()
+        .from(supplierPayments)
+        .where(
+          and(
+            eq(supplierPayments.clinicId, actor.clinicId),
+            eq(supplierPayments.supplierId, supplierId),
+            isNull(supplierPayments.deletedAt),
+          ),
+        ),
+    ]);
 
-    if (query.from) {
-      filters.push(gte(stockMovements.createdAt, new Date(query.from)));
-    }
-    if (query.to) {
-      filters.push(lt(stockMovements.createdAt, new Date(query.to)));
-    }
+    const lines: SupplierLedgerLine[] = [
+      ...openingRows.map((row) => openingLine(row)),
+      ...purchaseRows.map(({ movement, itemName, unit }) => purchaseLine(movement, itemName, unit)),
+      ...paymentRows.map((row) => paymentLine(row)),
+    ].sort(byOccurrence);
 
-    const rows = await this.db
-      .select({
-        movement: stockMovements,
-        itemName: inventoryItems.name,
-        unit: inventoryItems.unit,
-      })
-      .from(stockMovements)
-      .innerJoin(inventoryItems, eq(inventoryItems.id, stockMovements.itemId))
-      .where(and(...filters))
-      .orderBy(asc(stockMovements.createdAt));
-
-    const lines: SupplierStatementLine[] = rows.map(({ movement, itemName, unit }) => ({
-      movementId: movement.id,
-      occurredAt: movement.createdAt.toISOString(),
-      itemId: movement.itemId,
-      itemName,
-      unit,
-      quantity: formatThousandths(toThousandths(movement.quantity)),
-      unitPrice: movement.unitPrice,
-      total: movement.unitPrice === null ? null : lineTotal(movement.quantity, movement.unitPrice),
-      batchNo: movement.batchNo,
-      isReversal: movement.reversesId !== null,
-    }));
-
-    const total = lines.reduce(
-      (sum, line) => sum + (line.total === null ? 0 : toMinorUnits(line.total)),
-      0,
-    );
-
-    return {
-      supplierId,
-      supplierName: supplier.name,
-      from: query.from ?? null,
-      to: query.to ?? null,
-      total: formatMinorUnits(total),
+    return ledgerStatement(
+      { id: supplierId, name: supplier.name },
       lines,
-    };
+      query.from ? new Date(query.from) : null,
+      query.to ? new Date(query.to) : null,
+    );
   }
 
   private async activeItems(

@@ -54,6 +54,10 @@ export const STOCK_MOVEMENTS_ENTITY = "stock_movements";
 
 export const SUPPLIERS_ENTITY = "suppliers";
 
+export const SUPPLIER_PAYMENTS_ENTITY = "supplier_payments";
+
+export const SUPPLIER_OPENING_BALANCES_ENTITY = "supplier_opening_balances";
+
 export const USERS_ENTITY = "users";
 
 export const TRANSLATION_OVERRIDES_ENTITY = "translation_overrides";

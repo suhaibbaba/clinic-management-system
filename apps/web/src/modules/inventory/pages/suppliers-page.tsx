@@ -1,6 +1,7 @@
-import { type SupplierSummary } from "@clinic/shared";
+import { toMinorUnits, type SupplierSummary } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import {
   Badge,
   Button,
@@ -20,10 +21,15 @@ import {
 import { useSession } from "@web/shared/providers/session";
 import { Money } from "@web/shared/components/money";
 import { useClinic } from "@web/shared/queries/clinic";
-import { canDeleteSupplier, canManageSuppliers } from "@web/shared/permissions/inventory";
+import {
+  canDeleteSupplier,
+  canManageSuppliers,
+  canPaySupplier,
+} from "@web/shared/permissions/inventory";
 import { useDeleteSupplier, useSuppliers } from "@web/modules/inventory/queries";
 import { SupplierFormModal } from "@web/modules/inventory/components/supplier-form-modal";
-import { SupplierStatementPanel } from "@web/modules/inventory/components/supplier-statement";
+import { SupplierPaymentModal } from "@web/modules/inventory/components/supplier-payment-modal";
+import { formatDate } from "@web/shared/lib/format";
 import { errorToast } from "@web/shared/lib/api-error";
 import { useDebounced } from "@web/shared/hooks/use-debounced";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
@@ -33,13 +39,14 @@ export function SuppliersPage(): JSX.Element {
   const { can } = useSession();
   const clinic = useClinic();
   const toast = useToast();
+  const navigate = useNavigate();
   const remove = useDeleteSupplier();
   const { confirm, dialog } = useConfirm("supplier-confirm-delete");
 
   const [search, setSearch] = useState("");
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<SupplierSummary | undefined>();
-  const [selected, setSelected] = useState<SupplierSummary | null>(null);
+  const [paying, setPaying] = useState<SupplierSummary | null>(null);
 
   const debounced = useDebounced(search);
   const suppliers = useSuppliers({
@@ -50,6 +57,8 @@ export function SuppliersPage(): JSX.Element {
 
   const mayManage = canManageSuppliers(can);
   const mayDelete = canDeleteSupplier(can);
+  const mayPay = canPaySupplier(can);
+  const currency = clinic.data?.currency;
 
   const askDelete = (supplier: SupplierSummary): void =>
     confirm({
@@ -63,9 +72,6 @@ export function SuppliersPage(): JSX.Element {
         try {
           await remove.mutateAsync(supplier.id);
           toast.success("inventory.suppliers.deleted");
-          if (selected?.id === supplier.id) {
-            setSelected(null);
-          }
         } catch (error) {
           toast.error(...errorToast(error));
           throw error;
@@ -79,8 +85,8 @@ export function SuppliersPage(): JSX.Element {
       header: "inventory.suppliers.name",
       primary: true,
       render: (row) => (
-        <span className="flex flex-col">
-          <span className="font-medium text-ink">{row.name}</span>
+        <span className="flex flex-col items-start">
+          <bdi className="font-medium text-ink">{row.name}</bdi>
           {row.contactPerson && (
             <span className="text-label text-ink-muted">{row.contactPerson}</span>
           )}
@@ -94,16 +100,39 @@ export function SuppliersPage(): JSX.Element {
       render: (row) => <PhoneLink value={row.phone} />,
     },
     {
-      key: "items",
-      header: "inventory.suppliers.items",
-      align: "numeric",
-      render: (row) => row.itemCount,
-    },
-    {
       key: "purchased",
       header: "inventory.suppliers.purchased",
       align: "numeric",
-      render: (row) => <Money amount={row.purchased} currency={clinic.data?.currency} />,
+      hideOnMobile: true,
+      render: (row) => <Money amount={row.purchased} currency={currency} />,
+    },
+    {
+      key: "paid",
+      header: "inventory.suppliers.paid",
+      align: "numeric",
+      hideOnMobile: true,
+      render: (row) => <Money amount={row.paid} currency={currency} />,
+    },
+    {
+      key: "balance",
+      header: "inventory.suppliers.balance",
+      align: "numeric",
+      render: (row) => (
+        <Money
+          amount={row.balance}
+          currency={currency}
+          data-testid="supplier-balance"
+          className={
+            toMinorUnits(row.balance) > 0 ? "font-semibold text-danger-600" : "text-ink-muted"
+          }
+        />
+      ),
+    },
+    {
+      key: "lastPurchase",
+      header: "inventory.suppliers.lastPurchase",
+      hideOnMobile: true,
+      render: (row) => (row.lastPurchaseAt ? formatDate(row.lastPurchaseAt) : "—"),
     },
     {
       key: "state",
@@ -115,7 +144,7 @@ export function SuppliersPage(): JSX.Element {
           </Badge>
         ),
     },
-    ...(mayManage || mayDelete
+    ...(mayManage || mayDelete || mayPay
       ? [
           {
             key: "actions",
@@ -127,6 +156,11 @@ export function SuppliersPage(): JSX.Element {
                 label={t("inventory.suppliers.menu")}
                 data-testid={`supplier-menu-${row.id}`}
               >
+                {mayPay && (
+                  <MenuItem icon="money" data-testid="supplier-pay" onSelect={() => setPaying(row)}>
+                    {t("inventory.suppliers.pay")}
+                  </MenuItem>
+                )}
                 {mayManage && (
                   <MenuItem
                     icon="edit"
@@ -198,7 +232,7 @@ export function SuppliersPage(): JSX.Element {
         rowKey={(row) => row.id}
         isLoading={suppliers.isPending}
         isRefreshing={isRefetching(suppliers)}
-        onRowClick={setSelected}
+        onRowClick={(row) => void navigate(`/inventory/suppliers/${row.id}`)}
         rowLabel={(row) => row.name}
         empty={
           <EmptyState
@@ -210,7 +244,7 @@ export function SuppliersPage(): JSX.Element {
         }
       />
 
-      {selected && <SupplierStatementPanel supplier={selected} onClose={() => setSelected(null)} />}
+      <SupplierPaymentModal supplier={paying} currency={currency} onClose={() => setPaying(null)} />
 
       <SupplierFormModal
         data-testid="supplier-create-modal"

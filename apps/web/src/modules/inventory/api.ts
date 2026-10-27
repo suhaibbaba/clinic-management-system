@@ -2,8 +2,10 @@ import { toQueryString } from "@web/shared/lib/query-string";
 import type {
   AdjustStockInput,
   ConsumeStockInput,
+  CorrectPurchaseInput,
   CreateInventoryItemInput,
   CreateSupplierInput,
+  CreateSupplierPaymentInput,
   InventoryAlerts,
   InventoryItem,
   InventoryItemRow,
@@ -19,6 +21,7 @@ import type {
   StockMovement,
   StockMovementRow,
   Supplier,
+  SupplierPayment,
   SupplierStatement,
   SupplierSummary,
   UpdateInventoryItemInput,
@@ -59,6 +62,9 @@ export const inventoryApi = {
   adjust: (body: AdjustStockInput) =>
     apiRequest<StockMovement>("/inventory/movements/adjust", { method: "POST", body }),
 
+  correctPurchase: (id: string, body: CorrectPurchaseInput) =>
+    apiRequest<StockMovement>(`/inventory/movements/${id}/correct`, { method: "PATCH", body }),
+
   reverse: (id: string, body: ReverseMovementInput) =>
     apiRequest<StockMovement>(`/inventory/movements/${id}/reverse`, { method: "PATCH", body }),
 
@@ -88,4 +94,13 @@ export const suppliersApi = {
 
   statement: (id: string, params: StatementRangeQuery) =>
     apiRequest<SupplierStatement>(`/suppliers/${id}/statement${toQueryString({ ...params })}`),
+
+  pay: (body: CreateSupplierPaymentInput) =>
+    apiRequest<SupplierPayment>("/supplier-payments", { method: "POST", body }),
+
+  reversePayment: (id: string, reason: string) =>
+    apiRequest<SupplierPayment>(`/supplier-payments/${id}/reverse`, {
+      method: "PATCH",
+      body: { reason },
+    }),
 };

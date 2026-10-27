@@ -1,4 +1,3 @@
-import type { StockMovementRow } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Icon, Modal, Textarea, useToast } from "@clinic/ui";
@@ -9,7 +8,7 @@ export function ReverseMovementModal({
   movement,
   onClose,
 }: {
-  readonly movement: StockMovementRow | null;
+  readonly movement: { readonly id: string } | null;
   readonly onClose: () => void;
 }): JSX.Element {
   const { t } = useTranslation();

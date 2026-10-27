@@ -1525,7 +1525,12 @@
       "restock": "Add Stock (a Purchase)",
       "backToUse": "Back to Using It",
       "overStock": "More Than Is in Stock",
-      "atLeastOne": "Take Off at Least 1"
+      "atLeastOne": "Take Off at Least 1",
+      "purchaseTotal": "Purchase Total",
+      "paidNow": "Paid Now",
+      "paymentMethod": "Payment Method",
+      "leftToPay": "Left to Pay",
+      "paidTooMuch": "More than the purchase total"
     },
     "shoppingList": {
       "title": "Shopping List",
@@ -1540,7 +1545,7 @@
     },
     "suppliers": {
       "title": "Suppliers",
-      "subtitle": "Who the clinic buys from, and what has been spent",
+      "subtitle": "Who the clinic buys from, what it paid them and what it still owes",
       "add": "Add Supplier",
       "newTitle": "New Supplier",
       "editTitle": "Edit Supplier",
@@ -1549,7 +1554,6 @@
       "name": "Supplier",
       "phone": "Phone",
       "contact": "Contact Person",
-      "items": "Items",
       "purchased": "Total Purchases",
       "state": "State",
       "actions": "Actions",
@@ -1560,16 +1564,19 @@
       "empty": "No suppliers yet",
       "emptyHint": "Add suppliers so purchases can be attributed to them",
       "statement": {
-        "title": "Purchases — {{supplier}}",
         "range": "Period",
         "date": "Date",
-        "item": "Item",
-        "quantity": "Quantity",
-        "unitPrice": "Unit Price",
-        "total": "Total",
-        "periodTotal": "Period Total",
-        "empty": "No purchases in this period",
-        "emptyHint": "Every purchase from this supplier appears here"
+        "empty": "Nothing in this period",
+        "emptyHint": "Purchases and payments for this supplier will show here",
+        "description": "Details",
+        "amount": "Amount",
+        "balance": "Balance",
+        "opening": "Opening Balance",
+        "reversed": "Reversed",
+        "kinds": {
+          "opening": "Opening balance",
+          "payment": "Payment"
+        }
       },
       "menu": "Supplier Options",
       "deleted": "Supplier Deleted",
@@ -1577,6 +1584,32 @@
         "title": "Delete the supplier “{{name}}”?",
         "history": "Past purchases stay on the record and in the statement",
         "items": "It will no longer show as any item's default supplier"
+      },
+      "paid": "Paid",
+      "balance": "Still Owed",
+      "lastPurchase": "Last Purchase",
+      "pay": "Record a Payment",
+      "openingBalance": "Opening Balance",
+      "openingBalanceHint": "What the clinic owed this supplier before using the system",
+      "payment": {
+        "title": "Payment to {{supplier}}",
+        "description": "Record what the clinic paid this supplier, in full or in part.",
+        "amount": "Amount Paid",
+        "method": "Payment Method",
+        "note": "Note",
+        "submit": "Record Payment",
+        "recorded": "Payment recorded",
+        "reverse": "Reverse Payment",
+        "reverseTitle": "Reverse a Supplier Payment",
+        "reverseDescription": "The payment stays on the statement; a reversing line cancels it and puts the amount back on what the clinic owes.",
+        "reverseReason": "Reason",
+        "reversed": "Payment reversed"
+      },
+      "purchase": {
+        "menu": "Purchase Options",
+        "editTitle": "Edit Purchase — {{item}}",
+        "editDescription": "The old purchase is reversed on the record and the corrected one is entered in its place, so the change stays visible.",
+        "updated": "Purchase updated"
       }
     },
     "section": {

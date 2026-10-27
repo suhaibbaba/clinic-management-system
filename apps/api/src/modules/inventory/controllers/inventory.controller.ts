@@ -46,6 +46,7 @@ import {
   AdjustDto,
   IdParamDto,
   ReverseDto,
+  CorrectPurchaseDto,
   ListItemsQueryDto,
   CreateItemDto,
   UpdateItemDto,
@@ -141,6 +142,17 @@ export class InventoryController {
   @Audit(STOCK_MOVEMENTS_ENTITY, AUDIT_ACTION.CREATE)
   adjust(@CurrentUser() actor: AuthenticatedUser, @Body() body: AdjustDto): Promise<StockMovement> {
     return this.movements.adjust(actor, body);
+  }
+
+  @Patch("movements/:id/correct")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
+  @Audit(STOCK_MOVEMENTS_ENTITY, AUDIT_ACTION.UPDATE)
+  correctPurchase(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Body() body: CorrectPurchaseDto,
+  ): Promise<StockMovement> {
+    return this.movements.correctPurchase(actor, params.id, body);
   }
 
   @Patch("movements/:id/reverse")

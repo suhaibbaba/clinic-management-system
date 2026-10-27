@@ -1,4 +1,4 @@
-import { createSupplierSchema, type SupplierSummary } from "@clinic/shared";
+import { createSupplierSchema, toMinorUnits, type SupplierSummary } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -6,6 +6,7 @@ import {
   FormField,
   Input,
   Modal,
+  MoneyInput,
   PhoneInput,
   Switch,
   Textarea,
@@ -16,6 +17,7 @@ import { errorToast } from "@web/shared/lib/api-error";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { capitalizeWords } from "@web/modules/inventory/lib/capitalize-words";
+import { useCurrency } from "@web/shared/queries/clinic";
 
 export function SupplierFormModal({
   open,
@@ -30,6 +32,7 @@ export function SupplierFormModal({
 }): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
+  const currency = useCurrency();
 
   const create = useCreateSupplier();
   const update = useUpdateSupplier();
@@ -39,6 +42,7 @@ export function SupplierFormModal({
   const [contactPerson, setContactPerson] = useState("");
   const [notes, setNotes] = useState("");
   const [isActive, setIsActive] = useState(true);
+  const [openingBalance, setOpeningBalance] = useState("");
 
   const body = {
     name: name.trim(),
@@ -46,6 +50,7 @@ export function SupplierFormModal({
     contactPerson: contactPerson.trim() === "" ? null : contactPerson.trim(),
     notes: notes.trim() === "" ? null : notes.trim(),
     isActive,
+    openingBalance: openingBalance.trim() === "" ? "0" : openingBalance.trim(),
   };
 
   const form = useFormErrors(schemaErrors(createSupplierSchema, body));
@@ -62,6 +67,11 @@ export function SupplierFormModal({
     setContactPerson(supplier?.contactPerson ?? "");
     setNotes(supplier?.notes ?? "");
     setIsActive(supplier?.isActive ?? true);
+    setOpeningBalance(
+      supplier && toMinorUnits(supplier.openingBalance) !== 0
+        ? (supplier.openingBalance.split(".")[0] ?? "")
+        : "",
+    );
     reset();
   }, [open, supplier, reset]);
 
@@ -174,6 +184,25 @@ export function SupplierFormModal({
               rows={2}
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
+            />
+          </FormField>
+        </div>
+
+        <div onBlur={form.leave("openingBalance")}>
+          <FormField
+            error={form.errors["openingBalance"]}
+            label="inventory.suppliers.openingBalance"
+            hint="inventory.suppliers.openingBalanceHint"
+            htmlFor="supplier-opening-balance"
+            optional
+          >
+            <MoneyInput
+              id="supplier-opening-balance"
+              data-testid="supplier-field-opening-balance"
+              currency={currency}
+              placeholder="0"
+              value={openingBalance}
+              onChange={(event) => setOpeningBalance(event.target.value)}
             />
           </FormField>
         </div>

@@ -2,8 +2,10 @@ import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tan
 import type {
   AdjustStockInput,
   ConsumeStockInput,
+  CorrectPurchaseInput,
   CreateInventoryItemInput,
   CreateSupplierInput,
+  CreateSupplierPaymentInput,
   InventoryAlerts,
   InventoryItemRow,
   ItemBatches,
@@ -109,6 +111,14 @@ export function useSuppliers(
   });
 }
 
+export function useSupplier(id: string): UseQueryResult<SupplierSummary> {
+  return useQuery({
+    queryKey: [SUPPLIERS_KEY, "one", id],
+    queryFn: () => suppliersApi.findOne(id),
+    enabled: id !== "",
+  });
+}
+
 export function useSupplierStatement(
   id: string,
   query: StatementRangeQuery,
@@ -147,6 +157,12 @@ export function useAdjustStock() {
   return useStockMutation((input: AdjustStockInput) => inventoryApi.adjust(input));
 }
 
+export function useCorrectPurchase() {
+  return useStockMutation(({ id, body }: { id: string; body: CorrectPurchaseInput }) =>
+    inventoryApi.correctPurchase(id, body),
+  );
+}
+
 export function useReverseMovement() {
   return useStockMutation(({ id, reason }: { id: string; reason: string }) =>
     inventoryApi.reverse(id, { reason }),
@@ -160,6 +176,16 @@ export function useCreateSupplier() {
 export function useUpdateSupplier() {
   return useStockMutation(({ id, body }: { id: string; body: UpdateSupplierInput }) =>
     suppliersApi.update(id, body),
+  );
+}
+
+export function usePaySupplier() {
+  return useStockMutation((input: CreateSupplierPaymentInput) => suppliersApi.pay(input));
+}
+
+export function useReverseSupplierPayment() {
+  return useStockMutation(({ id, reason }: { id: string; reason: string }) =>
+    suppliersApi.reversePayment(id, reason),
   );
 }
 

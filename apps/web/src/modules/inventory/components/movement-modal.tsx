@@ -26,9 +26,16 @@ import {
 } from "@clinic/ui";
 import { PatientPicker } from "@web/shared/components/patient-picker";
 import { type PatientChoice, type PickedPatient } from "@web/shared/lib/patient-draft";
-import { useLookupLabels } from "@web/shared/queries/lookups";
+import { useLookupLabels, useLookupOptions } from "@web/shared/queries/lookups";
+import { Money } from "@web/shared/components/money";
+import {
+  leftToPay,
+  paysMoreThan,
+  paysSomething,
+  purchaseTotal,
+} from "@web/modules/inventory/lib/purchase-payment";
 import { useSession } from "@web/shared/providers/session";
-import { canPurchaseStock, mayRecord } from "@web/shared/permissions/inventory";
+import { canPaySupplier, canPurchaseStock, mayRecord } from "@web/shared/permissions/inventory";
 import {
   useAdjustStock,
   useConsumeStock,
@@ -70,10 +77,13 @@ export function MovementModal({
   const adjust = useAdjustStock();
 
   const suppliers = useSuppliers({ limit: 100 });
+  const paymentMethods = useLookupOptions(LOOKUP_LIST.PAYMENT_METHOD);
 
   const [quantity, setQuantity] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
   const [supplierId, setSupplierId] = useState("");
+  const [paidNow, setPaidNow] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [batchNo, setBatchNo] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [reason, setReason] = useState("");
@@ -99,11 +109,17 @@ export function MovementModal({
     toThousandths(quantity.trim()) < 1000;
 
   const itemId = item?.id ?? "";
+  const total = mode === MOVEMENT_TYPE.PURCHASE ? purchaseTotal(quantity, unitPrice) : null;
+  const offersPayment = total !== null && supplierId !== "" && canPaySupplier(can);
+  const paying = offersPayment && paysSomething(paidNow);
+  const overpaid = paying && total !== null && paysMoreThan(total, paidNow);
+  const method = paymentMethod || (paymentMethods[0]?.value ?? "");
   const purchaseBody = {
     itemId,
     quantity: quantity.trim(),
     ...(unitPrice.trim() !== "" && { unitPrice: unitPrice.trim() }),
     ...(supplierId !== "" && { supplierId }),
+    ...(paying && { paidNow: paidNow.trim(), paymentMethod: method }),
     ...(batchNo.trim() !== "" && { batchNo: batchNo.trim() }),
     ...(expiryDate !== "" && { expiryDate }),
   };
@@ -136,6 +152,7 @@ export function MovementModal({
       ...(quantity.trim() === "" && { quantity: REQUIRED }),
       ...(overdrawn && { quantity: { type: "too_big" } }),
       ...(belowOne && { quantity: { type: "too_small" } }),
+      ...(overpaid && { paidNow: { type: "too_big" } }),
     };
   };
 
@@ -152,6 +169,8 @@ export function MovementModal({
     setPickedId("");
     setRestocking(false);
     setSupplierId(fixedItem?.defaultSupplierId ?? "");
+    setPaidNow("");
+    setPaymentMethod("");
     setBatchNo("");
     setExpiryDate("");
     setReason("");
@@ -186,6 +205,7 @@ export function MovementModal({
         setRestocking(false);
         setQuantity("");
         setUnitPrice("");
+        setPaidNow("");
         setBatchNo("");
         setExpiryDate("");
         reset();
@@ -362,6 +382,63 @@ export function MovementModal({
                 </FormField>
               </div>
             </div>
+            {offersPayment && total !== null && (
+              <div
+                data-testid={`${testId}-payment`}
+                className="flex flex-col gap-3 rounded-panel bg-inset p-3"
+              >
+                <div className="flex items-baseline justify-between">
+                  <span className="text-label text-ink-muted">
+                    {t("inventory.movement.purchaseTotal")}
+                  </span>
+                  <Money amount={total} currency={currency} className="font-medium" />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div onBlur={form.leave("paidNow")}>
+                    <FormField
+                      error={form.errors["paidNow"]}
+                      {...(overpaid && { errorKey: "inventory.movement.paidTooMuch" })}
+                      label="inventory.movement.paidNow"
+                      htmlFor="movement-paid-now"
+                      optional
+                    >
+                      <MoneyInput
+                        id="movement-paid-now"
+                        data-testid="movement-field-paid-now"
+                        currency={currency}
+                        placeholder="0"
+                        value={paidNow}
+                        onChange={(event) => setPaidNow(event.target.value)}
+                      />
+                    </FormField>
+                  </div>
+                  {paying && (
+                    <FormField label="inventory.movement.paymentMethod" htmlFor="movement-method">
+                      <Select
+                        id="movement-method"
+                        data-testid="movement-field-method"
+                        value={method}
+                        onChange={(event) => setPaymentMethod(event.target.value)}
+                        options={paymentMethods}
+                      />
+                    </FormField>
+                  )}
+                </div>
+                <div
+                  data-testid={`${testId}-left-to-pay`}
+                  className="flex items-baseline justify-between"
+                >
+                  <span className="text-label text-ink-muted">
+                    {t("inventory.movement.leftToPay")}
+                  </span>
+                  <Money
+                    amount={overpaid ? "0.00" : leftToPay(total, paidNow)}
+                    currency={currency}
+                    className="font-semibold"
+                  />
+                </div>
+              </div>
+            )}
             <div className="grid gap-4 sm:grid-cols-2">
               <div onBlur={form.leave("batchNo")}>
                 <FormField

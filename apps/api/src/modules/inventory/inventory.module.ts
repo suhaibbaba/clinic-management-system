@@ -11,14 +11,17 @@ import { StockMovementsService } from "@api/modules/inventory/services/stock-mov
 import { StockService } from "@api/modules/inventory/services/stock.service";
 import { SuppliersController } from "@api/modules/inventory/controllers/suppliers.controller";
 import { SuppliersService } from "@api/modules/inventory/services/suppliers.service";
+import { SupplierPaymentsController } from "@api/modules/inventory/controllers/supplier-payments.controller";
+import { SupplierPaymentsService } from "@api/modules/inventory/services/supplier-payments.service";
 
 @Module({
   imports: [NotificationsModule, DatabaseModule, AuditModule],
-  controllers: [InventoryController, SuppliersController],
+  controllers: [InventoryController, SuppliersController, SupplierPaymentsController],
   providers: [
     ClinicScopeService,
     StockService,
     SuppliersService,
+    SupplierPaymentsService,
     InventoryItemsService,
     StockMovementsService,
     InventoryReportsService,

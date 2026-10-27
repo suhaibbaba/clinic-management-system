@@ -6,6 +6,8 @@ export const INVENTORY_TAB_STOCK = "stock";
 
 export const INVENTORY_TAB_SUPPLIERS = "suppliers";
 
+export const SUPPLIERS_TAB_PATH = "/inventory?tab=suppliers";
+
 export const ITEM_PAGE_TABS = ["overview", "movements"] as const;
 
 export const MOVEMENT_ACTION_ICONS: Record<MovementType, IconName> = {

@@ -244,6 +244,7 @@ describe("The current row", () => {
 describe("Route guards", () => {
   it.each([
     [USER_ROLE.RECEPTIONIST, `/inventory/items/${ITEM_ID}`],
+    [USER_ROLE.RECEPTIONIST, `/inventory/suppliers/${ITEM_ID}`],
     [USER_ROLE.RECEPTIONIST, "/labs"],
     [USER_ROLE.RECEPTIONIST, "/users"],
     [USER_ROLE.DOCTOR, "/audit-log"],

@@ -5,6 +5,7 @@ import {
   listInventoryItemsQuerySchema,
   listMovementsQuerySchema,
   purchaseStockSchema,
+  correctPurchaseSchema,
   consumeStockSchema,
   adjustStockSchema,
   reverseMovementSchema,
@@ -26,5 +27,7 @@ export class ConsumeDto extends createZodDto(consumeStockSchema) {}
 export class AdjustDto extends createZodDto(adjustStockSchema) {}
 
 export class ReverseDto extends createZodDto(reverseMovementSchema) {}
+
+export class CorrectPurchaseDto extends createZodDto(correctPurchaseSchema) {}
 
 export class IdParamDto extends createZodDto(idParamSchema) {}

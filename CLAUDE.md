@@ -60,7 +60,7 @@ core · patients · billing · appointments · booking · notifications · labs 
 1. **Multi-clinic, multi-specialty from day one.** Every domain table carries `clinic_id`.
    Specialty behaviour is configuration and data, never a code branch.
 2. **Ledgers, not balances.** `charges`, `payments`, `lab_orders`, `lab_payments`,
-   `stock_movements` are append-only. A balance and a quantity are `sum()` over them, computed on
+   `stock_movements`, `supplier_payments`, `supplier_opening_balances` are append-only. A balance and a quantity are `sum()` over them, computed on
    read. A correction is a new reversing row. **Never store an editable balance or quantity.**
 3. **Soft delete** for everything medical and financial, plus `created_by`/`updated_by`/
    `created_at`/`updated_at`.

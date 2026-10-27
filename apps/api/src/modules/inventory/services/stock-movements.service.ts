@@ -1,19 +1,23 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
   type OnModuleInit,
 } from "@nestjs/common";
 import {
+  AUDIT_ACTION,
   MOVEMENT_TYPE,
   STOCK_ERROR,
+  toMinorUnits,
   formatThousandths,
   negateQuantity,
   toThousandths,
   type AdjustStockInput,
   type ConsumeStockInput,
+  type CorrectPurchaseInput,
   type ListMovementsQuery,
   type MovementType,
   type Paginated,
@@ -28,7 +32,7 @@ import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toOptionalPersonName } from "@api/common/person-name";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
-import { DATABASE, type Database } from "@api/database/database.module";
+import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import {
   patients,
   performedProcedures,
@@ -40,8 +44,16 @@ import {
 import { InventoryItemsService } from "@api/modules/inventory/services/inventory-items.service";
 import { normalise } from "@api/modules/inventory/lib/stock";
 import { SuppliersService } from "@api/modules/inventory/services/suppliers.service";
-import { STOCK_MOVEMENTS_ENTITY } from "@api/common/constants/audit-entities";
+import {
+  STOCK_MOVEMENTS_ENTITY,
+  SUPPLIER_PAYMENTS_ENTITY,
+} from "@api/common/constants/audit-entities";
 import { toMovement } from "@api/modules/inventory/lib/stock-movements";
+import { lineTotal } from "@api/modules/inventory/lib/inventory-reports";
+import { SUPPLIER_PAYMENT_CAPABILITY } from "@api/modules/inventory/constants";
+import { SupplierPaymentsService } from "@api/modules/inventory/services/supplier-payments.service";
+import { AuditService } from "@api/modules/audit/services/audit.service";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 
 @Injectable()
 export class StockMovementsService implements OnModuleInit {
@@ -51,6 +63,9 @@ export class StockMovementsService implements OnModuleInit {
     private readonly items: InventoryItemsService,
     private readonly suppliersService: SuppliersService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly supplierPayments: SupplierPaymentsService,
+    private readonly permissions: PermissionsService,
+    private readonly audit: AuditService,
   ) {}
 
   onModuleInit(): void {
@@ -164,15 +179,59 @@ export class StockMovementsService implements OnModuleInit {
       await this.suppliersService.requireRow(actor.clinicId, input.supplierId);
     }
 
-    return this.write(actor, {
-      itemId: input.itemId,
-      type: MOVEMENT_TYPE.PURCHASE,
-      quantity: input.quantity,
-      unitPrice: input.unitPrice ?? null,
-      supplierId: input.supplierId ?? null,
-      batchNo: input.batchNo ?? null,
-      expiryDate: input.expiryDate ?? null,
-      reason: input.reason ?? null,
+    const paidNow = input.paidNow && toMinorUnits(input.paidNow) > 0 ? input.paidNow : null;
+
+    if (paidNow !== null) {
+      if (!(await this.permissions.can(actor, SUPPLIER_PAYMENT_CAPABILITY))) {
+        throw new ForbiddenException("Recording a supplier payment is not allowed");
+      }
+      if (
+        input.unitPrice === undefined ||
+        toMinorUnits(paidNow) > toMinorUnits(lineTotal(input.quantity, input.unitPrice))
+      ) {
+        throw new BadRequestException("A payment at purchase cannot exceed the purchase total");
+      }
+    }
+
+    return this.db.transaction(async (tx) => {
+      const movement = await this.write(
+        actor,
+        {
+          itemId: input.itemId,
+          type: MOVEMENT_TYPE.PURCHASE,
+          quantity: input.quantity,
+          unitPrice: input.unitPrice ?? null,
+          supplierId: input.supplierId ?? null,
+          batchNo: input.batchNo ?? null,
+          expiryDate: input.expiryDate ?? null,
+          reason: input.reason ?? null,
+        },
+        tx,
+      );
+
+      if (paidNow !== null && input.supplierId && input.paymentMethod) {
+        const payment = await this.supplierPayments.create(
+          actor,
+          { supplierId: input.supplierId, amount: paidNow, method: input.paymentMethod },
+          tx,
+          movement.id,
+        );
+
+        await this.audit.record(
+          {
+            clinicId: actor.clinicId,
+            userId: actor.id,
+            action: AUDIT_ACTION.CREATE,
+            entity: SUPPLIER_PAYMENTS_ENTITY,
+            entityId: payment.id,
+            oldValue: null,
+            newValue: { ...payment },
+          },
+          tx,
+        );
+      }
+
+      return movement;
     });
   }
 
@@ -255,54 +314,102 @@ export class StockMovementsService implements OnModuleInit {
     id: string,
     input: ReverseMovementInput,
   ): Promise<StockMovement> {
+    return this.db.transaction(async (tx) =>
+      this.reverseWithin(tx, actor, await this.lockOpen(tx, actor, id), input.reason),
+    );
+  }
+
+  async correctPurchase(
+    actor: AuthenticatedUser,
+    id: string,
+    input: CorrectPurchaseInput,
+  ): Promise<StockMovement> {
     return this.db.transaction(async (tx) => {
-      const [original] = await tx
-        .select()
-        .from(stockMovements)
-        .where(and(eq(stockMovements.id, id), eq(stockMovements.clinicId, actor.clinicId)))
-        .limit(1)
-        .for("update");
+      const original = await this.lockOpen(tx, actor, id);
 
-      if (!original) {
-        throw new NotFoundException("Resource not found");
-      }
-      if (original.reversesId !== null) {
-        throw new BadRequestException("A reversing entry cannot itself be reversed");
-      }
-      if (original.reversedAt !== null) {
-        throw new BadRequestException("This movement has already been reversed");
+      if (original.type !== MOVEMENT_TYPE.PURCHASE) {
+        throw new BadRequestException("Only a purchase can be corrected");
       }
 
-      await tx
-        .update(stockMovements)
-        .set({ reversedAt: new Date() })
-        .where(eq(stockMovements.id, original.id));
+      await this.reverseWithin(tx, actor, original, input.reason);
 
-      const [row] = await tx
-        .insert(stockMovements)
-        .values({
-          clinicId: original.clinicId,
+      return this.write(
+        actor,
+        {
           itemId: original.itemId,
-          type: original.type,
-          quantity: negateQuantity(normalise(original.quantity)),
-          unitPrice: original.unitPrice,
+          type: MOVEMENT_TYPE.PURCHASE,
+          quantity: input.quantity,
+          unitPrice: input.unitPrice ?? null,
+          supplierId: original.supplierId,
           batchNo: original.batchNo,
           expiryDate: original.expiryDate,
-          supplierId: original.supplierId,
-          patientId: original.patientId,
-          performedProcedureId: original.performedProcedureId,
           reason: input.reason,
-          reversesId: original.id,
-          createdBy: actor.id,
-        })
-        .returning();
-
-      if (!row) {
-        throw new Error("Failed to reverse the movement");
-      }
-
-      return toMovement(row);
+        },
+        tx,
+      );
     });
+  }
+
+  private async lockOpen(
+    tx: DatabaseExecutor,
+    actor: AuthenticatedUser,
+    id: string,
+  ): Promise<typeof stockMovements.$inferSelect> {
+    const [original] = await tx
+      .select()
+      .from(stockMovements)
+      .where(and(eq(stockMovements.id, id), eq(stockMovements.clinicId, actor.clinicId)))
+      .limit(1)
+      .for("update");
+
+    if (!original) {
+      throw new NotFoundException("Resource not found");
+    }
+    if (original.reversesId !== null) {
+      throw new BadRequestException("A reversing entry cannot itself be reversed");
+    }
+    if (original.reversedAt !== null) {
+      throw new BadRequestException("This movement has already been reversed");
+    }
+
+    return original;
+  }
+
+  private async reverseWithin(
+    tx: DatabaseExecutor,
+    actor: AuthenticatedUser,
+    original: typeof stockMovements.$inferSelect,
+    reason: string,
+  ): Promise<StockMovement> {
+    await tx
+      .update(stockMovements)
+      .set({ reversedAt: new Date() })
+      .where(eq(stockMovements.id, original.id));
+
+    const [row] = await tx
+      .insert(stockMovements)
+      .values({
+        clinicId: original.clinicId,
+        itemId: original.itemId,
+        type: original.type,
+        quantity: negateQuantity(normalise(original.quantity)),
+        unitPrice: original.unitPrice,
+        batchNo: original.batchNo,
+        expiryDate: original.expiryDate,
+        supplierId: original.supplierId,
+        patientId: original.patientId,
+        performedProcedureId: original.performedProcedureId,
+        reason,
+        reversesId: original.id,
+        createdBy: actor.id,
+      })
+      .returning();
+
+    if (!row) {
+      throw new Error("Failed to reverse the movement");
+    }
+
+    return toMovement(row);
   }
 
   private async write(
@@ -319,6 +426,7 @@ export class StockMovementsService implements OnModuleInit {
       expiryDate?: string | null;
       reason?: string | null;
     },
+    executor: DatabaseExecutor = this.db,
   ): Promise<StockMovement> {
     const thousandths = toThousandths(values.quantity);
 
@@ -332,7 +440,7 @@ export class StockMovementsService implements OnModuleInit {
       throw new BadRequestException("A consumption must be negative");
     }
 
-    const [row] = await this.db
+    const [row] = await executor
       .insert(stockMovements)
       .values({
         clinicId: actor.clinicId,

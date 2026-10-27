@@ -12,6 +12,9 @@ describe("the back button's target", () => {
     expect(backTarget("/labs/l-1", canFor(USER_ROLE.ADMIN))?.to).toBe("/labs?tab=directory");
     expect(backTarget("/inventory/items/i-1", canFor(USER_ROLE.ADMIN))?.to).toBe("/inventory");
     expect(backTarget("/inventory/shopping-list", canFor(USER_ROLE.ADMIN))?.to).toBe("/inventory");
+    expect(backTarget("/inventory/suppliers/s-1", canFor(USER_ROLE.ADMIN))?.to).toBe(
+      "/inventory?tab=suppliers",
+    );
     expect(backTarget("/doctors/d-1", canFor(USER_ROLE.ADMIN))?.to).toBe("/users?view=doctors");
     expect(backTarget("/profile", canFor(USER_ROLE.RECEPTIONIST))?.to).toBe("/dashboard");
     expect(backTarget("/payroll/u-1", canFor(USER_ROLE.ADMIN))?.to).toBe("/finance");
@@ -36,6 +39,7 @@ describe("the back button's target", () => {
   it("never points a reader at a parent its route guard would bounce", () => {
     expect(backTarget("/doctors/d-1", canFor(USER_ROLE.RECEPTIONIST))).toBeUndefined();
     expect(backTarget("/payroll/u-1", canFor(USER_ROLE.RECEPTIONIST))).toBeUndefined();
+    expect(backTarget("/inventory/suppliers/s-1", canFor(USER_ROLE.RECEPTIONIST))).toBeUndefined();
     expect(backTarget("/patients/p-1", undefined)).toBeUndefined();
   });
 });

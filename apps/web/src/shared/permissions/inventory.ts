@@ -11,12 +11,18 @@ export const canDeleteSupplier = (can: Can): boolean => can("suppliers.remove");
 
 export const canManageSuppliers = (can: Can): boolean => can("suppliers.create");
 
+export const canPaySupplier = (can: Can): boolean => can("supplier-payments.create");
+
+export const canReverseSupplierPayment = (can: Can): boolean => can("supplier-payments.reverse");
+
 export const canConsumeStock = (can: Can): boolean => can("inventory.consume");
 
 export const canPurchaseStock = (can: Can): boolean => can("inventory.purchase");
 export const canAdjustStock = (can: Can): boolean => can("inventory.adjust");
 
 export const canReverseMovement = (can: Can): boolean => can("inventory.reverse");
+
+export const canCorrectPurchase = (can: Can): boolean => can("inventory.correctPurchase");
 
 export const mayRecord = (type: MovementType, can: Can): boolean =>
   ({

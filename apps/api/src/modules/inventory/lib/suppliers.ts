@@ -1,5 +1,5 @@
 import { suppliers } from "@api/database/schema";
-import { type Supplier } from "@clinic/shared";
+import { addMoney, subtractMoney, type Supplier, type SupplierSummary } from "@clinic/shared";
 
 export type SupplierRow = typeof suppliers.$inferSelect;
 
@@ -24,4 +24,36 @@ export function toMoneyString(value: string): string {
   const carried = Number(whole) + Math.floor(thousandths / 100);
 
   return `${negative ? "-" : ""}${carried}.${String(thousandths % 100).padStart(2, "0")}`;
+}
+
+export type SupplierAccount = Pick<
+  SupplierSummary,
+  "openingBalance" | "purchased" | "paid" | "balance" | "lastPurchaseAt"
+>;
+
+export const EMPTY_ACCOUNT: SupplierAccount = {
+  openingBalance: "0.00",
+  purchased: "0.00",
+  paid: "0.00",
+  balance: "0.00",
+  lastPurchaseAt: null,
+};
+
+export function toAccount(
+  opening: string,
+  purchased: string,
+  paid: string,
+  lastPurchaseAt: Date | string | null,
+): SupplierAccount {
+  const openingBalance = toMoneyString(opening);
+  const bought = toMoneyString(purchased);
+  const settled = toMoneyString(paid);
+
+  return {
+    openingBalance,
+    purchased: bought,
+    paid: settled,
+    balance: subtractMoney(addMoney(openingBalance, bought), settled),
+    lastPurchaseAt: lastPurchaseAt ? new Date(lastPurchaseAt).toISOString() : null,
+  };
 }

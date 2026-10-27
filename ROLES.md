@@ -41,7 +41,7 @@ Users belong to one clinic and have exactly one role (v1). `admin` implicitly pa
 1. **Clinic scoping:** every authenticated request is scoped to the user's `clinic_id`. Cross-clinic access is impossible regardless of role. Applied automatically in a base query helper — never rely on the client sending `clinic_id`.
 2. **Doctor ownership:** doctors see full medical records of patients they have treated or who have an appointment with them. Admin sees all. (v1 simplification: any doctor in the clinic may open any patient's medical record — flag `STRICT_DOCTOR_SCOPE` exists to tighten later.)
 3. **Field-level security:** role determines not just access to an endpoint but **which fields are serialized**. Separate response schemas per sensitivity level (see below).
-4. **Financial mutations** (charges, payments, lab payments, stock adjustments) always write to the audit log with old/new values.
+4. **Financial mutations** (charges, payments, lab payments, supplier payments and opening balances, stock adjustments) always write to the audit log with old/new values.
 5. **Assigned patients only, for a visiting doctor:** a patient with an appointment or a treatment (planned or performed) assigned to their `doctors` row. Any other patient — and every record hanging off one, by path, by query or by its own id — is a 404, the same answer as another clinic's.
 6. **Nothing is hard-deleted** by any role. "Delete" = soft delete; only `admin` can soft-delete financial records, and only `admin` can view/restore soft-deleted rows.
 
@@ -123,6 +123,10 @@ the editor is absent from the public answer, not only from the page.
 | Stock movements: consume | CRUD | CR | CR | — |
 | Stock movements: adjust (with reason) | CRUD | CR | CR | — |
 | Alerts (low stock, expiry) | R | R | R | — |
+| Supplier payments | CRUD (reversal admin only) | CR | CR | — |
+| Supplier balances & statements | R | R | R | — |
+
+A supplier is an account: what the clinic owes is its opening balance plus every priced purchase from it, less every payment to it (`/supplier-payments`), all computed on read. A purchase may record what was paid at the time — nothing, part or all of its total, never more — as a supplier payment in the same transaction, which needs `supplier-payments.create`. The opening balance is set on the supplier and kept as append-only rows: changing it reverses the standing row and writes the new one. Reversing a purchase leaves its payment standing; an admin reverses the payment separately.
 
 ### Reports
 | Report | admin | doctor | technician | receptionist |
