@@ -1,5 +1,10 @@
-import { PHONE_DIAL_DIGITS, phoneDigitVariants } from "@clinic/shared";
-import { inArray, sql, type SQL } from "drizzle-orm";
+import {
+  nationalPhoneDigits,
+  normalizePhone,
+  PHONE_DIAL_DIGITS,
+  phoneDigitVariants,
+} from "@clinic/shared";
+import { eq, inArray, sql, type SQL } from "drizzle-orm";
 import { type PgColumn } from "drizzle-orm/pg-core";
 
 export const phoneDigitsOf = (column: PgColumn | SQL): SQL =>
@@ -10,3 +15,11 @@ export const nationalPhoneDigitsOf = (column: PgColumn | SQL): SQL =>
 
 export const phoneMatches = (column: PgColumn, phone: string): SQL =>
   inArray(phoneDigitsOf(column), phoneDigitVariants(phone));
+
+export const typedPhoneMatches = (column: PgColumn, typed: string): SQL => {
+  const value = typed.trim();
+
+  return value.startsWith("+") || value.startsWith("00")
+    ? phoneMatches(column, normalizePhone(value))
+    : eq(nationalPhoneDigitsOf(column), nationalPhoneDigits(value));
+};

@@ -25,7 +25,7 @@ import { StorageService } from "@api/modules/storage/services/storage.service";
 import { clinics, specialties, users } from "@api/database/schema";
 import { INVALID_CREDENTIALS, PHONE_MIN_DIGITS } from "@api/modules/auth/constants";
 import { UserRow } from "@api/modules/auth/lib/auth";
-import { nationalPhoneDigitsOf } from "@api/common/lib/phone";
+import { typedPhoneMatches } from "@api/common/lib/phone";
 
 @Injectable()
 export class AuthService {
@@ -208,7 +208,7 @@ export class AuthService {
     const matches = await this.db
       .select()
       .from(users)
-      .where(and(isNull(users.deletedAt), eq(nationalPhoneDigitsOf(users.phone), national)))
+      .where(and(isNull(users.deletedAt), typedPhoneMatches(users.phone, trimmed)))
       .limit(2);
 
     return matches.length === 1 ? matches[0] : undefined;
