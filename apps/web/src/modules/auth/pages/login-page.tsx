@@ -12,13 +12,14 @@ import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react
 import { Button, FormField, Icon, Input, PasswordInput, PersonName } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
 import { ApiError, codedMessageKey, errorMessageKey } from "@web/shared/lib/api-error";
-import { isPasskeyCancelled } from "@web/shared/lib/passkeys";
+import { isPasskeyAborted, isPasskeyCancelled } from "@web/shared/lib/passkeys";
 import { authApi } from "@web/shared/api/auth";
 import { useAuthMethods } from "@web/modules/auth/queries";
 import { useClinicLogo } from "@web/shared/hooks/use-clinic-logo";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { RememberMeSwitch } from "@web/modules/auth/components/remember-me-switch";
 import { useRememberMe } from "@web/modules/auth/hooks/use-remember-me";
+import { usePasskeyAutofill } from "@web/modules/auth/hooks/use-passkey-autofill";
 
 interface LocationState {
   from?: string;
@@ -50,6 +51,21 @@ export function LoginPage(): JSX.Element {
     defaultValues: { identifier: "", password: "" },
   });
 
+  const passkeyErrorKey = (error: unknown): string =>
+    error instanceof ApiError && error.statusCode === 401
+      ? "errors.auth.passkeyInvalid"
+      : errorMessageKey(error);
+
+  usePasskeyAutofill(
+    () => loginWithPasskey(rememberMe, true),
+    (error) => {
+      if (!isPasskeyCancelled(error)) {
+        setFormErrorKey(passkeyErrorKey(error));
+      }
+    },
+    passkeyBusy || status === "authenticated",
+  );
+
   if (status === "authenticated") {
     const from = (location.state as LocationState | null)?.from;
     return <Navigate to={from ?? "/"} replace />;
@@ -72,12 +88,8 @@ export function LoginPage(): JSX.Element {
       await loginWithPasskey(rememberMe);
       goOn();
     } catch (error) {
-      if (!isPasskeyCancelled(error)) {
-        setFormErrorKey(
-          error instanceof ApiError && error.statusCode === 401
-            ? "errors.auth.passkeyInvalid"
-            : errorMessageKey(error),
-        );
+      if (!isPasskeyCancelled(error) && !isPasskeyAborted(error)) {
+        setFormErrorKey(passkeyErrorKey(error));
       }
     } finally {
       setPasskeyBusy(false);
@@ -141,7 +153,7 @@ export function LoginPage(): JSX.Element {
               adornment="user"
               id="identifier"
               data-testid="login-identifier"
-              autoComplete="username"
+              autoComplete="username webauthn"
               hasError={errors.identifier !== undefined}
               {...register("identifier")}
             />

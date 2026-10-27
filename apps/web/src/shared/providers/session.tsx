@@ -28,7 +28,7 @@ interface SessionValue {
   readonly user: AuthenticatedUserProfile | null;
   readonly login: (input: LoginInput) => Promise<void>;
   readonly loginWithCode: (input: VerifyLoginCodeInput) => Promise<void>;
-  readonly loginWithPasskey: (rememberMe: boolean) => Promise<void>;
+  readonly loginWithPasskey: (rememberMe: boolean, autofill?: boolean) => Promise<void>;
   readonly logout: () => Promise<void>;
   readonly refreshProfile: () => Promise<void>;
   readonly can: Can;
@@ -107,7 +107,8 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
   );
 
   const loginWithPasskey = useCallback(
-    async (rememberMe: boolean) => begin(await signInWithPasskey(rememberMe)),
+    async (rememberMe: boolean, autofill?: boolean) =>
+      begin(await signInWithPasskey(rememberMe, autofill)),
     [begin],
   );
 
