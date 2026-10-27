@@ -24,7 +24,7 @@ export function ShoppingListPage(): JSX.Element {
       header: "inventory.columns.item",
       primary: true,
       render: (row) => (
-        <span className="flex flex-col">
+        <span className="flex flex-col items-start">
           <bdi className="font-medium text-ink">{row.name}</bdi>
           {row.supplierName && (
             <span className="text-label text-ink-muted">{row.supplierName}</span>

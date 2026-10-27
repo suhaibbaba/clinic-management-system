@@ -114,6 +114,7 @@
     "inventory": "Inventory",
     "labs": "Labs",
     "language": "Language",
+    "catalog": "Prices and Lists",
     "lists": "Lists",
     "logout": "Sign Out",
     "menu": "Menu",
@@ -139,7 +140,7 @@
     "closeSearch": "Close Search",
     "priceList": "Price List",
     "myEarnings": "My Earnings",
-    "finance": "Profit and Expenses"
+    "finance": "Finance"
   },
   "roles": {
     "admin": "Admin",

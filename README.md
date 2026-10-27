@@ -281,7 +281,7 @@ the menu on the avatar, not in the nav.
 | Appointments | `/appointments`          | admin, doctor, receptionist                             |
 | Labs         | `/labs`                  | admin, doctor, technician                               |
 | Inventory    | `/inventory`             | admin, technician                                       |
-| Settings     | `/clinic`, `/doctors`, … | admin                                                   |
+| Settings     | `/settings`, `/users`, … | admin                                                   |
 | My account   | `/profile`               | every role                                              |
 
 Four sections are two panels each, selected by a query parameter so every panel keeps an

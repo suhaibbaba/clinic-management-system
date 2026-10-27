@@ -43,7 +43,7 @@ export function PortalNextVisit({
               iso={appointment.startsAt}
               parts={format.dateParts(appointment.startsAt)}
             />
-            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
               <bdi className="text-title font-bold text-primary-900">
                 {format.time(appointment.startsAt)}
               </bdi>

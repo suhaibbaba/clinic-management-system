@@ -14,4 +14,4 @@ export const PAY_STATUS_TONES: Record<PayStatus, BadgeTone> = {
   unpaid: "danger",
 };
 
-export const FINANCE_TABS = ["profit", "expenses"] as const;
+export const FINANCE_TABS = ["payroll", "profit", "expenses"] as const;

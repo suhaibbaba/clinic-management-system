@@ -118,7 +118,7 @@ export function HeroSection(): JSX.Element {
           {hero.stat.value && (
             <div
               data-testid="site-hero-stat"
-              className="absolute end-4 bottom-4 flex flex-col rounded-card bg-surface/90 px-4 py-3 shadow-float backdrop-blur md:end-8 md:bottom-16"
+              className="absolute end-4 bottom-4 flex flex-col items-start rounded-card bg-surface/90 px-4 py-3 shadow-float backdrop-blur md:end-8 md:bottom-16"
             >
               <bdi className="text-heading font-bold text-primary-700">{hero.stat.value}</bdi>
               {statLabel && <span className="text-label text-ink-muted">{statLabel}</span>}

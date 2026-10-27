@@ -117,7 +117,7 @@ export function ContactPage(): JSX.Element {
               <span className="inline-flex size-16 shrink-0 items-center justify-center rounded-pill border border-primary-200 bg-surface text-primary-600 shadow-card">
                 <SiteIcon name="clock" className="size-7" />
               </span>
-              <div className="flex flex-col gap-0.5">
+              <div className="flex flex-col items-start gap-0.5">
                 <p className="text-heading font-bold text-primary-900">{t("contact.hours")}</p>
                 <bdi className="text-label text-ink-muted tabular-nums">{hours.time}</bdi>
                 <p className="text-label text-ink-muted">{hours.days}</p>

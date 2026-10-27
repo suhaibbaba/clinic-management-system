@@ -8,7 +8,6 @@ import { ForgotPasswordPage } from "@web/modules/auth/pages/forgot-password-page
 import { LoginCodePage } from "@web/modules/auth/pages/login-code-page";
 import { LoginPage } from "@web/modules/auth/pages/login-page";
 import { SetPasswordPage } from "@web/modules/auth/pages/set-password-page";
-import { ClinicPage } from "@web/modules/clinic/pages/clinic-page";
 import { DashboardPage } from "@web/modules/dashboard/pages/dashboard-page";
 import { DoctorPage } from "@web/modules/doctors/pages/doctor-page";
 import { InventorySection } from "@web/modules/inventory/pages/inventory-section";
@@ -20,6 +19,7 @@ import { PatientPage } from "@web/modules/patients/pages/patient-page";
 import { PatientsPage } from "@web/modules/patients/pages/patients-page";
 import { ProfilePage } from "@web/modules/profile/pages/profile-page";
 import { SettingsSection } from "@web/modules/settings/pages/settings-section";
+import { CatalogSection } from "@web/modules/lookups/pages/catalog-section";
 import { UsersSection } from "@web/modules/users/pages/users-section";
 import { Skeleton } from "@clinic/ui/components/skeleton";
 
@@ -30,10 +30,6 @@ const AppointmentsSection = lazyPage(async () => ({
 
 const AssistantPage = lazyPage(async () => ({
   default: (await import("@web/modules/assistant/pages/assistant-page")).AssistantPage,
-}));
-
-const PayrollPage = lazyPage(async () => ({
-  default: (await import("@web/modules/payroll/pages/payroll-page")).PayrollPage,
 }));
 
 const PersonPayPage = lazyPage(async () => ({
@@ -50,18 +46,6 @@ const FinancePage = lazyPage(async () => ({
 
 const MyEarningsPage = lazyPage(async () => ({
   default: (await import("@web/modules/earnings/pages/my-earnings-page")).MyEarningsPage,
-}));
-
-const PriceListPage = lazyPage(async () => ({
-  default: (await import("@web/modules/patients/pages/price-list-page")).PriceListPage,
-}));
-
-const LookupsPage = lazyPage(async () => ({
-  default: (await import("@web/modules/lookups/pages/lookups-page")).LookupsPage,
-}));
-
-const WebsitePage = lazyPage(async () => ({
-  default: (await import("@web/modules/website/pages/website-page")).WebsitePage,
 }));
 
 const HOME = "/dashboard";
@@ -216,24 +200,6 @@ export function AppRoutes(): JSX.Element {
         />
 
         <Route
-          path="/clinic"
-          element={
-            <RequireCapability capabilities={PAGE_CAPABILITIES.clinic} redirectTo={HOME}>
-              <ClinicPage />
-            </RequireCapability>
-          }
-        />
-        <Route
-          path="/website"
-          element={
-            <RequireCapability capabilities={PAGE_CAPABILITIES.website} redirectTo={HOME}>
-              <RouteChunk>
-                <WebsitePage />
-              </RouteChunk>
-            </RequireCapability>
-          }
-        />
-        <Route
           path="/users"
           element={
             <RequireCapability capabilities={PAGE_CAPABILITIES.users} redirectTo={HOME}>
@@ -258,19 +224,9 @@ export function AppRoutes(): JSX.Element {
           }
         />
         <Route
-          path="/payroll"
-          element={
-            <RequireCapability capabilities={PAGE_CAPABILITIES.payroll} redirectTo={HOME}>
-              <RouteChunk>
-                <PayrollPage />
-              </RouteChunk>
-            </RequireCapability>
-          }
-        />
-        <Route
           path="/payroll/settings"
           element={
-            <RequireCapability capabilities={PAGE_CAPABILITIES.payrollRules} redirectTo="/payroll">
+            <RequireCapability capabilities={PAGE_CAPABILITIES.payrollRules} redirectTo="/finance">
               <RouteChunk>
                 <PayRulesPage />
               </RouteChunk>
@@ -310,20 +266,8 @@ export function AppRoutes(): JSX.Element {
         <Route
           path="/clinic/lists"
           element={
-            <RequireCapability capabilities={PAGE_CAPABILITIES.lists} redirectTo={HOME}>
-              <RouteChunk>
-                <LookupsPage />
-              </RouteChunk>
-            </RequireCapability>
-          }
-        />
-        <Route
-          path="/clinic/prices"
-          element={
-            <RequireCapability capabilities={PAGE_CAPABILITIES.priceList} redirectTo={HOME}>
-              <RouteChunk>
-                <PriceListPage />
-              </RouteChunk>
+            <RequireCapability capabilities={PAGE_CAPABILITIES.catalog} redirectTo={HOME}>
+              <CatalogSection />
             </RequireCapability>
           }
         />
@@ -339,7 +283,17 @@ export function AppRoutes(): JSX.Element {
         <Route path="/lab-orders" element={<Navigate to="/labs?tab=orders" replace />} />
         <Route path="/suppliers" element={<Navigate to="/inventory?tab=suppliers" replace />} />
         <Route path="/doctors" element={<Navigate to="/users?view=doctors" replace />} />
-        <Route path="/clinic/translations" element={<RedirectKeepingQuery to="/settings" />} />
+        <Route
+          path="/clinic/prices"
+          element={<RedirectKeepingQuery to="/clinic/lists" view="prices" />}
+        />
+        <Route path="/payroll" element={<RedirectKeepingQuery to="/finance" />} />
+        <Route path="/clinic" element={<RedirectKeepingQuery to="/settings" view="clinic" />} />
+        <Route path="/website" element={<RedirectKeepingQuery to="/settings" view="website" />} />
+        <Route
+          path="/clinic/translations"
+          element={<RedirectKeepingQuery to="/settings" view="translations" />}
+        />
         <Route
           path="/assistant/settings"
           element={<RedirectKeepingQuery to="/settings" view="assistant" />}

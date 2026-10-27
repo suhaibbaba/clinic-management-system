@@ -14,8 +14,8 @@ describe("the back button's target", () => {
     expect(backTarget("/inventory/shopping-list", canFor(USER_ROLE.ADMIN))?.to).toBe("/inventory");
     expect(backTarget("/doctors/d-1", canFor(USER_ROLE.ADMIN))?.to).toBe("/users?view=doctors");
     expect(backTarget("/profile", canFor(USER_ROLE.RECEPTIONIST))?.to).toBe("/dashboard");
-    expect(backTarget("/payroll/u-1", canFor(USER_ROLE.ADMIN))?.to).toBe("/payroll");
-    expect(backTarget("/payroll/settings", canFor(USER_ROLE.ADMIN))?.to).toBe("/payroll");
+    expect(backTarget("/payroll/u-1", canFor(USER_ROLE.ADMIN))?.to).toBe("/finance");
+    expect(backTarget("/payroll/settings", canFor(USER_ROLE.ADMIN))?.to).toBe("/finance");
   });
 
   it("offers nothing on a section the sidebar already reaches", () => {
@@ -27,7 +27,7 @@ describe("the back button's target", () => {
       "/users",
       "/clinic/lists",
       "/clinic/prices",
-      "/payroll",
+      "/finance",
     ]) {
       expect(backTarget(path, canFor(USER_ROLE.ADMIN))).toBeUndefined();
     }

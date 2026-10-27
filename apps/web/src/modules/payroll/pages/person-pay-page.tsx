@@ -60,7 +60,7 @@ export function PersonPayPage(): JSX.Element {
   }
 
   if (!line) {
-    return <Navigate to="/payroll" replace />;
+    return <Navigate to="/finance" replace />;
   }
 
   const actions = payActions(line, closed);

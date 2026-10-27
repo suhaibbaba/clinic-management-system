@@ -61,7 +61,7 @@ export function NotificationBell(): JSX.Element {
         key: "contactMessages",
         icon: "message",
         count: mayMessages ? messages : 0,
-        to: "/website?tab=messages&status=open",
+        to: "/settings?view=website&tab=messages&status=open",
       },
       {
         key: "urgentRequests",

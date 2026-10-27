@@ -89,8 +89,8 @@ export function PortalFiles({
                   </span>
                 )}
               </span>
-              <span className="flex min-w-0 flex-col gap-1.5 p-3.5">
-                <bdi className="block truncate text-value font-bold text-primary-900">
+              <span className="flex min-w-0 flex-col items-start gap-1.5 p-3.5">
+                <bdi className="block max-w-full truncate text-value font-bold text-primary-900">
                   {file.filename}
                 </bdi>
                 <span className="flex flex-wrap items-center gap-2 text-label text-ink-muted">

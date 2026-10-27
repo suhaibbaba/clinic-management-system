@@ -16,16 +16,24 @@ export interface NavGroup {
 }
 
 export const SETTINGS_VIEW_CAPABILITIES = {
-  translations: "translations.list",
-  assistant: "ai-actions.settings",
-  permissions: "permissions.list",
-  audit: "audit.list",
-} as const;
+  clinic: ["clinics.update"],
+  website: ["website.editor", "website-messages.list"],
+  translations: ["translations.list"],
+  assistant: ["ai-actions.settings"],
+  permissions: ["permissions.list"],
+  audit: ["audit.list"],
+} as const satisfies Record<string, readonly string[]>;
 
 export const FINANCE_TAB_CAPABILITIES = {
+  payroll: "payroll.month",
   profit: "payroll.month",
   expenses: "expenses.list",
 } as const;
+
+export const CATALOG_VIEW_CAPABILITIES = {
+  prices: ["procedure-catalog.create", "procedure-catalog.update"],
+  lists: ["lookups.create"],
+} as const satisfies Record<string, readonly string[]>;
 
 export const PAGE_CAPABILITIES = {
   assistant: ["ai.chat"],
@@ -34,18 +42,18 @@ export const PAGE_CAPABILITIES = {
   appointments: ["appointments.list"],
   labs: ["labs.list"],
   inventory: ["inventory.list"],
-  clinic: ["clinics.update"],
-  website: ["website.editor", "website-messages.list"],
-  websiteEditor: ["website.editor"],
   users: ["users.list"],
   doctor: ["doctors.updateSchedule"],
   payroll: ["payroll.month"],
   payrollRules: ["payroll.payRules"],
   finance: Object.values(FINANCE_TAB_CAPABILITIES),
   myEarnings: ["my-settlement.statement"],
-  lists: ["lookups.create"],
-  priceList: ["procedure-catalog.create", "procedure-catalog.update"],
-  settings: Object.values(SETTINGS_VIEW_CAPABILITIES),
+  catalog: Object.values(CATALOG_VIEW_CAPABILITIES).flat(),
+  settings: Object.values(SETTINGS_VIEW_CAPABILITIES).flat(),
+  settingsMenu: Object.values({
+    ...SETTINGS_VIEW_CAPABILITIES,
+    website: ["website.editor"],
+  }).flat(),
 } as const satisfies Record<string, readonly string[]>;
 
 export const NAV_GROUPS: readonly NavGroup[] = [
@@ -102,18 +110,6 @@ export const NAV_SETTINGS: NavGroup = {
   label: "nav.settings",
   items: [
     {
-      to: "/clinic",
-      label: "nav.clinic",
-      capabilities: PAGE_CAPABILITIES.clinic,
-      icon: "building",
-    },
-    {
-      to: "/website",
-      label: "nav.website",
-      capabilities: PAGE_CAPABILITIES.websiteEditor,
-      icon: "globe",
-    },
-    {
       to: "/users",
       label: "nav.users",
       capabilities: PAGE_CAPABILITIES.users,
@@ -121,33 +117,22 @@ export const NAV_SETTINGS: NavGroup = {
       also: ["/doctors"],
     },
     {
-      to: "/payroll",
-      label: "nav.payroll",
-      capabilities: PAGE_CAPABILITIES.payroll,
-      icon: "money",
-    },
-    {
       to: "/finance",
       label: "nav.finance",
       capabilities: PAGE_CAPABILITIES.finance,
-      icon: "trend-up",
-    },
-    {
-      to: "/clinic/prices",
-      label: "nav.priceList",
-      capabilities: PAGE_CAPABILITIES.priceList,
-      icon: "coins",
+      icon: "money",
+      also: ["/payroll"],
     },
     {
       to: "/clinic/lists",
-      label: "nav.lists",
-      capabilities: PAGE_CAPABILITIES.lists,
+      label: "nav.catalog",
+      capabilities: PAGE_CAPABILITIES.catalog,
       icon: "list",
     },
     {
       to: "/settings",
       label: "nav.settingsPage",
-      capabilities: PAGE_CAPABILITIES.settings,
+      capabilities: PAGE_CAPABILITIES.settingsMenu,
       icon: "gear",
     },
   ],
@@ -221,7 +206,7 @@ const BACK_ROUTES: readonly (BackTarget & { readonly pattern: RegExp })[] = [
     label: "nav.inventory",
   },
   { pattern: /^\/doctors\/[^/]+$/, to: "/users?view=doctors", label: "nav.users" },
-  { pattern: /^\/payroll\/[^/]+$/, to: "/payroll", label: "nav.payroll" },
+  { pattern: /^\/payroll\/[^/]+$/, to: "/finance", label: "nav.finance" },
   { pattern: /^\/profile$/, to: "/dashboard", label: "nav.dashboard" },
 ];
 

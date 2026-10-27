@@ -77,13 +77,9 @@ describe("Sidebar navigation", () => {
       ar.nav.myEarnings,
       ar.nav.labs,
       ar.nav.inventory,
-      ar.nav.clinic,
-      ar.nav.website,
       ar.nav.users,
-      ar.nav.payroll,
       ar.nav.finance,
-      ar.nav.priceList,
-      ar.nav.lists,
+      ar.nav.catalog,
       ar.nav.settingsPage,
     ]);
   });
@@ -137,8 +133,8 @@ describe("Sidebar navigation", () => {
       ar.nav.appointments,
       ar.nav.labs,
       ar.nav.inventory,
-      ar.nav.clinic,
       ar.nav.users,
+      ar.nav.settingsPage,
     ]);
   });
 
@@ -204,7 +200,7 @@ describe("The settings group", () => {
 
     expect(within(nav()).queryByRole("button")).not.toBeInTheDocument();
 
-    for (const label of [ar.nav.clinic, ar.nav.users, ar.nav.lists, ar.nav.settingsPage]) {
+    for (const label of [ar.nav.users, ar.nav.catalog, ar.nav.settingsPage]) {
       expect(within(nav()).getByRole("link", { name: label })).toBeInTheDocument();
     }
   });
@@ -219,7 +215,7 @@ describe("The current row", () => {
       .filter((link) => link.getAttribute("aria-current") === "page")
       .map((link) => link.textContent?.trim());
 
-    expect(current).toEqual([ar.nav.lists]);
+    expect(current).toEqual([ar.nav.catalog]);
   });
 
   it("keeps inventory current on one item's page", async () => {
@@ -234,14 +230,14 @@ describe("The current row", () => {
   });
 
   it("keeps the section current on a page below it", async () => {
-    await renderAs(USER_ROLE.ADMIN, "/clinic");
+    await renderAs(USER_ROLE.ADMIN, "/payroll/settings");
 
     const current = within(nav())
       .getAllByRole("link")
       .filter((link) => link.getAttribute("aria-current") === "page")
       .map((link) => link.textContent?.trim());
 
-    expect(current).toEqual([ar.nav.clinic]);
+    expect(current).toEqual([ar.nav.finance]);
   });
 });
 
@@ -251,8 +247,6 @@ describe("Route guards", () => {
     [USER_ROLE.RECEPTIONIST, "/labs"],
     [USER_ROLE.RECEPTIONIST, "/users"],
     [USER_ROLE.DOCTOR, "/audit-log"],
-    [USER_ROLE.RECEPTIONIST, "/assistant/settings"],
-    [USER_ROLE.RECEPTIONIST, "/settings"],
     [USER_ROLE.DOCTOR, "/settings"],
     [USER_ROLE.VISITING_DOCTOR, "/assistant"],
     [USER_ROLE.VISITING_DOCTOR, "/labs"],
@@ -283,6 +277,7 @@ describe("Route guards", () => {
     [USER_ROLE.DOCTOR, "/website"],
     [USER_ROLE.VISITING_DOCTOR, "/website"],
     [USER_ROLE.TECHNICIAN, "/website"],
+    [USER_ROLE.DOCTOR, "/clinic"],
   ])("redirects %s away from %s and onto the dashboard", async (role, route) => {
     await renderAs(role, route);
 
@@ -293,12 +288,27 @@ describe("Route guards", () => {
 });
 
 describe("The website inbox", () => {
+  it.each(["/settings", "/clinic", "/assistant/settings"])(
+    "gives a receptionist only the messages from %s",
+    async (route) => {
+      await renderAs(USER_ROLE.RECEPTIONIST, route);
+
+      expect(await screen.findByTestId("website-messages")).toBeInTheDocument();
+      expect(screen.getAllByRole("tab").map((tab) => tab.textContent?.trim())).toEqual([
+        ar.nav.website,
+      ]);
+    },
+  );
+
   it("opens for a receptionist from the bell without adding a settings row", async () => {
-    await renderAs(USER_ROLE.RECEPTIONIST, "/website?tab=messages");
+    await renderAs(USER_ROLE.RECEPTIONIST, "/settings?view=website&tab=messages");
 
     expect(await screen.findByTestId("website-messages")).toBeInTheDocument();
     expect(screen.queryByTestId("website-content")).not.toBeInTheDocument();
-    expect(within(nav()).queryByRole("link", { name: ar.nav.website })).not.toBeInTheDocument();
+    expect(
+      within(nav()).queryByRole("link", { name: ar.nav.settingsPage }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: ar.nav.clinic })).not.toBeInTheDocument();
   });
 });
 
@@ -336,7 +346,8 @@ describe("The price list follows its grants", () => {
     expect(
       await screen.findByRole("heading", { name: ar.priceList.title, level: 1 }),
     ).toBeInTheDocument();
-    expect(within(nav()).getByRole("link", { name: ar.nav.priceList })).toHaveAttribute(
+    expect(screen.queryByRole("tab", { name: ar.nav.lists })).not.toBeInTheDocument();
+    expect(within(nav()).getByRole("link", { name: ar.nav.catalog })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -390,6 +401,10 @@ describe("My earnings follows its grant", () => {
 describe("Retired addresses", () => {
   it.each([
     ["/doctors", ar.nav.users, ar.nav.doctors],
+    ["/payroll", ar.nav.finance, ar.nav.payroll],
+    ["/clinic/prices", ar.nav.catalog, ar.nav.priceList],
+    ["/clinic", ar.nav.settingsPage, ar.nav.clinic],
+    ["/website", ar.nav.settingsPage, ar.nav.website],
     ["/clinic/translations", ar.nav.settingsPage, ar.nav.translations],
     ["/assistant/settings", ar.nav.settingsPage, ar.nav.assistant],
     ["/permissions", ar.nav.settingsPage, ar.nav.permissions],

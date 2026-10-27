@@ -42,10 +42,8 @@ export function Work({
   const { t } = useTranslation();
 
   return (
-    <span className="flex min-w-0 flex-col gap-1">
-      <bdi className="font-medium text-ink rtl:text-end">
-        {order.workTypeName ?? t("labs.orders.custom")}
-      </bdi>
+    <span className="flex min-w-0 flex-col items-start gap-1">
+      <bdi className="font-medium text-ink">{order.workTypeName ?? t("labs.orders.custom")}</bdi>
       {order.teeth.length > 0 && (
         <span className="flex items-baseline gap-1.5 text-label font-normal text-ink-muted">
           <span>{t("labs.orders.teeth", { count: order.teeth.length })}</span>
