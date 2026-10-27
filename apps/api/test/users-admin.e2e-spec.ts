@@ -1,5 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { USER_ROLE, type UserRole } from "@clinic/shared";
+import { nationalPhoneDigits, USER_ROLE, type UserRole } from "@clinic/shared";
+import { sql } from "drizzle-orm";
+import { nationalPhoneDigitsOf } from "@api/common/lib/phone";
+import { users } from "@api/database/schema";
 import { REFRESH_COOKIE_NAME } from "@api/modules/auth/lib/refresh-cookie";
 import {
   auth,
@@ -130,6 +133,99 @@ describe("Admin user management and specialties (e2e)", () => {
       });
 
       expect(response.statusCode).toBe(409);
+    });
+
+    describe("one national number, one account", () => {
+      const national = () => `59${String(Date.now()).slice(-7)}`;
+      const row = (phone: string) => ({
+        clinicId: clinic.id,
+        firstNameAr: "زميل",
+        lastNameAr: "مكرر",
+        firstNameEn: "Colleague",
+        lastNameEn: "Twin",
+        nameAr: "زميل مكرر",
+        nameEn: "Colleague Twin",
+        phone,
+        role: USER_ROLE.RECEPTIONIST,
+      });
+
+      it.each(["+972", "+962", "00970"])(
+        "refuses the same number under %s in the database itself",
+        async (dial) => {
+          const number = national();
+          await context.db.insert(users).values(row(`+970${number}`));
+
+          await expect(
+            context.db.insert(users).values(row(`${dial}${number}`)),
+          ).rejects.toMatchObject({
+            cause: { code: "23505", constraint_name: "users_phone_uniq" },
+          });
+        },
+      );
+
+      it("answers 409 for the same number under another country code", async () => {
+        const number = national();
+        await context.db.insert(users).values(row(`+970${number}`));
+
+        const response = await context.app.inject({
+          method: "POST",
+          url: "/users",
+          headers: auth(tokens[USER_ROLE.ADMIN]),
+          payload: {
+            ...staffName("زميل", "Colleague"),
+            phone: `+962${number}`,
+            role: USER_ROLE.RECEPTIONIST,
+            password: TEST_PASSWORD,
+          },
+        });
+
+        expect(response.statusCode).toBe(409);
+        expect(response.json().message).toBe("Phone number is already in use");
+      });
+
+      it("signs in with the local form of a number saved under +972", async () => {
+        const number = national();
+        const created = await context.app.inject({
+          method: "POST",
+          url: "/users",
+          headers: auth(tokens[USER_ROLE.ADMIN]),
+          payload: {
+            ...staffName("زميل", "Colleague"),
+            phone: `+972${number}`,
+            role: USER_ROLE.RECEPTIONIST,
+            password: TEST_PASSWORD,
+          },
+        });
+        expect(created.statusCode).toBe(201);
+
+        context.resetThrottle();
+        const local = await context.app.inject({
+          method: "POST",
+          url: "/auth/login",
+          payload: { identifier: `0${number}`, password: TEST_PASSWORD },
+        });
+
+        expect(local.statusCode).toBe(200);
+      });
+
+      it("reads a national number the same way in the database and in code", async () => {
+        const phones = [
+          "+970599123456",
+          "+9720599123456",
+          "+962791234567",
+          "+201001234567",
+          "+12025550123",
+          "+9910000000001",
+        ];
+
+        for (const phone of phones) {
+          const [stored] = await context.db.execute<{ national: string }>(
+            sql`select ${nationalPhoneDigitsOf(sql`${phone}::text`)} as national`,
+          );
+
+          expect(stored?.national).toBe(nationalPhoneDigits(phone));
+        }
+      });
     });
 
     it("no longer answers on /me", async () => {

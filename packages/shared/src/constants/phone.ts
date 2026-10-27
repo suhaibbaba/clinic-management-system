@@ -84,6 +84,21 @@ export function splitPhone(
     : { country: fallback, local: value };
 }
 
+export const PHONE_DIAL_DIGITS = BY_DIAL_LENGTH.map((entry) => entry.dial.slice(1));
+
+export function nationalPhoneDigits(phone: string): string {
+  const trimmed = phone.trim();
+
+  if (!trimmed.startsWith("+") && !trimmed.startsWith("00")) {
+    return nationalNumber(trimmed);
+  }
+
+  const digits = digitsOf(trimmed).replace(/^00/, "");
+  const dial = PHONE_DIAL_DIGITS.find((code) => digits.startsWith(code));
+
+  return dial ? digits.slice(dial.length).replace(/^0/, "") : digits;
+}
+
 export const INTERNATIONAL_PHONE_PATTERN = /^\+\d{7,15}$/;
 
 const SHARED_NUMBERING_DIALS = ["970", "972"] as const;

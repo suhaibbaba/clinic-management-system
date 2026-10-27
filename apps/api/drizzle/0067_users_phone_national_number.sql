@@ -1,0 +1,2 @@
+DROP INDEX "users_phone_uniq";--> statement-breakpoint
+CREATE UNIQUE INDEX "users_phone_uniq" ON "users" USING btree (regexp_replace(regexp_replace(regexp_replace("phone", '[^0-9]', '', 'g'), '^00', ''), '^(970|972|962|966|971|974|965|973|968|961|963|964|20|90|44|49|1)0?', '')) WHERE deleted_at is null;

@@ -8,7 +8,15 @@ import {
   USER_ROLE,
   type User,
 } from "@clinic/shared";
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException, ConflictException } from "@nestjs/common";
+import { UNIQUE_VIOLATION } from "@api/common/constants/postgres-errors";
+import { violatedConstraint } from "@api/common/lib/postgres-errors";
+import {
+  EMAIL_IN_USE,
+  PHONE_IN_USE,
+  USERS_EMAIL_INDEX,
+  USERS_PHONE_INDEX,
+} from "@api/modules/users/constants";
 
 export type UserRow = typeof users.$inferSelect;
 
@@ -117,4 +125,18 @@ export function latest(dates: Iterable<Date>): Date | null {
   }
 
   return result;
+}
+
+export function asIdentifierConflict(error: unknown): unknown {
+  const constraint = violatedConstraint(error, UNIQUE_VIOLATION);
+
+  if (constraint === USERS_PHONE_INDEX) {
+    return new ConflictException(PHONE_IN_USE);
+  }
+
+  if (constraint === USERS_EMAIL_INDEX) {
+    return new ConflictException(EMAIL_IN_USE);
+  }
+
+  return error;
 }

@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, Logger, NotFoundException, Inject } from "@nestjs/common";
-import { normalizePhone } from "@clinic/shared";
+import { nationalPhoneDigits } from "@clinic/shared";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, users } from "@api/database/schema";
@@ -7,7 +7,7 @@ import { AccountEmailService } from "@api/modules/email/services/account-email.s
 import { hashToken, type AccountEmailPurpose } from "@api/modules/email/lib/account-email";
 import { PasswordService } from "@api/modules/auth/services/password.service";
 import { TokenService } from "@api/modules/auth/services/token.service";
-import { phoneMatches } from "@api/common/lib/phone";
+import { nationalPhoneDigitsOf } from "@api/common/lib/phone";
 
 @Injectable()
 export class AccountInvitationsService {
@@ -71,7 +71,7 @@ export class AccountInvitationsService {
           eq(users.isActive, true),
           value.includes("@")
             ? eq(sql`lower(${users.email})`, value.toLowerCase())
-            : phoneMatches(users.phone, normalizePhone(value)),
+            : eq(nationalPhoneDigitsOf(users.phone), nationalPhoneDigits(value)),
         ),
       )
       .limit(1);

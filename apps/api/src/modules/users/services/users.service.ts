@@ -20,7 +20,7 @@ import {
   type PresignUserPhotoResponse,
   type UpdateUserInput,
   type User,
-  isSamePhone,
+  nationalPhoneDigits,
 } from "@clinic/shared";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { AuditService } from "@api/modules/audit/services/audit.service";
@@ -40,6 +40,7 @@ import {
   safeColumns,
   toAuditSnapshot,
   assertNotDoctorRole,
+  asIdentifierConflict,
   assertRoleChange,
   latest,
   SafeUserRow,
@@ -49,7 +50,8 @@ import {
   UserRow,
   toUser,
 } from "@api/modules/users/lib/users";
-import { phoneMatches } from "@api/common/lib/phone";
+import { nationalPhoneDigitsOf } from "@api/common/lib/phone";
+import { EMAIL_IN_USE, PHONE_IN_USE } from "@api/modules/users/constants";
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -145,7 +147,10 @@ export class UsersService implements OnModuleInit {
         createdBy: actor.id,
         updatedBy: actor.id,
       })
-      .returning(safeColumns);
+      .returning(safeColumns)
+      .catch((error: unknown) => {
+        throw asIdentifierConflict(error);
+      });
 
     if (!row) {
       throw new Error("Failed to create user");
@@ -205,7 +210,10 @@ export class UsersService implements OnModuleInit {
         updatedBy: actor.id,
       })
       .where(this.scope.where(users, actor.clinicId, eq(users.id, id)))
-      .returning(safeColumns);
+      .returning(safeColumns)
+      .catch((error: unknown) => {
+        throw asIdentifierConflict(error);
+      });
 
     if (!row) {
       throw new Error("Failed to update user");
@@ -427,9 +435,10 @@ export class UsersService implements OnModuleInit {
     excludeUserId?: string,
     executor: DatabaseExecutor = this.db,
   ): Promise<void> {
+    const phoneMatches = eq(nationalPhoneDigitsOf(users.phone), nationalPhoneDigits(phone));
     const identifierMatches = email
-      ? or(phoneMatches(users.phone, phone), eq(sql`lower(${users.email})`, email.toLowerCase()))
-      : phoneMatches(users.phone, phone);
+      ? or(phoneMatches, eq(sql`lower(${users.email})`, email.toLowerCase()))
+      : phoneMatches;
 
     const [clash] = await executor
       .select({ phone: users.phone, email: users.email })
@@ -448,9 +457,7 @@ export class UsersService implements OnModuleInit {
     }
 
     throw new ConflictException(
-      isSamePhone(clash.phone, phone)
-        ? "Phone number is already in use"
-        : "Email is already in use",
+      nationalPhoneDigits(clash.phone) === nationalPhoneDigits(phone) ? PHONE_IN_USE : EMAIL_IN_USE,
     );
   }
 }

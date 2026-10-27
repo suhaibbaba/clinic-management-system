@@ -2,11 +2,11 @@ import { Inject, Injectable, Logger, UnauthorizedException } from "@nestjs/commo
 import { LoginThrottleService } from "@api/modules/auth/services/login-throttle.service";
 import { LoginCodeService } from "@api/modules/auth/services/login-code.service";
 import { PasskeyService } from "@api/modules/auth/services/passkey.service";
-import { and, eq, isNull, like, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import {
   AUTH_ERROR,
   DEFAULT_PHONE_COUNTRY,
-  normalizePhone,
+  nationalPhoneDigits,
   type AuthenticatedUserProfile,
   type IssuedSession,
   type LoginInput,
@@ -25,7 +25,7 @@ import { StorageService } from "@api/modules/storage/services/storage.service";
 import { clinics, specialties, users } from "@api/database/schema";
 import { INVALID_CREDENTIALS, PHONE_MIN_DIGITS } from "@api/modules/auth/constants";
 import { UserRow } from "@api/modules/auth/lib/auth";
-import { phoneDigitsOf, phoneMatches } from "@api/common/lib/phone";
+import { nationalPhoneDigitsOf } from "@api/common/lib/phone";
 
 @Injectable()
 export class AuthService {
@@ -199,26 +199,16 @@ export class AuthService {
       return user;
     }
 
-    const international = trimmed.startsWith("+") || trimmed.startsWith("00");
-    const digits = international
-      ? normalizePhone(trimmed).slice(1)
-      : trimmed.replace(/\D/g, "").replace(/^0/, "");
+    const national = nationalPhoneDigits(trimmed);
 
-    if (digits.length < PHONE_MIN_DIGITS) {
+    if (national.length < PHONE_MIN_DIGITS) {
       return undefined;
     }
 
     const matches = await this.db
       .select()
       .from(users)
-      .where(
-        and(
-          isNull(users.deletedAt),
-          international
-            ? phoneMatches(users.phone, digits)
-            : like(phoneDigitsOf(users.phone), `%${digits}`),
-        ),
-      )
+      .where(and(isNull(users.deletedAt), eq(nationalPhoneDigitsOf(users.phone), national)))
       .limit(2);
 
     return matches.length === 1 ? matches[0] : undefined;

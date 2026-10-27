@@ -470,6 +470,13 @@
       "when": 1792889991880,
       "tag": "0066_booking_otp_skipped",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1793105887231,
+      "tag": "0067_users_phone_national_number",
+      "breakpoints": true
     }
   ]
 }
