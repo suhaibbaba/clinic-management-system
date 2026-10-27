@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, sql } from "drizzle-orm";
 import { AUTH_ERROR } from "@clinic/shared";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { loginThrottles } from "@api/database/schema";
@@ -47,5 +47,42 @@ export class LoginThrottleService {
     await this.db
       .delete(loginThrottles)
       .where(eq(loginThrottles.key, loginThrottleKey(identifier)));
+  }
+
+  async lockedUntil(identifiers: readonly string[]): Promise<Map<string, Date>> {
+    const identifierByKey = new Map(
+      identifiers.map((identifier) => [loginThrottleKey(identifier), identifier]),
+    );
+
+    if (identifierByKey.size === 0) {
+      return new Map();
+    }
+
+    const rows = await this.db
+      .select({ key: loginThrottles.key, lockedUntil: loginThrottles.lockedUntil })
+      .from(loginThrottles)
+      .where(
+        and(
+          inArray(loginThrottles.key, [...identifierByKey.keys()]),
+          gt(loginThrottles.lockedUntil, sql`now()`),
+        ),
+      );
+
+    return new Map(
+      rows.flatMap(({ key, lockedUntil }) => {
+        const identifier = identifierByKey.get(key);
+        return identifier !== undefined && lockedUntil ? [[identifier, lockedUntil] as const] : [];
+      }),
+    );
+  }
+
+  async clearAll(identifiers: readonly string[]): Promise<void> {
+    if (identifiers.length === 0) {
+      return;
+    }
+
+    await this.db
+      .delete(loginThrottles)
+      .where(inArray(loginThrottles.key, identifiers.map(loginThrottleKey)));
   }
 }

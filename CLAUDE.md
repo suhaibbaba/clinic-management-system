@@ -119,7 +119,8 @@ core · patients · billing · appointments · booking · notifications · labs 
 - **Every route is rate limited** by the global `RequestThrottlerGuard` (per user, or per IP when
   signed out); a public or costly route adds a tighter `@Throttle`. The client IP is trusted only
   past our own proxies (`TRUST_PROXY`). Sign-in locks an identifier for 15 minutes after five
-  failures; a public route that sends a message caps sends per phone.
+  failures, and `users.unlock` lifts a staff member's lock early; a public route that sends a
+  message caps sends per phone.
 - **The assistant never changes data unasked:** every action tool is tier `confirm` or stricter,
   so the user approves each change on its card. A linked id (a visit, a procedure, a work type) is
   checked to belong to the same patient, clinic or lab before it is stored.

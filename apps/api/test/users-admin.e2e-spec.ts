@@ -232,6 +232,93 @@ describe("Admin user management and specialties (e2e)", () => {
     });
   });
 
+  describe("POST /users/:id/unlock", () => {
+    const login = (identifier: string, password = TEST_PASSWORD) =>
+      context.app.inject({
+        method: "POST",
+        url: "/auth/login",
+        payload: { identifier, password },
+      });
+
+    const lockOut = async (identifier: string): Promise<void> => {
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        context.resetThrottle();
+        await login(identifier, "NotThePassword1");
+      }
+      context.resetThrottle();
+    };
+
+    it("shows the lock on the user and lifts it, with an audit entry", async () => {
+      const other = await context.createClinic();
+      const admin = await context.login(other.phones[USER_ROLE.ADMIN]);
+      const phone = other.phones[USER_ROLE.TECHNICIAN];
+      const userId = other.userIds[USER_ROLE.TECHNICIAN];
+
+      await lockOut(phone);
+      expect((await login(phone)).statusCode).toBe(429);
+
+      const before = await context.app.inject({
+        method: "GET",
+        url: `/users/${userId}`,
+        headers: auth(admin),
+      });
+      expect(before.json().loginLockedUntil).toEqual(expect.any(String));
+
+      const unlock = await context.app.inject({
+        method: "POST",
+        url: `/users/${userId}/unlock`,
+        headers: auth(admin),
+        payload: {},
+      });
+      expect(unlock.statusCode).toBe(204);
+
+      const after = await context.app.inject({
+        method: "GET",
+        url: `/users/${userId}`,
+        headers: auth(admin),
+      });
+      expect(after.json().loginLockedUntil).toBeNull();
+      expect((await login(phone)).statusCode).toBe(200);
+
+      const trail = await context.app.inject({
+        method: "GET",
+        url: `/audit-log?entityId=${userId}&limit=50`,
+        headers: auth(admin),
+      });
+      const entries = trail.json().items as { oldValue: Record<string, unknown> | null }[];
+      expect(
+        entries.some((entry) => typeof entry.oldValue?.["loginLockedUntil"] === "string"),
+      ).toBe(true);
+    });
+
+    it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
+      "refuses %s",
+      async (role) => {
+        const response = await context.app.inject({
+          method: "POST",
+          url: `/users/${clinic.userIds[USER_ROLE.TECHNICIAN]}/unlock`,
+          headers: auth(tokens[role]),
+          payload: {},
+        });
+
+        expect(response.statusCode).toBe(403);
+      },
+    );
+
+    it("returns 404 for a user in another clinic", async () => {
+      const other = await context.createClinic();
+
+      const response = await context.app.inject({
+        method: "POST",
+        url: `/users/${other.userIds[USER_ROLE.DOCTOR]}/unlock`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
   describe("GET /specialties", () => {
     it.each([USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
       "is readable by %s",

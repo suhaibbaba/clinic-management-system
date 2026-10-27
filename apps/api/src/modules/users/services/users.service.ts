@@ -24,6 +24,7 @@ import {
 } from "@clinic/shared";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { AuditService } from "@api/modules/audit/services/audit.service";
+import { LoginThrottleService } from "@api/modules/auth/services/login-throttle.service";
 import { PasswordService } from "@api/modules/auth/services/password.service";
 import { TokenService } from "@api/modules/auth/services/token.service";
 import { arabicNameSearch } from "@api/common/database/arabic-search";
@@ -40,9 +41,11 @@ import {
   toAuditSnapshot,
   assertNotDoctorRole,
   assertRoleChange,
+  latest,
   SafeUserRow,
   staffNameColumns,
   photoCategory,
+  signInIdentifiers,
   UserRow,
   toUser,
 } from "@api/modules/users/lib/users";
@@ -59,6 +62,7 @@ export class UsersService implements OnModuleInit {
     private readonly auditService: AuditService,
     private readonly storage: StorageService,
     private readonly permissions: PermissionsService,
+    private readonly loginThrottle: LoginThrottleService,
   ) {}
 
   onModuleInit(): void {
@@ -241,6 +245,28 @@ export class UsersService implements OnModuleInit {
     });
   }
 
+  async unlock(actor: AuthenticatedUser, id: string): Promise<void> {
+    const target = await this.findInClinicOrFail(actor.clinicId, id);
+    const identifiers = signInIdentifiers(target);
+    const locks = await this.loginThrottle.lockedUntil(identifiers);
+
+    await this.loginThrottle.clearAll(identifiers);
+
+    if (locks.size === 0) {
+      return;
+    }
+
+    await this.auditService.record({
+      clinicId: actor.clinicId,
+      userId: actor.id,
+      action: AUDIT_ACTION.UPDATE,
+      entity: USERS_ENTITY,
+      entityId: target.id,
+      oldValue: { loginLockedUntil: latest(locks.values())?.toISOString() ?? null },
+      newValue: { loginLockedUntil: null },
+    });
+  }
+
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.findInClinicOrFail(actor.clinicId, id);
 
@@ -372,11 +398,27 @@ export class UsersService implements OnModuleInit {
   }
 
   private async presentOne(row: SafeUserRow): Promise<User> {
-    return toUser(row, await this.signPhoto(row.photoKey));
+    const [user] = await this.present([row]);
+
+    if (!user) {
+      throw new Error("Failed to present the user");
+    }
+
+    return user;
   }
 
   private async present(rows: readonly SafeUserRow[]): Promise<User[]> {
-    return Promise.all(rows.map((row) => this.presentOne(row)));
+    const locks = await this.loginThrottle.lockedUntil(rows.flatMap(signInIdentifiers));
+
+    return Promise.all(
+      rows.map(async (row) =>
+        toUser(
+          row,
+          await this.signPhoto(row.photoKey),
+          latest(signInIdentifiers(row).flatMap((identifier) => locks.get(identifier) ?? [])),
+        ),
+      ),
+    );
   }
 
   private async assertIdentifiersAreFree(

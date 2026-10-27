@@ -29,13 +29,14 @@ import {
   useDeleteUser,
   useInviteUser,
   useSendPasswordReset,
+  useUnlockUser,
   useUpdateUser,
 } from "@web/modules/users/queries";
 import { useUsers } from "@web/shared/queries/users";
 import { ResetPasswordModal } from "@web/modules/users/components/reset-password-modal";
 import { UserFormModal } from "@web/modules/users/components/user-form-modal";
 import { errorToast } from "@web/shared/lib/api-error";
-import { formatDate } from "@web/shared/lib/format";
+import { formatDate, formatTime } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
 export function UsersPage(): JSX.Element {
@@ -45,11 +46,12 @@ export function UsersPage(): JSX.Element {
   const invite = useInviteUser();
   const sendReset = useSendPasswordReset();
   const removeUser = useDeleteUser();
+  const unlock = useUnlockUser();
   const { user: currentUser, can } = useSession();
 
   const send = async (
     run: Promise<unknown>,
-    successKey: "users.inviteSent" | "users.resetLinkSent",
+    successKey: "users.inviteSent" | "users.resetLinkSent" | "users.unlocked",
   ): Promise<void> => {
     try {
       await run;
@@ -171,6 +173,12 @@ export function UsersPage(): JSX.Element {
                 {t("users.pending")}
               </Badge>
             )}
+
+            {row.loginLockedUntil !== null && (
+              <Badge tone="danger" data-testid="user-locked">
+                {t("users.locked", { time: formatTime(row.loginLockedUntil) })}
+              </Badge>
+            )}
           </div>
         ),
       },
@@ -217,6 +225,16 @@ export function UsersPage(): JSX.Element {
                 onSelect={() => void send(sendReset.mutateAsync(row.id), "users.resetLinkSent")}
               >
                 {t("users.sendResetLink")}
+              </MenuItem>
+            )}
+
+            {row.loginLockedUntil !== null && can("users.unlock") && (
+              <MenuItem
+                icon="lock"
+                data-testid="user-menu-unlock"
+                onSelect={() => void send(unlock.mutateAsync(row.id), "users.unlocked")}
+              >
+                {t("users.unlock")}
               </MenuItem>
             )}
 

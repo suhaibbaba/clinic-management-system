@@ -27,6 +27,9 @@ export const usersApi = {
 
   sendPasswordReset,
 
+  unlock: (id: string): Promise<void> =>
+    apiRequest(`/users/${id}/unlock`, { method: "POST", body: {} }),
+
   remove: (id: string): Promise<void> => apiRequest(`/users/${id}`, { method: "DELETE" }),
 
   presignPhoto: (id: string, body: PresignUserPhotoInput): Promise<PresignUserPhotoResponse> =>
