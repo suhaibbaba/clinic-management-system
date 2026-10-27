@@ -200,6 +200,7 @@
     "filterRole": "Filter by Role",
     "inactive": "Inactive",
     "inviteSent": "The link has been sent",
+    "locked": "Sign-in Locked Until {{time}}",
     "name": "Name",
     "newPassword": "New Password",
     "password": "Password",
@@ -226,6 +227,8 @@
     "status": "Status",
     "subtitle": "Manage clinic staff accounts and their roles",
     "title": "Users",
+    "unlock": "Lift the Sign-in Lock",
+    "unlocked": "The lock was lifted; they can sign in now",
     "updated": "User Updated",
     "uploadPhoto": "Upload Photo",
     "willBeInvited": "An activation link will be sent to {{email}} — they choose their own password.",
@@ -1968,6 +1971,7 @@
         "removePhoto": "Remove a User's Photo",
         "resetPassword": "Set a User's Password",
         "sendPasswordReset": "Send a Password Reset Link",
+        "unlock": "Lift a User's Sign-in Lock",
         "update": "Edit a User"
       },
       "visits": {

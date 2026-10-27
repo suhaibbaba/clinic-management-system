@@ -103,6 +103,15 @@ export class UsersController {
     await this.usersService.resetPassword(actor, params.id, body.newPassword);
   }
 
+  @Post(":id/unlock")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async unlock(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+  ): Promise<void> {
+    await this.usersService.unlock(actor, params.id);
+  }
+
   @Post(":id/photo/presign")
   @OrSelf()
   @HttpCode(HttpStatus.OK)

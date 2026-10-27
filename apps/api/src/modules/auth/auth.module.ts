@@ -24,6 +24,6 @@ import { PasskeysController } from "@api/modules/auth/controllers/passkeys.contr
     PasskeyService,
     GoogleAuthService,
   ],
-  exports: [AuthService, PasswordService, TokenService, JwtModule],
+  exports: [AuthService, PasswordService, TokenService, LoginThrottleService, JwtModule],
 })
 export class AuthModule {}

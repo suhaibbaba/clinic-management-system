@@ -22,6 +22,7 @@ export const userSchema = z.object({
   isActive: z.boolean(),
   joinedOn: calendarDateSchema.nullable(),
   photoUrl: z.url().nullable(),
+  loginLockedUntil: z.iso.datetime().nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });

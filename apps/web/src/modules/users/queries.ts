@@ -44,6 +44,15 @@ export function useSendPasswordReset() {
   return useMutation({ mutationFn: (id: string) => usersApi.sendPasswordReset(id) });
 }
 
+export function useUnlockUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => usersApi.unlock(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [USERS_KEY] }),
+  });
+}
+
 export function useDeleteUser() {
   const queryClient = useQueryClient();
 

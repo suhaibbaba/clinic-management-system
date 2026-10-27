@@ -74,7 +74,11 @@ export function assertRoleChange(from: UserRole, to: UserRole, hasDoctorProfile:
   }
 }
 
-export function toUser(row: SafeUserRow, photoUrl: string | null): User {
+export function toUser(
+  row: SafeUserRow,
+  photoUrl: string | null,
+  loginLockedUntil: Date | null,
+): User {
   return {
     id: row.id,
     clinicId: row.clinicId,
@@ -88,11 +92,29 @@ export function toUser(row: SafeUserRow, photoUrl: string | null): User {
     isActive: row.isActive,
     joinedOn: row.joinedOn,
     photoUrl,
+    loginLockedUntil: loginLockedUntil?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
 }
 
 export function toAuditSnapshot(row: SafeUserRow): Record<string, unknown> {
-  return { ...toUser(row, null), photoKey: row.photoKey };
+  const { loginLockedUntil: _, ...user } = toUser(row, null, null);
+  return { ...user, photoKey: row.photoKey };
+}
+
+export function signInIdentifiers(row: Pick<SafeUserRow, "phone" | "email">): string[] {
+  return row.email ? [row.phone, row.email] : [row.phone];
+}
+
+export function latest(dates: Iterable<Date>): Date | null {
+  let result: Date | null = null;
+
+  for (const date of dates) {
+    if (result === null || date > result) {
+      result = date;
+    }
+  }
+
+  return result;
 }
