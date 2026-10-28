@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   AdjustStockInput,
+  CreatePackSizeInput,
+  ItemPrice,
+  PackSize,
+  ReportRangeQuery,
+  Valuation,
+  VarianceReport,
+  WasteReport,
   MarkReviewedInput,
   PurchaseReviewEntry,
   CreatePurchaseRequestInput,
@@ -62,6 +69,9 @@ export const LOT_BLOCKS_KEY = "lot-blocks";
 export const PURCHASE_REQUESTS_KEY = "purchase-requests";
 export const STOCK_COUNTS_KEY = "stock-counts";
 export const PURCHASE_REVIEW_KEY = "purchase-review";
+export const PACK_SIZES_KEY = "pack-sizes";
+export const ITEM_PRICES_KEY = "item-prices";
+export const STOCK_REPORTS_KEY = "stock-reports";
 
 const STOCK_KEYS = [
   ITEMS_KEY,
@@ -77,6 +87,9 @@ const STOCK_KEYS = [
   PURCHASE_REQUESTS_KEY,
   STOCK_COUNTS_KEY,
   PURCHASE_REVIEW_KEY,
+  PACK_SIZES_KEY,
+  ITEM_PRICES_KEY,
+  STOCK_REPORTS_KEY,
 ];
 
 function useStockMutation<TArgs, TResult>(mutationFn: (args: TArgs) => Promise<TResult>) {
@@ -376,4 +389,60 @@ export function usePurchaseReview(): UseQueryResult<PurchaseReviewEntry[]> {
 
 export function useMarkReviewed() {
   return useStockMutation((input: MarkReviewedInput) => purchasesApi.markReviewed(input));
+}
+
+export function usePackSizes(itemId: string): UseQueryResult<PackSize[]> {
+  return useQuery({
+    queryKey: [PACK_SIZES_KEY, itemId],
+    queryFn: () => inventoryApi.packSizes(itemId),
+    enabled: itemId !== "",
+  });
+}
+
+export function useAddPackSize() {
+  return useStockMutation(({ itemId, body }: { itemId: string; body: CreatePackSizeInput }) =>
+    inventoryApi.addPackSize(itemId, body),
+  );
+}
+
+export function useArchivePackSize() {
+  return useStockMutation((id: string) => inventoryApi.archivePackSize(id));
+}
+
+export function useItemPrices(itemId: string, enabled: boolean): UseQueryResult<ItemPrice[]> {
+  return useQuery({
+    queryKey: [ITEM_PRICES_KEY, itemId],
+    queryFn: () => inventoryApi.itemPrices(itemId),
+    enabled: enabled && itemId !== "",
+  });
+}
+
+export function useValuation(date: string): UseQueryResult<Valuation> {
+  return useQuery({
+    queryKey: [STOCK_REPORTS_KEY, "valuation", date],
+    queryFn: () => inventoryApi.valuation(date),
+    enabled: date !== "",
+  });
+}
+
+export function useWasteReport(
+  range: ReportRangeQuery,
+  enabled: boolean,
+): UseQueryResult<WasteReport> {
+  return useQuery({
+    queryKey: [STOCK_REPORTS_KEY, "waste", range],
+    queryFn: () => inventoryApi.waste(range),
+    enabled,
+  });
+}
+
+export function useVarianceReport(
+  range: ReportRangeQuery,
+  enabled: boolean,
+): UseQueryResult<VarianceReport> {
+  return useQuery({
+    queryKey: [STOCK_REPORTS_KEY, "variance", range],
+    queryFn: () => inventoryApi.variance(range),
+    enabled,
+  });
 }

@@ -383,6 +383,7 @@ const discountSchema = z.object({
 export const purchaseLineSchema = z.object({
   itemId: uuidSchema,
   requestLineId: uuidSchema.optional(),
+  packSizeId: uuidSchema.optional(),
   quantity: quantitySchema,
   freeQuantity: quantitySchema.optional(),
   unitPrice: moneySchema.optional(),
@@ -750,3 +751,94 @@ export const markReviewedSchema = z.object({
   invoices: z.array(uuidSchema).max(200).default([]),
 });
 export type MarkReviewedInput = z.infer<typeof markReviewedSchema>;
+
+export const packSizeSchema = z.object({
+  id: uuidSchema,
+  itemId: uuidSchema,
+  unit: lookupCodeSchema,
+  unitsPer: quantitySchema,
+  supplierId: uuidSchema.nullable(),
+  supplierName: z.string().nullable(),
+});
+export type PackSize = z.infer<typeof packSizeSchema>;
+
+export const createPackSizeSchema = z.object({
+  unit: lookupCodeSchema,
+  unitsPer: quantitySchema.refine((value) => Number(value) > 1, "A pack holds more than one unit"),
+  supplierId: uuidSchema.nullish(),
+});
+export type CreatePackSizeInput = z.infer<typeof createPackSizeSchema>;
+
+export const itemPriceSchema = z.object({
+  receiptLineId: uuidSchema,
+  receiptNumber: z.string(),
+  receivedOn: isoDateSchema,
+  supplierId: uuidSchema.nullable(),
+  supplierName: z.string().nullable(),
+  purchaseUnit: lookupCodeSchema.nullable(),
+  unitsPer: quantitySchema,
+  quantity: quantitySchema,
+  unitPrice: moneySchema.nullable(),
+  unitCost: z.string().nullable(),
+});
+export type ItemPrice = z.infer<typeof itemPriceSchema>;
+
+export const valuationQuerySchema = z.object({ date: isoDateSchema });
+export type ValuationQuery = z.infer<typeof valuationQuerySchema>;
+
+export const valuationLineSchema = z.object({
+  itemId: uuidSchema,
+  itemName: z.string(),
+  category: lookupCodeSchema,
+  unit: lookupCodeSchema,
+  quantity: signedQuantitySchema,
+  unknownQuantity: signedQuantitySchema,
+  value: signedMoneySchema,
+});
+export type ValuationLine = z.infer<typeof valuationLineSchema>;
+
+export const valuationSchema = z.object({
+  date: isoDateSchema,
+  total: signedMoneySchema,
+  lines: z.array(valuationLineSchema),
+});
+export type Valuation = z.infer<typeof valuationSchema>;
+
+export const reportRangeQuerySchema = z.object({ from: isoDateSchema, to: isoDateSchema });
+export type ReportRangeQuery = z.infer<typeof reportRangeQuerySchema>;
+
+export const wasteLineSchema = z.object({
+  itemId: uuidSchema,
+  itemName: z.string(),
+  unit: lookupCodeSchema,
+  reasonCode: z.string().nullable(),
+  quantity: quantitySchema,
+  value: signedMoneySchema,
+});
+export type WasteLine = z.infer<typeof wasteLineSchema>;
+
+export const wasteReportSchema = z.object({
+  from: isoDateSchema,
+  to: isoDateSchema,
+  total: signedMoneySchema,
+  lines: z.array(wasteLineSchema),
+});
+export type WasteReport = z.infer<typeof wasteReportSchema>;
+
+export const varianceLineSchema = z.object({
+  documentId: uuidSchema,
+  number: z.string(),
+  kind: z.enum(SUPPLIER_DOCUMENT_KINDS),
+  date: isoDateSchema,
+  supplierName: z.string(),
+  variance: signedMoneySchema,
+});
+export type VarianceLine = z.infer<typeof varianceLineSchema>;
+
+export const varianceReportSchema = z.object({
+  from: isoDateSchema,
+  to: isoDateSchema,
+  total: signedMoneySchema,
+  lines: z.array(varianceLineSchema),
+});
+export type VarianceReport = z.infer<typeof varianceReportSchema>;

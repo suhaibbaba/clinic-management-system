@@ -11,6 +11,9 @@ import {
   reverseMovementSchema,
   idParamSchema,
   writeOffSchema,
+  createPackSizeSchema,
+  valuationQuerySchema,
+  reportRangeQuerySchema,
   blockLotSchema,
   liftLotBlockSchema,
   listLotBlocksQuerySchema,
@@ -43,3 +46,9 @@ export class BlockLotDto extends createZodDto(blockLotSchema) {}
 export class LiftLotBlockDto extends createZodDto(liftLotBlockSchema) {}
 
 export class ListLotBlocksQueryDto extends createZodDto(listLotBlocksQuerySchema) {}
+
+export class CreatePackSizeDto extends createZodDto(createPackSizeSchema) {}
+
+export class ValuationQueryDto extends createZodDto(valuationQuerySchema) {}
+
+export class ReportRangeQueryDto extends createZodDto(reportRangeQuerySchema) {}

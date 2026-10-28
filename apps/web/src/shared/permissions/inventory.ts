@@ -50,6 +50,11 @@ export const canPostStockCount = (can: Can): boolean => can("stock-counts.post")
 
 export const canReviewPurchases = (can: Can): boolean => can("purchases.reviewList");
 
+export const canManagePackSizes = (can: Can): boolean => can("inventory.addPackSize");
+
+export const canSeeStockReports = (can: Can): boolean =>
+  can("inventory.valuation") && can(RULE.INVENTORY_COSTS);
+
 export const canVoidInvoice = (can: Can): boolean => can("purchases.voidInvoice");
 
 export const canSeeCosts = (can: Can): boolean => can(RULE.INVENTORY_COSTS);

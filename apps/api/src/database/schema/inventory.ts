@@ -498,3 +498,32 @@ export const stockCountLines = pgTable(
   },
   (table) => [uniqueIndex("stock_count_lines_item_uniq").on(table.countId, table.itemId)],
 );
+
+export const itemPackSizes = pgTable(
+  "item_pack_sizes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    itemId: uuid("item_id")
+      .notNull()
+      .references(() => inventoryItems.id),
+    unit: text("unit").notNull(),
+    unitsPer: quantity("units_per").notNull(),
+    supplierId: uuid("supplier_id").references(() => suppliers.id),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdBy: uuid("created_by"),
+  },
+  (table) => [
+    uniqueIndex("item_pack_sizes_active_uniq")
+      .on(
+        table.clinicId,
+        table.itemId,
+        table.unit,
+        sql`coalesce(${table.supplierId}, '00000000-0000-0000-0000-000000000000'::uuid)`,
+      )
+      .where(sql`archived_at is null`),
+  ],
+);

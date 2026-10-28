@@ -16,9 +16,15 @@ export const INVENTORY_TAB_REQUESTS = "requests";
 
 export const INVENTORY_TAB_REVIEW = "review";
 
+export const INVENTORY_TAB_REPORTS = "reports";
+
+export const STOCK_REPORTS = ["valuation", "waste", "variance"] as const;
+
+export type StockReport = (typeof STOCK_REPORTS)[number];
+
 export const SUPPLIERS_TAB_PATH = "/inventory?tab=suppliers";
 
-export const ITEM_PAGE_TABS = ["overview", "movements"] as const;
+export const ITEM_PAGE_TABS = ["overview", "movements", "prices"] as const;
 
 export const MOVEMENT_ACTION_ICONS: Record<RecordableMovementType, IconName> = {
   [MOVEMENT_TYPE.PURCHASE]: "plus",
@@ -40,12 +46,14 @@ export type InventoryTab =
   | typeof INVENTORY_TAB_STOCK
   | typeof INVENTORY_TAB_REQUESTS
   | typeof INVENTORY_TAB_SUPPLIERS
-  | typeof INVENTORY_TAB_REVIEW;
+  | typeof INVENTORY_TAB_REVIEW
+  | typeof INVENTORY_TAB_REPORTS;
 
 export const INVENTORY_TABS: readonly TabDefinition<InventoryTab>[] = [
   { id: INVENTORY_TAB_STOCK, label: "inventory.section.stock" },
   { id: INVENTORY_TAB_REQUESTS, label: "inventory.section.requests" },
   { id: INVENTORY_TAB_SUPPLIERS, label: "inventory.section.suppliers" },
+  { id: INVENTORY_TAB_REPORTS, label: "inventory.section.reports" },
   { id: INVENTORY_TAB_REVIEW, label: "inventory.section.review" },
 ];
 

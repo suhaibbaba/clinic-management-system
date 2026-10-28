@@ -1161,6 +1161,7 @@ export const STOCK_ERROR = {
   WHOLE_UNITS: "stock_whole_units",
   EXPIRY_REQUIRED: "stock_expiry_required",
   LOT_REQUIRED: "stock_lot_required",
+  PACK_SIZE_EXISTS: "stock_pack_size_exists",
 } as const satisfies Record<string, string>;
 
 export const PAYROLL_ADJUSTMENT_KIND = {

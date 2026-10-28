@@ -1,6 +1,13 @@
 import { toQueryString } from "@web/shared/lib/query-string";
 import type {
   AdjustStockInput,
+  CreatePackSizeInput,
+  ItemPrice,
+  PackSize,
+  ReportRangeQuery,
+  Valuation,
+  VarianceReport,
+  WasteReport,
   MarkReviewedInput,
   PurchaseReviewEntry,
   CreatePurchaseRequestInput,
@@ -83,6 +90,25 @@ export const inventoryApi = {
 
   adjust: (body: AdjustStockInput) =>
     apiRequest<StockMovement>("/inventory/movements/adjust", { method: "POST", body }),
+
+  packSizes: (itemId: string) => apiRequest<PackSize[]>(`/inventory/items/${itemId}/pack-sizes`),
+
+  addPackSize: (itemId: string, body: CreatePackSizeInput) =>
+    apiRequest<PackSize[]>(`/inventory/items/${itemId}/pack-sizes`, { method: "POST", body }),
+
+  archivePackSize: (id: string) =>
+    apiRequest<void>(`/inventory/pack-sizes/${id}/archive`, { method: "PATCH" }),
+
+  itemPrices: (itemId: string) => apiRequest<ItemPrice[]>(`/inventory/items/${itemId}/prices`),
+
+  valuation: (date: string) =>
+    apiRequest<Valuation>(`/inventory/reports/valuation${toQueryString({ date })}`),
+
+  waste: (range: ReportRangeQuery) =>
+    apiRequest<WasteReport>(`/inventory/reports/waste${toQueryString(range)}`),
+
+  variance: (range: ReportRangeQuery) =>
+    apiRequest<VarianceReport>(`/inventory/reports/variance${toQueryString(range)}`),
 
   writeOff: (body: WriteOffInput) =>
     apiRequest<StockMovement>("/inventory/movements/write-off", { method: "POST", body }),

@@ -452,7 +452,7 @@ export class PurchaseRequestsService {
     const rows = await executor
       .select({
         lineId: stockReceiptLines.requestLineId,
-        received: sql<string>`sum(${stockReceiptLines.quantity} + ${stockReceiptLines.freeQuantity})::text`,
+        received: sql<string>`sum((${stockReceiptLines.quantity} + ${stockReceiptLines.freeQuantity}) * ${stockReceiptLines.unitsPerPurchaseUnit})::text`,
       })
       .from(stockReceiptLines)
       .innerJoin(stockReceipts, eq(stockReceipts.id, stockReceiptLines.receiptId))
@@ -571,7 +571,8 @@ export class PurchaseRequestsService {
 
     const prices = await this.db.execute<{ key: string; price: string }>(sql`
       select distinct on (r.supplier_id, l.item_id)
-        r.supplier_id::text || ':' || l.item_id::text as key, l.unit_price::text as price
+        r.supplier_id::text || ':' || l.item_id::text as key,
+        round(l.unit_price / l.units_per_purchase_unit, 2)::text as price
       from stock_receipt_lines l
       join stock_receipts r on r.id = l.receipt_id
       where r.clinic_id = ${clinicId} and r.status = 'posted' and r.kind = 'receipt'

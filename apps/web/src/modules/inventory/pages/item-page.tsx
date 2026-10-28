@@ -26,6 +26,8 @@ import { ItemMovementsTab } from "@web/modules/inventory/pages/item-movements-ta
 import { MovementModal } from "@web/modules/inventory/components/movement-modal";
 import {
   canBlockLot,
+  canManagePackSizes,
+  canSeeCosts,
   canDeleteItem,
   canLiftLotBlock,
   canManageInventory,
@@ -40,6 +42,8 @@ import {
   LotBlockModal,
   type LotBlockTarget,
 } from "@web/modules/inventory/components/lot-block-modal";
+import { PackSizesCard } from "@web/modules/inventory/components/pack-sizes-card";
+import { ItemPricesTab } from "@web/modules/inventory/pages/item-prices-tab";
 import { useDeleteItem, useInventoryItem, useItemBatches } from "@web/modules/inventory/queries";
 import { errorToast } from "@web/shared/lib/api-error";
 import { formatDate } from "@web/shared/lib/format";
@@ -61,7 +65,13 @@ export function ItemPage(): JSX.Element {
   const categoryLabel = useLookupLabels(LOOKUP_LIST.ITEM_CATEGORY);
   const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
 
-  const [tab, setTab] = useTabParam<Tab>("tab", ITEM_PAGE_TABS, "overview", ["page"]);
+  const seesPrices = canSeeCosts(can);
+  const [tab, setTab] = useTabParam<Tab>(
+    "tab",
+    ITEM_PAGE_TABS.filter((name) => name !== "prices" || seesPrices),
+    "overview",
+    ["page"],
+  );
   const [movement, setMovement] = useState<RecordableMovementType | null>(null);
   const [editing, setEditing] = useState(false);
   const [writingOff, setWritingOff] = useState<WriteOffTarget | null>(null);
@@ -202,6 +212,7 @@ export function ItemPage(): JSX.Element {
         options={[
           { value: "overview", label: t("inventory.itemPage.overview") },
           { value: "movements", label: t("inventory.history.title") },
+          ...(seesPrices ? [{ value: "prices" as const, label: t("inventory.prices.title") }] : []),
         ]}
       />
 
@@ -259,6 +270,8 @@ export function ItemPage(): JSX.Element {
             }
           />
 
+          <PackSizesCard itemId={id} baseUnit={row.unit} mayManage={canManagePackSizes(can)} />
+
           {row.notes && (
             <Card data-testid="item-notes">
               <h2 className="text-label font-semibold text-ink">{t("inventory.notes")}</h2>
@@ -269,6 +282,7 @@ export function ItemPage(): JSX.Element {
       )}
 
       {tab === "movements" && <ItemMovementsTab itemId={id} />}
+      {tab === "prices" && row && <ItemPricesTab itemId={id} baseUnit={row.unit} />}
 
       <MovementModal
         data-testid="movement-modal"

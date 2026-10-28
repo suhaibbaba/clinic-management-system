@@ -22,6 +22,11 @@ import {
   type InventoryItemRow,
   type ItemBatches,
   type LotBlock,
+  type ItemPrice,
+  type PackSize,
+  type Valuation,
+  type VarianceReport,
+  type WasteReport,
   type Paginated,
   type ShoppingList,
   type StockMovement,
@@ -41,6 +46,8 @@ import { InventoryReportsService } from "@api/modules/inventory/services/invento
 import { StockMovementsService } from "@api/modules/inventory/services/stock-movements.service";
 import { WriteOffsService } from "@api/modules/inventory/services/write-offs.service";
 import { LotBlocksService } from "@api/modules/inventory/services/lot-blocks.service";
+import { PackSizesService } from "@api/modules/inventory/services/pack-sizes.service";
+import { StockReportsService } from "@api/modules/inventory/services/stock-reports.service";
 import { AiTool } from "@api/modules/ai/tools/route-tool.decorator";
 import {
   ListMovementsQueryDto,
@@ -51,6 +58,9 @@ import {
   ReverseDto,
   CorrectPurchaseDto,
   WriteOffDto,
+  CreatePackSizeDto,
+  ValuationQueryDto,
+  ReportRangeQueryDto,
   BlockLotDto,
   LiftLotBlockDto,
   ListLotBlocksQueryDto,
@@ -69,7 +79,74 @@ export class InventoryController {
     private readonly delivery: DocumentDeliveryService,
     private readonly writeOffs: WriteOffsService,
     private readonly blocks: LotBlocksService,
+    private readonly packSizes: PackSizesService,
+    private readonly stockReports: StockReportsService,
   ) {}
+
+  @Get("items/:id/pack-sizes")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
+  packSizesOf(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+  ): Promise<PackSize[]> {
+    return this.packSizes.list(actor, params.id);
+  }
+
+  @Post("items/:id/pack-sizes")
+  @Roles(USER_ROLE.TECHNICIAN)
+  addPackSize(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Body() body: CreatePackSizeDto,
+  ): Promise<PackSize[]> {
+    return this.packSizes.create(actor, params.id, body);
+  }
+
+  @Patch("pack-sizes/:id/archive")
+  @Roles(USER_ROLE.TECHNICIAN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async archivePackSize(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+  ): Promise<void> {
+    await this.packSizes.archive(actor, params.id);
+  }
+
+  @Get("items/:id/prices")
+  @Roles(USER_ROLE.TECHNICIAN)
+  itemPrices(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+  ): Promise<ItemPrice[]> {
+    return this.stockReports.itemPrices(actor, params.id);
+  }
+
+  @Get("reports/valuation")
+  @Roles(USER_ROLE.TECHNICIAN)
+  valuation(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Query() query: ValuationQueryDto,
+  ): Promise<Valuation> {
+    return this.stockReports.valuation(actor, query.date);
+  }
+
+  @Get("reports/waste")
+  @Roles(USER_ROLE.TECHNICIAN)
+  waste(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Query() query: ReportRangeQueryDto,
+  ): Promise<WasteReport> {
+    return this.stockReports.waste(actor, query);
+  }
+
+  @Get("reports/variance")
+  @Roles(USER_ROLE.TECHNICIAN)
+  variance(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Query() query: ReportRangeQueryDto,
+  ): Promise<VarianceReport> {
+    return this.stockReports.variance(actor, query);
+  }
 
   @Get("alerts")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)

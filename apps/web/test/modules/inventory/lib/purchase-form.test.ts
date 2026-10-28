@@ -113,4 +113,19 @@ describe("the purchase form", () => {
       requestLineId: "line-1",
     });
   });
+
+  it("sends the pack a line is bought in, and leaves it out for the item's own unit", () => {
+    const body = toPostPurchase(
+      draft({
+        lines: [
+          { ...blankLine("a", "gloves"), quantity: "2", unitPrice: "50", packSizeId: "box" },
+          { ...blankLine("b", "masks"), quantity: "3", unitPrice: "4", packSizeId: "" },
+        ],
+      }),
+      "r-5",
+    );
+
+    expect(body.lines[0]).toMatchObject({ packSizeId: "box", quantity: "2" });
+    expect(body.lines[1]).not.toHaveProperty("packSizeId");
+  });
 });

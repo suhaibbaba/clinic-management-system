@@ -24,6 +24,8 @@ import { PurchaseRequestsService } from "@api/modules/inventory/services/purchas
 import { PurchaseRequestsController } from "@api/modules/inventory/controllers/purchase-requests.controller";
 import { StockCountsService } from "@api/modules/inventory/services/stock-counts.service";
 import { PurchaseReviewService } from "@api/modules/inventory/services/purchase-review.service";
+import { PackSizesService } from "@api/modules/inventory/services/pack-sizes.service";
+import { StockReportsService } from "@api/modules/inventory/services/stock-reports.service";
 import { StockCountsController } from "@api/modules/inventory/controllers/stock-counts.controller";
 
 @Module({
@@ -50,6 +52,8 @@ import { StockCountsController } from "@api/modules/inventory/controllers/stock-
     PurchaseRequestsService,
     StockCountsService,
     PurchaseReviewService,
+    PackSizesService,
+    StockReportsService,
     InventoryItemsService,
     StockMovementsService,
     InventoryReportsService,

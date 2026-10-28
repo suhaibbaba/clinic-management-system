@@ -64,6 +64,8 @@ import { SupplierPaymentsService } from "@api/modules/inventory/services/supplie
 import { toMovement, type MovementRow } from "@api/modules/inventory/lib/stock-movements";
 import { receiptLineError } from "@api/modules/inventory/lib/item-rules";
 import { type Rights } from "@api/modules/inventory/lib/purchase-rights";
+import { PackSizesService } from "@api/modules/inventory/services/pack-sizes.service";
+import { baseUnits, basePrice, type ResolvedPack } from "@api/modules/inventory/lib/pack-sizes";
 import {
   STOCK_RECEIPTS_ENTITY,
   SUPPLIER_INVOICES_ENTITY,
@@ -94,6 +96,7 @@ export class PurchasingService implements OnModuleInit {
     private readonly ledger: StockLedgerService,
     private readonly allocations: SupplierAllocationsService,
     private readonly payments: SupplierPaymentsService,
+    private readonly packSizes: PackSizesService,
   ) {}
 
   onModuleInit(): void {
@@ -128,9 +131,10 @@ export class PurchasingService implements OnModuleInit {
 
     await this.validatePost(actor, input);
     const rights = await this.rights(actor);
+    const packs = await this.packSizes.resolve(actor.clinicId, input.lines);
 
     try {
-      return await this.db.transaction((tx) => this.postWithin(tx, actor, input, rights));
+      return await this.db.transaction((tx) => this.postWithin(tx, actor, input, rights, packs));
     } catch (error) {
       const constraint = violatedConstraint(error, UNIQUE_VIOLATION);
 
@@ -256,6 +260,7 @@ export class PurchasingService implements OnModuleInit {
     actor: AuthenticatedUser,
     input: PostPurchaseInput,
     rights: Rights,
+    packs: ReadonlyMap<number, ResolvedPack>,
   ): Promise<PurchaseResult> {
     const priced = input.lines.some((line) => line.unitPrice !== undefined);
 
@@ -315,7 +320,11 @@ export class PurchasingService implements OnModuleInit {
 
     for (const [index, line] of input.lines.entries()) {
       const lineId = randomUUID();
-      const units = toThousandths(line.quantity) + toThousandths(line.freeQuantity ?? "0");
+      const pack = packs.get(index);
+      const units = baseUnits(
+        toThousandths(line.quantity) + toThousandths(line.freeQuantity ?? "0"),
+        pack,
+      );
       const cost = invoice?.lines[index]?.cost;
       const value =
         cost !== undefined
@@ -331,7 +340,7 @@ export class PurchasingService implements OnModuleInit {
         quantity: units,
         value,
         unknown: known ? 0 : units,
-        unitPrice: line.unitPrice ?? null,
+        unitPrice: line.unitPrice === undefined ? null : basePrice(line.unitPrice, pack),
         supplierId: input.supplierId ?? null,
         batchNo: line.batchNo ?? null,
         expiryDate: line.expiryDate ?? null,
@@ -348,6 +357,8 @@ export class PurchasingService implements OnModuleInit {
         quantity: line.quantity,
         freeQuantity: line.freeQuantity ?? "0",
         unitPrice: line.unitPrice ?? null,
+        purchaseUnit: pack?.unit ?? null,
+        unitsPerPurchaseUnit: pack?.unitsPer ?? "1",
         batchNo: line.batchNo ?? null,
         expiryDate: line.expiryDate ?? null,
         requestLineId: line.requestLineId ?? null,
@@ -702,6 +713,7 @@ export class PurchasingService implements OnModuleInit {
           note: input.reason,
         },
         rights,
+        new Map(),
       );
 
       return result.movementIds[0] ?? "";
@@ -753,7 +765,7 @@ export class PurchasingService implements OnModuleInit {
       receivedOn: row.receivedOn,
       itemId: row.line.itemId,
       itemName: row.itemName,
-      unit: row.unit,
+      unit: row.line.purchaseUnit ?? row.unit,
       quantity: row.line.quantity,
       freeQuantity: row.line.freeQuantity,
       unitPrice: row.line.unitPrice,

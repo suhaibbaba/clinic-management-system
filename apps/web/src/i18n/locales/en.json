@@ -1659,7 +1659,8 @@
       "stock": "Stock",
       "suppliers": "Suppliers",
       "requests": "Requests",
-      "review": "Review"
+      "review": "Review",
+      "reports": "Reports"
     },
     "purchase": {
       "action": "New Purchase",
@@ -1841,6 +1842,55 @@
         "kind": "Type",
         "amount": "Amount",
         "by": "Posted by"
+      }
+    },
+    "packSizes": {
+      "title": "Pack Sizes",
+      "hint": "How this item is bought. Stock is always kept in its own unit.",
+      "holds": "{{pack}} of {{count}} {{unit}}",
+      "pack": "Pack",
+      "unitsPer": "Units in a pack",
+      "add": "Add Pack Size",
+      "added": "Pack size added",
+      "buyIn": "Bought in"
+    },
+    "prices": {
+      "title": "Prices",
+      "empty": "No priced purchases yet",
+      "columns": {
+        "date": "Received",
+        "supplier": "Supplier",
+        "quantity": "Quantity",
+        "price": "Price",
+        "cost": "Cost per unit"
+      }
+    },
+    "reports": {
+      "title": "Stock Reports",
+      "subtitle": "Stock value on a date, what was written off, and purchase variance.",
+      "kind": "Report",
+      "kinds": {
+        "valuation": "Stock value",
+        "waste": "Waste",
+        "variance": "Purchase variance"
+      },
+      "totals": {
+        "valuation": "Stock value",
+        "waste": "Written off",
+        "variance": "Variance"
+      },
+      "onDate": "On date",
+      "range": "Period",
+      "unknownCost": "{{quantity}} at unknown cost",
+      "empty": "Nothing in this report",
+      "columns": {
+        "item": "Item",
+        "quantity": "Quantity",
+        "value": "Value",
+        "reason": "Reason",
+        "document": "Document",
+        "date": "Date",
+        "variance": "Variance"
       }
     }
   },
@@ -2091,7 +2141,14 @@
         "writeOff": "Write Off Stock",
         "lotBlocks": "See Blocked Lots and Recalls",
         "blockLot": "Block a Lot",
-        "liftLotBlock": "Lift a Lot Block"
+        "liftLotBlock": "Lift a Lot Block",
+        "packSizesOf": "See an Item's Pack Sizes",
+        "addPackSize": "Add a Pack Size",
+        "archivePackSize": "Remove a Pack Size",
+        "itemPrices": "See an Item's Price History",
+        "valuation": "See Stock Value on a Date",
+        "waste": "See the Waste Report",
+        "variance": "See the Purchase Variance Report"
       },
       "lab-ledger": {
         "balance": "See a Lab's Balance",

@@ -11,6 +11,7 @@ export interface PurchaseLineDraft {
   readonly key: string;
   readonly itemId: string;
   readonly requestLineId?: string | undefined;
+  readonly packSizeId?: string | undefined;
   readonly quantity: string;
   readonly freeQuantity: string;
   readonly unitPrice: string;
@@ -100,6 +101,7 @@ export function toPostPurchase(draft: PurchaseDraft, requestId: string): PostPur
         return {
           itemId: line.itemId,
           ...(line.requestLineId && { requestLineId: line.requestLineId }),
+          ...(line.packSizeId && { packSizeId: line.packSizeId }),
           quantity: line.quantity.trim(),
           ...(filled(line.freeQuantity) && { freeQuantity: line.freeQuantity.trim() }),
           ...(!line.gift && filled(line.unitPrice) && { unitPrice: line.unitPrice.trim() }),

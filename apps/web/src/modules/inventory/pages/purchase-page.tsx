@@ -47,6 +47,7 @@ import {
   type PurchaseDraft,
   type PurchaseLineDraft,
 } from "@web/modules/inventory/lib/purchase-form";
+import { PackSizeSelect } from "@web/modules/inventory/components/pack-size-select";
 
 const newKey = (): string => crypto.randomUUID();
 
@@ -121,6 +122,8 @@ export function PurchasePage(): JSX.Element {
   );
   const ready = linesReady && (!withInvoice || totals !== null) && !overpaid && !post.isPending;
 
+  const unitOf = (itemId: string): string =>
+    items.data?.items.find((item) => item.id === itemId)?.unit ?? "";
   const itemOptions = (items.data?.items ?? []).map((item) => ({
     value: item.id,
     label: `${item.name} — ${unitLabel(item.unit)}`,
@@ -236,7 +239,9 @@ export function PurchasePage(): JSX.Element {
                     data-testid="purchase-line-item"
                     value={line.itemId}
                     placeholder={t("inventory.movement.selectItem")}
-                    onChange={(event) => changeLine(line.key, { itemId: event.target.value })}
+                    onChange={(event) =>
+                      changeLine(line.key, { itemId: event.target.value, packSizeId: "" })
+                    }
                     options={itemOptions}
                   />
                 </FormField>
@@ -254,6 +259,15 @@ export function PurchasePage(): JSX.Element {
                   onChange={(event) => changeLine(line.key, { quantity: event.target.value })}
                 />
               </FormField>
+              {line.itemId !== "" && (
+                <PackSizeSelect
+                  id={`line-pack-${line.key}`}
+                  itemId={line.itemId}
+                  baseUnit={unitOf(line.itemId)}
+                  value={line.packSizeId ?? ""}
+                  onChange={(packSizeId) => changeLine(line.key, { packSizeId })}
+                />
+              )}
               <FormField label="inventory.purchase.free" htmlFor={`line-free-${line.key}`} optional>
                 <QuantityInput
                   id={`line-free-${line.key}`}
