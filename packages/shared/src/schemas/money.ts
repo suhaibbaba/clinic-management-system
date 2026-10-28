@@ -59,3 +59,11 @@ export function formatWholeMoney(amount: string): string {
 
   return `${negative ? "-" : ""}${whole}`;
 }
+
+export function formatCentsMoney(amount: string): string {
+  const negative = amount.startsWith("-");
+  const [whole = "0", fraction = ""] = (negative ? amount.slice(1) : amount).split(".");
+  const cents = fraction.padEnd(2, "0").slice(0, 2);
+
+  return `${negative ? "-" : ""}${whole}${cents === "00" ? "" : `.${cents}`}`;
+}

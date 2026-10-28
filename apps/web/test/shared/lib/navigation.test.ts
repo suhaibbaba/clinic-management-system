@@ -12,6 +12,9 @@ describe("the back button's target", () => {
     expect(backTarget("/labs/l-1", canFor(USER_ROLE.ADMIN))?.to).toBe("/labs?tab=directory");
     expect(backTarget("/inventory/items/i-1", canFor(USER_ROLE.ADMIN))?.to).toBe("/inventory");
     expect(backTarget("/inventory/shopping-list", canFor(USER_ROLE.ADMIN))?.to).toBe("/inventory");
+    expect(backTarget("/inventory/purchases/new", canFor(USER_ROLE.TECHNICIAN))?.to).toBe(
+      "/inventory",
+    );
     expect(backTarget("/inventory/suppliers/s-1", canFor(USER_ROLE.ADMIN))?.to).toBe(
       "/inventory?tab=suppliers",
     );

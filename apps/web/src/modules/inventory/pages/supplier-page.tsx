@@ -16,12 +16,15 @@ import { useSession } from "@web/shared/providers/session";
 import { useCurrency } from "@web/shared/queries/clinic";
 import {
   canDeleteSupplier,
+  canInvoiceReceipts,
   canManageSuppliers,
   canPaySupplier,
+  canPostPurchase,
   canSeeCosts,
 } from "@web/shared/permissions/inventory";
 import { useDeleteSupplier, useSupplier } from "@web/modules/inventory/queries";
 import { SupplierAccount } from "@web/modules/inventory/components/supplier-account";
+import { UninvoicedLines } from "@web/modules/inventory/components/uninvoiced-lines";
 import { SupplierFormModal } from "@web/modules/inventory/components/supplier-form-modal";
 import { SupplierPaymentModal } from "@web/modules/inventory/components/supplier-payment-modal";
 import { SUPPLIERS_TAB_PATH } from "@web/modules/inventory/constants";
@@ -97,6 +100,16 @@ export function SupplierPage(): JSX.Element {
 
         {row && (
           <div className="flex shrink-0 items-center gap-2">
+            {canPostPurchase(can) && (
+              <Button
+                variant="secondary"
+                icon={<Icon name="package" />}
+                data-testid="supplier-new-purchase"
+                onClick={() => void navigate(`/inventory/purchases/new?supplier=${row.id}`)}
+              >
+                {t("inventory.purchase.action")}
+              </Button>
+            )}
             {mayPay && (
               <Button
                 icon={<Icon name="money" />}
@@ -139,6 +152,7 @@ export function SupplierPage(): JSX.Element {
 
       {dialog}
 
+      {seesCosts && canInvoiceReceipts(can) && <UninvoicedLines supplierId={id} />}
       {seesCosts && <SupplierAccount supplier={{ id }} />}
 
       <SupplierFormModal

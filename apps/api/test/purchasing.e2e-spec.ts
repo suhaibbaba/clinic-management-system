@@ -269,6 +269,12 @@ describe("Purchasing documents (e2e)", () => {
       ).json() as PurchaseResult;
 
       expect(await owed(supplierId)).toBe("0.00");
+      const waiting = (await send("GET", `/suppliers/${supplierId}/uninvoiced`)).json() as {
+        receiptLineId: string;
+        unitPrice: string;
+      }[];
+      expect(waiting).toHaveLength(1);
+      expect(waiting[0]?.unitPrice).toBe("100.00");
       await send("POST", "/inventory/movements/consume", { itemId, quantity: "1" });
 
       const invoiced = await send("POST", "/purchases/invoices", {
@@ -279,6 +285,7 @@ describe("Purchasing documents (e2e)", () => {
 
       expect(invoiced.statusCode).toBe(201);
       expect(await owed(supplierId)).toBe("220.00");
+      expect((await send("GET", `/suppliers/${supplierId}/uninvoiced`)).json()).toEqual([]);
       expect(await layers(itemId)).toEqual({ onHand: "1.000", unknown: "0.000", value: "110.00" });
 
       const again = await send("POST", "/purchases/invoices", {

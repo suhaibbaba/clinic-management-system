@@ -13,6 +13,7 @@ import { DoctorPage } from "@web/modules/doctors/pages/doctor-page";
 import { InventorySection } from "@web/modules/inventory/pages/inventory-section";
 import { ItemPage } from "@web/modules/inventory/pages/item-page";
 import { SupplierPage } from "@web/modules/inventory/pages/supplier-page";
+import { PurchasePage } from "@web/modules/inventory/pages/purchase-page";
 import { ShoppingListPage } from "@web/modules/inventory/pages/shopping-list-page";
 import { LabsSection } from "@web/modules/labs/pages/labs-section";
 import { LabPage } from "@web/modules/labs/pages/lab-page";
@@ -182,6 +183,14 @@ export function AppRoutes(): JSX.Element {
           }
         />
 
+        <Route
+          path="/inventory/purchases/new"
+          element={
+            <RequireCapability capabilities={PAGE_CAPABILITIES.purchase} redirectTo={HOME}>
+              <PurchasePage />
+            </RequireCapability>
+          }
+        />
         <Route
           path="/inventory/suppliers/:id"
           element={

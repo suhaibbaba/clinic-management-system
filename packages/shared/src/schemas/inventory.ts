@@ -464,3 +464,16 @@ export const supplierInvoiceSummarySchema = z.object({
   open: signedMoneySchema,
 });
 export type SupplierInvoiceSummary = z.infer<typeof supplierInvoiceSummarySchema>;
+
+export const uninvoicedLineSchema = z.object({
+  receiptLineId: uuidSchema,
+  receiptNumber: z.string(),
+  receivedOn: isoDateSchema,
+  itemId: uuidSchema,
+  itemName: z.string(),
+  unit: lookupCodeSchema,
+  quantity: quantitySchema,
+  freeQuantity: quantitySchema,
+  unitPrice: moneySchema.nullable(),
+});
+export type UninvoicedLine = z.infer<typeof uninvoicedLineSchema>;

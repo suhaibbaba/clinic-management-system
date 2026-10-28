@@ -5,6 +5,10 @@ import type {
   CreateInventoryItemInput,
   CreateSupplierInput,
   CreateSupplierPaymentInput,
+  InvoiceReceiptsInput,
+  PostPurchaseInput,
+  SupplierInvoiceSummary,
+  UninvoicedLine,
   InventoryAlerts,
   InventoryItemRow,
   ItemBatches,
@@ -21,7 +25,7 @@ import type {
   UpdateInventoryItemInput,
   UpdateSupplierInput,
 } from "@clinic/shared";
-import { inventoryApi, suppliersApi } from "@web/modules/inventory/api";
+import { inventoryApi, purchasesApi, suppliersApi } from "@web/modules/inventory/api";
 
 export const ITEMS_KEY = "inventory-items";
 export const MOVEMENTS_KEY = "stock-movements";
@@ -30,6 +34,8 @@ export const ALERTS_KEY = "inventory-alerts";
 export const SHOPPING_LIST_KEY = "shopping-list";
 export const SUPPLIERS_KEY = "suppliers";
 export const SUPPLIER_STATEMENT_KEY = "supplier-statement";
+export const SUPPLIER_INVOICES_KEY = "supplier-invoices";
+export const UNINVOICED_KEY = "supplier-uninvoiced";
 
 const STOCK_KEYS = [
   ITEMS_KEY,
@@ -39,6 +45,8 @@ const STOCK_KEYS = [
   SHOPPING_LIST_KEY,
   SUPPLIERS_KEY,
   SUPPLIER_STATEMENT_KEY,
+  SUPPLIER_INVOICES_KEY,
+  UNINVOICED_KEY,
 ];
 
 function useStockMutation<TArgs, TResult>(mutationFn: (args: TArgs) => Promise<TResult>) {
@@ -128,6 +136,30 @@ export function useSupplierStatement(
     placeholderData: (previous) => previous,
     enabled: id !== "",
   });
+}
+
+export function useSupplierInvoices(id: string): UseQueryResult<SupplierInvoiceSummary[]> {
+  return useQuery({
+    queryKey: [SUPPLIER_INVOICES_KEY, id],
+    queryFn: () => suppliersApi.invoices(id),
+    enabled: id !== "",
+  });
+}
+
+export function useUninvoiced(id: string): UseQueryResult<UninvoicedLine[]> {
+  return useQuery({
+    queryKey: [UNINVOICED_KEY, id],
+    queryFn: () => suppliersApi.uninvoiced(id),
+    enabled: id !== "",
+  });
+}
+
+export function usePostPurchase() {
+  return useStockMutation((input: PostPurchaseInput) => purchasesApi.post(input));
+}
+
+export function useInvoiceReceipts() {
+  return useStockMutation((input: InvoiceReceiptsInput) => purchasesApi.invoiceReceipts(input));
 }
 
 export function useCreateItem() {

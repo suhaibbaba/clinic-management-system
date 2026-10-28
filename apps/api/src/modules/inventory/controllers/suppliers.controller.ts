@@ -17,6 +17,7 @@ import {
   type Supplier,
   type SupplierInvoiceSummary,
   type SupplierStatement,
+  type UninvoicedLine,
   type SupplierSummary,
 } from "@clinic/shared";
 import { Audit } from "@api/common/decorators/audit.decorator";
@@ -93,6 +94,15 @@ export class SuppliersController {
     @Param() params: IdParamDto,
   ): Promise<SupplierInvoiceSummary[]> {
     return this.purchasing.listInvoices(actor, params.id);
+  }
+
+  @Get(":id/uninvoiced")
+  @Roles(USER_ROLE.TECHNICIAN)
+  uninvoiced(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+  ): Promise<UninvoicedLine[]> {
+    return this.purchasing.uninvoiced(actor, params.id);
   }
 
   @AiTool({

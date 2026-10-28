@@ -6,6 +6,11 @@ import type {
   CreateSupplierInput,
   CreateSupplierPaymentInput,
   InventoryAlerts,
+  InvoiceReceiptsInput,
+  PostPurchaseInput,
+  PurchaseResult,
+  SupplierInvoiceSummary,
+  UninvoicedLine,
   InventoryItem,
   InventoryItemRow,
   ItemBatches,
@@ -94,6 +99,10 @@ export const suppliersApi = {
   pay: (body: CreateSupplierPaymentInput) =>
     apiRequest<SupplierPayment>("/supplier-payments", { method: "POST", body }),
 
+  invoices: (id: string) => apiRequest<SupplierInvoiceSummary[]>(`/suppliers/${id}/invoices`),
+
+  uninvoiced: (id: string) => apiRequest<UninvoicedLine[]>(`/suppliers/${id}/uninvoiced`),
+
   voidInvoice: (id: string, reason: string) =>
     apiRequest<void>(`/purchases/invoices/${id}/void`, { method: "PATCH", body: { reason } }),
 
@@ -102,4 +111,12 @@ export const suppliersApi = {
       method: "PATCH",
       body: { reason },
     }),
+};
+
+export const purchasesApi = {
+  post: (body: PostPurchaseInput) =>
+    apiRequest<PurchaseResult>("/purchases", { method: "POST", body }),
+
+  invoiceReceipts: (body: InvoiceReceiptsInput) =>
+    apiRequest<SupplierInvoiceSummary>("/purchases/invoices", { method: "POST", body }),
 };

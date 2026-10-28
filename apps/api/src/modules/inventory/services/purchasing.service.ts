@@ -33,6 +33,7 @@ import {
   type PurchaseStockInput,
   type StockMovement,
   type SupplierInvoiceSummary,
+  type UninvoicedLine,
 } from "@clinic/shared";
 import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
@@ -41,6 +42,7 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import {
   documentCounters,
+  inventoryItems,
   payrollMonths,
   stockMovements,
   stockReceiptLines,
@@ -660,6 +662,48 @@ export class PurchasingService implements OnModuleInit {
     }
 
     return toMovement(movement);
+  }
+
+  async uninvoiced(actor: AuthenticatedUser, supplierId: string): Promise<UninvoicedLine[]> {
+    await this.suppliersService.requireRow(actor.clinicId, supplierId);
+    await this.suppliersService.assertSeesCosts(actor);
+
+    const rows = await this.db
+      .select({
+        line: stockReceiptLines,
+        receiptNumber: stockReceipts.number,
+        receivedOn: stockReceipts.receivedOn,
+        itemName: inventoryItems.name,
+        unit: inventoryItems.unit,
+      })
+      .from(stockReceiptLines)
+      .innerJoin(stockReceipts, eq(stockReceipts.id, stockReceiptLines.receiptId))
+      .innerJoin(inventoryItems, eq(inventoryItems.id, stockReceiptLines.itemId))
+      .where(
+        and(
+          eq(stockReceipts.clinicId, actor.clinicId),
+          eq(stockReceipts.supplierId, supplierId),
+          eq(stockReceipts.status, PURCHASE_DOCUMENT_STATUS.POSTED),
+          sql`not exists (
+            select 1 from supplier_invoice_lines il
+            join supplier_invoices i on i.id = il.invoice_id
+            where il.receipt_line_id = "stock_receipt_lines"."id" and i.status = 'posted'
+          )`,
+        ),
+      )
+      .orderBy(asc(stockReceipts.receivedOn), asc(stockReceipts.number));
+
+    return rows.map((row) => ({
+      receiptLineId: row.line.id,
+      receiptNumber: row.receiptNumber,
+      receivedOn: row.receivedOn,
+      itemId: row.line.itemId,
+      itemName: row.itemName,
+      unit: row.unit,
+      quantity: row.line.quantity,
+      freeQuantity: row.line.freeQuantity,
+      unitPrice: row.line.unitPrice,
+    }));
   }
 
   async listInvoices(

@@ -1,4 +1,4 @@
-import { currencySymbol, formatWholeMoney } from "@clinic/shared";
+import { currencySymbol, formatCentsMoney, formatWholeMoney } from "@clinic/shared";
 import type { JSX } from "react";
 import { Ltr } from "@ui/components/ltr";
 import { cn } from "@ui/lib/cn";
@@ -9,6 +9,7 @@ export interface MoneyProps extends TestIdProps {
   readonly currency?: string | undefined;
   readonly className?: string | undefined;
   readonly signed?: boolean | undefined;
+  readonly cents?: boolean | undefined;
 }
 
 export function Money({
@@ -16,6 +17,7 @@ export function Money({
   currency,
   className,
   signed = false,
+  cents = false,
   "data-testid": testId,
 }: MoneyProps): JSX.Element {
   const part = parts("money", testId);
@@ -33,7 +35,7 @@ export function Money({
       )}
     >
       <Ltr {...part("figure")}>
-        {formatWholeMoney(amount)}
+        {cents ? formatCentsMoney(amount) : formatWholeMoney(amount)}
         {symbol !== "" && (
           <>
             {"\u00A0"}

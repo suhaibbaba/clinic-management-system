@@ -9,10 +9,11 @@ export interface MoneyInputProps extends Omit<
 > {
   hasError?: boolean | undefined;
   currency?: string | undefined;
+  cents?: boolean | undefined;
 }
 
 export const MoneyInput = forwardRef<HTMLInputElement, MoneyInputProps>(function MoneyInput(
-  { currency, className, ...props },
+  { currency, cents = false, className, ...props },
   ref,
 ) {
   const symbol = currencySymbol(currency);
@@ -23,7 +24,7 @@ export const MoneyInput = forwardRef<HTMLInputElement, MoneyInputProps>(function
       data-part="money-input"
       {...(symbol !== "" && { suffix: symbol })}
       dir="ltr"
-      inputMode="numeric"
+      inputMode={cents ? "decimal" : "numeric"}
       autoComplete="off"
       className={cn("tabular-nums", className)}
       {...props}
