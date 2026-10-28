@@ -9,6 +9,8 @@ export const RULE = {
   ALL_NOTES: "notes.manageAll",
   DELETED_PAYMENTS: "payments.viewDeleted",
   OVERDUE_WIDGET: "dashboard.overdue",
+  INVENTORY_COSTS: "inventory.costs",
+  REVERSE_PRICED_PURCHASE: "inventory.reversePricedPurchase",
 } as const;
 
 export type Rule = (typeof RULE)[keyof typeof RULE];

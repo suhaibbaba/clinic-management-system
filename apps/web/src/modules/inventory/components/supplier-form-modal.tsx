@@ -18,6 +18,8 @@ import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { capitalizeWords } from "@web/modules/inventory/lib/capitalize-words";
 import { useCurrency } from "@web/shared/queries/clinic";
+import { useSession } from "@web/shared/providers/session";
+import { canSeeCosts } from "@web/shared/permissions/inventory";
 
 export function SupplierFormModal({
   open,
@@ -33,6 +35,8 @@ export function SupplierFormModal({
   const { t } = useTranslation();
   const toast = useToast();
   const currency = useCurrency();
+  const { can } = useSession();
+  const seesCosts = canSeeCosts(can);
 
   const create = useCreateSupplier();
   const update = useUpdateSupplier();
@@ -50,7 +54,9 @@ export function SupplierFormModal({
     contactPerson: contactPerson.trim() === "" ? null : contactPerson.trim(),
     notes: notes.trim() === "" ? null : notes.trim(),
     isActive,
-    openingBalance: openingBalance.trim() === "" ? "0" : openingBalance.trim(),
+    ...(seesCosts && {
+      openingBalance: openingBalance.trim() === "" ? "0" : openingBalance.trim(),
+    }),
   };
 
   const form = useFormErrors(schemaErrors(createSupplierSchema, body));
@@ -68,7 +74,7 @@ export function SupplierFormModal({
     setNotes(supplier?.notes ?? "");
     setIsActive(supplier?.isActive ?? true);
     setOpeningBalance(
-      supplier && toMinorUnits(supplier.openingBalance) !== 0
+      supplier?.openingBalance !== undefined && toMinorUnits(supplier.openingBalance) !== 0
         ? (supplier.openingBalance.split(".")[0] ?? "")
         : "",
     );
@@ -188,24 +194,26 @@ export function SupplierFormModal({
           </FormField>
         </div>
 
-        <div onBlur={form.leave("openingBalance")}>
-          <FormField
-            error={form.errors["openingBalance"]}
-            label="inventory.suppliers.openingBalance"
-            hint="inventory.suppliers.openingBalanceHint"
-            htmlFor="supplier-opening-balance"
-            optional
-          >
-            <MoneyInput
-              id="supplier-opening-balance"
-              data-testid="supplier-field-opening-balance"
-              currency={currency}
-              placeholder="0"
-              value={openingBalance}
-              onChange={(event) => setOpeningBalance(event.target.value)}
-            />
-          </FormField>
-        </div>
+        {seesCosts && (
+          <div onBlur={form.leave("openingBalance")}>
+            <FormField
+              error={form.errors["openingBalance"]}
+              label="inventory.suppliers.openingBalance"
+              hint="inventory.suppliers.openingBalanceHint"
+              htmlFor="supplier-opening-balance"
+              optional
+            >
+              <MoneyInput
+                id="supplier-opening-balance"
+                data-testid="supplier-field-opening-balance"
+                currency={currency}
+                placeholder="0"
+                value={openingBalance}
+                onChange={(event) => setOpeningBalance(event.target.value)}
+              />
+            </FormField>
+          </div>
+        )}
 
         <Switch
           checked={isActive}

@@ -24,7 +24,7 @@ export function SupplierPaymentModal({
   readonly supplier: {
     readonly id: string;
     readonly name: string;
-    readonly balance: string;
+    readonly balance?: string | undefined;
   } | null;
   readonly currency: string | undefined;
   readonly onClose: () => void;
@@ -49,7 +49,13 @@ export function SupplierPaymentModal({
 
   useEffect(() => {
     if (supplier) {
-      reset({ supplierId: supplier.id, amount: "", method: firstMethod, note: "" });
+      reset({
+        supplierId: supplier.id,
+        amount: "",
+        method: firstMethod,
+        note: "",
+        requestId: crypto.randomUUID(),
+      });
     }
   }, [supplier, firstMethod, reset]);
 

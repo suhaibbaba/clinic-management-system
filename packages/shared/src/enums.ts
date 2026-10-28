@@ -1043,6 +1043,9 @@ export const WEBSITE_ERROR = {
 export const STOCK_ERROR = {
   INSUFFICIENT: "insufficient_stock",
   BELOW_ONE: "stock_take_below_one",
+  EXPIRED: "stock_expired",
+  ITEM_HAS_STOCK: "item_has_stock",
+  SUPPLIER_HAS_BALANCE: "supplier_has_balance",
 } as const satisfies Record<string, string>;
 
 export const PAYROLL_ADJUSTMENT_KIND = {

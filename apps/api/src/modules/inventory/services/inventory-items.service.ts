@@ -1,6 +1,8 @@
 import { ConflictException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import {
   LOOKUP_LIST,
+  STOCK_ERROR,
+  toThousandths,
   type CreateInventoryItemInput,
   type InventoryItem,
   type InventoryItemRow,
@@ -15,7 +17,7 @@ import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { inventoryItems, suppliers } from "@api/database/schema";
+import { inventoryItems, stockMovements, suppliers } from "@api/database/schema";
 import { StockService } from "@api/modules/inventory/services/stock.service";
 import { SuppliersService } from "@api/modules/inventory/services/suppliers.service";
 import { LookupsService } from "@api/modules/lookups/services/lookups.service";
@@ -222,10 +224,27 @@ export class InventoryItemsService implements OnModuleInit {
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.requireRow(actor.clinicId, id);
 
-    await this.db
-      .update(inventoryItems)
-      .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
-      .where(this.scope.where(inventoryItems, actor.clinicId, eq(inventoryItems.id, id)));
+    await this.db.transaction(async (tx) => {
+      await tx
+        .select({ id: inventoryItems.id })
+        .from(inventoryItems)
+        .where(eq(inventoryItems.id, id))
+        .for("update");
+
+      const [stock] = await tx
+        .select({ onHand: sql<string>`coalesce(sum(${stockMovements.quantity}), 0)::text` })
+        .from(stockMovements)
+        .where(and(eq(stockMovements.clinicId, actor.clinicId), eq(stockMovements.itemId, id)));
+
+      if (toThousandths(stock?.onHand ?? "0") !== 0) {
+        throw new ConflictException(STOCK_ERROR.ITEM_HAS_STOCK);
+      }
+
+      await tx
+        .update(inventoryItems)
+        .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
+        .where(this.scope.where(inventoryItems, actor.clinicId, eq(inventoryItems.id, id)));
+    });
   }
 
   async requireRow(clinicId: string, id: string): Promise<ItemRow> {

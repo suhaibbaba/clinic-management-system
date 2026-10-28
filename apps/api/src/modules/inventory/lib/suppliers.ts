@@ -26,10 +26,13 @@ export function toMoneyString(value: string): string {
   return `${negative ? "-" : ""}${carried}.${String(thousandths % 100).padStart(2, "0")}`;
 }
 
-export type SupplierAccount = Pick<
-  SupplierSummary,
-  "openingBalance" | "purchased" | "paid" | "balance" | "lastPurchaseAt"
->;
+export interface SupplierAccount {
+  readonly openingBalance: string;
+  readonly purchased: string;
+  readonly paid: string;
+  readonly balance: string;
+  readonly lastPurchaseAt: string | null;
+}
 
 export const EMPTY_ACCOUNT: SupplierAccount = {
   openingBalance: "0.00",
@@ -56,4 +59,11 @@ export function toAccount(
     balance: subtractMoney(addMoney(openingBalance, bought), settled),
     lastPurchaseAt: lastPurchaseAt ? new Date(lastPurchaseAt).toISOString() : null,
   };
+}
+
+export function visibleAccount(
+  account: SupplierAccount,
+  seesCosts: boolean,
+): Pick<SupplierSummary, "lastPurchaseAt"> & Partial<SupplierAccount> {
+  return seesCosts ? account : { lastPurchaseAt: account.lastPurchaseAt };
 }

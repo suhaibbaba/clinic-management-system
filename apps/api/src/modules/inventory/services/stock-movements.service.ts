@@ -10,6 +10,7 @@ import {
 import {
   AUDIT_ACTION,
   MOVEMENT_TYPE,
+  RULE,
   STOCK_ERROR,
   toMinorUnits,
   formatThousandths,
@@ -18,6 +19,7 @@ import {
   type AdjustStockInput,
   type ConsumeStockInput,
   type CorrectPurchaseInput,
+  type ItemBatch,
   type ListMovementsQuery,
   type MovementType,
   type Paginated,
@@ -34,6 +36,7 @@ import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import {
+  inventoryItems,
   patients,
   performedProcedures,
   procedureCatalog,
@@ -42,15 +45,21 @@ import {
   users,
 } from "@api/database/schema";
 import { InventoryItemsService } from "@api/modules/inventory/services/inventory-items.service";
-import { normalise } from "@api/modules/inventory/lib/stock";
+import { fefoSlices, normalise } from "@api/modules/inventory/lib/stock";
 import { SuppliersService } from "@api/modules/inventory/services/suppliers.service";
 import {
   STOCK_MOVEMENTS_ENTITY,
   SUPPLIER_PAYMENTS_ENTITY,
 } from "@api/common/constants/audit-entities";
-import { toMovement } from "@api/modules/inventory/lib/stock-movements";
+import { toMovement, withoutCost } from "@api/modules/inventory/lib/stock-movements";
 import { lineTotal } from "@api/modules/inventory/lib/inventory-reports";
-import { SUPPLIER_PAYMENT_CAPABILITY } from "@api/modules/inventory/constants";
+import {
+  STOCK_MOVEMENTS_REQUEST_INDEX,
+  SUPPLIER_PAYMENT_CAPABILITY,
+} from "@api/modules/inventory/constants";
+import { StockService } from "@api/modules/inventory/services/stock.service";
+import { UNIQUE_VIOLATION } from "@api/common/constants/postgres-errors";
+import { violatedConstraint } from "@api/common/lib/postgres-errors";
 import { SupplierPaymentsService } from "@api/modules/inventory/services/supplier-payments.service";
 import { AuditService } from "@api/modules/audit/services/audit.service";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
@@ -66,7 +75,12 @@ export class StockMovementsService implements OnModuleInit {
     private readonly supplierPayments: SupplierPaymentsService,
     private readonly permissions: PermissionsService,
     private readonly audit: AuditService,
+    private readonly stock: StockService,
   ) {}
+
+  seesCosts(actor: AuthenticatedUser): Promise<boolean> {
+    return this.permissions.can(actor, RULE.INVENTORY_COSTS);
+  }
 
   onModuleInit(): void {
     this.auditSnapshots.register(STOCK_MOVEMENTS_ENTITY, async (id, clinicId) => {
@@ -158,9 +172,11 @@ export class StockMovementsService implements OnModuleInit {
         .where(where),
     ]);
 
+    const seesCosts = await this.seesCosts(actor);
+
     return toPaginated(
       rows.map((row) => ({
-        ...toMovement(row.movement),
+        ...withoutCost(toMovement(row.movement), seesCosts),
         supplierName: row.supplierName,
         patientName: row.patientName,
         procedureName: row.procedureName,
@@ -173,7 +189,21 @@ export class StockMovementsService implements OnModuleInit {
   }
 
   async purchase(actor: AuthenticatedUser, input: PurchaseStockInput): Promise<StockMovement> {
+    return this.once(actor, input.requestId, () => this.recordPurchase(actor, input));
+  }
+
+  private async recordPurchase(
+    actor: AuthenticatedUser,
+    input: PurchaseStockInput,
+  ): Promise<StockMovement> {
     await this.items.requireRow(actor.clinicId, input.itemId);
+
+    if (
+      (input.unitPrice !== undefined || input.paidNow !== undefined) &&
+      !(await this.seesCosts(actor))
+    ) {
+      throw new ForbiddenException("Purchase prices are not available to this role");
+    }
 
     if (input.supplierId) {
       await this.suppliersService.requireRow(actor.clinicId, input.supplierId);
@@ -194,6 +224,8 @@ export class StockMovementsService implements OnModuleInit {
     }
 
     return this.db.transaction(async (tx) => {
+      await this.lockItem(tx, actor.clinicId, input.itemId);
+
       const movement = await this.write(
         actor,
         {
@@ -205,6 +237,7 @@ export class StockMovementsService implements OnModuleInit {
           batchNo: input.batchNo ?? null,
           expiryDate: input.expiryDate ?? null,
           reason: input.reason ?? null,
+          requestId: input.requestId ?? null,
         },
         tx,
       );
@@ -236,9 +269,14 @@ export class StockMovementsService implements OnModuleInit {
   }
 
   async consume(actor: AuthenticatedUser, input: ConsumeStockInput): Promise<StockMovement> {
-    await this.items.requireRow(actor.clinicId, input.itemId);
+    return this.once(actor, input.requestId, () => this.recordUse(actor, input));
+  }
 
-    await this.assertOnHand(actor.clinicId, input.itemId, input.quantity);
+  private async recordUse(
+    actor: AuthenticatedUser,
+    input: ConsumeStockInput,
+  ): Promise<StockMovement> {
+    await this.items.requireRow(actor.clinicId, input.itemId);
 
     let patientId = input.patientId ?? null;
 
@@ -264,49 +302,196 @@ export class StockMovementsService implements OnModuleInit {
       await this.scope.findOneOrFail(patients, actor.clinicId, patientId);
     }
 
-    return this.write(actor, {
-      itemId: input.itemId,
-      type: MOVEMENT_TYPE.CONSUME,
-      quantity: negateQuantity(input.quantity),
-      patientId,
-      performedProcedureId: input.performedProcedureId ?? null,
-      batchNo: input.batchNo ?? null,
-      reason: input.reason ?? null,
+    return this.db.transaction(async (tx) => {
+      await this.lockItem(tx, actor.clinicId, input.itemId);
+
+      const batches = await this.assertUsable(
+        tx,
+        actor.clinicId,
+        input.itemId,
+        input.quantity,
+        input.batchNo,
+      );
+      const slices = input.batchNo
+        ? [{ batchNo: input.batchNo, thousandths: toThousandths(input.quantity) }]
+        : fefoSlices(batches, toThousandths(input.quantity));
+
+      const written: StockMovement[] = [];
+
+      for (const [index, slice] of slices.entries()) {
+        written.push(
+          await this.write(
+            actor,
+            {
+              itemId: input.itemId,
+              type: MOVEMENT_TYPE.CONSUME,
+              quantity: formatThousandths(-slice.thousandths),
+              patientId,
+              performedProcedureId: input.performedProcedureId ?? null,
+              batchNo: slice.batchNo,
+              reason: input.reason ?? null,
+              requestId: index === 0 ? (input.requestId ?? null) : null,
+            },
+            tx,
+          ),
+        );
+      }
+
+      const [first, ...rest] = written;
+
+      if (!first) {
+        throw new Error("Failed to record the use");
+      }
+
+      return rest.length === 0 ? first : { ...first, quantity: negateQuantity(input.quantity) };
     });
   }
 
   async adjust(actor: AuthenticatedUser, input: AdjustStockInput): Promise<StockMovement> {
+    return this.once(actor, input.requestId, () => this.recordAdjustment(actor, input));
+  }
+
+  private async recordAdjustment(
+    actor: AuthenticatedUser,
+    input: AdjustStockInput,
+  ): Promise<StockMovement> {
     await this.items.requireRow(actor.clinicId, input.itemId);
 
     if (toThousandths(input.quantity) === 0) {
       throw new BadRequestException("An adjustment cannot be zero");
     }
-    if (input.quantity.startsWith("-")) {
-      if (toThousandths(input.quantity.slice(1)) < 1000) {
-        throw new BadRequestException(STOCK_ERROR.BELOW_ONE);
-      }
-      await this.assertOnHand(actor.clinicId, input.itemId, input.quantity.slice(1));
+    if (input.quantity.startsWith("-") && toThousandths(input.quantity.slice(1)) < 1000) {
+      throw new BadRequestException(STOCK_ERROR.BELOW_ONE);
     }
 
-    return this.write(actor, {
-      itemId: input.itemId,
-      type: MOVEMENT_TYPE.ADJUST,
-      quantity: input.quantity,
-      reason: input.reason,
-      batchNo: input.batchNo ?? null,
-      expiryDate: input.expiryDate ?? null,
+    return this.db.transaction(async (tx) => {
+      if (input.quantity.startsWith("-")) {
+        await this.lockItem(tx, actor.clinicId, input.itemId);
+        await this.assertOnHand(tx, actor.clinicId, input.itemId, input.quantity.slice(1));
+      }
+
+      return this.write(
+        actor,
+        {
+          itemId: input.itemId,
+          type: MOVEMENT_TYPE.ADJUST,
+          quantity: input.quantity,
+          reason: input.reason,
+          batchNo: input.batchNo ?? null,
+          expiryDate: input.expiryDate ?? null,
+          requestId: input.requestId ?? null,
+        },
+        tx,
+      );
     });
   }
 
-  private async assertOnHand(clinicId: string, itemId: string, taking: string): Promise<void> {
-    const [stock] = await this.db
+  private async once(
+    actor: AuthenticatedUser,
+    requestId: string | undefined,
+    record: () => Promise<StockMovement>,
+  ): Promise<StockMovement> {
+    return withoutCost(await this.replayOr(actor, requestId, record), await this.seesCosts(actor));
+  }
+
+  private async replayOr(
+    actor: AuthenticatedUser,
+    requestId: string | undefined,
+    record: () => Promise<StockMovement>,
+  ): Promise<StockMovement> {
+    if (requestId === undefined) {
+      return record();
+    }
+
+    const earlier = await this.byRequest(actor.clinicId, requestId);
+
+    if (earlier) {
+      return earlier;
+    }
+
+    try {
+      return await record();
+    } catch (error) {
+      const replayed =
+        violatedConstraint(error, UNIQUE_VIOLATION) === STOCK_MOVEMENTS_REQUEST_INDEX
+          ? await this.byRequest(actor.clinicId, requestId)
+          : undefined;
+
+      if (replayed) {
+        return replayed;
+      }
+
+      throw error;
+    }
+  }
+
+  private async byRequest(clinicId: string, requestId: string): Promise<StockMovement | undefined> {
+    const [row] = await this.db
+      .select()
+      .from(stockMovements)
+      .where(and(eq(stockMovements.clinicId, clinicId), eq(stockMovements.requestId, requestId)))
+      .limit(1);
+
+    return row ? toMovement(row) : undefined;
+  }
+
+  private async lockItem(tx: DatabaseExecutor, clinicId: string, itemId: string): Promise<void> {
+    const [item] = await tx
+      .select({ id: inventoryItems.id })
+      .from(inventoryItems)
+      .where(and(eq(inventoryItems.id, itemId), eq(inventoryItems.clinicId, clinicId)))
+      .for("update");
+
+    if (!item) {
+      throw new NotFoundException("Resource not found");
+    }
+  }
+
+  private async onHand(tx: DatabaseExecutor, clinicId: string, itemId: string): Promise<number> {
+    const [stock] = await tx
       .select({ onHand: sql<string>`coalesce(sum(${stockMovements.quantity}), 0)::text` })
       .from(stockMovements)
       .where(and(eq(stockMovements.clinicId, clinicId), eq(stockMovements.itemId, itemId)));
 
-    if (toThousandths(taking) > toThousandths(stock?.onHand ?? "0")) {
+    return toThousandths(stock?.onHand ?? "0");
+  }
+
+  private async assertOnHand(
+    tx: DatabaseExecutor,
+    clinicId: string,
+    itemId: string,
+    taking: string,
+  ): Promise<void> {
+    if (toThousandths(taking) > (await this.onHand(tx, clinicId, itemId))) {
       throw new ConflictException(STOCK_ERROR.INSUFFICIENT);
     }
+  }
+
+  private async assertUsable(
+    tx: DatabaseExecutor,
+    clinicId: string,
+    itemId: string,
+    taking: string,
+    batchNo: string | null | undefined,
+  ): Promise<ItemBatch[]> {
+    const onHand = await this.onHand(tx, clinicId, itemId);
+    const wanted = toThousandths(taking);
+
+    if (wanted > onHand) {
+      throw new ConflictException(STOCK_ERROR.INSUFFICIENT);
+    }
+
+    const { batches } = await this.stock.forItem(clinicId, itemId, 0, new Date(), tx);
+    const named = batchNo ? batches.find((batch) => batch.batchNo === batchNo) : undefined;
+    const expired = batches
+      .filter((batch) => batch.isExpired)
+      .reduce((total, batch) => total + toThousandths(batch.remaining), 0);
+
+    if (named?.isExpired || wanted > onHand - expired) {
+      throw new ConflictException(STOCK_ERROR.EXPIRED);
+    }
+
+    return batches;
   }
 
   async reverse(
@@ -314,12 +499,54 @@ export class StockMovementsService implements OnModuleInit {
     id: string,
     input: ReverseMovementInput,
   ): Promise<StockMovement> {
-    return this.db.transaction(async (tx) =>
-      this.reverseWithin(tx, actor, await this.lockOpen(tx, actor, id), input.reason),
-    );
+    const seesCosts = await this.seesCosts(actor);
+
+    return withoutCost(await this.reverseLocked(actor, id, input), seesCosts);
+  }
+
+  private async reverseLocked(
+    actor: AuthenticatedUser,
+    id: string,
+    input: ReverseMovementInput,
+  ): Promise<StockMovement> {
+    return this.db.transaction(async (tx) => {
+      const original = await this.lockOpen(tx, actor, id);
+
+      await this.assertMayReverse(actor, original);
+      await this.lockItem(tx, actor.clinicId, original.itemId);
+
+      if (toThousandths(original.quantity) > 0) {
+        await this.assertOnHand(tx, actor.clinicId, original.itemId, normalise(original.quantity));
+      }
+
+      return this.reverseWithin(tx, actor, original, input.reason);
+    });
+  }
+
+  private async assertMayReverse(
+    actor: AuthenticatedUser,
+    original: typeof stockMovements.$inferSelect,
+  ): Promise<void> {
+    if (
+      original.type === MOVEMENT_TYPE.PURCHASE &&
+      original.unitPrice !== null &&
+      !(await this.permissions.can(actor, RULE.REVERSE_PRICED_PURCHASE))
+    ) {
+      throw new ForbiddenException("Only a manager can reverse a priced purchase");
+    }
   }
 
   async correctPurchase(
+    actor: AuthenticatedUser,
+    id: string,
+    input: CorrectPurchaseInput,
+  ): Promise<StockMovement> {
+    const seesCosts = await this.seesCosts(actor);
+
+    return withoutCost(await this.correctLocked(actor, id, input), seesCosts);
+  }
+
+  private async correctLocked(
     actor: AuthenticatedUser,
     id: string,
     input: CorrectPurchaseInput,
@@ -329,6 +556,23 @@ export class StockMovementsService implements OnModuleInit {
 
       if (original.type !== MOVEMENT_TYPE.PURCHASE) {
         throw new BadRequestException("Only a purchase can be corrected");
+      }
+
+      await this.assertMayReverse(actor, original);
+
+      if (input.unitPrice !== undefined && !(await this.seesCosts(actor))) {
+        throw new ForbiddenException("Purchase prices are not available to this role");
+      }
+
+      await this.lockItem(tx, actor.clinicId, original.itemId);
+
+      const left =
+        (await this.onHand(tx, actor.clinicId, original.itemId)) -
+        toThousandths(original.quantity) +
+        toThousandths(input.quantity);
+
+      if (left < 0) {
+        throw new ConflictException(STOCK_ERROR.INSUFFICIENT);
       }
 
       await this.reverseWithin(tx, actor, original, input.reason);
@@ -425,6 +669,7 @@ export class StockMovementsService implements OnModuleInit {
       batchNo?: string | null;
       expiryDate?: string | null;
       reason?: string | null;
+      requestId?: string | null;
     },
     executor: DatabaseExecutor = this.db,
   ): Promise<StockMovement> {
@@ -454,6 +699,7 @@ export class StockMovementsService implements OnModuleInit {
         batchNo: values.batchNo ?? null,
         expiryDate: values.expiryDate ?? null,
         reason: values.reason ?? null,
+        requestId: values.requestId ?? null,
         createdBy: actor.id,
       })
       .returning();

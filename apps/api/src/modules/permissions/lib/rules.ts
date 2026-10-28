@@ -39,6 +39,8 @@ export const RULE_CAPABILITIES: readonly Capability[] = [
   rule(RULE.ALL_SCHEDULES, "doctors", []),
   rule(RULE.ALL_NOTES, "notes", []),
   rule(RULE.DELETED_PAYMENTS, "payments", []),
+  rule(RULE.INVENTORY_COSTS, "inventory", [USER_ROLE.TECHNICIAN]),
+  rule(RULE.REVERSE_PRICED_PURCHASE, "inventory", []),
   rule(RULE.OVERDUE_WIDGET, "billing", [
     USER_ROLE.DOCTOR,
     USER_ROLE.TECHNICIAN,

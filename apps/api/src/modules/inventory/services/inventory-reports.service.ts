@@ -67,6 +67,8 @@ export class InventoryReportsService {
   ): Promise<SupplierStatement> {
     const supplier = await this.suppliersService.requireRow(actor.clinicId, supplierId);
 
+    await this.suppliersService.assertSeesCosts(actor);
+
     const [openingRows, purchaseRows, paymentRows] = await Promise.all([
       this.db
         .select()

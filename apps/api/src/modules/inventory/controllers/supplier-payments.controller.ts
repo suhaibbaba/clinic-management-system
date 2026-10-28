@@ -17,13 +17,13 @@ export class SupplierPaymentsController {
   constructor(private readonly payments: SupplierPaymentsService) {}
 
   @Post()
-  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
+  @Roles(USER_ROLE.TECHNICIAN)
   @Audit(SUPPLIER_PAYMENTS_ENTITY, AUDIT_ACTION.CREATE)
   create(
     @CurrentUser() actor: AuthenticatedUser,
     @Body() body: CreateSupplierPaymentDto,
   ): Promise<SupplierPayment> {
-    return this.payments.create(actor, body);
+    return this.payments.record(actor, body);
   }
 
   @Patch(":id/reverse")

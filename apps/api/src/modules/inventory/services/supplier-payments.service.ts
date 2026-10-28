@@ -11,7 +11,10 @@ import {
   type ReverseSupplierPaymentInput,
   type SupplierPayment,
 } from "@clinic/shared";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { UNIQUE_VIOLATION } from "@api/common/constants/postgres-errors";
+import { violatedConstraint } from "@api/common/lib/postgres-errors";
+import { SUPPLIER_PAYMENTS_REQUEST_INDEX } from "@api/modules/inventory/constants";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
@@ -45,6 +48,51 @@ export class SupplierPaymentsService implements OnModuleInit {
     });
   }
 
+  async record(
+    actor: AuthenticatedUser,
+    input: CreateSupplierPaymentInput,
+  ): Promise<SupplierPayment> {
+    if (input.requestId === undefined) {
+      return this.create(actor, input);
+    }
+
+    const earlier = await this.byRequest(actor.clinicId, input.requestId);
+
+    if (earlier) {
+      return earlier;
+    }
+
+    try {
+      return await this.create(actor, input);
+    } catch (error) {
+      const replayed =
+        violatedConstraint(error, UNIQUE_VIOLATION) === SUPPLIER_PAYMENTS_REQUEST_INDEX
+          ? await this.byRequest(actor.clinicId, input.requestId)
+          : undefined;
+
+      if (replayed) {
+        return replayed;
+      }
+
+      throw error;
+    }
+  }
+
+  private async byRequest(
+    clinicId: string,
+    requestId: string,
+  ): Promise<SupplierPayment | undefined> {
+    const [row] = await this.db
+      .select()
+      .from(supplierPayments)
+      .where(
+        and(eq(supplierPayments.clinicId, clinicId), eq(supplierPayments.requestId, requestId)),
+      )
+      .limit(1);
+
+    return row ? toSupplierPayment(row) : undefined;
+  }
+
   async create(
     actor: AuthenticatedUser,
     input: CreateSupplierPaymentInput,
@@ -64,6 +112,7 @@ export class SupplierPaymentsService implements OnModuleInit {
         method: input.method,
         note: input.note ?? null,
         paidBy: actor.id,
+        requestId: input.requestId ?? null,
         createdBy: actor.id,
         updatedBy: actor.id,
       })

@@ -35,7 +35,12 @@ import {
   purchaseTotal,
 } from "@web/modules/inventory/lib/purchase-payment";
 import { useSession } from "@web/shared/providers/session";
-import { canPaySupplier, canPurchaseStock, mayRecord } from "@web/shared/permissions/inventory";
+import {
+  canPaySupplier,
+  canPurchaseStock,
+  canSeeCosts,
+  mayRecord,
+} from "@web/shared/permissions/inventory";
 import {
   useAdjustStock,
   useConsumeStock,
@@ -84,6 +89,8 @@ export function MovementModal({
   const [supplierId, setSupplierId] = useState("");
   const [paidNow, setPaidNow] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
+  const [requestId, setRequestId] = useState(() => crypto.randomUUID());
+  const seesCosts = canSeeCosts(can);
   const [batchNo, setBatchNo] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [reason, setReason] = useState("");
@@ -110,14 +117,15 @@ export function MovementModal({
 
   const itemId = item?.id ?? "";
   const total = mode === MOVEMENT_TYPE.PURCHASE ? purchaseTotal(quantity, unitPrice) : null;
-  const offersPayment = total !== null && supplierId !== "" && canPaySupplier(can);
+  const offersPayment = seesCosts && total !== null && supplierId !== "" && canPaySupplier(can);
   const paying = offersPayment && paysSomething(paidNow);
   const overpaid = paying && total !== null && paysMoreThan(total, paidNow);
   const method = paymentMethod || (paymentMethods[0]?.value ?? "");
   const purchaseBody = {
     itemId,
     quantity: quantity.trim(),
-    ...(unitPrice.trim() !== "" && { unitPrice: unitPrice.trim() }),
+    requestId,
+    ...(seesCosts && unitPrice.trim() !== "" && { unitPrice: unitPrice.trim() }),
     ...(supplierId !== "" && { supplierId }),
     ...(paying && { paidNow: paidNow.trim(), paymentMethod: method }),
     ...(batchNo.trim() !== "" && { batchNo: batchNo.trim() }),
@@ -126,6 +134,7 @@ export function MovementModal({
   const consumeBody = {
     itemId,
     quantity: quantity.trim(),
+    requestId,
     ...(linkedPatient?.kind === "existing" && { patientId: linkedPatient.patient.id }),
     ...(performedProcedureId && { performedProcedureId }),
     ...(batchNo.trim() !== "" && { batchNo: batchNo.trim() }),
@@ -135,6 +144,7 @@ export function MovementModal({
     itemId,
     quantity: `${direction === "remove" ? "-" : ""}${quantity.trim()}`,
     reason: reason.trim(),
+    requestId,
     ...(batchNo.trim() !== "" && { batchNo: batchNo.trim() }),
   };
 
@@ -171,6 +181,7 @@ export function MovementModal({
     setSupplierId(fixedItem?.defaultSupplierId ?? "");
     setPaidNow("");
     setPaymentMethod("");
+    setRequestId(crypto.randomUUID());
     setBatchNo("");
     setExpiryDate("");
     setReason("");
@@ -206,6 +217,7 @@ export function MovementModal({
         setQuantity("");
         setUnitPrice("");
         setPaidNow("");
+        setRequestId(crypto.randomUUID());
         setBatchNo("");
         setExpiryDate("");
         reset();
@@ -344,23 +356,25 @@ export function MovementModal({
         {mode === MOVEMENT_TYPE.PURCHASE && (
           <>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div onBlur={form.leave("unitPrice")}>
-                <FormField
-                  error={form.errors["unitPrice"]}
-                  label="inventory.movement.unitPrice"
-                  htmlFor="movement-price"
-                  optional
-                >
-                  <MoneyInput
-                    id="movement-price"
-                    data-testid="movement-field-price"
-                    currency={currency}
-                    placeholder="0"
-                    value={unitPrice}
-                    onChange={(event) => setUnitPrice(event.target.value)}
-                  />
-                </FormField>
-              </div>
+              {seesCosts && (
+                <div onBlur={form.leave("unitPrice")}>
+                  <FormField
+                    error={form.errors["unitPrice"]}
+                    label="inventory.movement.unitPrice"
+                    htmlFor="movement-price"
+                    optional
+                  >
+                    <MoneyInput
+                      id="movement-price"
+                      data-testid="movement-field-price"
+                      currency={currency}
+                      placeholder="0"
+                      value={unitPrice}
+                      onChange={(event) => setUnitPrice(event.target.value)}
+                    />
+                  </FormField>
+                </div>
+              )}
               <div onBlur={form.leave("supplierId")}>
                 <FormField
                   error={form.errors["supplierId"]}

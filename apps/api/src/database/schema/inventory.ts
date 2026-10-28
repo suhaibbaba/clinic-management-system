@@ -8,8 +8,10 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { clinics, users } from "@api/database/schema/core";
 import { normalizedName } from "@api/database/schema/normalized-name";
 import { patients, performedProcedures } from "@api/database/schema/patients";
@@ -92,6 +94,7 @@ export const stockMovements = pgTable(
     reason: text("reason"),
     reversesId: uuid("reverses_id"),
     reversedAt: timestamp("reversed_at", { withTimezone: true }),
+    requestId: uuid("request_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     createdBy: uuid("created_by"),
   },
@@ -102,6 +105,9 @@ export const stockMovements = pgTable(
     index("stock_movements_procedure_idx").on(table.performedProcedureId),
     index("stock_movements_expiry_idx").on(table.clinicId, table.itemId, table.expiryDate),
     index("stock_movements_reverses_idx").on(table.reversesId),
+    uniqueIndex("stock_movements_request_uniq")
+      .on(table.clinicId, table.requestId)
+      .where(sql`request_id is not null`),
   ],
 );
 
@@ -122,10 +128,14 @@ export const supplierPayments = pgTable(
     reversesId: uuid("reverses_id"),
     reversedAt: timestamp("reversed_at", { withTimezone: true }),
     paidBy: uuid("paid_by").references(() => users.id),
+    requestId: uuid("request_id"),
     ...auditColumns,
     ...softDeleteColumn,
   },
   (table) => [
+    uniqueIndex("supplier_payments_request_uniq")
+      .on(table.clinicId, table.requestId)
+      .where(sql`request_id is not null`),
     index("supplier_payments_supplier_idx").on(table.clinicId, table.supplierId, table.createdAt),
     index("supplier_payments_reverses_idx").on(table.reversesId),
   ],

@@ -18,6 +18,7 @@ import {
   canDeleteSupplier,
   canManageSuppliers,
   canPaySupplier,
+  canSeeCosts,
 } from "@web/shared/permissions/inventory";
 import { useDeleteSupplier, useSupplier } from "@web/modules/inventory/queries";
 import { SupplierAccount } from "@web/modules/inventory/components/supplier-account";
@@ -41,7 +42,8 @@ export function SupplierPage(): JSX.Element {
   const [paying, setPaying] = useState(false);
 
   const row = supplier.data;
-  const mayPay = canPaySupplier(can);
+  const seesCosts = canSeeCosts(can);
+  const mayPay = seesCosts && canPaySupplier(can);
   const mayEdit = canManageSuppliers(can);
   const mayDelete = canDeleteSupplier(can);
 
@@ -137,7 +139,7 @@ export function SupplierPage(): JSX.Element {
 
       {dialog}
 
-      <SupplierAccount supplier={{ id }} />
+      {seesCosts && <SupplierAccount supplier={{ id }} />}
 
       <SupplierFormModal
         data-testid="supplier-edit-modal"

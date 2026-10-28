@@ -4,6 +4,18 @@ import { normalise } from "@api/modules/inventory/lib/stock";
 
 export type MovementRow = typeof stockMovements.$inferSelect;
 
+export function withoutCost<T extends { unitPrice?: string | null | undefined }>(
+  movement: T,
+  seesCosts: boolean,
+): T {
+  if (seesCosts) {
+    return movement;
+  }
+
+  const { unitPrice: _, ...rest } = movement;
+  return rest as T;
+}
+
 export function toMovement(row: MovementRow): StockMovement {
   return {
     id: row.id,

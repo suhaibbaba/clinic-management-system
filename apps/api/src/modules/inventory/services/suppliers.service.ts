@@ -1,6 +1,15 @@
-import { ConflictException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
+import {
+  ConflictException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  type OnModuleInit,
+} from "@nestjs/common";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import {
   AUDIT_ACTION,
+  RULE,
+  STOCK_ERROR,
   addMoney,
   toMinorUnits,
   type CreateSupplierInput,
@@ -25,6 +34,7 @@ import {
 } from "@api/common/constants/audit-entities";
 import {
   EMPTY_ACCOUNT,
+  visibleAccount,
   toSupplier,
   SupplierAccount,
   SupplierRow,
@@ -39,7 +49,12 @@ export class SuppliersService implements OnModuleInit {
     private readonly scope: ClinicScopeService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
     private readonly audit: AuditService,
+    private readonly permissions: PermissionsService,
   ) {}
+
+  seesCosts(actor: AuthenticatedUser): Promise<boolean> {
+    return this.permissions.can(actor, RULE.INVENTORY_COSTS);
+  }
 
   onModuleInit(): void {
     this.auditSnapshots.register(SUPPLIERS_ENTITY, async (id, clinicId) => {
@@ -93,10 +108,12 @@ export class SuppliersService implements OnModuleInit {
       rows.map((row) => row.id),
     );
 
+    const seesCosts = await this.seesCosts(actor);
+
     return toPaginated(
       rows.map((row) => ({
         ...toSupplier(row),
-        ...(summaries.get(row.id) ?? EMPTY_ACCOUNT),
+        ...visibleAccount(summaries.get(row.id) ?? EMPTY_ACCOUNT, seesCosts),
       })),
       totals?.value ?? 0,
       query,
@@ -107,11 +124,24 @@ export class SuppliersService implements OnModuleInit {
     const row = await this.requireRow(actor.clinicId, id);
     const summary = await this.summarise(actor.clinicId, [id]);
 
-    return { ...toSupplier(row), ...(summary.get(id) ?? EMPTY_ACCOUNT) };
+    return {
+      ...toSupplier(row),
+      ...visibleAccount(summary.get(id) ?? EMPTY_ACCOUNT, await this.seesCosts(actor)),
+    };
+  }
+
+  async assertSeesCosts(actor: AuthenticatedUser): Promise<void> {
+    if (!(await this.seesCosts(actor))) {
+      throw new ForbiddenException("Supplier accounts are not available to this role");
+    }
   }
 
   async create(actor: AuthenticatedUser, input: CreateSupplierInput): Promise<Supplier> {
     await this.assertNameIsFree(actor.clinicId, input.name);
+
+    if (input.openingBalance !== undefined) {
+      await this.assertSeesCosts(actor);
+    }
 
     return this.db.transaction(async (tx) => {
       const [row] = await tx
@@ -147,6 +177,10 @@ export class SuppliersService implements OnModuleInit {
   ): Promise<Supplier> {
     await this.requireRow(actor.clinicId, id);
 
+    if (input.openingBalance !== undefined) {
+      await this.assertSeesCosts(actor);
+    }
+
     if (input.name) {
       await this.assertNameIsFree(actor.clinicId, input.name, id);
     }
@@ -180,6 +214,12 @@ export class SuppliersService implements OnModuleInit {
 
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.requireRow(actor.clinicId, id);
+
+    const account = (await this.summarise(actor.clinicId, [id])).get(id) ?? EMPTY_ACCOUNT;
+
+    if (toMinorUnits(account.balance) !== 0) {
+      throw new ConflictException(STOCK_ERROR.SUPPLIER_HAS_BALANCE);
+    }
 
     await this.db
       .update(suppliers)

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   PAYMENT_METHOD,
   STOCK_ERROR,
@@ -145,9 +146,6 @@ describe("Inventory (e2e)", () => {
       const purchase = await move("purchase", { itemId, quantity: "10", unitPrice: "2.00" });
       const purchaseId = (purchase.json() as StockMovement).id;
 
-      await move("consume", { itemId, quantity: "4" });
-      expect((await readItem(itemId)).quantity).toBe("6");
-
       const reversal = await context.app.inject({
         method: "PATCH",
         url: `/inventory/movements/${purchaseId}/reverse`,
@@ -158,8 +156,24 @@ describe("Inventory (e2e)", () => {
       expect(reversal.statusCode).toBe(200);
       expect((reversal.json() as StockMovement).quantity).toBe("-10");
       expect((reversal.json() as StockMovement).reversesId).toBe(purchaseId);
+      expect((await readItem(itemId)).quantity).toBe("0");
+    });
 
-      expect((await readItem(itemId)).quantity).toBe("-4");
+    it("refuses to reverse a purchase whose stock was already used", async () => {
+      const itemId = await createItem({ name: `قفازات ${uniquePhone()}` });
+      const purchase = await move("purchase", { itemId, quantity: "10", unitPrice: "2.00" });
+      await move("consume", { itemId, quantity: "4" });
+
+      const reversal = await context.app.inject({
+        method: "PATCH",
+        url: `/inventory/movements/${(purchase.json() as StockMovement).id}/reverse`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+        payload: { reason: "الفاتورة أُلغيت" },
+      });
+
+      expect(reversal.statusCode).toBe(409);
+      expect(reversal.json().message).toBe(STOCK_ERROR.INSUFFICIENT);
+      expect((await readItem(itemId)).quantity).toBe("6");
     });
 
     it("refuses to reverse the same movement twice, or to reverse a reversal", async () => {
@@ -550,6 +564,21 @@ describe("Inventory (e2e)", () => {
     });
     expect(byTechnician.statusCode).toBe(403);
 
+    const stillOwed = await context.app.inject({
+      method: "DELETE",
+      url: `/suppliers/${archivedId}`,
+      headers: auth(tokens[USER_ROLE.ADMIN]),
+    });
+    expect(stillOwed.statusCode).toBe(409);
+    expect(stillOwed.json().message).toBe(STOCK_ERROR.SUPPLIER_HAS_BALANCE);
+
+    await context.app.inject({
+      method: "POST",
+      url: "/supplier-payments",
+      headers: auth(tokens[USER_ROLE.ADMIN]),
+      payload: { supplierId: archivedId, amount: "10", method: PAYMENT_METHOD.CASH },
+    });
+
     const byAdmin = await context.app.inject({
       method: "DELETE",
       url: `/suppliers/${archivedId}`,
@@ -735,10 +764,18 @@ describe("Inventory (e2e)", () => {
         await move("purchase", { itemId, quantity: "3", unitPrice: "600", supplierId: id })
       ).json() as StockMovement;
 
-      const corrected = await context.app.inject({
+      const byTechnician = await context.app.inject({
         method: "PATCH",
         url: `/inventory/movements/${bought.id}/correct`,
         headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        payload: { quantity: "2", unitPrice: "550", reason: "خطأ في الكمية" },
+      });
+      expect(byTechnician.statusCode).toBe(403);
+
+      const corrected = await context.app.inject({
+        method: "PATCH",
+        url: `/inventory/movements/${bought.id}/correct`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
         payload: { quantity: "2", unitPrice: "550", reason: "خطأ في الكمية" },
       });
 
@@ -750,7 +787,7 @@ describe("Inventory (e2e)", () => {
       const again = await context.app.inject({
         method: "PATCH",
         url: `/inventory/movements/${bought.id}/correct`,
-        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        headers: auth(tokens[USER_ROLE.ADMIN]),
         payload: { quantity: "1", unitPrice: "550", reason: "مرة ثانية" },
       });
       expect(again.statusCode).toBe(400);
@@ -763,10 +800,18 @@ describe("Inventory (e2e)", () => {
         await move("purchase", { itemId, quantity: "1", unitPrice: "400", supplierId: id })
       ).json() as StockMovement;
 
-      const reversed = await context.app.inject({
+      const byTechnician = await context.app.inject({
         method: "PATCH",
         url: `/inventory/movements/${bought.id}/reverse`,
         headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        payload: { reason: "سُجّل خطأ" },
+      });
+      expect(byTechnician.statusCode).toBe(403);
+
+      const reversed = await context.app.inject({
+        method: "PATCH",
+        url: `/inventory/movements/${bought.id}/reverse`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
         payload: { reason: "سُجّل خطأ" },
       });
 
@@ -801,6 +846,190 @@ describe("Inventory (e2e)", () => {
       const id = await newSupplier();
 
       expect((await pay(id, "10", otherAdmin)).statusCode).toBe(404);
+    });
+  });
+
+  describe("phase 0 safeguards", () => {
+    it("serialises parallel uses: 20 requests for 10 units leave exactly 0", async () => {
+      const itemId = await createItem({ name: `كاربول ${uniquePhone()}` });
+      await move("purchase", { itemId, quantity: "10" });
+
+      const results = await Promise.all(
+        Array.from({ length: 20 }, () => move("consume", { itemId, quantity: "1" })),
+      );
+      const codes = results.map((response) => response.statusCode);
+
+      expect(codes.filter((code) => code === 201)).toHaveLength(10);
+      expect(codes.filter((code) => code === 409)).toHaveLength(10);
+      expect((await readItem(itemId)).quantity).toBe("0");
+    });
+
+    it("records a repeated request once, sequential or parallel", async () => {
+      const itemId = await createItem({ name: `مكرر ${uniquePhone()}` });
+      const requestId = randomUUID();
+
+      const first = await move("purchase", { itemId, quantity: "3", requestId });
+      const second = await move("purchase", { itemId, quantity: "3", requestId });
+      expect(first.statusCode).toBe(201);
+      expect((second.json() as StockMovement).id).toBe((first.json() as StockMovement).id);
+
+      const parallelId = randomUUID();
+      const parallel = await Promise.all(
+        Array.from({ length: 5 }, () =>
+          move("consume", { itemId, quantity: "1", requestId: parallelId }),
+        ),
+      );
+      const ids = new Set(parallel.map((response) => (response.json() as StockMovement).id));
+
+      expect(ids.size).toBe(1);
+      expect((await readItem(itemId)).quantity).toBe("2");
+    });
+
+    it("records a repeated supplier payment once", async () => {
+      const created = await context.app.inject({
+        method: "POST",
+        url: "/suppliers",
+        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        payload: { name: `دفعة مكررة ${uniquePhone()}`, openingBalance: "500" },
+      });
+      const id = (created.json() as { id: string }).id;
+      const payload = {
+        supplierId: id,
+        amount: "200",
+        method: PAYMENT_METHOD.CASH,
+        requestId: randomUUID(),
+      };
+
+      const results = await Promise.all(
+        Array.from({ length: 3 }, () =>
+          context.app.inject({
+            method: "POST",
+            url: "/supplier-payments",
+            headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+            payload,
+          }),
+        ),
+      );
+      const summary = (
+        await context.app.inject({
+          method: "GET",
+          url: `/suppliers/${id}`,
+          headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        })
+      ).json() as SupplierSummary;
+
+      expect(new Set(results.map((response) => response.json().id)).size).toBe(1);
+      expect(summary.balance).toBe("300.00");
+    });
+
+    it("refuses to delete an item that still holds stock", async () => {
+      const itemId = await createItem({ name: `حذف ${uniquePhone()}` });
+      await move("purchase", { itemId, quantity: "3" });
+
+      const refused = await context.app.inject({
+        method: "DELETE",
+        url: `/inventory/items/${itemId}`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+      });
+      expect(refused.statusCode).toBe(409);
+      expect(refused.json().message).toBe(STOCK_ERROR.ITEM_HAS_STOCK);
+
+      await move("adjust", { itemId, quantity: "-3", reason: "جرد" });
+
+      const allowed = await context.app.inject({
+        method: "DELETE",
+        url: `/inventory/items/${itemId}`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+      });
+      expect(allowed.statusCode).toBe(204);
+    });
+
+    it("refuses expired stock, named or not, and lets it be written off", async () => {
+      const itemId = await createItem({ name: `منتهي ${uniquePhone()}` });
+      await move("purchase", { itemId, quantity: "2", batchNo: "OLD-1", expiryDate: inDays(-3) });
+
+      const named = await move("consume", { itemId, quantity: "1", batchNo: "OLD-1" });
+      const unnamed = await move("consume", { itemId, quantity: "1" });
+      expect(named.statusCode).toBe(409);
+      expect(named.json().message).toBe(STOCK_ERROR.EXPIRED);
+      expect(unnamed.json().message).toBe(STOCK_ERROR.EXPIRED);
+
+      await move("purchase", { itemId, quantity: "1", batchNo: "NEW-1", expiryDate: inDays(200) });
+      expect((await move("consume", { itemId, quantity: "1" })).statusCode).toBe(201);
+      expect((await move("consume", { itemId, quantity: "1" })).statusCode).toBe(409);
+
+      const writeOff = await move("adjust", {
+        itemId,
+        quantity: "-2",
+        reason: "منتهي الصلاحية",
+        batchNo: "OLD-1",
+      });
+      expect(writeOff.statusCode).toBe(201);
+    });
+
+    it("keeps purchase prices and supplier money away from a doctor", async () => {
+      const doctor = tokens[USER_ROLE.DOCTOR];
+      const itemId = await createItem({ name: `أسعار ${uniquePhone()}` });
+      await move("purchase", { itemId, quantity: "2", unitPrice: "40", supplierId });
+
+      const history = await context.app.inject({
+        method: "GET",
+        url: `/inventory/items/${itemId}/movements`,
+        headers: auth(doctor),
+      });
+      const suppliersList = await context.app.inject({
+        method: "GET",
+        url: "/suppliers",
+        headers: auth(doctor),
+      });
+      const statement = await context.app.inject({
+        method: "GET",
+        url: `/suppliers/${supplierId}/statement`,
+        headers: auth(doctor),
+      });
+
+      expect(history.statusCode).toBe(200);
+      expect((history.json() as Paginated<StockMovementRow>).items[0]).not.toHaveProperty(
+        "unitPrice",
+      );
+      expect((suppliersList.json() as Paginated<SupplierSummary>).items[0]).not.toHaveProperty(
+        "balance",
+      );
+      expect(statement.statusCode).toBe(403);
+      expect(
+        (await move("purchase", { itemId, quantity: "1", unitPrice: "40" }, doctor)).statusCode,
+      ).toBe(403);
+      expect((await move("purchase", { itemId, quantity: "1" }, doctor)).statusCode).toBe(201);
+
+      const asTechnician = await context.app.inject({
+        method: "GET",
+        url: `/inventory/items/${itemId}/movements`,
+        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+      });
+      expect(
+        (asTechnician.json() as Paginated<StockMovementRow>).items.some(
+          (row) => row.unitPrice === "40.00",
+        ),
+      ).toBe(true);
+    });
+
+    it("lets only a manager reverse a priced purchase; unpriced stays with the technician", async () => {
+      const itemId = await createItem({ name: `عكس ${uniquePhone()}` });
+      const priced = (
+        await move("purchase", { itemId, quantity: "1", unitPrice: "9" })
+      ).json() as StockMovement;
+      const unpriced = (await move("purchase", { itemId, quantity: "1" })).json() as StockMovement;
+      const reverse = (id: string, role: UserRole) =>
+        context.app.inject({
+          method: "PATCH",
+          url: `/inventory/movements/${id}/reverse`,
+          headers: auth(tokens[role]),
+          payload: { reason: "خطأ إدخال" },
+        });
+
+      expect((await reverse(priced.id, USER_ROLE.TECHNICIAN)).statusCode).toBe(403);
+      expect((await reverse(unpriced.id, USER_ROLE.TECHNICIAN)).statusCode).toBe(200);
+      expect((await reverse(priced.id, USER_ROLE.ADMIN)).statusCode).toBe(200);
     });
   });
 

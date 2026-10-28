@@ -28,6 +28,7 @@ import { useSession } from "@web/shared/providers/session";
 import {
   canCorrectPurchase,
   canReverseMovement,
+  canReversePricedPurchase,
   canReverseSupplierPayment,
 } from "@web/shared/permissions/inventory";
 import { useSupplierStatement } from "@web/modules/inventory/queries";
@@ -51,6 +52,7 @@ export function SupplierAccount({
   const mayReversePayment = canReverseSupplierPayment(can);
   const mayEditPurchase = canCorrectPurchase(can);
   const mayDeletePurchase = canReverseMovement(can);
+  const mayChangePriced = canReversePricedPurchase(can);
 
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -64,7 +66,13 @@ export function SupplierAccount({
       return null;
     }
 
-    if (row.kind === SUPPLIER_ENTRY_KIND.PURCHASE && (mayEditPurchase || mayDeletePurchase)) {
+    const mayChange = row.amount === null || mayChangePriced;
+
+    if (
+      row.kind === SUPPLIER_ENTRY_KIND.PURCHASE &&
+      mayChange &&
+      (mayEditPurchase || mayDeletePurchase)
+    ) {
       return (
         <RowMenu
           label={t("inventory.suppliers.purchase.menu")}

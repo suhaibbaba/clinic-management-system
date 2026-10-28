@@ -581,7 +581,10 @@
     },
     "stock": {
       "insufficient": "More than is in stock; add stock or correct the count first",
-      "belowOne": "Take off at least one whole unit"
+      "belowOne": "Take off at least one whole unit",
+      "expired": "What is left has expired; write it off, then use a valid batch",
+      "itemHasStock": "An item with stock cannot be deleted; correct or write off the quantity first",
+      "supplierHasBalance": "A supplier with a balance cannot be deleted; settle the account first"
     },
     "pageFailed": {
       "title": "This page could not open",
@@ -1856,7 +1859,10 @@
         "shoppingList": "See the Shopping List",
         "shoppingListPdf": "Print the Shopping List",
         "update": "Edit an Item",
-        "sendShoppingList": "Send the Shopping List by WhatsApp"
+        "sendShoppingList": "Send the Shopping List by WhatsApp",
+        "costs": "See Purchase Prices and Stock Costs",
+        "reversePricedPurchase": "Reverse or Edit a Priced Purchase",
+        "correctPurchase": "Edit a Purchase"
       },
       "lab-ledger": {
         "balance": "See a Lab's Balance",
@@ -2119,6 +2125,10 @@
       "patient-documents": {
         "treatmentPlan": "Print a Treatment Plan",
         "sendTreatmentPlan": "Send a Treatment Plan to the Patient by WhatsApp"
+      },
+      "supplier-payments": {
+        "create": "Record a Supplier Payment",
+        "reverse": "Reverse a Supplier Payment"
       }
     },
     "hints": {
@@ -2190,7 +2200,8 @@
       "translations": "Interface Text",
       "me": "My account",
       "website": "Website",
-      "expenses": "Expenses"
+      "expenses": "Expenses",
+      "supplier-payments": "Supplier Payments"
     },
     "subtitle": "What each role is able to do",
     "title": "Permissions",

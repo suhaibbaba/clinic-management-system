@@ -9,7 +9,7 @@ import {
   type BatchOutflow,
 } from "@clinic/shared";
 import { eq, sql } from "drizzle-orm";
-import { DATABASE, type Database } from "@api/database/database.module";
+import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import { clinics } from "@api/database/schema";
 import { ItemStock, normalise, isoDate } from "@api/modules/inventory/lib/stock";
 import { EMPTY } from "@api/modules/inventory/constants";
@@ -33,6 +33,7 @@ export class StockService {
     itemIds: readonly string[],
     warningDays: number,
     today = new Date(),
+    executor: DatabaseExecutor = this.db,
   ): Promise<Map<string, ItemStock>> {
     if (itemIds.length === 0) {
       return new Map();
@@ -44,7 +45,7 @@ export class StockService {
     );
 
     const [inflowRows, outflowRows] = await Promise.all([
-      this.db.execute<{
+      executor.execute<{
         item_id: string;
         batch_no: string | null;
         expiry_date: string | null;
@@ -57,7 +58,7 @@ export class StockService {
         where clinic_id = ${clinicId} and item_id in (${ids}) and quantity > 0
         order by created_at asc
       `),
-      this.db.execute<{ item_id: string; batch_no: string | null; quantity: string }>(sql`
+      executor.execute<{ item_id: string; batch_no: string | null; quantity: string }>(sql`
         select item_id::text as item_id, batch_no, sum(-quantity)::text as quantity
         from stock_movements
         where clinic_id = ${clinicId} and item_id in (${ids}) and quantity < 0
@@ -102,8 +103,9 @@ export class StockService {
     itemId: string,
     warningDays: number,
     today = new Date(),
+    executor: DatabaseExecutor = this.db,
   ): Promise<ItemStock> {
-    const stock = await this.forItems(clinicId, [itemId], warningDays, today);
+    const stock = await this.forItems(clinicId, [itemId], warningDays, today, executor);
 
     return stock.get(itemId) ?? EMPTY;
   }

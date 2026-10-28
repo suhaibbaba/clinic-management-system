@@ -1,4 +1,4 @@
-import { MOVEMENT_TYPE, type MovementType } from "@clinic/shared";
+import { MOVEMENT_TYPE, RULE, type MovementType } from "@clinic/shared";
 import type { Can } from "@web/shared/providers/session";
 
 export const seesInventory = (can: Can): boolean => can("inventory.list");
@@ -23,6 +23,10 @@ export const canAdjustStock = (can: Can): boolean => can("inventory.adjust");
 export const canReverseMovement = (can: Can): boolean => can("inventory.reverse");
 
 export const canCorrectPurchase = (can: Can): boolean => can("inventory.correctPurchase");
+
+export const canSeeCosts = (can: Can): boolean => can(RULE.INVENTORY_COSTS);
+
+export const canReversePricedPurchase = (can: Can): boolean => can(RULE.REVERSE_PRICED_PURCHASE);
 
 export const mayRecord = (type: MovementType, can: Can): boolean =>
   ({

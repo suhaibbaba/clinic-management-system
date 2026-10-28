@@ -25,10 +25,10 @@ export const supplierSchema = z.object({
 export type Supplier = z.infer<typeof supplierSchema>;
 
 export const supplierSummarySchema = supplierSchema.extend({
-  openingBalance: signedMoneySchema,
-  purchased: signedMoneySchema,
-  paid: signedMoneySchema,
-  balance: signedMoneySchema,
+  openingBalance: signedMoneySchema.optional(),
+  purchased: signedMoneySchema.optional(),
+  paid: signedMoneySchema.optional(),
+  balance: signedMoneySchema.optional(),
   lastPurchaseAt: z.iso.datetime().nullable(),
 });
 export type SupplierSummary = z.infer<typeof supplierSummarySchema>;
@@ -116,7 +116,7 @@ export const stockMovementSchema = z.object({
   itemId: uuidSchema,
   type: z.enum(MOVEMENT_TYPES),
   quantity: signedQuantitySchema,
-  unitPrice: moneySchema.nullable(),
+  unitPrice: moneySchema.nullable().optional(),
   expiryDate: isoDateSchema.nullable(),
   batchNo: z.string().nullable(),
   supplierId: uuidSchema.nullable(),
@@ -147,6 +147,7 @@ export const purchaseStockSchema = z
     supplierId: uuidSchema.nullish(),
     paidNow: wholeMoneySchema.optional(),
     paymentMethod: lookupCodeSchema.optional(),
+    requestId: uuidSchema.optional(),
     batchNo: z.string().trim().max(64).nullish(),
     expiryDate: isoDateSchema.nullish(),
     reason: z.string().trim().max(500).nullish(),
@@ -170,6 +171,7 @@ export const consumeStockSchema = z.object({
   performedProcedureId: uuidSchema.nullish(),
   batchNo: z.string().trim().max(64).nullish(),
   reason: z.string().trim().max(500).nullish(),
+  requestId: uuidSchema.optional(),
 });
 export type ConsumeStockInput = z.infer<typeof consumeStockSchema>;
 
@@ -179,6 +181,7 @@ export const adjustStockSchema = z.object({
   reason: z.string().trim().min(3).max(500),
   batchNo: z.string().trim().max(64).nullish(),
   expiryDate: isoDateSchema.nullish(),
+  requestId: uuidSchema.optional(),
 });
 export type AdjustStockInput = z.infer<typeof adjustStockSchema>;
 
@@ -314,6 +317,7 @@ export const createSupplierPaymentSchema = z.object({
   ),
   method: lookupCodeSchema,
   note: z.string().trim().max(500).nullish(),
+  requestId: uuidSchema.optional(),
 });
 export type CreateSupplierPaymentInput = z.infer<typeof createSupplierPaymentSchema>;
 

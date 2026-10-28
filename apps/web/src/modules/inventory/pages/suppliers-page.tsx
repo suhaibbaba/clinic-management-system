@@ -25,6 +25,7 @@ import {
   canDeleteSupplier,
   canManageSuppliers,
   canPaySupplier,
+  canSeeCosts,
 } from "@web/shared/permissions/inventory";
 import { useDeleteSupplier, useSuppliers } from "@web/modules/inventory/queries";
 import { SupplierFormModal } from "@web/modules/inventory/components/supplier-form-modal";
@@ -57,7 +58,8 @@ export function SuppliersPage(): JSX.Element {
 
   const mayManage = canManageSuppliers(can);
   const mayDelete = canDeleteSupplier(can);
-  const mayPay = canPaySupplier(can);
+  const seesCosts = canSeeCosts(can);
+  const mayPay = seesCosts && canPaySupplier(can);
   const currency = clinic.data?.currency;
 
   const askDelete = (supplier: SupplierSummary): void =>
@@ -99,35 +101,41 @@ export function SuppliersPage(): JSX.Element {
       hideOnMobile: true,
       render: (row) => <PhoneLink value={row.phone} />,
     },
-    {
-      key: "purchased",
-      header: "inventory.suppliers.purchased",
-      align: "numeric",
-      hideOnMobile: true,
-      render: (row) => <Money amount={row.purchased} currency={currency} />,
-    },
-    {
-      key: "paid",
-      header: "inventory.suppliers.paid",
-      align: "numeric",
-      hideOnMobile: true,
-      render: (row) => <Money amount={row.paid} currency={currency} />,
-    },
-    {
-      key: "balance",
-      header: "inventory.suppliers.balance",
-      align: "numeric",
-      render: (row) => (
-        <Money
-          amount={row.balance}
-          currency={currency}
-          data-testid="supplier-balance"
-          className={
-            toMinorUnits(row.balance) > 0 ? "font-semibold text-danger-600" : "text-ink-muted"
-          }
-        />
-      ),
-    },
+    ...(seesCosts
+      ? ([
+          {
+            key: "purchased",
+            header: "inventory.suppliers.purchased",
+            align: "numeric",
+            hideOnMobile: true,
+            render: (row) => <Money amount={row.purchased ?? "0.00"} currency={currency} />,
+          },
+          {
+            key: "paid",
+            header: "inventory.suppliers.paid",
+            align: "numeric",
+            hideOnMobile: true,
+            render: (row) => <Money amount={row.paid ?? "0.00"} currency={currency} />,
+          },
+          {
+            key: "balance",
+            header: "inventory.suppliers.balance",
+            align: "numeric",
+            render: (row) => (
+              <Money
+                amount={row.balance ?? "0.00"}
+                currency={currency}
+                data-testid="supplier-balance"
+                className={
+                  toMinorUnits(row.balance ?? "0.00") > 0
+                    ? "font-semibold text-danger-600"
+                    : "text-ink-muted"
+                }
+              />
+            ),
+          },
+        ] satisfies Column<SupplierSummary>[])
+      : []),
     {
       key: "lastPurchase",
       header: "inventory.suppliers.lastPurchase",
