@@ -3,6 +3,8 @@ import {
   PAYMENT_DIRECTIONS,
   PURCHASE_DOCUMENT_STATUSES,
   RECEIPT_KINDS,
+  PURCHASE_REQUEST_STATUSES,
+  STOCK_COUNT_STATUSES,
   SUPPLIER_DOCUMENT_KINDS,
 } from "@clinic/shared";
 import {
@@ -33,6 +35,11 @@ export const purchaseDocumentStatusEnum = pgEnum(
 export const receiptKindEnum = pgEnum("receipt_kind", RECEIPT_KINDS);
 export const paymentDirectionEnum = pgEnum("supplier_payment_direction", PAYMENT_DIRECTIONS);
 export const supplierDocumentKindEnum = pgEnum("supplier_document_kind", SUPPLIER_DOCUMENT_KINDS);
+export const purchaseRequestStatusEnum = pgEnum(
+  "purchase_request_status",
+  PURCHASE_REQUEST_STATUSES,
+);
+export const stockCountStatusEnum = pgEnum("stock_count_status", STOCK_COUNT_STATUSES);
 
 const auditColumns = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -240,11 +247,13 @@ export const stockReceiptLines = pgTable(
     unitsPerPurchaseUnit: quantity("units_per_purchase_unit").notNull().default("1"),
     batchNo: text("batch_no"),
     expiryDate: date("expiry_date"),
+    requestLineId: uuid("request_line_id"),
     movementId: uuid("movement_id").references(() => stockMovements.id),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     index("stock_receipt_lines_receipt_idx").on(table.receiptId),
+    index("stock_receipt_lines_request_line_idx").on(table.requestLineId),
     uniqueIndex("stock_receipt_lines_movement_uniq").on(table.movementId),
   ],
 );
@@ -392,4 +401,98 @@ export const lotBlocks = pgTable(
       .where(sql`lifted_at is null`),
     index("lot_blocks_item_idx").on(table.clinicId, table.itemId),
   ],
+);
+
+export const purchaseRequests = pgTable(
+  "purchase_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    number: text("number").notNull(),
+    status: purchaseRequestStatusEnum("status").notNull().default("requested"),
+    supplierId: uuid("supplier_id").references(() => suppliers.id),
+    neededBy: date("needed_by"),
+    note: text("note"),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    sentTo: text("sent_to"),
+    sentBy: uuid("sent_by"),
+    cancelReason: text("cancel_reason"),
+    requestId: uuid("request_id"),
+    ...auditColumns,
+  },
+  (table) => [
+    uniqueIndex("purchase_requests_number_uniq").on(table.clinicId, table.number),
+    uniqueIndex("purchase_requests_request_uniq")
+      .on(table.clinicId, table.requestId)
+      .where(sql`request_id is not null`),
+    index("purchase_requests_status_idx").on(table.clinicId, table.status, table.createdAt),
+  ],
+);
+
+export const purchaseRequestLines = pgTable(
+  "purchase_request_lines",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => purchaseRequests.id),
+    itemId: uuid("item_id")
+      .notNull()
+      .references(() => inventoryItems.id),
+    quantity: quantity("quantity").notNull(),
+    note: text("note"),
+    removedAt: timestamp("removed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("purchase_request_lines_request_idx").on(table.requestId)],
+);
+
+export const stockCounts = pgTable(
+  "stock_counts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    number: text("number").notNull(),
+    status: stockCountStatusEnum("status").notNull().default("open"),
+    note: text("note"),
+    snapshotAt: timestamp("snapshot_at", { withTimezone: true }).notNull().defaultNow(),
+    postedAt: timestamp("posted_at", { withTimezone: true }),
+    postedBy: uuid("posted_by"),
+    ...auditColumns,
+  },
+  (table) => [
+    uniqueIndex("stock_counts_number_uniq").on(table.clinicId, table.number),
+    uniqueIndex("stock_counts_open_uniq")
+      .on(table.clinicId)
+      .where(sql`status = 'open'`),
+  ],
+);
+
+export const stockCountLines = pgTable(
+  "stock_count_lines",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    countId: uuid("count_id")
+      .notNull()
+      .references(() => stockCounts.id),
+    itemId: uuid("item_id")
+      .notNull()
+      .references(() => inventoryItems.id),
+    expected: quantity("expected").notNull(),
+    counted: quantity("counted"),
+    movementId: uuid("movement_id").references(() => stockMovements.id),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [uniqueIndex("stock_count_lines_item_uniq").on(table.countId, table.itemId)],
 );

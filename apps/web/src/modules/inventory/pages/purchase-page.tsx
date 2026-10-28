@@ -6,7 +6,7 @@ import {
   toMinorUnits,
   type DiscountKind,
 } from "@clinic/shared";
-import { useState, type JSX } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -30,12 +30,18 @@ import {
 import { useLookupLabels, useLookupOptions } from "@web/shared/queries/lookups";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { errorToast } from "@web/shared/lib/api-error";
-import { useInventoryItems, usePostPurchase, useSuppliers } from "@web/modules/inventory/queries";
+import {
+  useInventoryItems,
+  usePostPurchase,
+  usePurchaseRequest,
+  useSuppliers,
+} from "@web/modules/inventory/queries";
 import { useSession } from "@web/shared/providers/session";
 import { canPaySupplier, canSeeCosts } from "@web/shared/permissions/inventory";
 import {
   blankLine,
   invoices,
+  linesFromRequest,
   previewTotals,
   toPostPurchase,
   type PurchaseDraft,
@@ -57,6 +63,8 @@ export function PurchasePage(): JSX.Element {
   const post = usePostPurchase();
   const { confirm, dialog } = useConfirm("purchase-confirm");
   const [requestId] = useState(() => crypto.randomUUID());
+  const request = usePurchaseRequest(params.get("request") ?? "");
+  const prefilled = useRef(false);
   const { can } = useSession();
   const seesCosts = canSeeCosts(can);
   const mayPay = seesCosts && canPaySupplier(can);
@@ -76,6 +84,21 @@ export function PurchasePage(): JSX.Element {
     note: "",
     lines: [blankLine(newKey(), params.get("item") ?? "")],
   }));
+
+  useEffect(() => {
+    if (!request.data || prefilled.current) {
+      return;
+    }
+
+    prefilled.current = true;
+    const lines = linesFromRequest(request.data);
+
+    setDraft((current) => ({
+      ...current,
+      supplierId: request.data.supplierId ?? current.supplierId,
+      lines: lines.length > 0 ? lines : current.lines,
+    }));
+  }, [request.data]);
 
   const change = (patch: Partial<PurchaseDraft>): void =>
     setDraft((current) => ({ ...current, ...patch }));

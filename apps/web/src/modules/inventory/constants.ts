@@ -1,10 +1,18 @@
 import type { TabDefinition } from "@clinic/ui";
-import { type RecordableMovementType, MOVEMENT_TYPE } from "@clinic/shared";
+import {
+  type PurchaseRequestStatus,
+  type RecordableMovementType,
+  MOVEMENT_TYPE,
+  PURCHASE_REQUEST_STATUS,
+} from "@clinic/shared";
+import type { BadgeTone } from "@clinic/ui/components/badge";
 import type { IconName } from "@clinic/ui/components/icon";
 
 export const INVENTORY_TAB_STOCK = "stock";
 
 export const INVENTORY_TAB_SUPPLIERS = "suppliers";
+
+export const INVENTORY_TAB_REQUESTS = "requests";
 
 export const SUPPLIERS_TAB_PATH = "/inventory?tab=suppliers";
 
@@ -26,9 +34,32 @@ export const UNBATCHED_ROW_KEY = "unbatched";
 
 export const ALERT_PREVIEW_COUNT = 2;
 
-export type InventoryTab = typeof INVENTORY_TAB_STOCK | typeof INVENTORY_TAB_SUPPLIERS;
+export type InventoryTab =
+  typeof INVENTORY_TAB_STOCK | typeof INVENTORY_TAB_REQUESTS | typeof INVENTORY_TAB_SUPPLIERS;
 
 export const INVENTORY_TABS: readonly TabDefinition<InventoryTab>[] = [
   { id: INVENTORY_TAB_STOCK, label: "inventory.section.stock" },
+  { id: INVENTORY_TAB_REQUESTS, label: "inventory.section.requests" },
   { id: INVENTORY_TAB_SUPPLIERS, label: "inventory.section.suppliers" },
 ];
+
+export const REQUEST_STATUS_TONES: Record<PurchaseRequestStatus, BadgeTone> = {
+  [PURCHASE_REQUEST_STATUS.REQUESTED]: "neutral",
+  [PURCHASE_REQUEST_STATUS.ORDERED]: "info",
+  [PURCHASE_REQUEST_STATUS.PARTLY_RECEIVED]: "warning",
+  [PURCHASE_REQUEST_STATUS.RECEIVED]: "success",
+  [PURCHASE_REQUEST_STATUS.CLOSED]: "neutral",
+  [PURCHASE_REQUEST_STATUS.CANCELLED]: "danger",
+};
+
+export const REQUEST_FILTERS = [
+  "all",
+  PURCHASE_REQUEST_STATUS.REQUESTED,
+  PURCHASE_REQUEST_STATUS.ORDERED,
+  PURCHASE_REQUEST_STATUS.PARTLY_RECEIVED,
+  PURCHASE_REQUEST_STATUS.RECEIVED,
+] as const;
+
+export type RequestFilter = (typeof REQUEST_FILTERS)[number];
+
+export const STOCK_COUNT_PATH = "/inventory/counts";

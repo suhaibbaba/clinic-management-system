@@ -1,6 +1,15 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   AdjustStockInput,
+  CreatePurchaseRequestInput,
+  CreateStockCountInput,
+  ListPurchaseRequestsQuery,
+  PurchaseRequest,
+  RecordCountsInput,
+  SendPurchaseRequestInput,
+  StockCount,
+  StockCountSummary,
+  UpdatePurchaseRequestInput,
   BlockLotInput,
   LotBlock,
   PriceDocumentInput,
@@ -30,7 +39,13 @@ import type {
   UpdateInventoryItemInput,
   UpdateSupplierInput,
 } from "@clinic/shared";
-import { inventoryApi, purchasesApi, suppliersApi } from "@web/modules/inventory/api";
+import {
+  inventoryApi,
+  purchaseRequestsApi,
+  purchasesApi,
+  stockCountsApi,
+  suppliersApi,
+} from "@web/modules/inventory/api";
 
 export const ITEMS_KEY = "inventory-items";
 export const MOVEMENTS_KEY = "stock-movements";
@@ -42,6 +57,8 @@ export const SUPPLIER_STATEMENT_KEY = "supplier-statement";
 export const SUPPLIER_INVOICES_KEY = "supplier-invoices";
 export const UNINVOICED_KEY = "supplier-uninvoiced";
 export const LOT_BLOCKS_KEY = "lot-blocks";
+export const PURCHASE_REQUESTS_KEY = "purchase-requests";
+export const STOCK_COUNTS_KEY = "stock-counts";
 
 const STOCK_KEYS = [
   ITEMS_KEY,
@@ -54,6 +71,8 @@ const STOCK_KEYS = [
   SUPPLIER_INVOICES_KEY,
   UNINVOICED_KEY,
   LOT_BLOCKS_KEY,
+  PURCHASE_REQUESTS_KEY,
+  STOCK_COUNTS_KEY,
 ];
 
 function useStockMutation<TArgs, TResult>(mutationFn: (args: TArgs) => Promise<TResult>) {
@@ -260,4 +279,89 @@ export function useReverseSupplierPayment() {
 
 export function useDeleteSupplier() {
   return useStockMutation((id: string) => suppliersApi.remove(id));
+}
+
+export function usePurchaseRequests(
+  query: Partial<ListPurchaseRequestsQuery>,
+): UseQueryResult<Paginated<PurchaseRequest>> {
+  return useQuery({
+    queryKey: [PURCHASE_REQUESTS_KEY, query],
+    queryFn: () => purchaseRequestsApi.list(query),
+  });
+}
+
+export function usePurchaseRequest(id: string): UseQueryResult<PurchaseRequest> {
+  return useQuery({
+    queryKey: [PURCHASE_REQUESTS_KEY, "one", id],
+    queryFn: () => purchaseRequestsApi.get(id),
+    enabled: id !== "",
+  });
+}
+
+export function useCreatePurchaseRequest() {
+  return useStockMutation((input: CreatePurchaseRequestInput) => purchaseRequestsApi.create(input));
+}
+
+export function useRequestBelowMinimum() {
+  return useStockMutation(() => purchaseRequestsApi.belowMinimum());
+}
+
+export function useUpdatePurchaseRequest() {
+  return useStockMutation(({ id, body }: { id: string; body: UpdatePurchaseRequestInput }) =>
+    purchaseRequestsApi.update(id, body),
+  );
+}
+
+export function useSendPurchaseRequest() {
+  return useStockMutation(({ id, body }: { id: string; body: SendPurchaseRequestInput }) =>
+    purchaseRequestsApi.send(id, body),
+  );
+}
+
+export function useMarkRequestOrdered() {
+  return useStockMutation((id: string) => purchaseRequestsApi.markOrdered(id));
+}
+
+export function useCloseRequest() {
+  return useStockMutation((id: string) => purchaseRequestsApi.close(id));
+}
+
+export function useCancelRequest() {
+  return useStockMutation(({ id, reason }: { id: string; reason: string }) =>
+    purchaseRequestsApi.cancel(id, reason),
+  );
+}
+
+export function useStockCounts(enabled = true): UseQueryResult<StockCountSummary[]> {
+  return useQuery({
+    queryKey: [STOCK_COUNTS_KEY],
+    queryFn: () => stockCountsApi.list(),
+    enabled,
+  });
+}
+
+export function useStockCount(id: string): UseQueryResult<StockCount> {
+  return useQuery({
+    queryKey: [STOCK_COUNTS_KEY, id],
+    queryFn: () => stockCountsApi.get(id),
+    enabled: id !== "",
+  });
+}
+
+export function useStartStockCount() {
+  return useStockMutation((input: CreateStockCountInput) => stockCountsApi.create(input));
+}
+
+export function useRecordCounts() {
+  return useStockMutation(({ id, body }: { id: string; body: RecordCountsInput }) =>
+    stockCountsApi.record(id, body),
+  );
+}
+
+export function usePostStockCount() {
+  return useStockMutation((id: string) => stockCountsApi.post(id));
+}
+
+export function useCancelStockCount() {
+  return useStockMutation((id: string) => stockCountsApi.cancel(id));
 }

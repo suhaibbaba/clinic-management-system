@@ -20,6 +20,10 @@ import { PurchasesController } from "@api/modules/inventory/controllers/purchase
 import { WriteOffsService } from "@api/modules/inventory/services/write-offs.service";
 import { LotBlocksService } from "@api/modules/inventory/services/lot-blocks.service";
 import { SupplierCreditsService } from "@api/modules/inventory/services/supplier-credits.service";
+import { PurchaseRequestsService } from "@api/modules/inventory/services/purchase-requests.service";
+import { PurchaseRequestsController } from "@api/modules/inventory/controllers/purchase-requests.controller";
+import { StockCountsService } from "@api/modules/inventory/services/stock-counts.service";
+import { StockCountsController } from "@api/modules/inventory/controllers/stock-counts.controller";
 
 @Module({
   imports: [NotificationsModule, DatabaseModule, AuditModule],
@@ -28,6 +32,8 @@ import { SupplierCreditsService } from "@api/modules/inventory/services/supplier
     SuppliersController,
     SupplierPaymentsController,
     PurchasesController,
+    PurchaseRequestsController,
+    StockCountsController,
   ],
   providers: [
     ClinicScopeService,
@@ -40,6 +46,8 @@ import { SupplierCreditsService } from "@api/modules/inventory/services/supplier
     WriteOffsService,
     LotBlocksService,
     SupplierCreditsService,
+    PurchaseRequestsService,
+    StockCountsService,
     InventoryItemsService,
     StockMovementsService,
     InventoryReportsService,

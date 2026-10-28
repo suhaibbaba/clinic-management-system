@@ -4,11 +4,13 @@ import {
   type DiscountKind,
   type InvoiceResult,
   type PostPurchaseInput,
+  type PurchaseRequest,
 } from "@clinic/shared";
 
 export interface PurchaseLineDraft {
   readonly key: string;
   readonly itemId: string;
+  readonly requestLineId?: string | undefined;
   readonly quantity: string;
   readonly freeQuantity: string;
   readonly unitPrice: string;
@@ -97,6 +99,7 @@ export function toPostPurchase(draft: PurchaseDraft, requestId: string): PostPur
 
         return {
           itemId: line.itemId,
+          ...(line.requestLineId && { requestLineId: line.requestLineId }),
           quantity: line.quantity.trim(),
           ...(filled(line.freeQuantity) && { freeQuantity: line.freeQuantity.trim() }),
           ...(!line.gift && filled(line.unitPrice) && { unitPrice: line.unitPrice.trim() }),
@@ -118,4 +121,15 @@ export function toPostPurchase(draft: PurchaseDraft, requestId: string): PostPur
     ...(withInvoice &&
       paid && { paidNow: draft.paidNow.trim(), paymentMethod: draft.paymentMethod }),
   };
+}
+
+export function linesFromRequest(request: PurchaseRequest): PurchaseLineDraft[] {
+  return request.lines
+    .filter((line) => Number(line.open) > 0)
+    .map((line) => ({
+      ...blankLine(line.id, line.itemId),
+      requestLineId: line.id,
+      quantity: line.open,
+      unitPrice: line.lastPrice ?? "",
+    }));
 }

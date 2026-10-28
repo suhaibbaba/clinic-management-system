@@ -1,6 +1,15 @@
 import { toQueryString } from "@web/shared/lib/query-string";
 import type {
   AdjustStockInput,
+  CreatePurchaseRequestInput,
+  CreateStockCountInput,
+  ListPurchaseRequestsQuery,
+  PurchaseRequest,
+  RecordCountsInput,
+  SendPurchaseRequestInput,
+  StockCount,
+  StockCountSummary,
+  UpdatePurchaseRequestInput,
   BlockLotInput,
   ListLotBlocksQuery,
   LotBlock,
@@ -147,4 +156,54 @@ export const purchasesApi = {
 
   creditNote: (body: PriceDocumentInput) =>
     apiRequest<SupplierInvoiceSummary>("/purchases/credit-notes", { method: "POST", body }),
+};
+
+export const purchaseRequestsApi = {
+  list: (params: Partial<ListPurchaseRequestsQuery> = {}) =>
+    apiRequest<Paginated<PurchaseRequest>>(`/purchase-requests${toQueryString(params)}`),
+
+  get: (id: string) => apiRequest<PurchaseRequest>(`/purchase-requests/${id}`),
+
+  create: (body: CreatePurchaseRequestInput) =>
+    apiRequest<PurchaseRequest>("/purchase-requests", { method: "POST", body }),
+
+  belowMinimum: () =>
+    apiRequest<PurchaseRequest[]>("/purchase-requests/below-minimum", {
+      method: "POST",
+      body: {},
+    }),
+
+  update: (id: string, body: UpdatePurchaseRequestInput) =>
+    apiRequest<PurchaseRequest>(`/purchase-requests/${id}`, { method: "PUT", body }),
+
+  send: (id: string, body: SendPurchaseRequestInput) =>
+    apiRequest<PurchaseRequest>(`/purchase-requests/${id}/send`, { method: "POST", body }),
+
+  markOrdered: (id: string) =>
+    apiRequest<PurchaseRequest>(`/purchase-requests/${id}/ordered`, { method: "PATCH" }),
+
+  close: (id: string) =>
+    apiRequest<PurchaseRequest>(`/purchase-requests/${id}/close`, { method: "PATCH" }),
+
+  cancel: (id: string, reason: string) =>
+    apiRequest<PurchaseRequest>(`/purchase-requests/${id}/cancel`, {
+      method: "PATCH",
+      body: { reason },
+    }),
+};
+
+export const stockCountsApi = {
+  list: () => apiRequest<StockCountSummary[]>("/stock-counts"),
+
+  get: (id: string) => apiRequest<StockCount>(`/stock-counts/${id}`),
+
+  create: (body: CreateStockCountInput) =>
+    apiRequest<StockCount>("/stock-counts", { method: "POST", body }),
+
+  record: (id: string, body: RecordCountsInput) =>
+    apiRequest<StockCount>(`/stock-counts/${id}/lines`, { method: "PUT", body }),
+
+  post: (id: string) => apiRequest<StockCount>(`/stock-counts/${id}/post`, { method: "POST" }),
+
+  cancel: (id: string) => apiRequest<StockCount>(`/stock-counts/${id}/cancel`, { method: "PATCH" }),
 };

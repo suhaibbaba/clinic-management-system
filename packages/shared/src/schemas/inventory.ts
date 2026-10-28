@@ -3,11 +3,18 @@ import {
   MOVEMENT_TYPE,
   MOVEMENT_TYPES,
   PURCHASE_DOCUMENT_STATUSES,
+  PURCHASE_REQUEST_STATUSES,
+  STOCK_COUNT_STATUSES,
   SUPPLIER_DOCUMENT_KINDS,
 } from "@shared/enums";
 import { DISCOUNT_KIND } from "@shared/schemas/purchase-invoice";
 import { isoDateSchema } from "@shared/schemas/appointments";
-import { paginationQuerySchema, uuidSchema, optionalPhoneSchema } from "@shared/schemas/common";
+import {
+  paginationQuerySchema,
+  phoneSchema,
+  uuidSchema,
+  optionalPhoneSchema,
+} from "@shared/schemas/common";
 import { moneySchema, signedMoneySchema } from "@shared/schemas/money";
 import { personNameSchema } from "@shared/schemas/person-name";
 import {
@@ -375,6 +382,7 @@ const discountSchema = z.object({
 
 export const purchaseLineSchema = z.object({
   itemId: uuidSchema,
+  requestLineId: uuidSchema.optional(),
   quantity: quantitySchema,
   freeQuantity: quantitySchema.optional(),
   unitPrice: moneySchema.optional(),
@@ -600,3 +608,118 @@ export const priceDocumentSchema = z
     path: ["amount"],
   });
 export type PriceDocumentInput = z.infer<typeof priceDocumentSchema>;
+
+const requestLineInputSchema = z.object({
+  itemId: uuidSchema,
+  quantity: positiveQuantity,
+  note: z.string().trim().max(200).nullish(),
+});
+
+export const createPurchaseRequestSchema = z.object({
+  supplierId: uuidSchema.nullish(),
+  neededBy: isoDateSchema.nullish(),
+  note: z.string().trim().max(500).nullish(),
+  lines: z.array(requestLineInputSchema).min(1).max(200),
+  requestId: uuidSchema.optional(),
+});
+export type CreatePurchaseRequestInput = z.infer<typeof createPurchaseRequestSchema>;
+
+export const updatePurchaseRequestSchema = createPurchaseRequestSchema.omit({ requestId: true });
+export type UpdatePurchaseRequestInput = z.infer<typeof updatePurchaseRequestSchema>;
+
+export const requestBelowMinimumSchema = z.object({
+  supplierId: uuidSchema.nullish(),
+});
+export type RequestBelowMinimumInput = z.infer<typeof requestBelowMinimumSchema>;
+
+export const sendPurchaseRequestSchema = z.object({
+  to: phoneSchema.optional(),
+  withPrices: z.boolean().optional(),
+});
+export type SendPurchaseRequestInput = z.infer<typeof sendPurchaseRequestSchema>;
+
+export const cancelPurchaseRequestSchema = z.object({
+  reason: z.string().trim().min(3).max(500),
+});
+export type CancelPurchaseRequestInput = z.infer<typeof cancelPurchaseRequestSchema>;
+
+export const listPurchaseRequestsQuerySchema = paginationQuerySchema.extend({
+  status: z.enum(PURCHASE_REQUEST_STATUSES).optional(),
+  supplierId: uuidSchema.optional(),
+});
+export type ListPurchaseRequestsQuery = z.infer<typeof listPurchaseRequestsQuerySchema>;
+
+export const purchaseRequestLineSchema = z.object({
+  id: uuidSchema,
+  itemId: uuidSchema,
+  itemName: z.string(),
+  unit: lookupCodeSchema,
+  quantity: quantitySchema,
+  received: quantitySchema,
+  open: quantitySchema,
+  note: z.string().nullable(),
+  lastPrice: moneySchema.nullable().optional(),
+});
+export type PurchaseRequestLine = z.infer<typeof purchaseRequestLineSchema>;
+
+export const purchaseRequestSchema = z.object({
+  id: uuidSchema,
+  number: z.string(),
+  status: z.enum(PURCHASE_REQUEST_STATUSES),
+  supplierId: uuidSchema.nullable(),
+  supplierName: z.string().nullable(),
+  supplierPhone: z.string().nullable(),
+  neededBy: isoDateSchema.nullable(),
+  note: z.string().nullable(),
+  sentAt: z.iso.datetime().nullable(),
+  sentTo: z.string().nullable(),
+  cancelReason: z.string().nullable(),
+  createdByName: personNameSchema.nullable(),
+  createdAt: z.iso.datetime(),
+  lines: z.array(purchaseRequestLineSchema),
+});
+export type PurchaseRequest = z.infer<typeof purchaseRequestSchema>;
+
+export const createStockCountSchema = z.object({
+  itemIds: z.array(uuidSchema).max(1000).optional(),
+  note: z.string().trim().max(500).nullish(),
+});
+export type CreateStockCountInput = z.infer<typeof createStockCountSchema>;
+
+export const recordCountsSchema = z.object({
+  lines: z
+    .array(z.object({ itemId: uuidSchema, counted: quantitySchema.nullable() }))
+    .min(1)
+    .max(1000),
+});
+export type RecordCountsInput = z.infer<typeof recordCountsSchema>;
+
+export const stockCountLineSchema = z.object({
+  itemId: uuidSchema,
+  itemName: z.string(),
+  unit: lookupCodeSchema,
+  expected: signedQuantitySchema,
+  current: signedQuantitySchema,
+  counted: quantitySchema.nullable(),
+  difference: signedQuantitySchema.nullable(),
+  value: signedMoneySchema.nullable().optional(),
+});
+export type StockCountLine = z.infer<typeof stockCountLineSchema>;
+
+export const stockCountSchema = z.object({
+  id: uuidSchema,
+  number: z.string(),
+  status: z.enum(STOCK_COUNT_STATUSES),
+  note: z.string().nullable(),
+  snapshotAt: z.iso.datetime(),
+  postedAt: z.iso.datetime().nullable(),
+  createdByName: personNameSchema.nullable(),
+  lines: z.array(stockCountLineSchema),
+});
+export type StockCount = z.infer<typeof stockCountSchema>;
+
+export const stockCountSummarySchema = stockCountSchema.omit({ lines: true }).extend({
+  items: z.number().int(),
+  counted: z.number().int(),
+});
+export type StockCountSummary = z.infer<typeof stockCountSummarySchema>;

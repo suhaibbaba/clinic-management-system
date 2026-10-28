@@ -9,6 +9,8 @@ import {
   PAYMENT_ERROR,
   STOCK_ERROR,
   PURCHASE_ERROR,
+  PURCHASE_REQUEST_ERROR,
+  STOCK_COUNT_ERROR,
 } from "@clinic/shared";
 import i18n from "@web/i18n";
 import { FIELD_LABELS } from "@web/shared/constants/field-labels";
@@ -62,6 +64,14 @@ const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [STOCK_ERROR.EXPIRED]: "errors.stock.expired",
   [STOCK_ERROR.ITEM_HAS_STOCK]: "errors.stock.itemHasStock",
   [STOCK_ERROR.SUPPLIER_HAS_BALANCE]: "errors.stock.supplierHasBalance",
+  [PURCHASE_REQUEST_ERROR.NOT_OPEN]: "errors.purchaseRequest.notOpen",
+  [PURCHASE_REQUEST_ERROR.NO_SUPPLIER]: "errors.purchaseRequest.noSupplier",
+  [PURCHASE_REQUEST_ERROR.NO_PHONE]: "errors.purchaseRequest.noPhone",
+  [PURCHASE_REQUEST_ERROR.NOTHING_BELOW_MINIMUM]: "errors.purchaseRequest.nothingBelowMinimum",
+  [PURCHASE_REQUEST_ERROR.WRONG_LINE]: "errors.purchaseRequest.wrongLine",
+  [STOCK_COUNT_ERROR.ALREADY_OPEN]: "errors.stockCount.alreadyOpen",
+  [STOCK_COUNT_ERROR.NOT_OPEN]: "errors.stockCount.notOpen",
+  [STOCK_COUNT_ERROR.INCOMPLETE]: "errors.stockCount.incomplete",
   [STOCK_ERROR.BLOCKED]: "errors.stock.blocked",
   [STOCK_ERROR.ALREADY_BLOCKED]: "errors.stock.alreadyBlocked",
   [STOCK_ERROR.WHOLE_UNITS]: "errors.stock.wholeUnits",

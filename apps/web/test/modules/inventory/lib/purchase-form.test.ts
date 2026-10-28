@@ -1,7 +1,8 @@
-import { DISCOUNT_KIND } from "@clinic/shared";
+import { DISCOUNT_KIND, PURCHASE_REQUEST_STATUS } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
 import {
   blankLine,
+  linesFromRequest,
   previewTotals,
   toPostPurchase,
   type PurchaseDraft,
@@ -59,5 +60,57 @@ describe("the purchase form", () => {
 
   it("has no preview until a line has an item and a quantity", () => {
     expect(previewTotals(draft({ lines: [blankLine("x")] }))).toBeNull();
+  });
+
+  it("receives the open part of a request at the supplier's last price", () => {
+    const lines = linesFromRequest({
+      id: "req",
+      number: "PR-2026-0001",
+      status: PURCHASE_REQUEST_STATUS.PARTLY_RECEIVED,
+      supplierId: "laith",
+      supplierName: "Laith",
+      supplierPhone: null,
+      neededBy: null,
+      note: null,
+      sentAt: null,
+      sentTo: null,
+      cancelReason: null,
+      createdByName: null,
+      createdAt: "2026-10-28T08:00:00.000Z",
+      lines: [
+        {
+          id: "line-1",
+          itemId: "gloves",
+          itemName: "Gloves",
+          unit: "box",
+          quantity: "10",
+          received: "6",
+          open: "4",
+          note: null,
+          lastPrice: "25.00",
+        },
+        {
+          id: "line-2",
+          itemId: "masks",
+          itemName: "Masks",
+          unit: "box",
+          quantity: "2",
+          received: "2",
+          open: "0",
+          note: null,
+        },
+      ],
+    });
+
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toMatchObject({
+      itemId: "gloves",
+      requestLineId: "line-1",
+      quantity: "4",
+      unitPrice: "25.00",
+    });
+    expect(toPostPurchase(draft({ lines }), "r-4").lines[0]).toMatchObject({
+      requestLineId: "line-1",
+    });
   });
 });

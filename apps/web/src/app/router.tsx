@@ -14,6 +14,7 @@ import { InventorySection } from "@web/modules/inventory/pages/inventory-section
 import { ItemPage } from "@web/modules/inventory/pages/item-page";
 import { SupplierPage } from "@web/modules/inventory/pages/supplier-page";
 import { PurchasePage } from "@web/modules/inventory/pages/purchase-page";
+import { StockCountPage } from "@web/modules/inventory/pages/stock-count-page";
 import { ShoppingListPage } from "@web/modules/inventory/pages/shopping-list-page";
 import { LabsSection } from "@web/modules/labs/pages/labs-section";
 import { LabPage } from "@web/modules/labs/pages/lab-page";
@@ -183,6 +184,14 @@ export function AppRoutes(): JSX.Element {
           }
         />
 
+        <Route
+          path="/inventory/counts/:id"
+          element={
+            <RequireCapability capabilities={PAGE_CAPABILITIES.stockCount} redirectTo={HOME}>
+              <StockCountPage />
+            </RequireCapability>
+          }
+        />
         <Route
           path="/inventory/purchases/new"
           element={

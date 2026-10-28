@@ -246,6 +246,8 @@ describe("Route guards", () => {
     [USER_ROLE.RECEPTIONIST, `/inventory/items/${ITEM_ID}`],
     [USER_ROLE.RECEPTIONIST, `/inventory/suppliers/${ITEM_ID}`],
     [USER_ROLE.RECEPTIONIST, "/inventory/purchases/new"],
+    [USER_ROLE.RECEPTIONIST, `/inventory/counts/${ITEM_ID}`],
+    [USER_ROLE.DOCTOR, `/inventory/counts/${ITEM_ID}`],
     [USER_ROLE.DOCTOR, "/inventory/purchases/new"],
     [USER_ROLE.VISITING_DOCTOR, "/inventory/purchases/new"],
     [USER_ROLE.RECEPTIONIST, "/labs"],

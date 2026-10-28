@@ -212,6 +212,20 @@ const AR = {
     empty: "لا توجد مواد دون الحد الأدنى للمخزون",
     signature: "توقيع المسؤول",
   },
+
+  purchaseRequest: {
+    title: "طلب مواد",
+    greeting: "مرحباً {supplier}، نحتاج المواد التالية",
+    neededBy: "مطلوبة قبل",
+    columns: {
+      item: "المادة",
+      unit: "الوحدة",
+      quantity: "الكمية",
+      lastPrice: "آخر سعر",
+    },
+    note: "ملاحظات",
+    signature: "توقيع المسؤول",
+  },
 };
 
 const EN: typeof AR = {
@@ -421,6 +435,20 @@ const EN: typeof AR = {
       supplier: "Supplier",
     },
     empty: "Nothing below its minimum",
+    signature: "Signature",
+  },
+
+  purchaseRequest: {
+    title: "Purchase request",
+    greeting: "Hello {supplier}, we need the following items",
+    neededBy: "Needed by",
+    columns: {
+      item: "Item",
+      unit: "Unit",
+      quantity: "Quantity",
+      lastPrice: "Last price",
+    },
+    note: "Notes",
     signature: "Signature",
   },
 };

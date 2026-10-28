@@ -644,6 +644,18 @@
       "refundExceedsCredit": "The refund is more than the supplier's credit",
       "voidDocument": "This document is void or cannot be used here",
       "creditExceeds": "The amount does not match its lines"
+    },
+    "purchaseRequest": {
+      "notOpen": "This request is closed or cancelled",
+      "noSupplier": "Choose the request's supplier first",
+      "noPhone": "Add the supplier's WhatsApp number first",
+      "nothingBelowMinimum": "No item is below its minimum",
+      "wrongLine": "That line does not belong to an open request for this item"
+    },
+    "stockCount": {
+      "alreadyOpen": "A count is already in progress",
+      "notOpen": "This count is already posted or cancelled",
+      "incomplete": "Count every item before posting"
     }
   },
   "patients": {
@@ -1645,7 +1657,8 @@
     "section": {
       "label": "Inventory Views",
       "stock": "Stock",
-      "suppliers": "Suppliers"
+      "suppliers": "Suppliers",
+      "requests": "Requests"
     },
     "purchase": {
       "action": "New Purchase",
@@ -1723,7 +1736,91 @@
       "amount": "Amount",
       "confirm": "Record Credit",
       "done": "Credit note recorded"
-    }
+    },
+    "requests": {
+      "title": "Purchase Requests",
+      "subtitle": "What the clinic needs, sent to suppliers and received against.",
+      "new": "New Request",
+      "belowMinimum": "Request Items Below Minimum",
+      "fromMinimum_one": "{{count}} request created",
+      "fromMinimum_other": "{{count}} requests created",
+      "filter": "Status",
+      "all": "All",
+      "menu": "Request Actions",
+      "receive": "Receive Goods",
+      "send": "Send to Supplier",
+      "sendUpdate": "Send Update",
+      "closeRemainder": "Close the Remainder",
+      "cancel": "Cancel Request",
+      "cancelTitle": "Cancel the Request",
+      "cancelDescription": "The request closes; nothing in stock or the supplier's account changes.",
+      "cancelReason": "Reason",
+      "cancelled": "Request cancelled",
+      "closed": "Remainder closed",
+      "created": "Request created",
+      "updated": "Request updated",
+      "newTitle": "New Purchase Request",
+      "editTitle": "Edit the Request",
+      "neededBy": "Needed by",
+      "sendTitle": "Send to the Supplier by WhatsApp",
+      "sendDescription": "Request {{number}} goes to {{supplier}} as a PDF and is marked ordered.",
+      "whatsapp": "WhatsApp number",
+      "withPrices": "Include last known prices",
+      "markOrdered": "I Sent It Myself",
+      "markedOrdered": "Marked as ordered",
+      "sent": "Sent to the supplier",
+      "empty": "Nothing requested",
+      "emptyHint": "Start from the items below their minimum",
+      "columns": {
+        "number": "Request",
+        "status": "Status",
+        "items": "Items",
+        "created": "Created"
+      },
+      "status": {
+        "requested": "Requested",
+        "ordered": "Ordered",
+        "partly_received": "Partly received",
+        "received": "Received",
+        "closed": "Closed",
+        "cancelled": "Cancelled"
+      }
+    },
+    "counts": {
+      "start": "Count Stock",
+      "resume": "Continue the Count",
+      "title": "Stock Count",
+      "subtitle": "Count unopened units on the shelf; differences post as adjustments.",
+      "snapshot": "Started {{at}}",
+      "missing_one": "{{count}} item not counted yet",
+      "missing_other": "{{count}} items not counted yet",
+      "save": "Save Progress",
+      "saved": "Counts saved",
+      "post": "Post the Count",
+      "posted": "Count posted",
+      "cancel": "Cancel the Count",
+      "columns": {
+        "item": "Item",
+        "expected": "Expected",
+        "counted": "Counted",
+        "difference": "Difference",
+        "value": "Value"
+      },
+      "status": {
+        "open": "In progress",
+        "posted": "Posted",
+        "cancelled": "Cancelled"
+      },
+      "confirmPost": {
+        "title": "Post count {{number}}?",
+        "adjustments": "Each difference becomes a stock adjustment at the current average cost."
+      },
+      "confirmCancel": {
+        "title": "Cancel count {{number}}?",
+        "nothing": "Nothing in stock changes; the typed counts are discarded."
+      }
+    },
+    "rowMenu": "Item Actions"
   },
   "lookups": {
     "title": "Lists",
@@ -2252,6 +2349,26 @@
         "voidReturn": "Void a Return to a Supplier",
         "creditNote": "Record a Supplier Credit Note",
         "supplementary": "Record a Supplementary Supplier Invoice"
+      },
+      "purchase-requests": {
+        "list": "See Purchase Requests",
+        "findOne": "Open a Purchase Request",
+        "pdf": "Print a Purchase Request",
+        "create": "Raise a Purchase Request",
+        "fromBelowMinimum": "Request Items Below Minimum",
+        "update": "Edit a Purchase Request",
+        "send": "Send a Request to the Supplier",
+        "markOrdered": "Mark a Request Ordered",
+        "close": "Close a Request's Remainder",
+        "cancel": "Cancel a Purchase Request"
+      },
+      "stock-counts": {
+        "list": "See Stock Counts",
+        "findOne": "Open a Stock Count",
+        "create": "Start a Stock Count",
+        "recordCounts": "Enter Counted Quantities",
+        "post": "Post a Stock Count",
+        "cancel": "Cancel a Stock Count"
       }
     },
     "hints": {
@@ -2285,7 +2402,9 @@
       "website": "The Website screen: the clinic's public page, publishing it, and contact form messages.",
       "expenses": "The Expenses tab of the Profit and Expenses screen: recording a clinic expense and reversing one entered by mistake.",
       "doctor-settlements": "A doctor's settlement on the Payroll screen: their treatments, the clinic's share, paying them and printing the statement.",
-      "purchases": "Receiving goods from suppliers, their invoices, returns, credit notes and voids."
+      "purchases": "Receiving goods from suppliers, their invoices, returns, credit notes and voids.",
+      "purchase-requests": "What the clinic needs from suppliers: raising, sending by WhatsApp, receiving against it, closing and cancelling.",
+      "stock-counts": "Counting the shelf and posting the differences as stock adjustments."
     },
     "intro": "Every line here is one action in the app. Switch it off and its button leaves that role’s screens and the action is refused if attempted; switch it back whenever you like. What you change belongs to this clinic alone.",
     "resources": {
@@ -2327,7 +2446,9 @@
       "expenses": "Expenses",
       "supplier-payments": "Supplier Payments",
       "purchasing": "Purchasing",
-      "purchases": "Purchases"
+      "purchases": "Purchases",
+      "purchase-requests": "Purchase Requests",
+      "stock-counts": "Stock Counts"
     },
     "subtitle": "What each role is able to do",
     "title": "Permissions",

@@ -36,6 +36,18 @@ export const canReturnToSupplier = (can: Can): boolean => can("purchases.returnT
 
 export const canRecordCreditNote = (can: Can): boolean => can("purchases.creditNote");
 
+export const seesPurchaseRequests = (can: Can): boolean => can("purchase-requests.list");
+
+export const canRequestPurchase = (can: Can): boolean => can("purchase-requests.create");
+
+export const canSendPurchaseRequest = (can: Can): boolean => can("purchase-requests.send");
+
+export const canManagePurchaseRequest = (can: Can): boolean => can("purchase-requests.cancel");
+
+export const canCountStock = (can: Can): boolean => can("stock-counts.create");
+
+export const canPostStockCount = (can: Can): boolean => can("stock-counts.post");
+
 export const canVoidInvoice = (can: Can): boolean => can("purchases.voidInvoice");
 
 export const canSeeCosts = (can: Can): boolean => can(RULE.INVENTORY_COSTS);

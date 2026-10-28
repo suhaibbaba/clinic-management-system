@@ -1083,6 +1083,50 @@ export const SUPPLIER_DOCUMENT_KINDS = [
   SUPPLIER_DOCUMENT_KIND.SUPPLEMENTARY,
 ] as const;
 
+export const PURCHASE_REQUEST_STATUS = {
+  REQUESTED: "requested",
+  ORDERED: "ordered",
+  PARTLY_RECEIVED: "partly_received",
+  RECEIVED: "received",
+  CLOSED: "closed",
+  CANCELLED: "cancelled",
+} as const satisfies Record<string, string>;
+export type PurchaseRequestStatus = EnumValue<typeof PURCHASE_REQUEST_STATUS>;
+export const PURCHASE_REQUEST_STATUSES = [
+  PURCHASE_REQUEST_STATUS.REQUESTED,
+  PURCHASE_REQUEST_STATUS.ORDERED,
+  PURCHASE_REQUEST_STATUS.PARTLY_RECEIVED,
+  PURCHASE_REQUEST_STATUS.RECEIVED,
+  PURCHASE_REQUEST_STATUS.CLOSED,
+  PURCHASE_REQUEST_STATUS.CANCELLED,
+] as const;
+
+export const PURCHASE_REQUEST_ERROR = {
+  NOT_OPEN: "purchase_request_not_open",
+  NO_SUPPLIER: "purchase_request_no_supplier",
+  NO_PHONE: "purchase_request_no_phone",
+  NOTHING_BELOW_MINIMUM: "purchase_request_nothing_below_minimum",
+  WRONG_LINE: "purchase_request_wrong_line",
+} as const satisfies Record<string, string>;
+
+export const STOCK_COUNT_STATUS = {
+  OPEN: "open",
+  POSTED: "posted",
+  CANCELLED: "cancelled",
+} as const satisfies Record<string, string>;
+export type StockCountStatus = EnumValue<typeof STOCK_COUNT_STATUS>;
+export const STOCK_COUNT_STATUSES = [
+  STOCK_COUNT_STATUS.OPEN,
+  STOCK_COUNT_STATUS.POSTED,
+  STOCK_COUNT_STATUS.CANCELLED,
+] as const;
+
+export const STOCK_COUNT_ERROR = {
+  ALREADY_OPEN: "stock_count_already_open",
+  NOT_OPEN: "stock_count_not_open",
+  INCOMPLETE: "stock_count_incomplete",
+} as const satisfies Record<string, string>;
+
 export const PAYMENT_DIRECTION = {
   PAID: "paid",
   REFUND: "refund",

@@ -1,26 +1,52 @@
-import { LOOKUP_LIST } from "@clinic/shared";
+import {
+  LOOKUP_LIST,
+  MOVEMENT_TYPE,
+  STOCK_COUNT_STATUS,
+  type InventoryItemRow,
+} from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
   Button,
+  type Column,
   EmptyState,
   Icon,
+  MenuItem,
   PageHeader,
+  RowMenu,
   SearchField,
   Select,
   Table,
   TotalBadge,
   usePageParams,
+  useToast,
 } from "@clinic/ui";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 import { InventoryAlertCards } from "@web/modules/inventory/components/alert-cards";
 import { ItemFormModal } from "@web/modules/inventory/components/item-form-modal";
 import { useInventoryColumns } from "@web/modules/inventory/hooks/use-inventory-columns";
 import { useInventoryFilters } from "@web/modules/inventory/hooks/use-inventory-filters";
-import { canManageInventory, canPostPurchase } from "@web/shared/permissions/inventory";
+import {
+  canConsumeStock,
+  canCountStock,
+  canManageInventory,
+  canPostPurchase,
+  canWriteOff,
+} from "@web/shared/permissions/inventory";
+import { MovementModal } from "@web/modules/inventory/components/movement-modal";
+import {
+  WriteOffModal,
+  type WriteOffTarget,
+} from "@web/modules/inventory/components/write-off-modal";
+import { STOCK_COUNT_PATH } from "@web/modules/inventory/constants";
+import { errorToast } from "@web/shared/lib/api-error";
 import { useSession } from "@web/shared/providers/session";
-import { useInventoryItems } from "@web/modules/inventory/queries";
+import {
+  useInventoryItems,
+  useStartStockCount,
+  useStockCounts,
+} from "@web/modules/inventory/queries";
 import { useLookupOptions } from "@web/shared/queries/lookups";
 
 export function InventoryPage(): JSX.Element {
@@ -31,8 +57,62 @@ export function InventoryPage(): JSX.Element {
   const { page, perPage, setPage, setPerPage, resetPage } = usePageParams();
   const filters = useInventoryFilters(resetPage);
   const { search, category, low, expiring, setSearch, setFilters } = filters;
-  const columns = useInventoryColumns();
+  const baseColumns = useInventoryColumns();
   const [creating, setCreating] = useState(false);
+  const [using, setUsing] = useState<InventoryItemRow | null>(null);
+  const [writingOff, setWritingOff] = useState<WriteOffTarget | null>(null);
+  const mayUse = canConsumeStock(can);
+  const mayReceive = canPostPurchase(can);
+  const mayWriteOff = canWriteOff(can);
+  const columns: readonly Column<InventoryItemRow>[] =
+    mayUse || mayReceive || mayWriteOff
+      ? [
+          ...baseColumns,
+          {
+            key: "actions",
+            header: "common.actions",
+            actions: true,
+            render: (row) => (
+              <RowMenu label={t("inventory.rowMenu")} data-testid="inventory-row-actions">
+                {mayUse && (
+                  <MenuItem
+                    icon="trend-down"
+                    data-testid="inventory-row-use"
+                    onSelect={() => setUsing(row)}
+                  >
+                    {t(`inventory.movement.action.${MOVEMENT_TYPE.CONSUME}`)}
+                  </MenuItem>
+                )}
+                {mayReceive && (
+                  <MenuItem
+                    icon="package"
+                    data-testid="inventory-row-receive"
+                    onSelect={() =>
+                      void navigate(
+                        `/inventory/purchases/new?item=${row.id}${row.defaultSupplierId ? `&supplier=${row.defaultSupplierId}` : ""}`,
+                      )
+                    }
+                  >
+                    {t("inventory.requests.receive")}
+                  </MenuItem>
+                )}
+                {mayWriteOff && (
+                  <MenuItem
+                    icon="trash"
+                    tone="danger"
+                    data-testid="inventory-row-write-off"
+                    onSelect={() =>
+                      setWritingOff({ itemId: row.id, itemName: row.name, batchNo: null })
+                    }
+                  >
+                    {t("inventory.writeOff.action")}
+                  </MenuItem>
+                )}
+              </RowMenu>
+            ),
+          } satisfies Column<InventoryItemRow>,
+        ]
+      : baseColumns;
 
   const openItem = (id: string): void => void navigate(`/inventory/items/${id}`);
 
@@ -51,6 +131,25 @@ export function InventoryPage(): JSX.Element {
   const items = useInventoryItems(query);
   const rows = items.data?.items ?? [];
   const mayManage = canManageInventory(can);
+  const mayCount = canCountStock(can);
+  const counts = useStockCounts(mayCount);
+  const startCount = useStartStockCount();
+  const toast = useToast();
+  const openCount = counts.data?.find((count) => count.status === STOCK_COUNT_STATUS.OPEN);
+
+  const countStock = async (): Promise<void> => {
+    if (openCount) {
+      void navigate(`${STOCK_COUNT_PATH}/${openCount.id}`);
+      return;
+    }
+
+    try {
+      const created = await startCount.mutateAsync({});
+      void navigate(`${STOCK_COUNT_PATH}/${created.id}`);
+    } catch (error) {
+      toast.error(...errorToast(error));
+    }
+  };
 
   return (
     <div data-testid="inventory-page" className="flex flex-col gap-5">
@@ -68,6 +167,17 @@ export function InventoryPage(): JSX.Element {
             >
               {t("inventory.shoppingList.action")}
             </Button>
+            {mayCount && (
+              <Button
+                variant="secondary"
+                icon={<Icon name="list" />}
+                data-testid="inventory-count-stock"
+                isLoading={startCount.isPending}
+                onClick={() => void countStock()}
+              >
+                {t(openCount ? "inventory.counts.resume" : "inventory.counts.start")}
+              </Button>
+            )}
             {canPostPurchase(can) && (
               <Button
                 variant="secondary"
@@ -176,6 +286,14 @@ export function InventoryPage(): JSX.Element {
           onPerPageChange: setPerPage,
         }}
       />
+
+      <MovementModal
+        data-testid="inventory-use-modal"
+        type={using ? MOVEMENT_TYPE.CONSUME : null}
+        item={using ?? undefined}
+        onClose={() => setUsing(null)}
+      />
+      <WriteOffModal target={writingOff} onClose={() => setWritingOff(null)} />
 
       <ItemFormModal
         data-testid="inventory-item-create-modal"

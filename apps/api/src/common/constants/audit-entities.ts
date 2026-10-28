@@ -85,3 +85,7 @@ export const SITE_CONTENT_ENTITY = "site_content";
 export const CONTACT_MESSAGES_ENTITY = "contact_messages";
 
 export const LOT_BLOCKS_ENTITY = "lot_blocks";
+
+export const PURCHASE_REQUESTS_ENTITY = "purchase_requests";
+
+export const STOCK_COUNTS_ENTITY = "stock_counts";

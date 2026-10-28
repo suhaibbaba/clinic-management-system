@@ -43,6 +43,7 @@ export const PAGE_CAPABILITIES = {
   labs: ["labs.list"],
   inventory: ["inventory.list"],
   purchase: ["purchases.post"],
+  stockCount: ["stock-counts.findOne"],
   users: ["users.list"],
   doctor: ["doctors.updateSchedule"],
   payroll: ["payroll.month"],
@@ -202,7 +203,7 @@ const BACK_ROUTES: readonly (BackTarget & { readonly pattern: RegExp })[] = [
   { pattern: /^\/patients\/[^/]+$/, to: "/patients", label: "nav.patients" },
   { pattern: /^\/labs\/[^/]+$/, to: "/labs?tab=directory", label: "nav.labs" },
   {
-    pattern: /^\/inventory\/(?:items\/[^/]+|shopping-list|purchases\/new)$/,
+    pattern: /^\/inventory\/(?:items\/[^/]+|shopping-list|purchases\/new|counts\/[^/]+)$/,
     to: "/inventory",
     label: "nav.inventory",
   },

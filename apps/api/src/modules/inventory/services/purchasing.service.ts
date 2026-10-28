@@ -15,6 +15,8 @@ import {
   PURCHASE_BACKDATE_DAYS,
   PURCHASE_DOCUMENT_STATUS,
   PURCHASE_ERROR,
+  PURCHASE_REQUEST_ERROR,
+  PURCHASE_REQUEST_STATUS,
   RECEIPT_KIND,
   RULE,
   STOCK_ERROR,
@@ -44,6 +46,8 @@ import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/da
 import {
   documentCounters,
   inventoryItems,
+  purchaseRequestLines,
+  purchaseRequests,
   payrollMonths,
   stockMovements,
   stockReceiptLines,
@@ -192,6 +196,48 @@ export class PurchasingService implements OnModuleInit {
     if (input.paidNow && input.paymentMethod && input.supplierId) {
       await this.payments.validate(actor, input.supplierId, input.paymentMethod);
     }
+
+    await this.assertReceivable(this.db, actor.clinicId, input.lines);
+  }
+
+  private async assertReceivable(
+    tx: DatabaseExecutor,
+    clinicId: string,
+    lines: readonly { readonly itemId: string; readonly requestLineId?: string | undefined }[],
+  ): Promise<void> {
+    const wanted = lines.filter((line) => line.requestLineId !== undefined);
+
+    if (wanted.length === 0) {
+      return;
+    }
+
+    const rows = await tx
+      .select({ line: purchaseRequestLines, status: purchaseRequests.status })
+      .from(purchaseRequestLines)
+      .innerJoin(purchaseRequests, eq(purchaseRequests.id, purchaseRequestLines.requestId))
+      .where(
+        and(
+          eq(purchaseRequestLines.clinicId, clinicId),
+          inArray(
+            purchaseRequestLines.id,
+            wanted.map((line) => line.requestLineId ?? ""),
+          ),
+        ),
+      );
+
+    for (const line of wanted) {
+      const found = rows.find((row) => row.line.id === line.requestLineId);
+
+      if (
+        !found ||
+        found.line.removedAt !== null ||
+        found.line.itemId !== line.itemId ||
+        (found.status !== PURCHASE_REQUEST_STATUS.REQUESTED &&
+          found.status !== PURCHASE_REQUEST_STATUS.ORDERED)
+      ) {
+        throw new BadRequestException(PURCHASE_REQUEST_ERROR.WRONG_LINE);
+      }
+    }
   }
 
   async rights(actor: AuthenticatedUser): Promise<Rights> {
@@ -304,6 +350,7 @@ export class PurchasingService implements OnModuleInit {
         unitPrice: line.unitPrice ?? null,
         batchNo: line.batchNo ?? null,
         expiryDate: line.expiryDate ?? null,
+        requestLineId: line.requestLineId ?? null,
         movementId: movement.id,
       });
 
