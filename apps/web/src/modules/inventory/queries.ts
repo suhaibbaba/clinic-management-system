@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   AdjustStockInput,
+  MarkReviewedInput,
+  PurchaseReviewEntry,
   CreatePurchaseRequestInput,
   CreateStockCountInput,
   ListPurchaseRequestsQuery,
@@ -59,6 +61,7 @@ export const UNINVOICED_KEY = "supplier-uninvoiced";
 export const LOT_BLOCKS_KEY = "lot-blocks";
 export const PURCHASE_REQUESTS_KEY = "purchase-requests";
 export const STOCK_COUNTS_KEY = "stock-counts";
+export const PURCHASE_REVIEW_KEY = "purchase-review";
 
 const STOCK_KEYS = [
   ITEMS_KEY,
@@ -73,6 +76,7 @@ const STOCK_KEYS = [
   LOT_BLOCKS_KEY,
   PURCHASE_REQUESTS_KEY,
   STOCK_COUNTS_KEY,
+  PURCHASE_REVIEW_KEY,
 ];
 
 function useStockMutation<TArgs, TResult>(mutationFn: (args: TArgs) => Promise<TResult>) {
@@ -364,4 +368,12 @@ export function usePostStockCount() {
 
 export function useCancelStockCount() {
   return useStockMutation((id: string) => stockCountsApi.cancel(id));
+}
+
+export function usePurchaseReview(): UseQueryResult<PurchaseReviewEntry[]> {
+  return useQuery({ queryKey: [PURCHASE_REVIEW_KEY], queryFn: () => purchasesApi.review() });
+}
+
+export function useMarkReviewed() {
+  return useStockMutation((input: MarkReviewedInput) => purchasesApi.markReviewed(input));
 }

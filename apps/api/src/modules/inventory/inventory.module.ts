@@ -23,6 +23,7 @@ import { SupplierCreditsService } from "@api/modules/inventory/services/supplier
 import { PurchaseRequestsService } from "@api/modules/inventory/services/purchase-requests.service";
 import { PurchaseRequestsController } from "@api/modules/inventory/controllers/purchase-requests.controller";
 import { StockCountsService } from "@api/modules/inventory/services/stock-counts.service";
+import { PurchaseReviewService } from "@api/modules/inventory/services/purchase-review.service";
 import { StockCountsController } from "@api/modules/inventory/controllers/stock-counts.controller";
 
 @Module({
@@ -48,6 +49,7 @@ import { StockCountsController } from "@api/modules/inventory/controllers/stock-
     SupplierCreditsService,
     PurchaseRequestsService,
     StockCountsService,
+    PurchaseReviewService,
     InventoryItemsService,
     StockMovementsService,
     InventoryReportsService,

@@ -1,6 +1,8 @@
 import { toQueryString } from "@web/shared/lib/query-string";
 import type {
   AdjustStockInput,
+  MarkReviewedInput,
+  PurchaseReviewEntry,
   CreatePurchaseRequestInput,
   CreateStockCountInput,
   ListPurchaseRequestsQuery,
@@ -153,6 +155,11 @@ export const purchasesApi = {
 
   returnToSupplier: (body: SupplierReturnInput) =>
     apiRequest<SupplierReturnResult>("/purchases/returns", { method: "POST", body }),
+
+  review: () => apiRequest<PurchaseReviewEntry[]>("/purchases/review"),
+
+  markReviewed: (body: MarkReviewedInput) =>
+    apiRequest<void>("/purchases/review", { method: "PATCH", body }),
 
   creditNote: (body: PriceDocumentInput) =>
     apiRequest<SupplierInvoiceSummary>("/purchases/credit-notes", { method: "POST", body }),

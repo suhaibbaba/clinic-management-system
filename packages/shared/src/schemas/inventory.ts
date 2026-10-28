@@ -723,3 +723,30 @@ export const stockCountSummarySchema = stockCountSchema.omit({ lines: true }).ex
   counted: z.number().int(),
 });
 export type StockCountSummary = z.infer<typeof stockCountSummarySchema>;
+
+export const PURCHASE_REVIEW_KIND = {
+  RECEIPT: "receipt",
+  INVOICE: "invoice",
+} as const;
+export type PurchaseReviewKind = (typeof PURCHASE_REVIEW_KIND)[keyof typeof PURCHASE_REVIEW_KIND];
+
+export const purchaseReviewEntrySchema = z.object({
+  kind: z.enum([PURCHASE_REVIEW_KIND.RECEIPT, PURCHASE_REVIEW_KIND.INVOICE]),
+  id: uuidSchema,
+  number: z.string(),
+  status: z.enum(PURCHASE_DOCUMENT_STATUSES),
+  date: isoDateSchema,
+  supplierName: z.string().nullable(),
+  supplierRef: z.string().nullable(),
+  total: moneySchema.nullable(),
+  lines: z.number().int(),
+  createdByName: personNameSchema.nullable(),
+  createdAt: z.iso.datetime(),
+});
+export type PurchaseReviewEntry = z.infer<typeof purchaseReviewEntrySchema>;
+
+export const markReviewedSchema = z.object({
+  receipts: z.array(uuidSchema).max(200).default([]),
+  invoices: z.array(uuidSchema).max(200).default([]),
+});
+export type MarkReviewedInput = z.infer<typeof markReviewedSchema>;

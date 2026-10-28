@@ -1,7 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post } from "@nestjs/common";
 import {
   USER_ROLE,
   type PurchaseResult,
+  type PurchaseReviewEntry,
   type SupplierInvoiceSummary,
   type SupplierReturnResult,
 } from "@clinic/shared";
@@ -10,9 +11,11 @@ import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { PurchasingService } from "@api/modules/inventory/services/purchasing.service";
 import { SupplierCreditsService } from "@api/modules/inventory/services/supplier-credits.service";
+import { PurchaseReviewService } from "@api/modules/inventory/services/purchase-review.service";
 import {
   IdParamDto,
   InvoiceReceiptsDto,
+  MarkReviewedDto,
   PostPurchaseDto,
   PriceDocumentDto,
   SupplierReturnDto,
@@ -24,7 +27,24 @@ export class PurchasesController {
   constructor(
     private readonly purchasing: PurchasingService,
     private readonly credits: SupplierCreditsService,
+    private readonly review: PurchaseReviewService,
   ) {}
+
+  @Get("review")
+  @Roles(USER_ROLE.ADMIN)
+  reviewList(@CurrentUser() actor: AuthenticatedUser): Promise<PurchaseReviewEntry[]> {
+    return this.review.pending(actor);
+  }
+
+  @Patch("review")
+  @Roles(USER_ROLE.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async markReviewed(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Body() body: MarkReviewedDto,
+  ): Promise<void> {
+    await this.review.markReviewed(actor, body);
+  }
 
   @Post("returns")
   @Roles(USER_ROLE.TECHNICIAN)

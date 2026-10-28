@@ -61,6 +61,8 @@ const voidColumns = {
   voidReason: text("void_reason"),
   voidedAt: timestamp("voided_at", { withTimezone: true }),
   voidedBy: uuid("voided_by"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  reviewedBy: uuid("reviewed_by"),
 };
 
 export const suppliers = pgTable(

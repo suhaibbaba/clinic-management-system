@@ -269,4 +269,58 @@ describe("Purchase requests and stock counts (e2e)", () => {
       await send("PATCH", `/stock-counts/${(after.json() as StockCount).id}/cancel`);
     });
   });
+
+  describe("the manager's review list", () => {
+    it("lists purchases others posted until the manager marks them reviewed", async () => {
+      const supplierId = await newSupplier();
+      const itemId = await newItem();
+      const posted = (
+        await send("POST", "/purchases", {
+          supplierId,
+          date: today,
+          lines: [{ itemId, quantity: "2", unitPrice: "5" }],
+          invoice: {},
+        })
+      ).json() as { receiptId: string; invoiceId: string };
+      const own = (
+        await send(
+          "POST",
+          "/purchases",
+          { date: today, lines: [{ itemId, quantity: "1" }] },
+          USER_ROLE.ADMIN,
+        )
+      ).json() as { receiptId: string };
+
+      expect((await send("GET", "/purchases/review")).statusCode).toBe(403);
+
+      const pending = (
+        await send("GET", "/purchases/review", undefined, USER_ROLE.ADMIN)
+      ).json() as {
+        id: string;
+        kind: string;
+        total: string | null;
+      }[];
+      const ids = pending.map((entry) => entry.id);
+      expect(ids).toEqual(expect.arrayContaining([posted.receiptId, posted.invoiceId]));
+      expect(ids).not.toContain(own.receiptId);
+      expect(pending.find((entry) => entry.id === posted.invoiceId)).toMatchObject({
+        kind: "invoice",
+        total: "10.00",
+      });
+
+      const marked = await send(
+        "PATCH",
+        "/purchases/review",
+        { receipts: [posted.receiptId], invoices: [posted.invoiceId] },
+        USER_ROLE.ADMIN,
+      );
+      expect(marked.statusCode).toBe(204);
+
+      const after = (await send("GET", "/purchases/review", undefined, USER_ROLE.ADMIN)).json() as {
+        id: string;
+      }[];
+      expect(after.map((entry) => entry.id)).not.toContain(posted.receiptId);
+      expect(after.map((entry) => entry.id)).not.toContain(posted.invoiceId);
+    });
+  });
 });

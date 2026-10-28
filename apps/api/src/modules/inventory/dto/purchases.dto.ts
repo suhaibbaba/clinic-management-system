@@ -2,6 +2,7 @@ import { createZodDto } from "nestjs-zod";
 import {
   idParamSchema,
   invoiceReceiptsSchema,
+  markReviewedSchema,
   postPurchaseSchema,
   priceDocumentSchema,
   supplierReturnSchema,
@@ -25,3 +26,5 @@ export class IdParamDto extends createZodDto(idParamSchema) {}
 export class SupplierReturnDto extends createZodDto(supplierReturnSchema) {}
 
 export class PriceDocumentDto extends createZodDto(priceDocumentSchema) {}
+
+export class MarkReviewedDto extends createZodDto(markReviewedSchema) {}

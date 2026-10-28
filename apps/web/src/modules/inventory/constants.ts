@@ -14,6 +14,8 @@ export const INVENTORY_TAB_SUPPLIERS = "suppliers";
 
 export const INVENTORY_TAB_REQUESTS = "requests";
 
+export const INVENTORY_TAB_REVIEW = "review";
+
 export const SUPPLIERS_TAB_PATH = "/inventory?tab=suppliers";
 
 export const ITEM_PAGE_TABS = ["overview", "movements"] as const;
@@ -35,12 +37,16 @@ export const UNBATCHED_ROW_KEY = "unbatched";
 export const ALERT_PREVIEW_COUNT = 2;
 
 export type InventoryTab =
-  typeof INVENTORY_TAB_STOCK | typeof INVENTORY_TAB_REQUESTS | typeof INVENTORY_TAB_SUPPLIERS;
+  | typeof INVENTORY_TAB_STOCK
+  | typeof INVENTORY_TAB_REQUESTS
+  | typeof INVENTORY_TAB_SUPPLIERS
+  | typeof INVENTORY_TAB_REVIEW;
 
 export const INVENTORY_TABS: readonly TabDefinition<InventoryTab>[] = [
   { id: INVENTORY_TAB_STOCK, label: "inventory.section.stock" },
   { id: INVENTORY_TAB_REQUESTS, label: "inventory.section.requests" },
   { id: INVENTORY_TAB_SUPPLIERS, label: "inventory.section.suppliers" },
+  { id: INVENTORY_TAB_REVIEW, label: "inventory.section.review" },
 ];
 
 export const REQUEST_STATUS_TONES: Record<PurchaseRequestStatus, BadgeTone> = {

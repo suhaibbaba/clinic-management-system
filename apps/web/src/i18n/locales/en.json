@@ -1658,7 +1658,8 @@
       "label": "Inventory Views",
       "stock": "Stock",
       "suppliers": "Suppliers",
-      "requests": "Requests"
+      "requests": "Requests",
+      "review": "Review"
     },
     "purchase": {
       "action": "New Purchase",
@@ -1820,7 +1821,28 @@
         "nothing": "Nothing in stock changes; the typed counts are discarded."
       }
     },
-    "rowMenu": "Item Actions"
+    "rowMenu": "Item Actions",
+    "review": {
+      "title": "Purchases to Review",
+      "subtitle": "Receipts and invoices other staff posted. Check them against the paper and mark them reviewed.",
+      "mark": "Reviewed",
+      "markAll": "Mark All Reviewed",
+      "done": "Marked reviewed",
+      "empty": "Nothing waiting for review",
+      "void": "Void",
+      "lines_one": "{{count}} line",
+      "lines_other": "{{count}} lines",
+      "kinds": {
+        "receipt": "Goods receipt",
+        "invoice": "Supplier invoice"
+      },
+      "columns": {
+        "document": "Document",
+        "kind": "Type",
+        "amount": "Amount",
+        "by": "Posted by"
+      }
+    }
   },
   "lookups": {
     "title": "Lists",
@@ -2348,7 +2370,9 @@
         "returnToSupplier": "Return Goods to a Supplier",
         "voidReturn": "Void a Return to a Supplier",
         "creditNote": "Record a Supplier Credit Note",
-        "supplementary": "Record a Supplementary Supplier Invoice"
+        "supplementary": "Record a Supplementary Supplier Invoice",
+        "reviewList": "See Purchases to Review",
+        "markReviewed": "Mark Purchases Reviewed"
       },
       "purchase-requests": {
         "list": "See Purchase Requests",
