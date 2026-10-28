@@ -1,4 +1,9 @@
-import { LOOKUP_LIST, createInventoryItemSchema, type InventoryItemRow } from "@clinic/shared";
+import {
+  LOOKUP_LIST,
+  createInventoryItemSchema,
+  type InventoryItem,
+  type InventoryItemRow,
+} from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -22,12 +27,16 @@ export function ItemFormModal({
   open,
   onOpenChange,
   item,
+  initialName = "",
+  onCreated,
   "data-testid": testId = "item-form-modal",
 }: {
   readonly "data-testid"?: string | undefined;
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   readonly item?: InventoryItemRow | undefined;
+  readonly initialName?: string | undefined;
+  readonly onCreated?: ((item: InventoryItem) => void) | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
   const categoryOptions = useLookupOptions(LOOKUP_LIST.ITEM_CATEGORY);
@@ -71,7 +80,7 @@ export function ItemFormModal({
       return;
     }
 
-    setName(item?.name ?? "");
+    setName(item?.name ?? initialName);
     setCategory(item?.category ?? categoryOptions[0]?.value ?? "");
     setUnit(item?.unit ?? unitOptions[0]?.value ?? "");
     setMinQuantity(item?.minQuantity ?? "");
@@ -82,7 +91,7 @@ export function ItemFormModal({
     setSensitive(item?.sensitive ?? false);
     setMeasured(item?.measured ?? false);
     reset();
-  }, [open, item, categoryOptions, unitOptions, reset]);
+  }, [open, item, initialName, categoryOptions, unitOptions, reset]);
 
   const submit = async (): Promise<void> => {
     if (!form.check()) {
@@ -93,7 +102,7 @@ export function ItemFormModal({
       if (item) {
         await update.mutateAsync({ id: item.id, body: shared });
       } else {
-        await create.mutateAsync({ ...shared, unit });
+        onCreated?.(await create.mutateAsync({ ...shared, unit }));
       }
 
       toast.success(item ? "inventory.item.updated" : "inventory.item.created");

@@ -87,7 +87,9 @@
     "unsavedCount_other": "{{count}} Unsaved Changes",
     "discardChanges_one": "Discard 1 Change?",
     "discardChanges_other": "Discard {{count}} Changes?",
-    "discardChangesBody": "Every field goes back to its last saved value."
+    "discardChangesBody": "Every field goes back to its last saved value.",
+    "addNew": "Add New",
+    "addNamed": "Add “{{name}}”"
   },
   "pagination": {
     "goToPage": "Page {{page}}",

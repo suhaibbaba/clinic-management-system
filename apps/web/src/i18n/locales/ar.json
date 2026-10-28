@@ -95,7 +95,9 @@
     "discardChanges_few": "تجاهل {{count}} تغييرات؟",
     "discardChanges_many": "تجاهل {{count}} تغييرًا؟",
     "discardChanges_other": "تجاهل {{count}} تغيير؟",
-    "discardChangesBody": "تعود كل الحقول إلى آخر قيمة محفوظة."
+    "discardChangesBody": "تعود كل الحقول إلى آخر قيمة محفوظة.",
+    "addNew": "إضافة جديد",
+    "addNamed": "إضافة «{{name}}»"
   },
   "pagination": {
     "goToPage": "الصفحة {{page}}",

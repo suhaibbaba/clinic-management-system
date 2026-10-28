@@ -37,7 +37,8 @@ import {
   useSuppliers,
 } from "@web/modules/inventory/queries";
 import { useSession } from "@web/shared/providers/session";
-import { canPaySupplier, canSeeCosts } from "@web/shared/permissions/inventory";
+import { canManageInventory, canPaySupplier, canSeeCosts } from "@web/shared/permissions/inventory";
+import { ItemFormModal } from "@web/modules/inventory/components/item-form-modal";
 import {
   blankLine,
   invoices,
@@ -69,6 +70,10 @@ export function PurchasePage(): JSX.Element {
   const { can } = useSession();
   const seesCosts = canSeeCosts(can);
   const mayPay = seesCosts && canPaySupplier(can);
+  const mayAddItem = canManageInventory(can);
+  const [newItem, setNewItem] = useState<{ readonly key: string; readonly name: string } | null>(
+    null,
+  );
 
   const [draft, setDraft] = useState<PurchaseDraft>(() => ({
     supplierId: params.get("supplier") ?? "",
@@ -241,6 +246,9 @@ export function PurchasePage(): JSX.Element {
                     placeholder={t("inventory.movement.selectItem")}
                     onChange={(event) =>
                       changeLine(line.key, { itemId: event.target.value, packSizeId: "" })
+                    }
+                    onCreate={
+                      mayAddItem ? (name) => setNewItem({ key: line.key, name }) : undefined
                     }
                     options={itemOptions}
                   />
@@ -524,6 +532,16 @@ export function PurchasePage(): JSX.Element {
           )}
         </Card>
       )}
+
+      <ItemFormModal
+        data-testid="purchase-new-item"
+        open={newItem !== null}
+        onOpenChange={(open) => !open && setNewItem(null)}
+        initialName={newItem?.name ?? ""}
+        onCreated={(item) =>
+          newItem && changeLine(newItem.key, { itemId: item.id, packSizeId: "" })
+        }
+      />
 
       <FormField label="inventory.notes" htmlFor="purchase-note" optional>
         <Textarea

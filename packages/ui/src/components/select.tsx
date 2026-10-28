@@ -35,6 +35,7 @@ export interface SelectProps
   renderValue?: ((option: SelectOption) => ReactNode) | undefined;
   listClassName?: string | undefined;
   searchable?: boolean | undefined;
+  onCreate?: ((text: string) => void) | undefined;
 }
 
 const NONE = "__none__";
@@ -237,6 +238,7 @@ function SearchableSelect({
   "aria-label": ariaLabel,
   "aria-describedby": describedBy,
   "data-testid": testId,
+  onCreate,
 }: SelectProps): JSX.Element {
   const { t } = useTranslation();
   const part = parts("select", testId);
@@ -249,6 +251,12 @@ function SearchableSelect({
   const term = query.trim().toLowerCase();
   const shown = options.filter((option) => option.label.toLowerCase().includes(term));
   const chosen = options.find((option) => option.value === value);
+  const rows = shown.length + (onCreate ? 1 : 0);
+
+  const create = (): void => {
+    setOpen(false);
+    onCreate?.(query.trim());
+  };
 
   const choose = (next: string): void => {
     onChange?.({
@@ -280,11 +288,12 @@ function SearchableSelect({
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
       const step = event.key === "ArrowDown" ? 1 : -1;
-      setActive((current) => (current + step + shown.length) % Math.max(shown.length, 1));
+      setActive((current) => (current + step + rows) % Math.max(rows, 1));
     } else if (event.key === "Enter") {
       event.preventDefault();
       const option = shown[active];
       if (option) choose(option.value);
+      else if (onCreate && active === shown.length) create();
     }
   };
 
@@ -360,7 +369,7 @@ function SearchableSelect({
           />
 
           <ul id={listId} role="listbox" className="scroll-lane overflow-y-auto">
-            {shown.length === 0 && (
+            {shown.length === 0 && !onCreate && (
               <li {...part("empty")} className="px-3 py-2 text-label text-ink-subtle">
                 {t("common.noMatches")}
               </li>
@@ -391,6 +400,27 @@ function SearchableSelect({
                 )}
               </li>
             ))}
+            {onCreate && (
+              <li
+                role="option"
+                aria-selected={false}
+                data-part="select-create"
+                data-highlighted={active === shown.length ? "" : undefined}
+                {...testid(testId, "create")}
+                onMouseEnter={() => setActive(shown.length)}
+                onClick={create}
+                className={cn(
+                  "flex min-h-(--control-h) cursor-pointer items-center gap-2 rounded-control",
+                  "lg:min-h-(--control-h-sm) px-3 py-2 text-start text-field font-medium text-primary-700 select-none",
+                  "transition-colors duration-150 data-[highlighted]:bg-inset",
+                )}
+              >
+                <Icon name="plus" className="size-4 shrink-0" />
+                <span className="truncate">
+                  {term === "" ? t("common.addNew") : t("common.addNamed", { name: query.trim() })}
+                </span>
+              </li>
+            )}
           </ul>
         </PopoverPrimitive.Content>
       </PopoverPrimitive.Portal>
