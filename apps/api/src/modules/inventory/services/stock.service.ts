@@ -44,7 +44,7 @@ export class StockService {
       sql`, `,
     );
 
-    const [inflowRows, outflowRows] = await Promise.all([
+    const [inflowRows, outflowRows, blockRows] = await Promise.all([
       executor.execute<{
         item_id: string;
         batch_no: string | null;
@@ -64,7 +64,20 @@ export class StockService {
         where clinic_id = ${clinicId} and item_id in (${ids}) and quantity < 0
         group by item_id, batch_no
       `),
+      executor.execute<{ id: string; item_id: string; batch_no: string }>(sql`
+        select id::text as id, item_id::text as item_id, batch_no
+        from lot_blocks
+        where clinic_id = ${clinicId} and item_id in (${ids}) and lifted_at is null
+      `),
     ]);
+
+    const blocks = new Map<string, Map<string, string>>();
+
+    for (const row of blockRows) {
+      const byBatch = blocks.get(row.item_id) ?? new Map<string, string>();
+      byBatch.set(row.batch_no, row.id);
+      blocks.set(row.item_id, byBatch);
+    }
 
     const inflows = new Map<string, BatchInflow[]>();
     const outflows = new Map<string, BatchOutflow[]>();
@@ -91,7 +104,13 @@ export class StockService {
     for (const itemId of itemIds) {
       stock.set(
         itemId,
-        this.derive(inflows.get(itemId) ?? [], outflows.get(itemId) ?? [], warningDays, today),
+        this.derive(
+          inflows.get(itemId) ?? [],
+          outflows.get(itemId) ?? [],
+          blocks.get(itemId) ?? new Map(),
+          warningDays,
+          today,
+        ),
       );
     }
 
@@ -113,6 +132,7 @@ export class StockService {
   private derive(
     inflows: readonly BatchInflow[],
     outflows: readonly BatchOutflow[],
+    blocks: ReadonlyMap<string, string>,
     warningDays: number,
     today: Date,
   ): ItemStock {
@@ -142,6 +162,7 @@ export class StockService {
           batch.expiryDate >= todayIso &&
           batch.expiryDate <= horizon &&
           toThousandths(batch.remaining) > 0,
+        blockId: batch.batchNo === null ? null : (blocks.get(batch.batchNo) ?? null),
       }));
 
     const held = batches.reduce((total, batch) => total + toThousandths(batch.remaining), 0);

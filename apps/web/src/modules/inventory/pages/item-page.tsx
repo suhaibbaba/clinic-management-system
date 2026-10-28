@@ -1,4 +1,4 @@
-import { LOOKUP_LIST, MOVEMENT_TYPE, type MovementType } from "@clinic/shared";
+import { LOOKUP_LIST, MOVEMENT_TYPE, type RecordableMovementType } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
@@ -24,7 +24,22 @@ import { ItemFormModal } from "@web/modules/inventory/components/item-form-modal
 import { Quantity } from "@web/modules/inventory/components/quantity";
 import { ItemMovementsTab } from "@web/modules/inventory/pages/item-movements-tab";
 import { MovementModal } from "@web/modules/inventory/components/movement-modal";
-import { canDeleteItem, canManageInventory, mayRecord } from "@web/shared/permissions/inventory";
+import {
+  canBlockLot,
+  canDeleteItem,
+  canLiftLotBlock,
+  canManageInventory,
+  canWriteOff,
+  mayRecord,
+} from "@web/shared/permissions/inventory";
+import {
+  WriteOffModal,
+  type WriteOffTarget,
+} from "@web/modules/inventory/components/write-off-modal";
+import {
+  LotBlockModal,
+  type LotBlockTarget,
+} from "@web/modules/inventory/components/lot-block-modal";
 import { useDeleteItem, useInventoryItem, useItemBatches } from "@web/modules/inventory/queries";
 import { errorToast } from "@web/shared/lib/api-error";
 import { formatDate } from "@web/shared/lib/format";
@@ -47,8 +62,10 @@ export function ItemPage(): JSX.Element {
   const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
 
   const [tab, setTab] = useTabParam<Tab>("tab", ITEM_PAGE_TABS, "overview", ["page"]);
-  const [movement, setMovement] = useState<MovementType | null>(null);
+  const [movement, setMovement] = useState<RecordableMovementType | null>(null);
   const [editing, setEditing] = useState(false);
+  const [writingOff, setWritingOff] = useState<WriteOffTarget | null>(null);
+  const [blocking, setBlocking] = useState<LotBlockTarget | null>(null);
 
   const item = useInventoryItem(id);
   const batches = useItemBatches(id);
@@ -62,6 +79,7 @@ export function ItemPage(): JSX.Element {
   const menuActions = isMobile ? allowed : allowed.filter((type) => type === MOVEMENT_TYPE.ADJUST);
   const mayEdit = canManageInventory(can);
   const mayDelete = canDeleteItem(can);
+  const mayWriteOff = canWriteOff(can);
 
   const navigate = useNavigate();
   const toast = useToast();
@@ -128,7 +146,7 @@ export function ItemPage(): JSX.Element {
                 </Button>
               ))}
 
-            {(menuActions.length > 0 || mayEdit || mayDelete) && (
+            {(menuActions.length > 0 || mayEdit || mayDelete || mayWriteOff) && (
               <RowMenu
                 size="target"
                 label={t("inventory.itemPage.actions")}
@@ -144,6 +162,17 @@ export function ItemPage(): JSX.Element {
                     {t(`inventory.movement.action.${type}`)}
                   </MenuItem>
                 ))}
+                {mayWriteOff && (
+                  <MenuItem
+                    icon="trash"
+                    data-testid="item-write-off"
+                    onSelect={() =>
+                      setWritingOff({ itemId: row.id, itemName: row.name, batchNo: null })
+                    }
+                  >
+                    {t("inventory.writeOff.action")}
+                  </MenuItem>
+                )}
                 {mayEdit && (
                   <MenuItem icon="edit" data-testid="item-edit" onSelect={() => setEditing(true)}>
                     {t("inventory.editItem")}
@@ -214,6 +243,20 @@ export function ItemPage(): JSX.Element {
             unbatched={batches.data?.unbatched ?? "0"}
             unit={unit}
             isLoading={batches.isPending}
+            mayLift={canLiftLotBlock(can)}
+            onWriteOff={
+              mayWriteOff
+                ? (batch) =>
+                    setWritingOff({ itemId: row.id, itemName: row.name, batchNo: batch.batchNo })
+                : undefined
+            }
+            onBlock={
+              canBlockLot(can)
+                ? (batch) =>
+                    batch.batchNo !== null &&
+                    setBlocking({ itemId: row.id, batchNo: batch.batchNo, blockId: batch.blockId })
+                : undefined
+            }
           />
 
           {row.notes && (
@@ -242,6 +285,9 @@ export function ItemPage(): JSX.Element {
           item={row}
         />
       )}
+
+      <WriteOffModal target={writingOff} onClose={() => setWritingOff(null)} />
+      <LotBlockModal target={blocking} onClose={() => setBlocking(null)} />
 
       {dialog}
     </div>

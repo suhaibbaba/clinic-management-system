@@ -12,6 +12,7 @@ export interface MonthOutgoings {
   readonly collections: string;
   readonly labs: string;
   readonly stock: string;
+  readonly purchaseVariance: string;
   readonly expenses: string;
 }
 
@@ -34,6 +35,7 @@ export function profitBeforeShares(
     doctorShares,
     outgoings.labs,
     outgoings.stock,
+    outgoings.purchaseVariance,
     outgoings.expenses,
   ]);
 
@@ -43,6 +45,7 @@ export function profitBeforeShares(
     doctorShares: addMoney(doctorShares, ZERO),
     labs: addMoney(outgoings.labs, ZERO),
     stock: addMoney(outgoings.stock, ZERO),
+    purchaseVariance: addMoney(outgoings.purchaseVariance, ZERO),
     expenses: addMoney(outgoings.expenses, ZERO),
     beforeShares: subtractMoney(outgoings.collections, costs),
   };

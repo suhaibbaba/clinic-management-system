@@ -1,6 +1,13 @@
 import { toQueryString } from "@web/shared/lib/query-string";
 import type {
   AdjustStockInput,
+  BlockLotInput,
+  ListLotBlocksQuery,
+  LotBlock,
+  PriceDocumentInput,
+  SupplierReturnInput,
+  SupplierReturnResult,
+  WriteOffInput,
   ConsumeStockInput,
   CreateInventoryItemInput,
   CreateSupplierInput,
@@ -66,6 +73,21 @@ export const inventoryApi = {
   adjust: (body: AdjustStockInput) =>
     apiRequest<StockMovement>("/inventory/movements/adjust", { method: "POST", body }),
 
+  writeOff: (body: WriteOffInput) =>
+    apiRequest<StockMovement>("/inventory/movements/write-off", { method: "POST", body }),
+
+  lotBlocks: (params: Partial<ListLotBlocksQuery> = {}) =>
+    apiRequest<LotBlock[]>(`/inventory/lot-blocks${toQueryString(params)}`),
+
+  blockLot: (itemId: string, body: BlockLotInput) =>
+    apiRequest<LotBlock>(`/inventory/items/${itemId}/lot-blocks`, { method: "POST", body }),
+
+  liftLotBlock: (id: string, reason: string) =>
+    apiRequest<LotBlock>(`/inventory/lot-blocks/${id}/lift`, {
+      method: "PATCH",
+      body: { reason },
+    }),
+
   reverse: (id: string, body: ReverseMovementInput) =>
     apiRequest<StockMovement>(`/inventory/movements/${id}/reverse`, { method: "PATCH", body }),
 
@@ -119,4 +141,10 @@ export const purchasesApi = {
 
   invoiceReceipts: (body: InvoiceReceiptsInput) =>
     apiRequest<SupplierInvoiceSummary>("/purchases/invoices", { method: "POST", body }),
+
+  returnToSupplier: (body: SupplierReturnInput) =>
+    apiRequest<SupplierReturnResult>("/purchases/returns", { method: "POST", body }),
+
+  creditNote: (body: PriceDocumentInput) =>
+    apiRequest<SupplierInvoiceSummary>("/purchases/credit-notes", { method: "POST", body }),
 };

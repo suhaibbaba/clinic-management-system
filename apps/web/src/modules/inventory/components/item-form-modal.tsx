@@ -46,6 +46,9 @@ export function ItemFormModal({
   const [supplierId, setSupplierId] = useState("");
   const [notes, setNotes] = useState("");
   const [isActive, setIsActive] = useState(true);
+  const [hasExpiry, setHasExpiry] = useState(false);
+  const [sensitive, setSensitive] = useState(false);
+  const [measured, setMeasured] = useState(false);
 
   const shared = {
     name: name.trim(),
@@ -54,6 +57,9 @@ export function ItemFormModal({
     defaultSupplierId: supplierId === "" ? null : supplierId,
     notes: notes.trim() === "" ? null : notes.trim(),
     isActive,
+    hasExpiry: hasExpiry || sensitive,
+    sensitive,
+    measured,
   };
 
   const form = useFormErrors(schemaErrors(createInventoryItemSchema, { ...shared, unit }));
@@ -72,6 +78,9 @@ export function ItemFormModal({
     setSupplierId(item?.defaultSupplierId ?? "");
     setNotes(item?.notes ?? "");
     setIsActive(item?.isActive ?? true);
+    setHasExpiry(item?.hasExpiry ?? false);
+    setSensitive(item?.sensitive ?? false);
+    setMeasured(item?.measured ?? false);
     reset();
   }, [open, item, categoryOptions, unitOptions, reset]);
 
@@ -229,12 +238,32 @@ export function ItemFormModal({
             />
           </FormField>
         </div>
-        <Switch
-          data-testid="item-field-active"
-          checked={isActive}
-          onCheckedChange={setIsActive}
-          label={t("inventory.item.active")}
-        />
+        <div className="flex flex-col gap-3">
+          <Switch
+            data-testid="item-field-has-expiry"
+            checked={hasExpiry || sensitive}
+            onCheckedChange={setHasExpiry}
+            label={t("inventory.item.hasExpiry")}
+          />
+          <Switch
+            data-testid="item-field-sensitive"
+            checked={sensitive}
+            onCheckedChange={setSensitive}
+            label={t("inventory.item.sensitive")}
+          />
+          <Switch
+            data-testid="item-field-measured"
+            checked={measured}
+            onCheckedChange={setMeasured}
+            label={t("inventory.item.measured")}
+          />
+          <Switch
+            data-testid="item-field-active"
+            checked={isActive}
+            onCheckedChange={setIsActive}
+            label={t("inventory.item.active")}
+          />
+        </div>
       </div>
     </Modal>
   );

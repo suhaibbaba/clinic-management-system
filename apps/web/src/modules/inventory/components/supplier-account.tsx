@@ -54,7 +54,10 @@ export function SupplierAccount({
       return null;
     }
 
-    if (row.kind === SUPPLIER_ENTRY_KIND.PURCHASE && mayVoidInvoice) {
+    if (
+      (row.kind === SUPPLIER_ENTRY_KIND.PURCHASE || row.kind === SUPPLIER_ENTRY_KIND.CREDIT) &&
+      mayVoidInvoice
+    ) {
       return (
         <Button
           size="sm"
@@ -93,11 +96,15 @@ export function SupplierAccount({
   const pageEntries = entries.slice((page - 1) * perPage, page * perPage);
 
   const describe = (row: SupplierStatementEntry): JSX.Element => {
-    if (row.kind === SUPPLIER_ENTRY_KIND.PURCHASE) {
+    if (row.kind === SUPPLIER_ENTRY_KIND.PURCHASE || row.kind === SUPPLIER_ENTRY_KIND.CREDIT) {
       return (
         <span className="flex flex-col items-start">
           <span className="flex items-baseline gap-1.5 font-medium text-ink">
-            {t("inventory.suppliers.statement.kinds.invoice")}
+            {t(
+              row.kind === SUPPLIER_ENTRY_KIND.CREDIT
+                ? "inventory.suppliers.statement.kinds.credit"
+                : "inventory.suppliers.statement.kinds.invoice",
+            )}
             <Ltr className="text-label text-ink-muted">{row.reference}</Ltr>
           </span>
           {row.note && <span className="text-label text-ink-muted">{row.note}</span>}

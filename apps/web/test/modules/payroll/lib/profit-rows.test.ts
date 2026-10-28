@@ -34,4 +34,11 @@ describe("profitRows", () => {
     expect(keys.slice(-3)).toEqual(["beforeShares", "profitShares", "ownerProfit"]);
     expect(keys).not.toContain("labs");
   });
+
+  it("shows the purchase variance beside stock, and reads a month closed before it existed", () => {
+    expect(profitRows({ ...profit, purchaseVariance: "-8.00" }).map((row) => row.key)).toContain(
+      "purchaseVariance",
+    );
+    expect(profitRows(profit).map((row) => row.key)).not.toContain("purchaseVariance");
+  });
 });

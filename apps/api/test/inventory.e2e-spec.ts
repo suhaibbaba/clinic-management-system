@@ -211,6 +211,7 @@ describe("Inventory (e2e)", () => {
       const itemId = await createItem({
         name: `محلول ${uniquePhone()}`,
         unit: ITEM_UNIT.ML,
+        measured: true,
       });
 
       await move("purchase", { itemId, quantity: "100" });

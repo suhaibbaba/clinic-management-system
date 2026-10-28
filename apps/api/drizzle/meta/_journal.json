@@ -512,6 +512,13 @@
       "when": 1793189354239,
       "tag": "0072_purchase_documents_data",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1793191975286,
+      "tag": "0073_corrections_and_write_offs",
+      "breakpoints": true
     }
   ]
 }

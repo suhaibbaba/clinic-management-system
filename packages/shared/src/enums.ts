@@ -522,6 +522,8 @@ export const MOVEMENT_TYPE = {
   PURCHASE: "purchase",
   CONSUME: "consume",
   ADJUST: "adjust",
+  WRITE_OFF: "write_off",
+  RETURN: "return",
 } as const satisfies Record<string, string>;
 export type MovementType = EnumValue<typeof MOVEMENT_TYPE>;
 
@@ -529,12 +531,23 @@ export const MOVEMENT_TYPES = [
   MOVEMENT_TYPE.PURCHASE,
   MOVEMENT_TYPE.CONSUME,
   MOVEMENT_TYPE.ADJUST,
+  MOVEMENT_TYPE.WRITE_OFF,
+  MOVEMENT_TYPE.RETURN,
 ] as const;
+
+export const RECORDABLE_MOVEMENT_TYPES = [
+  MOVEMENT_TYPE.PURCHASE,
+  MOVEMENT_TYPE.CONSUME,
+  MOVEMENT_TYPE.ADJUST,
+] as const;
+export type RecordableMovementType = (typeof RECORDABLE_MOVEMENT_TYPES)[number];
 
 export const MOVEMENT_SIGN: Record<MovementType, 1 | -1 | null> = {
   [MOVEMENT_TYPE.PURCHASE]: 1,
   [MOVEMENT_TYPE.CONSUME]: -1,
   [MOVEMENT_TYPE.ADJUST]: null,
+  [MOVEMENT_TYPE.WRITE_OFF]: -1,
+  [MOVEMENT_TYPE.RETURN]: -1,
 };
 
 export const AI_MESSAGE_ROLE = {
@@ -1053,9 +1066,22 @@ export const PURCHASE_DOCUMENT_STATUSES = [
 export const RECEIPT_KIND = {
   RECEIPT: "receipt",
   OPENING: "opening",
+  RETURN: "return",
 } as const satisfies Record<string, string>;
 export type ReceiptKind = EnumValue<typeof RECEIPT_KIND>;
-export const RECEIPT_KINDS = [RECEIPT_KIND.RECEIPT, RECEIPT_KIND.OPENING] as const;
+export const RECEIPT_KINDS = [RECEIPT_KIND.RECEIPT, RECEIPT_KIND.OPENING, RECEIPT_KIND.RETURN] as const;
+
+export const SUPPLIER_DOCUMENT_KIND = {
+  INVOICE: "invoice",
+  CREDIT_NOTE: "credit_note",
+  SUPPLEMENTARY: "supplementary",
+} as const satisfies Record<string, string>;
+export type SupplierDocumentKind = EnumValue<typeof SUPPLIER_DOCUMENT_KIND>;
+export const SUPPLIER_DOCUMENT_KINDS = [
+  SUPPLIER_DOCUMENT_KIND.INVOICE,
+  SUPPLIER_DOCUMENT_KIND.CREDIT_NOTE,
+  SUPPLIER_DOCUMENT_KIND.SUPPLEMENTARY,
+] as const;
 
 export const PAYMENT_DIRECTION = {
   PAID: "paid",
@@ -1075,6 +1101,7 @@ export const PURCHASE_ERROR = {
   ALLOCATION_EXCEEDS: "purchase_allocation_exceeds",
   REFUND_EXCEEDS_CREDIT: "purchase_refund_exceeds_credit",
   VOID_DOCUMENT: "purchase_void_document",
+  CREDIT_EXCEEDS: "purchase_credit_exceeds",
 } as const satisfies Record<string, string>;
 
 export const PURCHASE_BACKDATE_DAYS = 7;
@@ -1085,6 +1112,11 @@ export const STOCK_ERROR = {
   EXPIRED: "stock_expired",
   ITEM_HAS_STOCK: "item_has_stock",
   SUPPLIER_HAS_BALANCE: "supplier_has_balance",
+  BLOCKED: "stock_lot_blocked",
+  ALREADY_BLOCKED: "stock_lot_already_blocked",
+  WHOLE_UNITS: "stock_whole_units",
+  EXPIRY_REQUIRED: "stock_expiry_required",
+  LOT_REQUIRED: "stock_lot_required",
 } as const satisfies Record<string, string>;
 
 export const PAYROLL_ADJUSTMENT_KIND = {

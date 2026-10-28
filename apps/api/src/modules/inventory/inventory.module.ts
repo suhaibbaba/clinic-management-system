@@ -17,6 +17,9 @@ import { SupplierAllocationsService } from "@api/modules/inventory/services/supp
 import { StockLedgerService } from "@api/modules/inventory/services/stock-ledger.service";
 import { PurchasingService } from "@api/modules/inventory/services/purchasing.service";
 import { PurchasesController } from "@api/modules/inventory/controllers/purchases.controller";
+import { WriteOffsService } from "@api/modules/inventory/services/write-offs.service";
+import { LotBlocksService } from "@api/modules/inventory/services/lot-blocks.service";
+import { SupplierCreditsService } from "@api/modules/inventory/services/supplier-credits.service";
 
 @Module({
   imports: [NotificationsModule, DatabaseModule, AuditModule],
@@ -34,6 +37,9 @@ import { PurchasesController } from "@api/modules/inventory/controllers/purchase
     SupplierAllocationsService,
     StockLedgerService,
     PurchasingService,
+    WriteOffsService,
+    LotBlocksService,
+    SupplierCreditsService,
     InventoryItemsService,
     StockMovementsService,
     InventoryReportsService,

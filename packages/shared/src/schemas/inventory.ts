@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { MOVEMENT_TYPE, MOVEMENT_TYPES, PURCHASE_DOCUMENT_STATUSES } from "@shared/enums";
+import {
+  MOVEMENT_TYPE,
+  MOVEMENT_TYPES,
+  PURCHASE_DOCUMENT_STATUSES,
+  SUPPLIER_DOCUMENT_KINDS,
+} from "@shared/enums";
 import { DISCOUNT_KIND } from "@shared/schemas/purchase-invoice";
 import { isoDateSchema } from "@shared/schemas/appointments";
 import { paginationQuerySchema, uuidSchema, optionalPhoneSchema } from "@shared/schemas/common";
@@ -67,6 +72,9 @@ export const inventoryItemSchema = z.object({
   defaultSupplierId: uuidSchema.nullable(),
   notes: z.string().nullable(),
   isActive: z.boolean(),
+  hasExpiry: z.boolean(),
+  sensitive: z.boolean(),
+  measured: z.boolean(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
@@ -90,6 +98,9 @@ const itemWritableFields = {
   defaultSupplierId: uuidSchema.nullish(),
   notes: z.string().trim().max(2000).nullish(),
   isActive: z.boolean().optional(),
+  hasExpiry: z.boolean().optional(),
+  sensitive: z.boolean().optional(),
+  measured: z.boolean().optional(),
 };
 
 export const createInventoryItemSchema = z.object(itemWritableFields);
@@ -216,6 +227,7 @@ export const itemBatchSchema = z.object({
   remaining: quantitySchema,
   isExpired: z.boolean(),
   isExpiring: z.boolean(),
+  blockId: uuidSchema.nullable(),
 });
 export type ItemBatch = z.infer<typeof itemBatchSchema>;
 
@@ -257,6 +269,7 @@ export const SUPPLIER_ENTRY_KIND = {
   OPENING: "opening",
   PURCHASE: "purchase",
   PAYMENT: "payment",
+  CREDIT: "credit",
 } as const;
 export type SupplierEntryKind = (typeof SUPPLIER_ENTRY_KIND)[keyof typeof SUPPLIER_ENTRY_KIND];
 
@@ -266,6 +279,7 @@ export const supplierStatementEntrySchema = z.object({
     SUPPLIER_ENTRY_KIND.OPENING,
     SUPPLIER_ENTRY_KIND.PURCHASE,
     SUPPLIER_ENTRY_KIND.PAYMENT,
+    SUPPLIER_ENTRY_KIND.CREDIT,
   ]),
   occurredAt: z.iso.datetime(),
   itemId: uuidSchema.nullable(),
@@ -455,6 +469,7 @@ export type PurchaseResult = z.infer<typeof purchaseResultSchema>;
 
 export const supplierInvoiceSummarySchema = z.object({
   id: uuidSchema,
+  kind: z.enum(SUPPLIER_DOCUMENT_KINDS),
   number: z.string(),
   supplierRef: z.string().nullable(),
   invoiceDate: isoDateSchema,
@@ -477,3 +492,111 @@ export const uninvoicedLineSchema = z.object({
   unitPrice: moneySchema.nullable(),
 });
 export type UninvoicedLine = z.infer<typeof uninvoicedLineSchema>;
+
+const positiveQuantity = quantitySchema.refine((value) => Number(value) > 0, "Must be positive");
+const positiveMoney = moneySchema.refine((value) => Number(value) > 0, "Must be positive");
+const batchNoSchema = z.string().trim().min(1).max(64);
+
+export const writeOffSchema = z.object({
+  itemId: uuidSchema,
+  quantity: positiveQuantity,
+  batchNo: batchNoSchema.nullish(),
+  reasonCode: lookupCodeSchema,
+  note: z.string().trim().max(500).nullish(),
+  date: isoDateSchema.optional(),
+  requestId: uuidSchema.optional(),
+});
+export type WriteOffInput = z.infer<typeof writeOffSchema>;
+
+export const blockLotSchema = z.object({
+  batchNo: batchNoSchema,
+  reason: z.string().trim().min(3).max(500),
+});
+export type BlockLotInput = z.infer<typeof blockLotSchema>;
+
+export const liftLotBlockSchema = z.object({ reason: z.string().trim().min(3).max(500) });
+export type LiftLotBlockInput = z.infer<typeof liftLotBlockSchema>;
+
+export const lotUseSchema = z.object({
+  movementId: uuidSchema,
+  patientId: uuidSchema.nullable(),
+  patientName: z.string().nullable(),
+  quantity: quantitySchema,
+  usedAt: z.iso.datetime(),
+});
+export type LotUse = z.infer<typeof lotUseSchema>;
+
+export const lotBlockSchema = z.object({
+  id: uuidSchema,
+  itemId: uuidSchema,
+  itemName: z.string(),
+  unit: lookupCodeSchema,
+  batchNo: z.string(),
+  expiryDate: isoDateSchema.nullable(),
+  reason: z.string(),
+  blockedAt: z.iso.datetime(),
+  blockedByName: personNameSchema.nullable(),
+  liftedAt: z.iso.datetime().nullable(),
+  remaining: signedQuantitySchema,
+  uses: z.array(lotUseSchema),
+});
+export type LotBlock = z.infer<typeof lotBlockSchema>;
+
+export const listLotBlocksQuerySchema = z.object({
+  itemId: uuidSchema.optional(),
+  includeLifted: z.coerce.boolean().optional(),
+});
+export type ListLotBlocksQuery = z.infer<typeof listLotBlocksQuerySchema>;
+
+export const supplierReturnSchema = z.object({
+  supplierId: uuidSchema,
+  date: isoDateSchema,
+  lines: z
+    .array(
+      z.object({
+        itemId: uuidSchema,
+        quantity: positiveQuantity,
+        batchNo: batchNoSchema.nullish(),
+      }),
+    )
+    .min(1)
+    .max(200),
+  credit: z
+    .object({
+      amount: positiveMoney,
+      supplierRef: z.string().trim().max(64).nullish(),
+    })
+    .nullish(),
+  note: z.string().trim().max(500).nullish(),
+  requestId: uuidSchema.optional(),
+});
+export type SupplierReturnInput = z.infer<typeof supplierReturnSchema>;
+
+export const supplierReturnResultSchema = z.object({
+  returnId: uuidSchema,
+  returnNumber: z.string(),
+  value: moneySchema.optional(),
+  creditNoteId: uuidSchema.nullable(),
+  creditNoteNumber: z.string().nullable(),
+});
+export type SupplierReturnResult = z.infer<typeof supplierReturnResultSchema>;
+
+export const priceDocumentSchema = z
+  .object({
+    supplierId: uuidSchema,
+    date: isoDateSchema,
+    supplierRef: z.string().trim().max(64).nullish(),
+    invoiceId: uuidSchema.nullish(),
+    amount: positiveMoney.optional(),
+    lines: z
+      .array(z.object({ receiptLineId: uuidSchema, amount: positiveMoney }))
+      .max(200)
+      .optional(),
+    note: z.string().trim().max(500).nullish(),
+    requestId: uuidSchema.optional(),
+  })
+  .refine((input) => (input.lines?.length ?? 0) > 0 || input.amount !== undefined, {
+    message: "A credit or supplementary invoice needs an amount or lines",
+    path: ["amount"],
+  });
+export type PriceDocumentInput = z.infer<typeof priceDocumentSchema>;

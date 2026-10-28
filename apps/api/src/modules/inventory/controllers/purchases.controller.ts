@@ -1,19 +1,68 @@
 import { Body, Controller, HttpCode, HttpStatus, Param, Patch, Post } from "@nestjs/common";
-import { USER_ROLE, type PurchaseResult, type SupplierInvoiceSummary } from "@clinic/shared";
+import {
+  USER_ROLE,
+  type PurchaseResult,
+  type SupplierInvoiceSummary,
+  type SupplierReturnResult,
+} from "@clinic/shared";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { PurchasingService } from "@api/modules/inventory/services/purchasing.service";
+import { SupplierCreditsService } from "@api/modules/inventory/services/supplier-credits.service";
 import {
   IdParamDto,
   InvoiceReceiptsDto,
   PostPurchaseDto,
+  PriceDocumentDto,
+  SupplierReturnDto,
   VoidDocumentDto,
 } from "@api/modules/inventory/dto/purchases.dto";
 
 @Controller("purchases")
 export class PurchasesController {
-  constructor(private readonly purchasing: PurchasingService) {}
+  constructor(
+    private readonly purchasing: PurchasingService,
+    private readonly credits: SupplierCreditsService,
+  ) {}
+
+  @Post("returns")
+  @Roles(USER_ROLE.TECHNICIAN)
+  returnToSupplier(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Body() body: SupplierReturnDto,
+  ): Promise<SupplierReturnResult> {
+    return this.credits.returnToSupplier(actor, body);
+  }
+
+  @Patch("returns/:id/void")
+  @Roles(USER_ROLE.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async voidReturn(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Body() body: VoidDocumentDto,
+  ): Promise<void> {
+    await this.credits.voidReturn(actor, params.id, body.reason);
+  }
+
+  @Post("credit-notes")
+  @Roles(USER_ROLE.ADMIN)
+  creditNote(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Body() body: PriceDocumentDto,
+  ): Promise<SupplierInvoiceSummary> {
+    return this.credits.creditNote(actor, body);
+  }
+
+  @Post("supplementary")
+  @Roles(USER_ROLE.ADMIN)
+  supplementary(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Body() body: PriceDocumentDto,
+  ): Promise<SupplierInvoiceSummary> {
+    return this.credits.supplementary(actor, body);
+  }
 
   @Post()
   @Roles(USER_ROLE.TECHNICIAN)

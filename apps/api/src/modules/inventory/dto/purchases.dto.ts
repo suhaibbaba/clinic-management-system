@@ -3,6 +3,8 @@ import {
   idParamSchema,
   invoiceReceiptsSchema,
   postPurchaseSchema,
+  priceDocumentSchema,
+  supplierReturnSchema,
   reallocatePaymentSchema,
   supplierRefundSchema,
   voidDocumentSchema,
@@ -19,3 +21,7 @@ export class ReallocatePaymentDto extends createZodDto(reallocatePaymentSchema) 
 export class SupplierRefundDto extends createZodDto(supplierRefundSchema) {}
 
 export class IdParamDto extends createZodDto(idParamSchema) {}
+
+export class SupplierReturnDto extends createZodDto(supplierReturnSchema) {}
+
+export class PriceDocumentDto extends createZodDto(priceDocumentSchema) {}

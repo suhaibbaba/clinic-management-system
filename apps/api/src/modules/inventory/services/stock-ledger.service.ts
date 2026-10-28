@@ -28,6 +28,7 @@ export interface LedgerEntry {
   readonly batchNo?: string | null;
   readonly expiryDate?: string | null;
   readonly reason?: string | null;
+  readonly reasonCode?: string | null;
   readonly requestId?: string | null;
   readonly receiptLineId?: string | null;
   readonly occurredOn?: string;
@@ -98,6 +99,7 @@ export class StockLedgerService {
         batchNo: entry.batchNo ?? null,
         expiryDate: entry.expiryDate ?? null,
         reason: entry.reason ?? null,
+        reasonCode: entry.reasonCode ?? null,
         requestId: entry.requestId ?? null,
         receiptLineId: entry.receiptLineId ?? null,
         occurredOn: entry.occurredOn ?? localDate(new Date(), DEFAULT_TIME_ZONE),
@@ -139,6 +141,7 @@ export class StockLedgerService {
         patientId: original.patientId,
         performedProcedureId: original.performedProcedureId,
         receiptLineId: original.receiptLineId,
+        reasonCode: original.reasonCode,
         reason,
         reversesId: original.id,
         createdBy: actor.id,

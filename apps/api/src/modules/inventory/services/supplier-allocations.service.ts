@@ -4,10 +4,11 @@ import {
   PAYMENT_DIRECTION,
   PURCHASE_DOCUMENT_STATUS,
   PURCHASE_ERROR,
+  SUPPLIER_DOCUMENT_KIND,
   formatMinorUnits,
   toMinorUnits,
 } from "@clinic/shared";
-import { and, asc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, ne, sql } from "drizzle-orm";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import {
@@ -23,6 +24,8 @@ interface Open {
   readonly id: string;
   readonly open: number;
 }
+
+type Source = { readonly paymentId: string } | { readonly creditId: string };
 
 const active = and(isNull(supplierAllocations.reversesId), isNull(supplierAllocations.reversedAt));
 
@@ -60,6 +63,7 @@ export class SupplierAllocationsService {
           eq(supplierInvoices.clinicId, clinicId),
           eq(supplierInvoices.supplierId, supplierId),
           eq(supplierInvoices.status, PURCHASE_DOCUMENT_STATUS.POSTED),
+          ne(supplierInvoices.kind, SUPPLIER_DOCUMENT_KIND.CREDIT_NOTE),
         ),
       )
       .orderBy(asc(supplierInvoices.invoiceDate), asc(supplierInvoices.number));
@@ -100,11 +104,62 @@ export class SupplierAllocationsService {
       .filter((row) => row.open > 0);
   }
 
+  async unallocatedCredits(
+    tx: DatabaseExecutor,
+    clinicId: string,
+    supplierId: string,
+  ): Promise<Open[]> {
+    const rows = await tx
+      .select({
+        id: supplierInvoices.id,
+        open: sql<string>`(${supplierInvoices.total} - coalesce((
+          select sum(a.amount) from supplier_allocations a
+          where a.credit_id = "supplier_invoices"."id" and a.reverses_id is null and a.reversed_at is null
+        ), 0))::text`,
+      })
+      .from(supplierInvoices)
+      .where(
+        and(
+          eq(supplierInvoices.clinicId, clinicId),
+          eq(supplierInvoices.supplierId, supplierId),
+          eq(supplierInvoices.status, PURCHASE_DOCUMENT_STATUS.POSTED),
+          eq(supplierInvoices.kind, SUPPLIER_DOCUMENT_KIND.CREDIT_NOTE),
+        ),
+      )
+      .orderBy(asc(supplierInvoices.invoiceDate), asc(supplierInvoices.number));
+
+    return rows
+      .map((row) => ({ id: row.id, open: toMinorUnits(row.open) }))
+      .filter((row) => row.open > 0);
+  }
+
+  async allocateCredit(
+    tx: DatabaseExecutor,
+    actor: AuthenticatedUser,
+    supplierId: string,
+    creditId: string,
+    amount: number,
+    firstInvoiceId?: string | null,
+  ): Promise<void> {
+    await this.spread(tx, actor, supplierId, { creditId }, amount, firstInvoiceId ?? undefined);
+  }
+
   async allocatePayment(
     tx: DatabaseExecutor,
     actor: AuthenticatedUser,
     supplierId: string,
     paymentId: string,
+    amount: number,
+    firstInvoiceId?: string,
+  ): Promise<void> {
+    await this.spread(tx, actor, supplierId, { paymentId }, amount, firstInvoiceId);
+  }
+
+  private async spread(
+    tx: DatabaseExecutor,
+    actor: AuthenticatedUser,
+    supplierId: string,
+    source: Source,
     amount: number,
     firstInvoiceId?: string,
   ): Promise<void> {
@@ -123,7 +178,7 @@ export class SupplierAllocationsService {
       }
 
       const taking = Math.min(left, invoice.open);
-      await this.insert(tx, actor, paymentId, invoice.id, taking, null);
+      await this.insert(tx, actor, source, invoice.id, taking, null);
       left -= taking;
     }
   }
@@ -138,14 +193,24 @@ export class SupplierAllocationsService {
       (row) => row.id === invoiceId,
     );
     let left = invoice?.open ?? 0;
+    const sources: { readonly source: Source; readonly open: number }[] = [
+      ...(await this.unallocatedCredits(tx, actor.clinicId, supplierId)).map((credit) => ({
+        source: { creditId: credit.id },
+        open: credit.open,
+      })),
+      ...(await this.unallocatedPayments(tx, actor.clinicId, supplierId)).map((payment) => ({
+        source: { paymentId: payment.id },
+        open: payment.open,
+      })),
+    ];
 
-    for (const payment of await this.unallocatedPayments(tx, actor.clinicId, supplierId)) {
+    for (const { source, open } of sources) {
       if (left === 0) {
         break;
       }
 
-      const taking = Math.min(left, payment.open);
-      await this.insert(tx, actor, payment.id, invoiceId, taking, null);
+      const taking = Math.min(left, open);
+      await this.insert(tx, actor, source, invoiceId, taking, null);
       left -= taking;
     }
   }
@@ -196,7 +261,7 @@ export class SupplierAllocationsService {
           throw new ConflictException(PURCHASE_ERROR.ALLOCATION_EXCEEDS);
         }
 
-        await this.insert(tx, actor, paymentId, row.invoiceId, amount, reason);
+        await this.insert(tx, actor, { paymentId }, row.invoiceId, amount, reason);
         open.set(row.invoiceId, (open.get(row.invoiceId) ?? 0) - amount);
       }
 
@@ -222,6 +287,15 @@ export class SupplierAllocationsService {
     reason: string,
   ): Promise<void> {
     return this.reverseWhere(tx, actor, eq(supplierAllocations.invoiceId, invoiceId), reason);
+  }
+
+  reverseForCredit(
+    tx: DatabaseExecutor,
+    actor: AuthenticatedUser,
+    creditId: string,
+    reason: string,
+  ): Promise<void> {
+    return this.reverseWhere(tx, actor, eq(supplierAllocations.creditId, creditId), reason);
   }
 
   reverseForPayment(
@@ -263,6 +337,7 @@ export class SupplierAllocationsService {
       await tx.insert(supplierAllocations).values({
         clinicId: row.clinicId,
         paymentId: row.paymentId,
+        creditId: row.creditId,
         invoiceId: row.invoiceId,
         amount: formatMinorUnits(-toMinorUnits(row.amount)),
         reason,
@@ -276,14 +351,15 @@ export class SupplierAllocationsService {
   private async insert(
     tx: DatabaseExecutor,
     actor: AuthenticatedUser,
-    paymentId: string,
+    source: Source,
     invoiceId: string,
     amount: number,
     reason: string | null,
   ): Promise<void> {
     await tx.insert(supplierAllocations).values({
       clinicId: actor.clinicId,
-      paymentId,
+      paymentId: "paymentId" in source ? source.paymentId : null,
+      creditId: "creditId" in source ? source.creditId : null,
       invoiceId,
       amount: formatMinorUnits(amount),
       reason,

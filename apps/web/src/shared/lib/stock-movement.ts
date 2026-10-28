@@ -7,4 +7,6 @@ export const MOVEMENT_TONES: Record<MovementType, BadgeTone> = {
   [MOVEMENT_TYPE.PURCHASE]: "success",
   [MOVEMENT_TYPE.CONSUME]: "info",
   [MOVEMENT_TYPE.ADJUST]: "warning",
+  [MOVEMENT_TYPE.WRITE_OFF]: "danger",
+  [MOVEMENT_TYPE.RETURN]: "neutral",
 };

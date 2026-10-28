@@ -1,6 +1,11 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   AdjustStockInput,
+  BlockLotInput,
+  LotBlock,
+  PriceDocumentInput,
+  SupplierReturnInput,
+  WriteOffInput,
   ConsumeStockInput,
   CreateInventoryItemInput,
   CreateSupplierInput,
@@ -36,6 +41,7 @@ export const SUPPLIERS_KEY = "suppliers";
 export const SUPPLIER_STATEMENT_KEY = "supplier-statement";
 export const SUPPLIER_INVOICES_KEY = "supplier-invoices";
 export const UNINVOICED_KEY = "supplier-uninvoiced";
+export const LOT_BLOCKS_KEY = "lot-blocks";
 
 const STOCK_KEYS = [
   ITEMS_KEY,
@@ -47,6 +53,7 @@ const STOCK_KEYS = [
   SUPPLIER_STATEMENT_KEY,
   SUPPLIER_INVOICES_KEY,
   UNINVOICED_KEY,
+  LOT_BLOCKS_KEY,
 ];
 
 function useStockMutation<TArgs, TResult>(mutationFn: (args: TArgs) => Promise<TResult>) {
@@ -152,6 +159,37 @@ export function useUninvoiced(id: string): UseQueryResult<UninvoicedLine[]> {
     queryFn: () => suppliersApi.uninvoiced(id),
     enabled: id !== "",
   });
+}
+
+export function useLotBlocks(itemId?: string): UseQueryResult<LotBlock[]> {
+  return useQuery({
+    queryKey: [LOT_BLOCKS_KEY, itemId ?? "all"],
+    queryFn: () => inventoryApi.lotBlocks(itemId ? { itemId } : {}),
+  });
+}
+
+export function useWriteOff() {
+  return useStockMutation((input: WriteOffInput) => inventoryApi.writeOff(input));
+}
+
+export function useBlockLot() {
+  return useStockMutation(({ itemId, body }: { itemId: string; body: BlockLotInput }) =>
+    inventoryApi.blockLot(itemId, body),
+  );
+}
+
+export function useLiftLotBlock() {
+  return useStockMutation(({ id, reason }: { id: string; reason: string }) =>
+    inventoryApi.liftLotBlock(id, reason),
+  );
+}
+
+export function useReturnToSupplier() {
+  return useStockMutation((input: SupplierReturnInput) => purchasesApi.returnToSupplier(input));
+}
+
+export function useCreditNote() {
+  return useStockMutation((input: PriceDocumentInput) => purchasesApi.creditNote(input));
 }
 
 export function usePostPurchase() {

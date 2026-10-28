@@ -22,7 +22,12 @@ import { StockService } from "@api/modules/inventory/services/stock.service";
 import { SuppliersService } from "@api/modules/inventory/services/suppliers.service";
 import { LookupsService } from "@api/modules/lookups/services/lookups.service";
 import { INVENTORY_ITEMS_ENTITY } from "@api/common/constants/audit-entities";
-import { toInventoryItem, ItemRow, toItemRow } from "@api/modules/inventory/lib/inventory-items";
+import {
+  toInventoryItem,
+  ItemRow,
+  toItemRow,
+  itemFlags,
+} from "@api/modules/inventory/lib/inventory-items";
 
 @Injectable()
 export class InventoryItemsService implements OnModuleInit {
@@ -166,6 +171,7 @@ export class InventoryItemsService implements OnModuleInit {
         defaultSupplierId: input.defaultSupplierId ?? null,
         notes: input.notes ?? null,
         ...(input.isActive !== undefined && { isActive: input.isActive }),
+        ...itemFlags(input),
         createdBy: actor.id,
         updatedBy: actor.id,
       })
@@ -208,6 +214,7 @@ export class InventoryItemsService implements OnModuleInit {
         }),
         ...(input.notes !== undefined && { notes: input.notes ?? null }),
         ...(input.isActive !== undefined && { isActive: input.isActive }),
+        ...itemFlags(input),
         updatedAt: new Date(),
         updatedBy: actor.id,
       })

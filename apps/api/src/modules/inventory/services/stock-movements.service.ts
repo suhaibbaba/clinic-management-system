@@ -47,6 +47,7 @@ import {
   type MovementRow,
 } from "@api/modules/inventory/lib/stock-movements";
 import { costIn, costOut } from "@api/modules/inventory/lib/costing";
+import { receiptLineError, wholeUnitError } from "@api/modules/inventory/lib/item-rules";
 import { STOCK_MOVEMENTS_REQUEST_INDEX } from "@api/modules/inventory/constants";
 import { StockService } from "@api/modules/inventory/services/stock.service";
 import { StockLedgerService } from "@api/modules/inventory/services/stock-ledger.service";
@@ -193,7 +194,12 @@ export class StockMovementsService implements OnModuleInit {
     actor: AuthenticatedUser,
     input: ConsumeStockInput,
   ): Promise<StockMovement> {
-    await this.items.requireRow(actor.clinicId, input.itemId);
+    const item = await this.items.requireRow(actor.clinicId, input.itemId);
+    const fraction = wholeUnitError(item, input.quantity);
+
+    if (fraction) {
+      throw new BadRequestException(fraction);
+    }
 
     let patientId = input.patientId ?? null;
 
@@ -232,6 +238,10 @@ export class StockMovementsService implements OnModuleInit {
       const slices = input.batchNo
         ? [{ batchNo: input.batchNo, thousandths: toThousandths(input.quantity) }]
         : fefoSlices(batches, toThousandths(input.quantity));
+
+      if (item.sensitive && slices.some((slice) => slice.batchNo === null)) {
+        throw new ConflictException(STOCK_ERROR.LOT_REQUIRED);
+      }
 
       const written: MovementRow[] = [];
 
@@ -275,9 +285,16 @@ export class StockMovementsService implements OnModuleInit {
     actor: AuthenticatedUser,
     input: AdjustStockInput,
   ): Promise<StockMovement> {
-    await this.items.requireRow(actor.clinicId, input.itemId);
-
+    const item = await this.items.requireRow(actor.clinicId, input.itemId);
     const quantity = toThousandths(input.quantity);
+
+    if (quantity > 0) {
+      const problem = receiptLineError(item, input);
+
+      if (problem) {
+        throw new BadRequestException(problem);
+      }
+    }
 
     if (quantity === 0) {
       throw new BadRequestException("An adjustment cannot be zero");
@@ -378,12 +395,17 @@ export class StockMovementsService implements OnModuleInit {
 
     const { batches } = await this.stock.forItem(clinicId, itemId, 0, new Date(), tx);
     const named = batchNo ? batches.find((batch) => batch.batchNo === batchNo) : undefined;
-    const expired = batches
-      .filter((batch) => batch.isExpired)
-      .reduce((total, batch) => total + toThousandths(batch.remaining), 0);
+    const held = (unusable: (batch: ItemBatch) => boolean): number =>
+      batches.filter(unusable).reduce((total, batch) => total + toThousandths(batch.remaining), 0);
 
-    if (named?.isExpired || wanted > onHand - expired) {
+    if (named && named.blockId !== null) {
+      throw new ConflictException(STOCK_ERROR.BLOCKED);
+    }
+    if (named?.isExpired || wanted > onHand - held((batch) => batch.isExpired)) {
       throw new ConflictException(STOCK_ERROR.EXPIRED);
+    }
+    if (wanted > onHand - held((batch) => batch.isExpired || batch.blockId !== null)) {
+      throw new ConflictException(STOCK_ERROR.BLOCKED);
     }
 
     return batches;

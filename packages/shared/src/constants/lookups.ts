@@ -11,6 +11,7 @@ export const LOOKUP_LIST = {
   FREQUENT_DRUG: "frequent_drug",
   DRUG_INSTRUCTION: "drug_instruction",
   EXPENSE_CATEGORY: "expense_category",
+  WRITE_OFF_REASON: "write_off_reason",
 } as const;
 
 export type LookupListKey = (typeof LOOKUP_LIST)[keyof typeof LOOKUP_LIST];
@@ -28,6 +29,7 @@ export const LOOKUP_LIST_KEYS = [
   LOOKUP_LIST.FREQUENT_DRUG,
   LOOKUP_LIST.DRUG_INSTRUCTION,
   LOOKUP_LIST.EXPENSE_CATEGORY,
+  LOOKUP_LIST.WRITE_OFF_REASON,
 ] as const;
 
 export const COLOURED_LOOKUP_LISTS: readonly LookupListKey[] = [LOOKUP_LIST.TOOTH_STATE];
@@ -193,6 +195,15 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
     { code: "maintenance", nameAr: "صيانة", nameEn: "Maintenance" },
     { code: "marketing", nameAr: "تسويق", nameEn: "Marketing" },
     { code: "fees", nameAr: "رسوم وتراخيص", nameEn: "Fees and licences" },
+    { code: "other", nameAr: "أخرى", nameEn: "Other" },
+  ],
+
+  [LOOKUP_LIST.WRITE_OFF_REASON]: [
+    { code: "expired", nameAr: "منتهي الصلاحية", nameEn: "Expired" },
+    { code: "damaged", nameAr: "تالف", nameEn: "Damaged" },
+    { code: "wasted", nameAr: "فُتح وتلف قبل الاستعمال", nameEn: "Opened and wasted" },
+    { code: "lost", nameAr: "مفقود", nameEn: "Lost" },
+    { code: "recalled", nameAr: "مسحوب من المورّد", nameEn: "Recalled" },
     { code: "other", nameAr: "أخرى", nameEn: "Other" },
   ],
 

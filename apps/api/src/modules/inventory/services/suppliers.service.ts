@@ -329,7 +329,7 @@ export class SuppliersService implements OnModuleInit {
           where clinic_id = ${clinicId} and supplier_id = s.supplier_id and deleted_at is null
         ), 0)::text as opening,
         coalesce((
-          select sum(total) from supplier_invoices
+          select sum(case when kind = 'credit_note' then -total else total end) from supplier_invoices
           where clinic_id = ${clinicId} and supplier_id = s.supplier_id and status = 'posted'
         ), 0)::text as purchased,
         coalesce((

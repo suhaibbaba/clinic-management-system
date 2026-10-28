@@ -10,6 +10,7 @@ export interface ShelfRow {
   readonly quantity: string | null;
   readonly isExpired: boolean;
   readonly isExpiring: boolean;
+  readonly blockId: string | null;
 }
 
 export const byExpiry = (a: ItemBatch, b: ItemBatch): number =>
@@ -33,6 +34,7 @@ export function shelfRows(batches: readonly ItemBatch[], unbatched: string): She
             quantity: null,
             isExpired: false,
             isExpiring: false,
+            blockId: null,
           },
         ]
       : []),

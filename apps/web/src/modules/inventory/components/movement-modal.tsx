@@ -6,7 +6,7 @@ import {
   purchaseStockSchema,
   toThousandths,
   type InventoryItemRow,
-  type MovementType,
+  type RecordableMovementType,
 } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
@@ -54,7 +54,7 @@ import { useCurrency } from "@web/shared/queries/clinic";
 
 export interface MovementModalProps {
   readonly "data-testid"?: string | undefined;
-  readonly type: MovementType | null;
+  readonly type: RecordableMovementType | null;
   readonly item: InventoryItemRow | undefined;
   readonly choices?: readonly InventoryItemRow[] | undefined;
   readonly onClose: () => void;

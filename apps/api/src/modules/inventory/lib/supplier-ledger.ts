@@ -5,6 +5,7 @@ import {
   localDate,
   PAYMENT_DIRECTION,
   PURCHASE_DOCUMENT_STATUS,
+  SUPPLIER_DOCUMENT_KIND,
   SUPPLIER_ENTRY_KIND,
   toMinorUnits,
   type Money,
@@ -45,14 +46,16 @@ export function openingLine(row: typeof supplierOpeningBalances.$inferSelect): S
 
 export function invoiceLines(row: typeof supplierInvoices.$inferSelect): SupplierLedgerLine[] {
   const reference = row.supplierRef ? `${row.number} · ${row.supplierRef}` : row.number;
+  const credit = row.kind === SUPPLIER_DOCUMENT_KIND.CREDIT_NOTE;
+  const total = credit ? formatMinorUnits(-toMinorUnits(row.total)) : row.total;
   const posted: SupplierLedgerLine = {
     ...blank,
     id: row.id,
-    kind: SUPPLIER_ENTRY_KIND.PURCHASE,
+    kind: credit ? SUPPLIER_ENTRY_KIND.CREDIT : SUPPLIER_ENTRY_KIND.PURCHASE,
     occurredAt: onDate(row.invoiceDate, row.createdAt),
     reference,
     note: row.note,
-    amount: row.total,
+    amount: total,
     isReversal: false,
     isReversed: row.status === PURCHASE_DOCUMENT_STATUS.VOID,
   };
@@ -68,7 +71,7 @@ export function invoiceLines(row: typeof supplierInvoices.$inferSelect): Supplie
       id: `${row.id.slice(0, 35)}v`,
       occurredAt: row.voidedAt,
       note: row.voidReason,
-      amount: formatMinorUnits(-toMinorUnits(row.total)),
+      amount: formatMinorUnits(-toMinorUnits(total)),
       isReversal: true,
       isReversed: false,
     },
@@ -122,7 +125,10 @@ export function ledgerStatement(
       continue;
     }
 
-    if (line.kind === SUPPLIER_ENTRY_KIND.PURCHASE && line.amount !== null) {
+    if (
+      (line.kind === SUPPLIER_ENTRY_KIND.PURCHASE || line.kind === SUPPLIER_ENTRY_KIND.CREDIT) &&
+      line.amount !== null
+    ) {
       purchased += toMinorUnits(line.amount);
     }
     if (line.kind === SUPPLIER_ENTRY_KIND.PAYMENT && line.amount !== null) {

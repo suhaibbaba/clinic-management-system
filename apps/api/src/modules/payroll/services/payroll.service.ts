@@ -421,13 +421,16 @@ export class PayrollService implements OnModuleInit {
   ): Promise<MonthOutgoings> {
     const from = start.toISOString();
     const until = end.toISOString();
+    const documentVariance = sql`(case when i.kind = 'invoice' then coalesce((
+        select sum(l.variance) from supplier_invoice_lines l where l.invoice_id = i.id
+      ), 0) else i.variance end)`;
     const sumWhere = async (query: ReturnType<typeof sql>): Promise<string> => {
       const [row] = [...(await this.db.execute<{ total: string | null }>(query))];
 
       return addMoney(row?.total ?? ZERO, ZERO);
     };
 
-    const [collections, labs, stock, spent] = await Promise.all([
+    const [collections, labs, stock, purchaseVariance, spent] = await Promise.all([
       sumWhere(
         sql`select coalesce(sum(${payments.amount}), 0)::numeric(12, 2)::text as total
             from ${payments}
@@ -443,7 +446,10 @@ export class PayrollService implements OnModuleInit {
       sumWhere(
         sql`select (
               coalesce((
-                select sum(i.total) from supplier_invoices i
+                select sum(
+                  (case when i.kind = 'credit_note' then -1 else 1 end)
+                  * (i.total - ${documentVariance})
+                ) from supplier_invoices i
                 where i.clinic_id = ${clinicId} and i.status = 'posted'
                   and i.invoice_date >= ${monthStart(month)}::date
                   and i.invoice_date < ${nextMonthStart(month)}::date
@@ -459,10 +465,19 @@ export class PayrollService implements OnModuleInit {
               ), 0)
             )::numeric(12, 2)::text as total`,
       ),
+      sumWhere(
+        sql`select coalesce((
+              select sum((case when i.kind = 'credit_note' then -1 else 1 end) * ${documentVariance})
+              from supplier_invoices i
+              where i.clinic_id = ${clinicId} and i.status = 'posted'
+                and i.invoice_date >= ${monthStart(month)}::date
+                and i.invoice_date < ${nextMonthStart(month)}::date
+            ), 0)::numeric(12, 2)::text as total`,
+      ),
       this.expenses.totalBetween(clinicId, monthStart(month), nextMonthStart(month)),
     ]);
 
-    return { collections, labs, stock, expenses: spent };
+    return { collections, labs, stock, purchaseVariance, expenses: spent };
   }
 
   private async drawOf(clinicId: string, month: PayrollMonth): Promise<OwnerDraw | null> {

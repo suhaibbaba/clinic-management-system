@@ -584,7 +584,12 @@
       "belowOne": "Take off at least one whole unit",
       "expired": "What is left has expired; write it off, then use a valid batch",
       "itemHasStock": "An item with stock cannot be deleted; correct or write off the quantity first",
-      "supplierHasBalance": "A supplier with a balance cannot be deleted; settle the account first"
+      "supplierHasBalance": "A supplier with a balance cannot be deleted; settle the account first",
+      "blocked": "This lot is blocked; use another lot or ask a manager to lift the block",
+      "alreadyBlocked": "This lot is already blocked",
+      "wholeUnits": "This item is used in whole units",
+      "expiryRequired": "This item needs an expiry date",
+      "lotRequired": "This item needs a lot number"
     },
     "pageFailed": {
       "title": "This page could not open",
@@ -626,6 +631,19 @@
     "document": {
       "unavailable": "Sending documents on WhatsApp is not set up for this clinic. Add the document template in the assistant settings.",
       "failed": "WhatsApp did not accept the document. Check the number and try again."
+    },
+    "purchase": {
+      "closedMonth": "That month is closed; date it in an open month",
+      "futureDate": "The date cannot be in the future",
+      "backdateNotAllowed": "Only a manager can date this more than 7 days back",
+      "duplicateReference": "This supplier invoice number is already recorded",
+      "alreadyInvoiced": "These goods are already on an invoice",
+      "invoicedReceipt": "Void the invoice for these goods first",
+      "missingPrice": "Every line on an invoice needs a price",
+      "allocationExceeds": "That is more than is open on the invoice or left on the payment",
+      "refundExceedsCredit": "The refund is more than the supplier's credit",
+      "voidDocument": "This document is void or cannot be used here",
+      "creditExceeds": "The amount does not match its lines"
     }
   },
   "patients": {
@@ -1396,7 +1414,9 @@
     "movements": {
       "purchase": "Purchase",
       "consume": "Use",
-      "adjust": "Correction"
+      "adjust": "Correction",
+      "write_off": "Write-off",
+      "return": "Return to Supplier"
     },
     "flags": {
       "low": "Low",
@@ -1424,7 +1444,8 @@
         "expiry": "Expires",
         "received": "Bought on",
         "left": "Left"
-      }
+      },
+      "menu": "Lot Actions"
     },
     "history": {
       "title": "Movements",
@@ -1473,7 +1494,10 @@
         "title": "Delete the item “{{name}}”?",
         "history": "Its past movements stay on the record and in supplier statements",
         "stock": "It leaves the item list, the alerts and the shopping list, along with any quantity left"
-      }
+      },
+      "hasExpiry": "Has an expiry date",
+      "sensitive": "Track lots (needs a lot number at receipt)",
+      "measured": "Used in fractions (ml, g)"
     },
     "movement": {
       "onHand": "In Stock Now",
@@ -1579,7 +1603,8 @@
         "kinds": {
           "opening": "Opening balance",
           "payment": "Payment",
-          "invoice": "Invoice"
+          "invoice": "Invoice",
+          "credit": "Credit note"
         }
       },
       "menu": "Supplier Options",
@@ -1659,6 +1684,45 @@
       "submit_one": "Create Invoice for 1 Line",
       "submit_other": "Create Invoice for {{count}} Lines",
       "invoiced": "Invoice created"
+    },
+    "writeOff": {
+      "action": "Write Off",
+      "title": "Write Off Stock",
+      "description": "Take {{item}} off the shelf without a patient: expired, damaged or wasted.",
+      "descriptionLot": "Take lot {{lot}} of {{item}} off the shelf without a patient.",
+      "reason": "Reason",
+      "confirm": "Write Off",
+      "done": "Written off"
+    },
+    "lotBlock": {
+      "badge": "Blocked",
+      "block": "Block This Lot",
+      "lift": "Lift the Block",
+      "blockTitle": "Block a Lot",
+      "liftTitle": "Lift a Lot Block",
+      "blockDescription": "Lot {{lot}} stays on the shelf but cannot be used until a manager lifts the block.",
+      "liftDescription": "Lot {{lot}} can be used again once the block is lifted.",
+      "reason": "Reason",
+      "blocked": "Lot blocked",
+      "lifted": "Block lifted"
+    },
+    "supplierReturn": {
+      "action": "Return Goods",
+      "title": "Return Goods to the Supplier",
+      "description": "The items leave stock at their cost. Enter the supplier's credit if they gave one.",
+      "credit": "Supplier credit",
+      "confirm": "Return",
+      "done": "Return {{number}} recorded"
+    },
+    "creditNote": {
+      "action": "Credit Note",
+      "title": "Supplier Credit Note",
+      "description": "A discount or price correction from the supplier. It lowers what the clinic owes.",
+      "invoice": "Against invoice",
+      "anyInvoice": "Oldest open invoices first",
+      "amount": "Amount",
+      "confirm": "Record Credit",
+      "done": "Credit note recorded"
     }
   },
   "lookups": {
@@ -1701,7 +1765,8 @@
       "payment_method": "Payment Methods",
       "frequent_drug": "Frequent Drugs",
       "drug_instruction": "Drug Instructions",
-      "expense_category": "Expense Categories"
+      "expense_category": "Expense Categories",
+      "write_off_reason": "Write-off Reasons"
     },
     "hints": {
       "tooth_state": "What the tooth chart paints, and what a finished procedure leaves behind",
@@ -1715,7 +1780,8 @@
       "payment_method": "How payments are taken, and how labs are paid",
       "frequent_drug": "The drugs offered first when writing a prescription, with their usual dose",
       "drug_instruction": "Ready phrases added with a tap to a drug's instructions in a prescription",
-      "expense_category": "What the clinic spends on: rent, utilities and the rest"
+      "expense_category": "What the clinic spends on: rent, utilities and the rest",
+      "write_off_reason": "Why stock was taken off without a patient: expired, damaged, wasted"
     },
     "rowMenu": "More Options",
     "moveUp": "Move Up",
@@ -1902,7 +1968,11 @@
         "sendShoppingList": "Send the Shopping List by WhatsApp",
         "costs": "See Purchase Prices and Stock Costs",
         "reversePricedPurchase": "Reverse or Edit a Priced Purchase",
-        "correctPurchase": "Edit a Purchase"
+        "correctPurchase": "Edit a Purchase",
+        "writeOff": "Write Off Stock",
+        "lotBlocks": "See Blocked Lots and Recalls",
+        "blockLot": "Block a Lot",
+        "liftLotBlock": "Lift a Lot Block"
       },
       "lab-ledger": {
         "balance": "See a Lab's Balance",
@@ -2172,6 +2242,16 @@
       },
       "purchasing": {
         "backdate": "Date Purchase Documents More Than 7 Days Back"
+      },
+      "purchases": {
+        "post": "Receive Goods and Post Purchase Invoices",
+        "invoiceReceipts": "Invoice Goods Already Received",
+        "voidInvoice": "Void a Supplier Invoice or Credit Note",
+        "voidReceipt": "Void a Goods Receipt",
+        "returnToSupplier": "Return Goods to a Supplier",
+        "voidReturn": "Void a Return to a Supplier",
+        "creditNote": "Record a Supplier Credit Note",
+        "supplementary": "Record a Supplementary Supplier Invoice"
       }
     },
     "hints": {
@@ -2204,7 +2284,8 @@
       "settlement-treatments": "A visiting doctor’s settlement: the materials and the doctor’s share on each treatment.",
       "website": "The Website screen: the clinic's public page, publishing it, and contact form messages.",
       "expenses": "The Expenses tab of the Profit and Expenses screen: recording a clinic expense and reversing one entered by mistake.",
-      "doctor-settlements": "A doctor's settlement on the Payroll screen: their treatments, the clinic's share, paying them and printing the statement."
+      "doctor-settlements": "A doctor's settlement on the Payroll screen: their treatments, the clinic's share, paying them and printing the statement.",
+      "purchases": "Receiving goods from suppliers, their invoices, returns, credit notes and voids."
     },
     "intro": "Every line here is one action in the app. Switch it off and its button leaves that role’s screens and the action is refused if attempted; switch it back whenever you like. What you change belongs to this clinic alone.",
     "resources": {
@@ -2245,7 +2326,8 @@
       "website": "Website",
       "expenses": "Expenses",
       "supplier-payments": "Supplier Payments",
-      "purchasing": "Purchasing"
+      "purchasing": "Purchasing",
+      "purchases": "Purchases"
     },
     "subtitle": "What each role is able to do",
     "title": "Permissions",
@@ -3175,7 +3257,8 @@
       "expenses": "Expenses",
       "beforeShares": "Profit before profit shares",
       "profitShares": "Staff shares of profit",
-      "ownerProfit": "The owner's profit"
+      "ownerProfit": "The owner's profit",
+      "purchaseVariance": "Purchase Variance"
     }
   },
   "expenses": {

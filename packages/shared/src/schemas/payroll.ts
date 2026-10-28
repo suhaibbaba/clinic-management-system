@@ -195,6 +195,7 @@ export const monthProfitSchema = z.object({
   doctorShares: signedMoneySchema,
   labs: signedMoneySchema,
   stock: signedMoneySchema,
+  purchaseVariance: signedMoneySchema.optional(),
   expenses: signedMoneySchema,
   beforeShares: signedMoneySchema,
   profitShares: signedMoneySchema,

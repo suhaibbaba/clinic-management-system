@@ -18,6 +18,7 @@ import {
   RECEIPT_KIND,
   RULE,
   STOCK_ERROR,
+  SUPPLIER_DOCUMENT_KIND,
   InvoiceMathError,
   addDays,
   computeInvoice,
@@ -57,6 +58,8 @@ import { StockLedgerService } from "@api/modules/inventory/services/stock-ledger
 import { SupplierAllocationsService } from "@api/modules/inventory/services/supplier-allocations.service";
 import { SupplierPaymentsService } from "@api/modules/inventory/services/supplier-payments.service";
 import { toMovement, type MovementRow } from "@api/modules/inventory/lib/stock-movements";
+import { receiptLineError } from "@api/modules/inventory/lib/item-rules";
+import { type Rights } from "@api/modules/inventory/lib/purchase-rights";
 import {
   STOCK_RECEIPTS_ENTITY,
   SUPPLIER_INVOICES_ENTITY,
@@ -74,13 +77,6 @@ type ReceiptRow = typeof stockReceipts.$inferSelect;
 type InvoiceRow = typeof supplierInvoices.$inferSelect;
 
 const today = (): string => localDate(new Date(), DEFAULT_TIME_ZONE);
-
-interface Rights {
-  readonly seesCosts: boolean;
-  readonly mayPay: boolean;
-  readonly mayBackdate: boolean;
-  readonly mayReversePriced: boolean;
-}
 
 @Injectable()
 export class PurchasingService implements OnModuleInit {
@@ -183,15 +179,22 @@ export class PurchasingService implements OnModuleInit {
     if (input.supplierId) {
       await this.suppliersService.requireRow(actor.clinicId, input.supplierId);
     }
-    for (const itemId of new Set(input.lines.map((line) => line.itemId))) {
-      await this.items.requireRow(actor.clinicId, itemId);
+    for (const line of input.lines) {
+      const problem = receiptLineError(
+        await this.items.requireRow(actor.clinicId, line.itemId),
+        line,
+      );
+
+      if (problem) {
+        throw new BadRequestException(problem);
+      }
     }
     if (input.paidNow && input.paymentMethod && input.supplierId) {
       await this.payments.validate(actor, input.supplierId, input.paymentMethod);
     }
   }
 
-  private async rights(actor: AuthenticatedUser): Promise<Rights> {
+  async rights(actor: AuthenticatedUser): Promise<Rights> {
     const [seesCosts, mayPay, mayBackdate, mayReversePriced] = await Promise.all([
       this.permissions.can(actor, RULE.INVENTORY_COSTS),
       this.permissions.can(actor, SUPPLIER_PAYMENT_CAPABILITY),
@@ -441,6 +444,7 @@ export class PurchasingService implements OnModuleInit {
         }
         for (const { receipt } of lines) {
           if (
+            receipt.kind !== RECEIPT_KIND.RECEIPT ||
             receipt.status !== PURCHASE_DOCUMENT_STATUS.POSTED ||
             receipt.supplierId !== input.supplierId
           ) {
@@ -459,6 +463,7 @@ export class PurchasingService implements OnModuleInit {
                 lines.map(({ line }) => line.id),
               ),
               eq(supplierInvoices.status, PURCHASE_DOCUMENT_STATUS.POSTED),
+              eq(supplierInvoices.kind, SUPPLIER_DOCUMENT_KIND.INVOICE),
             ),
           );
 
@@ -683,11 +688,13 @@ export class PurchasingService implements OnModuleInit {
         and(
           eq(stockReceipts.clinicId, actor.clinicId),
           eq(stockReceipts.supplierId, supplierId),
+          eq(stockReceipts.kind, RECEIPT_KIND.RECEIPT),
           eq(stockReceipts.status, PURCHASE_DOCUMENT_STATUS.POSTED),
           sql`not exists (
             select 1 from supplier_invoice_lines il
             join supplier_invoices i on i.id = il.invoice_id
             where il.receipt_line_id = "stock_receipt_lines"."id" and i.status = 'posted'
+              and i.kind = 'invoice'
           )`,
         ),
       )
@@ -727,17 +734,22 @@ export class PurchasingService implements OnModuleInit {
     return Promise.all(rows.map((row) => this.summarise(this.db, row)));
   }
 
-  private async summarise(tx: DatabaseExecutor, row: InvoiceRow): Promise<SupplierInvoiceSummary> {
+  async summarise(tx: DatabaseExecutor, row: InvoiceRow): Promise<SupplierInvoiceSummary> {
     const [paid] = await tx
       .select({
         amount: sql<string>`coalesce(sum(amount), 0)::text`,
       })
       .from(sql`supplier_allocations`)
-      .where(sql`invoice_id = ${row.id} and reverses_id is null and reversed_at is null`);
+      .where(
+        row.kind === SUPPLIER_DOCUMENT_KIND.CREDIT_NOTE
+          ? sql`credit_id = ${row.id} and reverses_id is null and reversed_at is null`
+          : sql`invoice_id = ${row.id} and reverses_id is null and reversed_at is null`,
+      );
     const allocated = toMinorUnits(paid?.amount ?? "0");
 
     return {
       id: row.id,
+      kind: row.kind,
       number: row.number,
       supplierRef: row.supplierRef,
       invoiceDate: row.invoiceDate,
@@ -788,7 +800,7 @@ export class PurchasingService implements OnModuleInit {
     return unknown === 0 ? cost - toMinorUnits(movement.value) - value : cost - value;
   }
 
-  private async voidInvoiceWithin(
+  async voidInvoiceWithin(
     tx: DatabaseExecutor,
     actor: AuthenticatedUser,
     id: string,
@@ -809,7 +821,9 @@ export class PurchasingService implements OnModuleInit {
 
     await this.assertMonthOpen(tx, actor.clinicId, invoice.invoiceDate);
     await this.allocations.lockSupplier(tx, actor.clinicId, invoice.supplierId);
-    await this.allocations.reverseForInvoice(tx, actor, invoice.id, reason);
+    await (invoice.kind === SUPPLIER_DOCUMENT_KIND.CREDIT_NOTE
+      ? this.allocations.reverseForCredit(tx, actor, invoice.id, reason)
+      : this.allocations.reverseForInvoice(tx, actor, invoice.id, reason));
 
     const lines = await tx
       .select({ receiptLineId: supplierInvoiceLines.receiptLineId })
@@ -826,6 +840,7 @@ export class PurchasingService implements OnModuleInit {
           ),
           eq(stockMovements.type, MOVEMENT_TYPE.ADJUST),
           eq(stockMovements.quantity, "0"),
+          eq(stockMovements.reason, invoice.number),
           isNull(stockMovements.reversesId),
           isNull(stockMovements.reversedAt),
         ),
@@ -861,7 +876,7 @@ export class PurchasingService implements OnModuleInit {
     );
   }
 
-  private async voidReceiptWithin(
+  async voidReceiptWithin(
     tx: DatabaseExecutor,
     actor: AuthenticatedUser,
     receipt: ReceiptRow,
@@ -1025,11 +1040,7 @@ export class PurchasingService implements OnModuleInit {
     return this.lockReceipt(tx, actor.clinicId, line.receiptId);
   }
 
-  private async lockReceipt(
-    tx: DatabaseExecutor,
-    clinicId: string,
-    id: string,
-  ): Promise<ReceiptRow> {
+  async lockReceipt(tx: DatabaseExecutor, clinicId: string, id: string): Promise<ReceiptRow> {
     const [receipt] = await tx
       .select()
       .from(stockReceipts)
@@ -1061,7 +1072,7 @@ export class PurchasingService implements OnModuleInit {
     }
   }
 
-  private async insertReceipt(
+  async insertReceipt(
     tx: DatabaseExecutor,
     actor: AuthenticatedUser,
     values: {
@@ -1075,7 +1086,9 @@ export class PurchasingService implements OnModuleInit {
     const number = await this.nextNumber(
       tx,
       actor.clinicId,
-      values.kind === RECEIPT_KIND.OPENING ? "OS" : "GR",
+      { [RECEIPT_KIND.OPENING]: "OS", [RECEIPT_KIND.RETURN]: "RT", [RECEIPT_KIND.RECEIPT]: "GR" }[
+        values.kind
+      ],
       values.date,
     );
     const [row] = await tx
@@ -1113,7 +1126,7 @@ export class PurchasingService implements OnModuleInit {
     return row;
   }
 
-  private async insertInvoice(
+  async insertInvoice(
     tx: DatabaseExecutor,
     actor: AuthenticatedUser,
     values: {
@@ -1172,7 +1185,7 @@ export class PurchasingService implements OnModuleInit {
     return row;
   }
 
-  private async nextNumber(
+  async nextNumber(
     tx: DatabaseExecutor,
     clinicId: string,
     kind: string,
@@ -1191,7 +1204,7 @@ export class PurchasingService implements OnModuleInit {
     return `${kind}-${year}-${String(row?.last ?? 1).padStart(4, "0")}`;
   }
 
-  private async assertDate(
+  async assertDate(
     tx: DatabaseExecutor,
     actor: AuthenticatedUser,
     date: string,
@@ -1209,11 +1222,7 @@ export class PurchasingService implements OnModuleInit {
     await this.assertMonthOpen(tx, actor.clinicId, date);
   }
 
-  private async assertMonthOpen(
-    tx: DatabaseExecutor,
-    clinicId: string,
-    date: string,
-  ): Promise<void> {
+  async assertMonthOpen(tx: DatabaseExecutor, clinicId: string, date: string): Promise<void> {
     const [closed] = await tx
       .select({ id: payrollMonths.id })
       .from(payrollMonths)
@@ -1230,7 +1239,7 @@ export class PurchasingService implements OnModuleInit {
     }
   }
 
-  private async assertReferenceFree(
+  async assertReferenceFree(
     tx: DatabaseExecutor,
     clinicId: string,
     supplierId: string,

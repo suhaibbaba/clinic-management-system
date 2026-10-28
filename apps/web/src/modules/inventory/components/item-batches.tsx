@@ -1,7 +1,7 @@
 import type { ItemBatch } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, type Column, EmptyState, Ltr, Table } from "@clinic/ui";
+import { Badge, type Column, EmptyState, Ltr, MenuItem, RowMenu, Table } from "@clinic/ui";
 import { UNBATCHED_ROW_KEY } from "@web/modules/inventory/constants";
 import { shelfRows, type ShelfRow } from "@web/modules/inventory/lib/batches";
 import { formatDate } from "@web/shared/lib/format";
@@ -11,11 +11,17 @@ export function ItemBatches({
   unbatched,
   unit,
   isLoading,
+  onWriteOff,
+  onBlock,
+  mayLift = false,
 }: {
   readonly batches: readonly ItemBatch[];
   readonly unbatched: string;
   readonly unit: string;
   readonly isLoading: boolean;
+  readonly onWriteOff?: ((row: ShelfRow) => void) | undefined;
+  readonly onBlock?: ((row: ShelfRow) => void) | undefined;
+  readonly mayLift?: boolean;
 }): JSX.Element {
   const { t } = useTranslation();
 
@@ -28,7 +34,14 @@ export function ItemBatches({
       primary: true,
       render: (row) =>
         row.batchNo ? (
-          <Ltr className="font-medium text-ink">{row.batchNo}</Ltr>
+          <span className="flex flex-wrap items-center gap-1.5">
+            <Ltr className="font-medium text-ink">{row.batchNo}</Ltr>
+            {row.blockId !== null && (
+              <Badge tone="danger" data-testid="item-batch-blocked">
+                {t("inventory.lotBlock.badge")}
+              </Badge>
+            )}
+          </span>
         ) : (
           <span className="text-ink-muted">
             {t(
@@ -76,6 +89,47 @@ export function ItemBatches({
         </span>
       ),
     },
+    ...(onWriteOff || onBlock
+      ? [
+          {
+            key: "actions",
+            header: "common.actions",
+            actions: true,
+            render: (row: ShelfRow) => {
+              const blockable =
+                onBlock && row.batchNo !== null && (row.blockId === null || mayLift);
+
+              return onWriteOff || blockable ? (
+                <RowMenu label={t("inventory.batches.menu")} data-testid="item-batch-actions">
+                  {onWriteOff && (
+                    <MenuItem
+                      icon="trash"
+                      tone="danger"
+                      data-testid="item-batch-write-off"
+                      onSelect={() => onWriteOff(row)}
+                    >
+                      {t("inventory.writeOff.action")}
+                    </MenuItem>
+                  )}
+                  {blockable && (
+                    <MenuItem
+                      icon={row.blockId === null ? "lock" : "check"}
+                      data-testid="item-batch-block"
+                      onSelect={() => onBlock(row)}
+                    >
+                      {t(
+                        row.blockId === null
+                          ? "inventory.lotBlock.block"
+                          : "inventory.lotBlock.lift",
+                      )}
+                    </MenuItem>
+                  )}
+                </RowMenu>
+              ) : null;
+            },
+          } satisfies Column<ShelfRow>,
+        ]
+      : []),
   ];
 
   return (

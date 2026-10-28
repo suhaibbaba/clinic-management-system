@@ -33,8 +33,50 @@ export function fefoSlices(batches: readonly ItemBatch[], wanted: number): UseSl
     if (left === 0) {
       break;
     }
-    if (batch.batchNo === null || batch.isExpired) {
+    if (batch.batchNo === null || batch.isExpired || batch.blockId !== null) {
       continue;
+    }
+
+    const taken = Math.min(toThousandths(batch.remaining), left);
+
+    if (taken > 0) {
+      slices.push({ batchNo: batch.batchNo, thousandths: taken });
+      left -= taken;
+    }
+  }
+
+  return left > 0 ? [...slices, { batchNo: null, thousandths: left }] : slices;
+}
+
+export function unusableFirst(batches: readonly ItemBatch[]): ItemBatch[] {
+  const rank = (batch: ItemBatch): number => (batch.isExpired ? 0 : batch.blockId !== null ? 1 : 2);
+
+  return batches
+    .filter((batch) => batch.batchNo !== null)
+    .map((batch, index) => ({ batch, index }))
+    .sort((a, b) => rank(a.batch) - rank(b.batch) || a.index - b.index)
+    .map(({ batch }) => batch);
+}
+
+export function namedSlices(
+  batches: readonly ItemBatch[],
+  wanted: number,
+  batchNo: string | null | undefined,
+): UseSlice[] | null {
+  if (batchNo) {
+    const batch = batches.find((candidate) => candidate.batchNo === batchNo);
+
+    return batch && toThousandths(batch.remaining) >= wanted
+      ? [{ batchNo, thousandths: wanted }]
+      : null;
+  }
+
+  const slices: UseSlice[] = [];
+  let left = wanted;
+
+  for (const batch of unusableFirst(batches)) {
+    if (left === 0) {
+      break;
     }
 
     const taken = Math.min(toThousandths(batch.remaining), left);

@@ -20,11 +20,15 @@ import {
   canManageSuppliers,
   canPaySupplier,
   canPostPurchase,
+  canRecordCreditNote,
+  canReturnToSupplier,
   canSeeCosts,
 } from "@web/shared/permissions/inventory";
 import { useDeleteSupplier, useSupplier } from "@web/modules/inventory/queries";
 import { SupplierAccount } from "@web/modules/inventory/components/supplier-account";
 import { UninvoicedLines } from "@web/modules/inventory/components/uninvoiced-lines";
+import { SupplierReturnModal } from "@web/modules/inventory/components/supplier-return-modal";
+import { CreditNoteModal } from "@web/modules/inventory/components/credit-note-modal";
 import { SupplierFormModal } from "@web/modules/inventory/components/supplier-form-modal";
 import { SupplierPaymentModal } from "@web/modules/inventory/components/supplier-payment-modal";
 import { SUPPLIERS_TAB_PATH } from "@web/modules/inventory/constants";
@@ -43,12 +47,16 @@ export function SupplierPage(): JSX.Element {
 
   const [editing, setEditing] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [returning, setReturning] = useState(false);
+  const [crediting, setCrediting] = useState(false);
 
   const row = supplier.data;
   const seesCosts = canSeeCosts(can);
   const mayPay = seesCosts && canPaySupplier(can);
   const mayEdit = canManageSuppliers(can);
   const mayDelete = canDeleteSupplier(can);
+  const mayReturn = canReturnToSupplier(can);
+  const mayCredit = seesCosts && canRecordCreditNote(can);
 
   const askDelete = (): void => {
     if (!row) {
@@ -119,12 +127,30 @@ export function SupplierPage(): JSX.Element {
                 {t("inventory.suppliers.pay")}
               </Button>
             )}
-            {(mayEdit || mayDelete) && (
+            {(mayEdit || mayDelete || mayReturn || mayCredit) && (
               <RowMenu
                 size="target"
                 label={t("inventory.suppliers.menu")}
                 data-testid="supplier-actions"
               >
+                {mayReturn && (
+                  <MenuItem
+                    icon="reset"
+                    data-testid="supplier-return"
+                    onSelect={() => setReturning(true)}
+                  >
+                    {t("inventory.supplierReturn.action")}
+                  </MenuItem>
+                )}
+                {mayCredit && (
+                  <MenuItem
+                    icon="receipt"
+                    data-testid="supplier-credit-note"
+                    onSelect={() => setCrediting(true)}
+                  >
+                    {t("inventory.creditNote.action")}
+                  </MenuItem>
+                )}
                 {mayEdit && (
                   <MenuItem
                     icon="edit"
@@ -161,6 +187,14 @@ export function SupplierPage(): JSX.Element {
         onOpenChange={setEditing}
         supplier={row}
       />
+
+      <SupplierReturnModal
+        supplierId={id}
+        open={returning}
+        mayCredit={mayCredit}
+        onClose={() => setReturning(false)}
+      />
+      <CreditNoteModal supplierId={id} open={crediting} onClose={() => setCrediting(false)} />
 
       <SupplierPaymentModal
         supplier={paying && row ? row : null}

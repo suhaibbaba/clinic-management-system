@@ -36,11 +36,11 @@ import {
   consumeStockSchema,
   LAB_ORDER_STATUS,
   MOVEMENT_TYPE,
-  MOVEMENT_TYPES,
+  RECORDABLE_MOVEMENT_TYPES,
   purchaseStockSchema,
   type AdjustStockInput,
   type ConsumeStockInput,
-  type MovementType,
+  type RecordableMovementType,
   type PurchaseStockInput,
   AI_ACTIONS_SETTINGS_KEY,
   aiActionsSettings,
@@ -254,7 +254,7 @@ const labStatusSchema = z
     { path: ["reason"], message: "A return or a cancellation must say why" },
   );
 
-const MOVEMENT_CAPABILITY: Record<MovementType, string> = {
+const MOVEMENT_CAPABILITY: Record<RecordableMovementType, string> = {
   [MOVEMENT_TYPE.PURCHASE]: "inventory.purchase",
   [MOVEMENT_TYPE.CONSUME]: "inventory.consume",
   [MOVEMENT_TYPE.ADJUST]: "inventory.adjust",
@@ -262,7 +262,7 @@ const MOVEMENT_CAPABILITY: Record<MovementType, string> = {
 
 const movementSchema = z.object({
   item_id: z.uuid(),
-  type: z.enum(MOVEMENT_TYPES),
+  type: z.enum(RECORDABLE_MOVEMENT_TYPES),
   quantity: z
     .string()
     .describe("In the item's own unit, as a string. Negative only for an adjust that removes."),

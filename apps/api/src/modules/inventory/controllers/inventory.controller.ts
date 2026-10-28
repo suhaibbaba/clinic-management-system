@@ -21,6 +21,7 @@ import {
   type InventoryItem,
   type InventoryItemRow,
   type ItemBatches,
+  type LotBlock,
   type Paginated,
   type ShoppingList,
   type StockMovement,
@@ -38,6 +39,8 @@ import {
 import { InventoryItemsService } from "@api/modules/inventory/services/inventory-items.service";
 import { InventoryReportsService } from "@api/modules/inventory/services/inventory-reports.service";
 import { StockMovementsService } from "@api/modules/inventory/services/stock-movements.service";
+import { WriteOffsService } from "@api/modules/inventory/services/write-offs.service";
+import { LotBlocksService } from "@api/modules/inventory/services/lot-blocks.service";
 import { AiTool } from "@api/modules/ai/tools/route-tool.decorator";
 import {
   ListMovementsQueryDto,
@@ -47,6 +50,10 @@ import {
   IdParamDto,
   ReverseDto,
   CorrectPurchaseDto,
+  WriteOffDto,
+  BlockLotDto,
+  LiftLotBlockDto,
+  ListLotBlocksQueryDto,
   ListItemsQueryDto,
   CreateItemDto,
   UpdateItemDto,
@@ -60,6 +67,8 @@ export class InventoryController {
     private readonly reports: InventoryReportsService,
     private readonly documents: InventoryDocumentsService,
     private readonly delivery: DocumentDeliveryService,
+    private readonly writeOffs: WriteOffsService,
+    private readonly blocks: LotBlocksService,
   ) {}
 
   @Get("alerts")
@@ -142,6 +151,45 @@ export class InventoryController {
   @Audit(STOCK_MOVEMENTS_ENTITY, AUDIT_ACTION.CREATE)
   adjust(@CurrentUser() actor: AuthenticatedUser, @Body() body: AdjustDto): Promise<StockMovement> {
     return this.movements.adjust(actor, body);
+  }
+
+  @Post("movements/write-off")
+  @Roles(USER_ROLE.TECHNICIAN)
+  @Audit(STOCK_MOVEMENTS_ENTITY, AUDIT_ACTION.CREATE)
+  writeOff(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Body() body: WriteOffDto,
+  ): Promise<StockMovement> {
+    return this.writeOffs.writeOff(actor, body);
+  }
+
+  @Get("lot-blocks")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
+  lotBlocks(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Query() query: ListLotBlocksQueryDto,
+  ): Promise<LotBlock[]> {
+    return this.blocks.list(actor, query);
+  }
+
+  @Post("items/:id/lot-blocks")
+  @Roles(USER_ROLE.TECHNICIAN)
+  blockLot(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Body() body: BlockLotDto,
+  ): Promise<LotBlock> {
+    return this.blocks.block(actor, params.id, body);
+  }
+
+  @Patch("lot-blocks/:id/lift")
+  @Roles(USER_ROLE.ADMIN)
+  liftLotBlock(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Body() body: LiftLotBlockDto,
+  ): Promise<LotBlock> {
+    return this.blocks.lift(actor, params.id, body.reason);
   }
 
   @Patch("movements/:id/correct")

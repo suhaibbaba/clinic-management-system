@@ -1,5 +1,5 @@
 import type { TabDefinition } from "@clinic/ui";
-import { type MovementType, MOVEMENT_TYPE } from "@clinic/shared";
+import { type RecordableMovementType, MOVEMENT_TYPE } from "@clinic/shared";
 import type { IconName } from "@clinic/ui/components/icon";
 
 export const INVENTORY_TAB_STOCK = "stock";
@@ -10,13 +10,13 @@ export const SUPPLIERS_TAB_PATH = "/inventory?tab=suppliers";
 
 export const ITEM_PAGE_TABS = ["overview", "movements"] as const;
 
-export const MOVEMENT_ACTION_ICONS: Record<MovementType, IconName> = {
+export const MOVEMENT_ACTION_ICONS: Record<RecordableMovementType, IconName> = {
   [MOVEMENT_TYPE.PURCHASE]: "plus",
   [MOVEMENT_TYPE.CONSUME]: "trend-down",
   [MOVEMENT_TYPE.ADJUST]: "clipboard",
 };
 
-export const MOVEMENT_ACTIONS: readonly MovementType[] = [
+export const MOVEMENT_ACTIONS: readonly RecordableMovementType[] = [
   MOVEMENT_TYPE.PURCHASE,
   MOVEMENT_TYPE.CONSUME,
   MOVEMENT_TYPE.ADJUST,

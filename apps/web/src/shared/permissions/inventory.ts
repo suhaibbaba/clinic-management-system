@@ -1,4 +1,4 @@
-import { MOVEMENT_TYPE, RULE, type MovementType } from "@clinic/shared";
+import { MOVEMENT_TYPE, RULE, type RecordableMovementType } from "@clinic/shared";
 import type { Can } from "@web/shared/providers/session";
 
 export const seesInventory = (can: Can): boolean => can("inventory.list");
@@ -26,13 +26,23 @@ export const canPostPurchase = (can: Can): boolean => can("purchases.post");
 
 export const canInvoiceReceipts = (can: Can): boolean => can("purchases.invoiceReceipts");
 
+export const canWriteOff = (can: Can): boolean => can("inventory.writeOff");
+
+export const canBlockLot = (can: Can): boolean => can("inventory.blockLot");
+
+export const canLiftLotBlock = (can: Can): boolean => can("inventory.liftLotBlock");
+
+export const canReturnToSupplier = (can: Can): boolean => can("purchases.returnToSupplier");
+
+export const canRecordCreditNote = (can: Can): boolean => can("purchases.creditNote");
+
 export const canVoidInvoice = (can: Can): boolean => can("purchases.voidInvoice");
 
 export const canSeeCosts = (can: Can): boolean => can(RULE.INVENTORY_COSTS);
 
 export const canReversePricedPurchase = (can: Can): boolean => can(RULE.REVERSE_PRICED_PURCHASE);
 
-export const mayRecord = (type: MovementType, can: Can): boolean =>
+export const mayRecord = (type: RecordableMovementType, can: Can): boolean =>
   ({
     [MOVEMENT_TYPE.PURCHASE]: canPurchaseStock,
     [MOVEMENT_TYPE.CONSUME]: canConsumeStock,

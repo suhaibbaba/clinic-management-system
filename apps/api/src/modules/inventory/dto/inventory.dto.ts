@@ -10,6 +10,10 @@ import {
   adjustStockSchema,
   reverseMovementSchema,
   idParamSchema,
+  writeOffSchema,
+  blockLotSchema,
+  liftLotBlockSchema,
+  listLotBlocksQuerySchema,
 } from "@clinic/shared";
 
 export class CreateItemDto extends createZodDto(createInventoryItemSchema) {}
@@ -31,3 +35,11 @@ export class ReverseDto extends createZodDto(reverseMovementSchema) {}
 export class CorrectPurchaseDto extends createZodDto(correctPurchaseSchema) {}
 
 export class IdParamDto extends createZodDto(idParamSchema) {}
+
+export class WriteOffDto extends createZodDto(writeOffSchema) {}
+
+export class BlockLotDto extends createZodDto(blockLotSchema) {}
+
+export class LiftLotBlockDto extends createZodDto(liftLotBlockSchema) {}
+
+export class ListLotBlocksQueryDto extends createZodDto(listLotBlocksQuerySchema) {}

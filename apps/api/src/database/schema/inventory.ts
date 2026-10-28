@@ -3,9 +3,11 @@ import {
   PAYMENT_DIRECTIONS,
   PURCHASE_DOCUMENT_STATUSES,
   RECEIPT_KINDS,
+  SUPPLIER_DOCUMENT_KINDS,
 } from "@clinic/shared";
 import {
   boolean,
+  check,
   date,
   index,
   integer,
@@ -30,6 +32,7 @@ export const purchaseDocumentStatusEnum = pgEnum(
 );
 export const receiptKindEnum = pgEnum("receipt_kind", RECEIPT_KINDS);
 export const paymentDirectionEnum = pgEnum("supplier_payment_direction", PAYMENT_DIRECTIONS);
+export const supplierDocumentKindEnum = pgEnum("supplier_document_kind", SUPPLIER_DOCUMENT_KINDS);
 
 const auditColumns = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -86,6 +89,9 @@ export const inventoryItems = pgTable(
     defaultSupplierId: uuid("default_supplier_id").references(() => suppliers.id),
     notes: text("notes"),
     isActive: boolean("is_active").notNull().default(true),
+    hasExpiry: boolean("has_expiry").notNull().default(false),
+    sensitive: boolean("sensitive").notNull().default(false),
+    measured: boolean("measured").notNull().default(false),
     ...auditColumns,
     ...softDeleteColumn,
   },
@@ -121,6 +127,7 @@ export const stockMovements = pgTable(
     unknownQuantity: quantity("unknown_quantity").notNull().default("0"),
     receiptLineId: uuid("receipt_line_id"),
     occurredOn: date("occurred_on").notNull().defaultNow(),
+    reasonCode: text("reason_code"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     createdBy: uuid("created_by"),
   },
@@ -254,6 +261,8 @@ export const supplierInvoices = pgTable(
       .notNull()
       .references(() => suppliers.id),
     supplierRef: text("supplier_ref"),
+    kind: supplierDocumentKindEnum("kind").notNull().default("invoice"),
+    creditsInvoiceId: uuid("credits_invoice_id"),
     invoiceDate: date("invoice_date").notNull(),
     discountKind: text("discount_kind"),
     discountValue: amount("discount_value"),
@@ -263,6 +272,7 @@ export const supplierInvoices = pgTable(
     subtotal: amount("subtotal").notNull(),
     invoiceDiscount: amount("invoice_discount").notNull().default("0"),
     total: amount("total").notNull(),
+    variance: amount("variance").notNull().default("0"),
     note: text("note"),
     requestId: uuid("request_id"),
     ...voidColumns,
@@ -323,9 +333,8 @@ export const supplierAllocations = pgTable(
     clinicId: uuid("clinic_id")
       .notNull()
       .references(() => clinics.id),
-    paymentId: uuid("payment_id")
-      .notNull()
-      .references(() => supplierPayments.id),
+    paymentId: uuid("payment_id").references(() => supplierPayments.id),
+    creditId: uuid("credit_id").references(() => supplierInvoices.id),
     invoiceId: uuid("invoice_id")
       .notNull()
       .references(() => supplierInvoices.id),
@@ -338,6 +347,11 @@ export const supplierAllocations = pgTable(
   (table) => [
     index("supplier_allocations_payment_idx").on(table.paymentId),
     index("supplier_allocations_invoice_idx").on(table.invoiceId),
+    index("supplier_allocations_credit_idx").on(table.creditId),
+    check(
+      "supplier_allocations_one_source",
+      sql`(payment_id is null) <> (credit_id is null)`,
+    ),
   ],
 );
 
@@ -352,4 +366,30 @@ export const documentCounters = pgTable(
     last: integer("last").notNull().default(0),
   },
   (table) => [primaryKey({ columns: [table.clinicId, table.kind, table.year] })],
+);
+
+export const lotBlocks = pgTable(
+  "lot_blocks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    itemId: uuid("item_id")
+      .notNull()
+      .references(() => inventoryItems.id),
+    batchNo: text("batch_no").notNull(),
+    reason: text("reason").notNull(),
+    liftedAt: timestamp("lifted_at", { withTimezone: true }),
+    liftedBy: uuid("lifted_by"),
+    liftReason: text("lift_reason"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdBy: uuid("created_by"),
+  },
+  (table) => [
+    uniqueIndex("lot_blocks_active_uniq")
+      .on(table.clinicId, table.itemId, table.batchNo)
+      .where(sql`lifted_at is null`),
+    index("lot_blocks_item_idx").on(table.clinicId, table.itemId),
+  ],
 );
