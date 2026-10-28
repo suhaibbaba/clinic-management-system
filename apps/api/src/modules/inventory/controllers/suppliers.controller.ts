@@ -15,6 +15,7 @@ import {
   USER_ROLE,
   type Paginated,
   type Supplier,
+  type SupplierInvoiceSummary,
   type SupplierStatement,
   type SupplierSummary,
 } from "@clinic/shared";
@@ -25,6 +26,7 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { InventoryReportsService } from "@api/modules/inventory/services/inventory-reports.service";
 import { SUPPLIERS_ENTITY } from "@api/common/constants/audit-entities";
 import { SuppliersService } from "@api/modules/inventory/services/suppliers.service";
+import { PurchasingService } from "@api/modules/inventory/services/purchasing.service";
 import { AiTool } from "@api/modules/ai/tools/route-tool.decorator";
 import {
   ListSuppliersQueryDto,
@@ -39,6 +41,7 @@ export class SuppliersController {
   constructor(
     private readonly suppliers: SuppliersService,
     private readonly reports: InventoryReportsService,
+    private readonly purchasing: PurchasingService,
   ) {}
 
   @AiTool({
@@ -81,6 +84,15 @@ export class SuppliersController {
     @Query() query: StatementQueryDto,
   ): Promise<SupplierStatement> {
     return this.reports.supplierStatement(actor, params.id, query);
+  }
+
+  @Get(":id/invoices")
+  @Roles(USER_ROLE.TECHNICIAN)
+  invoices(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+  ): Promise<SupplierInvoiceSummary[]> {
+    return this.purchasing.listInvoices(actor, params.id);
   }
 
   @AiTool({

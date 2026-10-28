@@ -1,7 +1,6 @@
 import {
   LAB_COST_BEARER,
   LAB_ORDER_STATUS,
-  MOVEMENT_TYPE,
   PAY_BASIS,
   PAY_PLAN_KIND,
   PERFORMED_PROCEDURE_STATUS,
@@ -165,24 +164,7 @@ export function settlementLines(scope: SettlementScope): SQL {
           and (lo.status <> ${LAB_ORDER_STATUS.CANCELLED} or lo.cost_kept)
       ) lab on true
       left join lateral (
-        select sum(
-          abs(sm.quantity) * coalesce(
-            sm.unit_price,
-            (
-              select bought.unit_price
-              from stock_movements bought
-              where bought.item_id = sm.item_id
-                and bought.type = ${MOVEMENT_TYPE.PURCHASE}
-                and bought.unit_price is not null
-                and bought.reverses_id is null
-                and bought.reversed_at is null
-                and bought.created_at <= sm.created_at
-              order by bought.created_at desc
-              limit 1
-            ),
-            0
-          )
-        ) as cost
+        select -sum(sm.value) as cost
         from stock_movements sm
         where sm.performed_procedure_id = p.id
           and sm.reverses_id is null

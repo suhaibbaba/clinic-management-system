@@ -1578,7 +1578,8 @@
         "reversed": "Reversed",
         "kinds": {
           "opening": "Opening balance",
-          "payment": "Payment"
+          "payment": "Payment",
+          "invoice": "Invoice"
         }
       },
       "menu": "Supplier Options",
@@ -1608,11 +1609,12 @@
         "reverseReason": "Reason",
         "reversed": "Payment reversed"
       },
-      "purchase": {
-        "menu": "Purchase Options",
-        "editTitle": "Edit Purchase — {{item}}",
-        "editDescription": "The old purchase is reversed on the record and the corrected one is entered in its place, so the change stays visible.",
-        "updated": "Purchase updated"
+      "invoice": {
+        "void": "Void Invoice",
+        "voidTitle": "Void a Supplier Invoice",
+        "voidDescription": "The invoice stays on the statement with a line cancelling it; its payments become credit with the supplier.",
+        "voidReason": "Reason",
+        "voided": "Invoice voided"
       }
     },
     "section": {
@@ -2129,6 +2131,9 @@
       "supplier-payments": {
         "create": "Record a Supplier Payment",
         "reverse": "Reverse a Supplier Payment"
+      },
+      "purchasing": {
+        "backdate": "Date Purchase Documents More Than 7 Days Back"
       }
     },
     "hints": {
@@ -2201,7 +2206,8 @@
       "me": "My account",
       "website": "Website",
       "expenses": "Expenses",
-      "supplier-payments": "Supplier Payments"
+      "supplier-payments": "Supplier Payments",
+      "purchasing": "Purchasing"
     },
     "subtitle": "What each role is able to do",
     "title": "Permissions",

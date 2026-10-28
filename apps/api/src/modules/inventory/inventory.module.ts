@@ -13,15 +13,27 @@ import { SuppliersController } from "@api/modules/inventory/controllers/supplier
 import { SuppliersService } from "@api/modules/inventory/services/suppliers.service";
 import { SupplierPaymentsController } from "@api/modules/inventory/controllers/supplier-payments.controller";
 import { SupplierPaymentsService } from "@api/modules/inventory/services/supplier-payments.service";
+import { SupplierAllocationsService } from "@api/modules/inventory/services/supplier-allocations.service";
+import { StockLedgerService } from "@api/modules/inventory/services/stock-ledger.service";
+import { PurchasingService } from "@api/modules/inventory/services/purchasing.service";
+import { PurchasesController } from "@api/modules/inventory/controllers/purchases.controller";
 
 @Module({
   imports: [NotificationsModule, DatabaseModule, AuditModule],
-  controllers: [InventoryController, SuppliersController, SupplierPaymentsController],
+  controllers: [
+    InventoryController,
+    SuppliersController,
+    SupplierPaymentsController,
+    PurchasesController,
+  ],
   providers: [
     ClinicScopeService,
     StockService,
     SuppliersService,
     SupplierPaymentsService,
+    SupplierAllocationsService,
+    StockLedgerService,
+    PurchasingService,
     InventoryItemsService,
     StockMovementsService,
     InventoryReportsService,

@@ -523,24 +523,32 @@ describe("Inventory (e2e)", () => {
     expect(line?.suggested).toBe("17");
   });
 
-  it("totals what was bought from one supplier", async () => {
+  it("shows each priced purchase from a supplier as an invoice on its statement", async () => {
+    const created = await context.app.inject({
+      method: "POST",
+      url: "/suppliers",
+      headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+      payload: { name: `مورّد كشف ${uniquePhone()}` },
+    });
+    const ownSupplier = (created.json() as { id: string }).id;
     const itemId = await createItem({ name: `بند مورّد ${uniquePhone()}` });
 
-    await move("purchase", { itemId, quantity: "10", unitPrice: "3", supplierId });
-    await move("purchase", { itemId, quantity: "4", unitPrice: "3.00", supplierId });
-    await move("purchase", { itemId, quantity: "1", supplierId });
+    await move("purchase", { itemId, quantity: "10", unitPrice: "3", supplierId: ownSupplier });
+    await move("purchase", { itemId, quantity: "4", unitPrice: "3.00", supplierId: ownSupplier });
+    await move("purchase", { itemId, quantity: "1", supplierId: ownSupplier });
 
     const response = await context.app.inject({
       method: "GET",
-      url: `/suppliers/${supplierId}/statement`,
+      url: `/suppliers/${ownSupplier}/statement`,
       headers: auth(tokens[USER_ROLE.TECHNICIAN]),
     });
 
     expect(response.statusCode).toBe(200);
     const statement = response.json() as SupplierStatement;
-    const lines = statement.entries.filter((entry) => entry.itemId === itemId);
 
-    expect(lines.map((entry) => entry.amount)).toEqual(["30.00", "12.00", null]);
+    expect(statement.entries.map((entry) => entry.amount)).toEqual(["30.00", "12.00"]);
+    expect(statement.entries.every((entry) => entry.reference?.startsWith("PI-"))).toBe(true);
+    expect(statement.closingBalance).toBe("42.00");
   });
 
   it("lets an admin archive a supplier: gone as a default, kept on past purchases", async () => {

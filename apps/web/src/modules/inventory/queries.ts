@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tan
 import type {
   AdjustStockInput,
   ConsumeStockInput,
-  CorrectPurchaseInput,
   CreateInventoryItemInput,
   CreateSupplierInput,
   CreateSupplierPaymentInput,
@@ -157,12 +156,6 @@ export function useAdjustStock() {
   return useStockMutation((input: AdjustStockInput) => inventoryApi.adjust(input));
 }
 
-export function useCorrectPurchase() {
-  return useStockMutation(({ id, body }: { id: string; body: CorrectPurchaseInput }) =>
-    inventoryApi.correctPurchase(id, body),
-  );
-}
-
 export function useReverseMovement() {
   return useStockMutation(({ id, reason }: { id: string; reason: string }) =>
     inventoryApi.reverse(id, { reason }),
@@ -181,6 +174,12 @@ export function useUpdateSupplier() {
 
 export function usePaySupplier() {
   return useStockMutation((input: CreateSupplierPaymentInput) => suppliersApi.pay(input));
+}
+
+export function useVoidInvoice() {
+  return useStockMutation(({ id, reason }: { id: string; reason: string }) =>
+    suppliersApi.voidInvoice(id, reason),
+  );
 }
 
 export function useReverseSupplierPayment() {

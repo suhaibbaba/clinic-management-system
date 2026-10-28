@@ -1,8 +1,9 @@
 import { z } from "zod";
-import { MOVEMENT_TYPE, MOVEMENT_TYPES } from "@shared/enums";
+import { MOVEMENT_TYPE, MOVEMENT_TYPES, PURCHASE_DOCUMENT_STATUSES } from "@shared/enums";
+import { DISCOUNT_KIND } from "@shared/schemas/purchase-invoice";
 import { isoDateSchema } from "@shared/schemas/appointments";
 import { paginationQuerySchema, uuidSchema, optionalPhoneSchema } from "@shared/schemas/common";
-import { moneySchema, signedMoneySchema, wholeMoneySchema } from "@shared/schemas/money";
+import { moneySchema, signedMoneySchema } from "@shared/schemas/money";
 import { personNameSchema } from "@shared/schemas/person-name";
 import {
   movementQuantitySchema,
@@ -39,7 +40,7 @@ const supplierWritableFields = {
   contactPerson: z.string().trim().max(160).nullish(),
   notes: z.string().trim().max(2000).nullish(),
   isActive: z.boolean().optional(),
-  openingBalance: wholeMoneySchema.optional(),
+  openingBalance: moneySchema.optional(),
 };
 
 export const createSupplierSchema = z.object(supplierWritableFields);
@@ -143,9 +144,9 @@ export const purchaseStockSchema = z
   .object({
     itemId: uuidSchema,
     quantity: quantitySchema.refine((value) => Number(value) > 0, "A purchase must be positive"),
-    unitPrice: wholeMoneySchema.optional(),
+    unitPrice: moneySchema.optional(),
     supplierId: uuidSchema.nullish(),
-    paidNow: wholeMoneySchema.optional(),
+    paidNow: moneySchema.optional(),
     paymentMethod: lookupCodeSchema.optional(),
     requestId: uuidSchema.optional(),
     batchNo: z.string().trim().max(64).nullish(),
@@ -187,7 +188,7 @@ export type AdjustStockInput = z.infer<typeof adjustStockSchema>;
 
 export const correctPurchaseSchema = z.object({
   quantity: quantitySchema.refine((value) => Number(value) > 0, "A purchase must be positive"),
-  unitPrice: wholeMoneySchema.optional(),
+  unitPrice: moneySchema.optional(),
   reason: z.string().trim().min(3).max(500),
 });
 export type CorrectPurchaseInput = z.infer<typeof correctPurchaseSchema>;
@@ -260,7 +261,7 @@ export const SUPPLIER_ENTRY_KIND = {
 export type SupplierEntryKind = (typeof SUPPLIER_ENTRY_KIND)[keyof typeof SUPPLIER_ENTRY_KIND];
 
 export const supplierStatementEntrySchema = z.object({
-  id: uuidSchema,
+  id: z.string(),
   kind: z.enum([
     SUPPLIER_ENTRY_KIND.OPENING,
     SUPPLIER_ENTRY_KIND.PURCHASE,
@@ -274,6 +275,7 @@ export const supplierStatementEntrySchema = z.object({
   unitPrice: moneySchema.nullable(),
   method: lookupCodeSchema.nullable(),
   note: z.string().nullable(),
+  reference: z.string().nullable(),
   amount: signedMoneySchema.nullable(),
   runningBalance: signedMoneySchema,
   isReversal: z.boolean(),
@@ -311,10 +313,8 @@ export type SupplierPayment = z.infer<typeof supplierPaymentSchema>;
 
 export const createSupplierPaymentSchema = z.object({
   supplierId: uuidSchema,
-  amount: wholeMoneySchema.refine(
-    (value) => Number(value) > 0,
-    "A payment must be greater than zero",
-  ),
+  paidOn: isoDateSchema.optional(),
+  amount: moneySchema.refine((value) => Number(value) > 0, "A payment must be greater than zero"),
   method: lookupCodeSchema,
   note: z.string().trim().max(500).nullish(),
   requestId: uuidSchema.optional(),
@@ -353,3 +353,114 @@ export const movementInputFor = {
   [MOVEMENT_TYPE.CONSUME]: consumeStockSchema,
   [MOVEMENT_TYPE.ADJUST]: adjustStockSchema,
 } as const;
+
+const discountSchema = z.object({
+  kind: z.enum([DISCOUNT_KIND.PERCENT, DISCOUNT_KIND.AMOUNT]),
+  value: moneySchema,
+});
+
+export const purchaseLineSchema = z.object({
+  itemId: uuidSchema,
+  quantity: quantitySchema,
+  freeQuantity: quantitySchema.optional(),
+  unitPrice: moneySchema.optional(),
+  discount: discountSchema.optional(),
+  gift: z.boolean().optional(),
+  batchNo: z.string().trim().max(64).nullish(),
+  expiryDate: isoDateSchema.nullish(),
+});
+export type PurchaseLineInput = z.infer<typeof purchaseLineSchema>;
+
+export const invoiceTermsSchema = z.object({
+  supplierRef: z.string().trim().max(64).nullish(),
+  discount: discountSchema.optional(),
+  charges: moneySchema.optional(),
+  taxRate: z
+    .string()
+    .regex(/^\d{1,2}(\.\d{1,2})?$/)
+    .optional(),
+  taxAmount: moneySchema.optional(),
+  applyCredit: z.boolean().optional(),
+});
+
+export const postPurchaseSchema = z
+  .object({
+    supplierId: uuidSchema.nullish(),
+    date: isoDateSchema,
+    lines: z.array(purchaseLineSchema).min(1).max(200),
+    invoice: invoiceTermsSchema.nullish(),
+    paidNow: moneySchema.optional(),
+    paymentMethod: lookupCodeSchema.optional(),
+    note: z.string().trim().max(500).nullish(),
+    requestId: uuidSchema.optional(),
+  })
+  .refine((input) => !input.invoice || Boolean(input.supplierId), {
+    message: "An invoice needs a supplier",
+    path: ["supplierId"],
+  })
+  .refine((input) => !input.paidNow || (Boolean(input.invoice) && Boolean(input.paymentMethod)), {
+    message: "A payment needs an invoice and a method",
+    path: ["paidNow"],
+  });
+export type PostPurchaseInput = z.infer<typeof postPurchaseSchema>;
+
+export const invoiceReceiptsSchema = invoiceTermsSchema.extend({
+  supplierId: uuidSchema,
+  date: isoDateSchema,
+  lines: z
+    .array(
+      z.object({
+        receiptLineId: uuidSchema,
+        unitPrice: moneySchema,
+        discount: discountSchema.optional(),
+        gift: z.boolean().optional(),
+      }),
+    )
+    .min(1)
+    .max(200),
+  note: z.string().trim().max(500).nullish(),
+  requestId: uuidSchema.optional(),
+});
+export type InvoiceReceiptsInput = z.infer<typeof invoiceReceiptsSchema>;
+
+export const voidDocumentSchema = z.object({ reason: z.string().trim().min(3).max(500) });
+export type VoidDocumentInput = z.infer<typeof voidDocumentSchema>;
+
+export const reallocatePaymentSchema = z.object({
+  allocations: z.array(z.object({ invoiceId: uuidSchema, amount: moneySchema })).max(100),
+  reason: z.string().trim().min(3).max(500),
+});
+export type ReallocatePaymentInput = z.infer<typeof reallocatePaymentSchema>;
+
+export const supplierRefundSchema = z.object({
+  supplierId: uuidSchema,
+  amount: moneySchema.refine((value) => Number(value) > 0, "A refund must be greater than zero"),
+  method: lookupCodeSchema,
+  paidOn: isoDateSchema.optional(),
+  note: z.string().trim().max(500).nullish(),
+  requestId: uuidSchema.optional(),
+});
+export type SupplierRefundInput = z.infer<typeof supplierRefundSchema>;
+
+export const purchaseResultSchema = z.object({
+  receiptId: uuidSchema,
+  receiptNumber: z.string(),
+  invoiceId: uuidSchema.nullable(),
+  invoiceNumber: z.string().nullable(),
+  total: moneySchema.nullable(),
+  paymentId: uuidSchema.nullable(),
+  movementIds: z.array(uuidSchema),
+});
+export type PurchaseResult = z.infer<typeof purchaseResultSchema>;
+
+export const supplierInvoiceSummarySchema = z.object({
+  id: uuidSchema,
+  number: z.string(),
+  supplierRef: z.string().nullable(),
+  invoiceDate: isoDateSchema,
+  status: z.enum(PURCHASE_DOCUMENT_STATUSES),
+  total: moneySchema,
+  paid: moneySchema,
+  open: signedMoneySchema,
+});
+export type SupplierInvoiceSummary = z.infer<typeof supplierInvoiceSummarySchema>;

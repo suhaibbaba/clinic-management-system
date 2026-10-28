@@ -1040,6 +1040,45 @@ export const WEBSITE_ERROR = {
   CONTACT_CLOSED: "website_contact_closed",
 } as const satisfies Record<string, string>;
 
+export const PURCHASE_DOCUMENT_STATUS = {
+  POSTED: "posted",
+  VOID: "void",
+} as const satisfies Record<string, string>;
+export type PurchaseDocumentStatus = EnumValue<typeof PURCHASE_DOCUMENT_STATUS>;
+export const PURCHASE_DOCUMENT_STATUSES = [
+  PURCHASE_DOCUMENT_STATUS.POSTED,
+  PURCHASE_DOCUMENT_STATUS.VOID,
+] as const;
+
+export const RECEIPT_KIND = {
+  RECEIPT: "receipt",
+  OPENING: "opening",
+} as const satisfies Record<string, string>;
+export type ReceiptKind = EnumValue<typeof RECEIPT_KIND>;
+export const RECEIPT_KINDS = [RECEIPT_KIND.RECEIPT, RECEIPT_KIND.OPENING] as const;
+
+export const PAYMENT_DIRECTION = {
+  PAID: "paid",
+  REFUND: "refund",
+} as const satisfies Record<string, string>;
+export type PaymentDirection = EnumValue<typeof PAYMENT_DIRECTION>;
+export const PAYMENT_DIRECTIONS = [PAYMENT_DIRECTION.PAID, PAYMENT_DIRECTION.REFUND] as const;
+
+export const PURCHASE_ERROR = {
+  CLOSED_MONTH: "purchase_closed_month",
+  FUTURE_DATE: "purchase_future_date",
+  BACKDATE_NOT_ALLOWED: "purchase_backdate_not_allowed",
+  DUPLICATE_REFERENCE: "purchase_duplicate_reference",
+  ALREADY_INVOICED: "purchase_already_invoiced",
+  INVOICED_RECEIPT: "purchase_receipt_invoiced",
+  MISSING_PRICE: "purchase_missing_price",
+  ALLOCATION_EXCEEDS: "purchase_allocation_exceeds",
+  REFUND_EXCEEDS_CREDIT: "purchase_refund_exceeds_credit",
+  VOID_DOCUMENT: "purchase_void_document",
+} as const satisfies Record<string, string>;
+
+export const PURCHASE_BACKDATE_DAYS = 7;
+
 export const STOCK_ERROR = {
   INSUFFICIENT: "insufficient_stock",
   BELOW_ONE: "stock_take_below_one",

@@ -1,11 +1,18 @@
-import { MOVEMENT_TYPES } from "@clinic/shared";
+import {
+  MOVEMENT_TYPES,
+  PAYMENT_DIRECTIONS,
+  PURCHASE_DOCUMENT_STATUSES,
+  RECEIPT_KINDS,
+} from "@clinic/shared";
 import {
   boolean,
   date,
   index,
+  integer,
   numeric,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -17,6 +24,12 @@ import { normalizedName } from "@api/database/schema/normalized-name";
 import { patients, performedProcedures } from "@api/database/schema/patients";
 
 export const movementTypeEnum = pgEnum("movement_type", MOVEMENT_TYPES);
+export const purchaseDocumentStatusEnum = pgEnum(
+  "purchase_document_status",
+  PURCHASE_DOCUMENT_STATUSES,
+);
+export const receiptKindEnum = pgEnum("receipt_kind", RECEIPT_KINDS);
+export const paymentDirectionEnum = pgEnum("supplier_payment_direction", PAYMENT_DIRECTIONS);
 
 const auditColumns = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -30,6 +43,15 @@ const softDeleteColumn = { deletedAt: timestamp("deleted_at", { withTimezone: tr
 const money = (name: string) => numeric(name, { precision: 10, scale: 2 });
 
 const quantity = (name: string) => numeric(name, { precision: 12, scale: 3 });
+
+const amount = (name: string) => numeric(name, { precision: 12, scale: 2 });
+
+const voidColumns = {
+  status: purchaseDocumentStatusEnum("status").notNull().default("posted"),
+  voidReason: text("void_reason"),
+  voidedAt: timestamp("voided_at", { withTimezone: true }),
+  voidedBy: uuid("voided_by"),
+};
 
 export const suppliers = pgTable(
   "suppliers",
@@ -95,6 +117,10 @@ export const stockMovements = pgTable(
     reversesId: uuid("reverses_id"),
     reversedAt: timestamp("reversed_at", { withTimezone: true }),
     requestId: uuid("request_id"),
+    value: amount("value").notNull().default("0"),
+    unknownQuantity: quantity("unknown_quantity").notNull().default("0"),
+    receiptLineId: uuid("receipt_line_id"),
+    occurredOn: date("occurred_on").notNull().defaultNow(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     createdBy: uuid("created_by"),
   },
@@ -129,6 +155,8 @@ export const supplierPayments = pgTable(
     reversedAt: timestamp("reversed_at", { withTimezone: true }),
     paidBy: uuid("paid_by").references(() => users.id),
     requestId: uuid("request_id"),
+    paidOn: date("paid_on").notNull().defaultNow(),
+    direction: paymentDirectionEnum("direction").notNull().default("paid"),
     ...auditColumns,
     ...softDeleteColumn,
   },
@@ -158,4 +186,170 @@ export const supplierOpeningBalances = pgTable(
     ...softDeleteColumn,
   },
   (table) => [index("supplier_opening_balances_supplier_idx").on(table.clinicId, table.supplierId)],
+);
+
+export const stockReceipts = pgTable(
+  "stock_receipts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    number: text("number").notNull(),
+    kind: receiptKindEnum("kind").notNull().default("receipt"),
+    supplierId: uuid("supplier_id").references(() => suppliers.id),
+    receivedOn: date("received_on").notNull(),
+    note: text("note"),
+    requestId: uuid("request_id"),
+    ...voidColumns,
+    ...auditColumns,
+  },
+  (table) => [
+    uniqueIndex("stock_receipts_number_uniq").on(table.clinicId, table.number),
+    uniqueIndex("stock_receipts_request_uniq")
+      .on(table.clinicId, table.requestId)
+      .where(sql`request_id is not null`),
+    index("stock_receipts_supplier_idx").on(table.clinicId, table.supplierId, table.receivedOn),
+  ],
+);
+
+export const stockReceiptLines = pgTable(
+  "stock_receipt_lines",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    receiptId: uuid("receipt_id")
+      .notNull()
+      .references(() => stockReceipts.id),
+    itemId: uuid("item_id")
+      .notNull()
+      .references(() => inventoryItems.id),
+    quantity: quantity("quantity").notNull(),
+    freeQuantity: quantity("free_quantity").notNull().default("0"),
+    unitPrice: amount("unit_price"),
+    purchaseUnit: text("purchase_unit"),
+    unitsPerPurchaseUnit: quantity("units_per_purchase_unit").notNull().default("1"),
+    batchNo: text("batch_no"),
+    expiryDate: date("expiry_date"),
+    movementId: uuid("movement_id").references(() => stockMovements.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("stock_receipt_lines_receipt_idx").on(table.receiptId),
+    uniqueIndex("stock_receipt_lines_movement_uniq").on(table.movementId),
+  ],
+);
+
+export const supplierInvoices = pgTable(
+  "supplier_invoices",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    number: text("number").notNull(),
+    supplierId: uuid("supplier_id")
+      .notNull()
+      .references(() => suppliers.id),
+    supplierRef: text("supplier_ref"),
+    invoiceDate: date("invoice_date").notNull(),
+    discountKind: text("discount_kind"),
+    discountValue: amount("discount_value"),
+    charges: amount("charges").notNull().default("0"),
+    taxRate: numeric("tax_rate", { precision: 5, scale: 2 }),
+    taxAmount: amount("tax_amount"),
+    subtotal: amount("subtotal").notNull(),
+    invoiceDiscount: amount("invoice_discount").notNull().default("0"),
+    total: amount("total").notNull(),
+    note: text("note"),
+    requestId: uuid("request_id"),
+    ...voidColumns,
+    ...auditColumns,
+  },
+  (table) => [
+    uniqueIndex("supplier_invoices_number_uniq").on(table.clinicId, table.number),
+    uniqueIndex("supplier_invoices_request_uniq")
+      .on(table.clinicId, table.requestId)
+      .where(sql`request_id is not null`),
+    uniqueIndex("supplier_invoices_reference_uniq")
+      .on(table.clinicId, table.supplierId, sql`lower(${table.supplierRef})`)
+      .where(sql`status = 'posted' and supplier_ref is not null`),
+    index("supplier_invoices_supplier_idx").on(table.clinicId, table.supplierId, table.invoiceDate),
+  ],
+);
+
+export const supplierInvoiceLines = pgTable(
+  "supplier_invoice_lines",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    invoiceId: uuid("invoice_id")
+      .notNull()
+      .references(() => supplierInvoices.id),
+    receiptLineId: uuid("receipt_line_id")
+      .notNull()
+      .references(() => stockReceiptLines.id),
+    itemId: uuid("item_id")
+      .notNull()
+      .references(() => inventoryItems.id),
+    quantity: quantity("quantity").notNull(),
+    freeQuantity: quantity("free_quantity").notNull().default("0"),
+    unitPrice: amount("unit_price").notNull(),
+    discountKind: text("discount_kind"),
+    discountValue: amount("discount_value"),
+    gift: boolean("gift").notNull().default(false),
+    gross: amount("gross").notNull(),
+    lineDiscount: amount("line_discount").notNull().default("0"),
+    net: amount("net").notNull(),
+    allocation: amount("allocation").notNull().default("0"),
+    cost: amount("cost").notNull(),
+    variance: amount("variance").notNull().default("0"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("supplier_invoice_lines_invoice_idx").on(table.invoiceId),
+    index("supplier_invoice_lines_receipt_line_idx").on(table.receiptLineId),
+  ],
+);
+
+export const supplierAllocations = pgTable(
+  "supplier_allocations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    paymentId: uuid("payment_id")
+      .notNull()
+      .references(() => supplierPayments.id),
+    invoiceId: uuid("invoice_id")
+      .notNull()
+      .references(() => supplierInvoices.id),
+    amount: amount("amount").notNull(),
+    reason: text("reason"),
+    reversesId: uuid("reverses_id"),
+    reversedAt: timestamp("reversed_at", { withTimezone: true }),
+    ...auditColumns,
+  },
+  (table) => [
+    index("supplier_allocations_payment_idx").on(table.paymentId),
+    index("supplier_allocations_invoice_idx").on(table.invoiceId),
+  ],
+);
+
+export const documentCounters = pgTable(
+  "document_counters",
+  {
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    kind: text("kind").notNull(),
+    year: integer("year").notNull(),
+    last: integer("last").notNull().default(0),
+  },
+  (table) => [primaryKey({ columns: [table.clinicId, table.kind, table.year] })],
 );

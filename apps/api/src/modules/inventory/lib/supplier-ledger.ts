@@ -1,16 +1,17 @@
 import {
   addMoney,
+  DEFAULT_TIME_ZONE,
   formatMinorUnits,
-  formatThousandths,
+  localDate,
+  PAYMENT_DIRECTION,
+  PURCHASE_DOCUMENT_STATUS,
   SUPPLIER_ENTRY_KIND,
   toMinorUnits,
-  toThousandths,
   type Money,
   type SupplierStatement,
   type SupplierStatementEntry,
 } from "@clinic/shared";
-import { stockMovements, supplierOpeningBalances, supplierPayments } from "@api/database/schema";
-import { lineTotal } from "@api/modules/inventory/lib/inventory-reports";
+import { supplierInvoices, supplierOpeningBalances, supplierPayments } from "@api/database/schema";
 
 export type SupplierLedgerLine = Omit<SupplierStatementEntry, "occurredAt" | "runningBalance"> & {
   readonly occurredAt: Date;
@@ -24,7 +25,11 @@ const blank = {
   unitPrice: null,
   method: null,
   note: null,
+  reference: null,
 };
+
+const onDate = (date: string, createdAt: Date): Date =>
+  localDate(createdAt, DEFAULT_TIME_ZONE) === date ? createdAt : new Date(`${date}T12:00:00.000Z`);
 
 export function openingLine(row: typeof supplierOpeningBalances.$inferSelect): SupplierLedgerLine {
   return {
@@ -38,26 +43,36 @@ export function openingLine(row: typeof supplierOpeningBalances.$inferSelect): S
   };
 }
 
-export function purchaseLine(
-  movement: typeof stockMovements.$inferSelect,
-  itemName: string,
-  unit: string,
-): SupplierLedgerLine {
-  return {
+export function invoiceLines(row: typeof supplierInvoices.$inferSelect): SupplierLedgerLine[] {
+  const reference = row.supplierRef ? `${row.number} · ${row.supplierRef}` : row.number;
+  const posted: SupplierLedgerLine = {
     ...blank,
-    id: movement.id,
+    id: row.id,
     kind: SUPPLIER_ENTRY_KIND.PURCHASE,
-    occurredAt: movement.createdAt,
-    itemId: movement.itemId,
-    itemName,
-    unit,
-    quantity: formatThousandths(toThousandths(movement.quantity)),
-    unitPrice: movement.unitPrice,
-    note: movement.reason,
-    amount: movement.unitPrice === null ? null : lineTotal(movement.quantity, movement.unitPrice),
-    isReversal: movement.reversesId !== null,
-    isReversed: movement.reversedAt !== null,
+    occurredAt: onDate(row.invoiceDate, row.createdAt),
+    reference,
+    note: row.note,
+    amount: row.total,
+    isReversal: false,
+    isReversed: row.status === PURCHASE_DOCUMENT_STATUS.VOID,
   };
+
+  if (row.status !== PURCHASE_DOCUMENT_STATUS.VOID || !row.voidedAt) {
+    return [posted];
+  }
+
+  return [
+    posted,
+    {
+      ...posted,
+      id: `${row.id.slice(0, 35)}v`,
+      occurredAt: row.voidedAt,
+      note: row.voidReason,
+      amount: formatMinorUnits(-toMinorUnits(row.total)),
+      isReversal: true,
+      isReversed: false,
+    },
+  ];
 }
 
 export function paymentLine(row: typeof supplierPayments.$inferSelect): SupplierLedgerLine {
@@ -65,10 +80,14 @@ export function paymentLine(row: typeof supplierPayments.$inferSelect): Supplier
     ...blank,
     id: row.id,
     kind: SUPPLIER_ENTRY_KIND.PAYMENT,
-    occurredAt: row.createdAt,
+    occurredAt: row.reversesId ? row.createdAt : onDate(row.paidOn, row.createdAt),
     method: row.method,
     note: row.note,
-    amount: formatMinorUnits(-toMinorUnits(row.amount)),
+    amount: formatMinorUnits(
+      row.direction === PAYMENT_DIRECTION.REFUND
+        ? toMinorUnits(row.amount)
+        : -toMinorUnits(row.amount),
+    ),
     isReversal: row.reversesId !== null,
     isReversed: row.reversedAt !== null,
   };

@@ -11,6 +11,7 @@ export const RULE = {
   OVERDUE_WIDGET: "dashboard.overdue",
   INVENTORY_COSTS: "inventory.costs",
   REVERSE_PRICED_PURCHASE: "inventory.reversePricedPurchase",
+  BACKDATE_PURCHASES: "purchasing.backdate",
 } as const;
 
 export type Rule = (typeof RULE)[keyof typeof RULE];

@@ -294,9 +294,16 @@ export class SuppliersService implements OnModuleInit {
     );
   }
 
+  async owed(clinicId: string, supplierId: string, executor: DatabaseExecutor): Promise<string> {
+    const account = (await this.summarise(clinicId, [supplierId], executor)).get(supplierId);
+
+    return account?.balance ?? "0.00";
+  }
+
   private async summarise(
     clinicId: string,
     supplierIds: readonly string[],
+    executor: DatabaseExecutor = this.db,
   ): Promise<Map<string, SupplierAccount>> {
     if (supplierIds.length === 0) {
       return new Map();
@@ -307,7 +314,7 @@ export class SuppliersService implements OnModuleInit {
       sql`, `,
     );
 
-    const rows = await this.db.execute<{
+    const rows = await executor.execute<{
       supplier_id: string;
       opening: string;
       purchased: string;
@@ -322,18 +329,17 @@ export class SuppliersService implements OnModuleInit {
           where clinic_id = ${clinicId} and supplier_id = s.supplier_id and deleted_at is null
         ), 0)::text as opening,
         coalesce((
-          select round(sum(quantity * unit_price), 2) from stock_movements
-          where clinic_id = ${clinicId} and supplier_id = s.supplier_id
-            and type = 'purchase' and unit_price is not null
+          select sum(total) from supplier_invoices
+          where clinic_id = ${clinicId} and supplier_id = s.supplier_id and status = 'posted'
         ), 0)::text as purchased,
         coalesce((
-          select sum(amount) from supplier_payments
+          select sum(case when direction = 'refund' then -amount else amount end)
+          from supplier_payments
           where clinic_id = ${clinicId} and supplier_id = s.supplier_id and deleted_at is null
         ), 0)::text as paid,
         (
-          select max(created_at) from stock_movements
-          where clinic_id = ${clinicId} and supplier_id = s.supplier_id
-            and type = 'purchase' and reverses_id is null and reversed_at is null
+          select max(received_on) from stock_receipts
+          where clinic_id = ${clinicId} and supplier_id = s.supplier_id and status = 'posted'
         ) as last_purchase_at
       from scoped s
     `);

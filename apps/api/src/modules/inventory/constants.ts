@@ -14,3 +14,7 @@ export const SUPPLIER_PAYMENT_CAPABILITY = "supplier-payments.create";
 export const STOCK_MOVEMENTS_REQUEST_INDEX = "stock_movements_request_uniq";
 
 export const SUPPLIER_PAYMENTS_REQUEST_INDEX = "supplier_payments_request_uniq";
+
+export const RECEIPT_REQUEST_INDEX = "stock_receipts_request_uniq";
+
+export const SUPPLIER_REFERENCE_INDEX = "supplier_invoices_reference_uniq";

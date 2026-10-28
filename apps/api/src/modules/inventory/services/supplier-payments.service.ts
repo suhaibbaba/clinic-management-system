@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -7,9 +8,14 @@ import {
 } from "@nestjs/common";
 import {
   LOOKUP_LIST,
+  PAYMENT_DIRECTION,
+  PURCHASE_ERROR,
+  toMinorUnits,
   type CreateSupplierPaymentInput,
+  type PaymentDirection,
   type ReverseSupplierPaymentInput,
   type SupplierPayment,
+  type SupplierRefundInput,
 } from "@clinic/shared";
 import { and, eq } from "drizzle-orm";
 import { UNIQUE_VIOLATION } from "@api/common/constants/postgres-errors";
@@ -22,6 +28,7 @@ import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/da
 import { supplierPayments } from "@api/database/schema";
 import { LookupsService } from "@api/modules/lookups/services/lookups.service";
 import { SuppliersService } from "@api/modules/inventory/services/suppliers.service";
+import { SupplierAllocationsService } from "@api/modules/inventory/services/supplier-allocations.service";
 import { SUPPLIER_PAYMENTS_ENTITY } from "@api/common/constants/audit-entities";
 import { toSupplierPayment } from "@api/modules/inventory/lib/supplier-payments";
 import { negate } from "@api/common/lib/money";
@@ -34,6 +41,7 @@ export class SupplierPaymentsService implements OnModuleInit {
     private readonly scope: ClinicScopeService,
     private readonly suppliersService: SuppliersService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly allocations: SupplierAllocationsService,
   ) {}
 
   onModuleInit(): void {
@@ -53,7 +61,7 @@ export class SupplierPaymentsService implements OnModuleInit {
     input: CreateSupplierPaymentInput,
   ): Promise<SupplierPayment> {
     if (input.requestId === undefined) {
-      return this.create(actor, input);
+      return this.payAndAllocate(actor, input);
     }
 
     const earlier = await this.byRequest(actor.clinicId, input.requestId);
@@ -63,7 +71,7 @@ export class SupplierPaymentsService implements OnModuleInit {
     }
 
     try {
-      return await this.create(actor, input);
+      return await this.payAndAllocate(actor, input);
     } catch (error) {
       const replayed =
         violatedConstraint(error, UNIQUE_VIOLATION) === SUPPLIER_PAYMENTS_REQUEST_INDEX
@@ -76,6 +84,52 @@ export class SupplierPaymentsService implements OnModuleInit {
 
       throw error;
     }
+  }
+
+  async validate(actor: AuthenticatedUser, supplierId: string, method: string): Promise<void> {
+    await this.suppliersService.requireRow(actor.clinicId, supplierId);
+    await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.PAYMENT_METHOD, method);
+  }
+
+  private async payAndAllocate(
+    actor: AuthenticatedUser,
+    input: CreateSupplierPaymentInput,
+  ): Promise<SupplierPayment> {
+    await this.validate(actor, input.supplierId, input.method);
+
+    return this.db.transaction(async (tx) => {
+      await this.allocations.lockSupplier(tx, actor.clinicId, input.supplierId);
+
+      const payment = await this.create(actor, input, tx);
+
+      await this.allocations.allocatePayment(
+        tx,
+        actor,
+        input.supplierId,
+        payment.id,
+        toMinorUnits(payment.amount),
+      );
+
+      return payment;
+    });
+  }
+
+  async refund(actor: AuthenticatedUser, input: SupplierRefundInput): Promise<SupplierPayment> {
+    await this.validate(actor, input.supplierId, input.method);
+
+    return this.db.transaction(async (tx) => {
+      await this.allocations.lockSupplier(tx, actor.clinicId, input.supplierId);
+
+      const credit = -toMinorUnits(
+        await this.suppliersService.owed(actor.clinicId, input.supplierId, tx),
+      );
+
+      if (toMinorUnits(input.amount) > credit) {
+        throw new ConflictException(PURCHASE_ERROR.REFUND_EXCEEDS_CREDIT);
+      }
+
+      return this.create(actor, input, tx, null, PAYMENT_DIRECTION.REFUND);
+    });
   }
 
   private async byRequest(
@@ -98,10 +152,8 @@ export class SupplierPaymentsService implements OnModuleInit {
     input: CreateSupplierPaymentInput,
     executor: DatabaseExecutor = this.db,
     movementId: string | null = null,
+    direction: PaymentDirection = PAYMENT_DIRECTION.PAID,
   ): Promise<SupplierPayment> {
-    await this.suppliersService.requireRow(actor.clinicId, input.supplierId);
-    await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.PAYMENT_METHOD, input.method);
-
     const [row] = await executor
       .insert(supplierPayments)
       .values({
@@ -113,6 +165,8 @@ export class SupplierPaymentsService implements OnModuleInit {
         note: input.note ?? null,
         paidBy: actor.id,
         requestId: input.requestId ?? null,
+        direction,
+        ...(input.paidOn !== undefined && { paidOn: input.paidOn }),
         createdBy: actor.id,
         updatedBy: actor.id,
       })
@@ -148,6 +202,9 @@ export class SupplierPaymentsService implements OnModuleInit {
         throw new BadRequestException("This payment has already been reversed");
       }
 
+      await this.allocations.lockSupplier(tx, actor.clinicId, original.supplierId);
+      await this.allocations.reverseForPayment(tx, actor, original.id, input.reason);
+
       await tx
         .update(supplierPayments)
         .set({ reversedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
@@ -161,6 +218,8 @@ export class SupplierPaymentsService implements OnModuleInit {
           movementId: original.movementId,
           amount: negate(original.amount),
           method: original.method,
+          direction: original.direction,
+          paidOn: original.paidOn,
           note: input.reason,
           reversesId: original.id,
           paidBy: original.paidBy,

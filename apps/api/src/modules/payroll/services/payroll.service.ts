@@ -44,7 +44,6 @@ import {
   payrollMonths,
   salaryTerms,
   staffPayments,
-  stockMovements,
   users,
   type PayrollLineSnapshot,
 } from "@api/database/schema";
@@ -442,12 +441,23 @@ export class PayrollService implements OnModuleInit {
               and ${labPayments.createdAt} >= ${from}::timestamptz and ${labPayments.createdAt} < ${until}::timestamptz`,
       ),
       sumWhere(
-        sql`select coalesce(sum(${stockMovements.quantity} * ${stockMovements.unitPrice}), 0)::numeric(12, 2)::text as total
-            from ${stockMovements}
-            where ${stockMovements.clinicId} = ${clinicId}
-              and ${stockMovements.type} = ${MOVEMENT_TYPE.PURCHASE}
-              and ${stockMovements.unitPrice} is not null
-              and ${stockMovements.createdAt} >= ${from}::timestamptz and ${stockMovements.createdAt} < ${until}::timestamptz`,
+        sql`select (
+              coalesce((
+                select sum(i.total) from supplier_invoices i
+                where i.clinic_id = ${clinicId} and i.status = 'posted'
+                  and i.invoice_date >= ${monthStart(month)}::date
+                  and i.invoice_date < ${nextMonthStart(month)}::date
+              ), 0)
+              + coalesce((
+                select sum(m.value) from stock_movements m
+                join stock_receipt_lines l on l.id = m.receipt_line_id
+                join stock_receipts r on r.id = l.receipt_id
+                where r.clinic_id = ${clinicId} and r.kind = 'receipt' and r.supplier_id is null
+                  and r.status = 'posted' and m.type = ${MOVEMENT_TYPE.PURCHASE} and m.reverses_id is null
+                  and r.received_on >= ${monthStart(month)}::date
+                  and r.received_on < ${nextMonthStart(month)}::date
+              ), 0)
+            )::numeric(12, 2)::text as total`,
       ),
       this.expenses.totalBetween(clinicId, monthStart(month), nextMonthStart(month)),
     ]);

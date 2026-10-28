@@ -15,8 +15,6 @@ import {
   EmptyState,
   Icon,
   Ltr,
-  MenuItem,
-  RowMenu,
   StatCard,
   Table,
   usePageParams,
@@ -25,16 +23,10 @@ import { useLookupLabels } from "@web/shared/queries/lookups";
 import { Money } from "@web/shared/components/money";
 import { useClinic } from "@web/shared/queries/clinic";
 import { useSession } from "@web/shared/providers/session";
-import {
-  canCorrectPurchase,
-  canReverseMovement,
-  canReversePricedPurchase,
-  canReverseSupplierPayment,
-} from "@web/shared/permissions/inventory";
+import { canReverseSupplierPayment, canVoidInvoice } from "@web/shared/permissions/inventory";
 import { useSupplierStatement } from "@web/modules/inventory/queries";
 import { ReverseSupplierPaymentModal } from "@web/modules/inventory/components/reverse-supplier-payment-modal";
-import { ReverseMovementModal } from "@web/modules/inventory/components/reverse-movement-modal";
-import { EditPurchaseModal } from "@web/modules/inventory/components/edit-purchase-modal";
+import { VoidInvoiceModal } from "@web/modules/inventory/components/void-invoice-modal";
 import { formatDate } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
@@ -45,20 +37,16 @@ export function SupplierAccount({
 }): JSX.Element {
   const { t } = useTranslation();
   const { can } = useSession();
-  const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const methodLabel = useLookupLabels(LOOKUP_LIST.PAYMENT_METHOD);
   const clinic = useClinic();
   const currency = clinic.data?.currency;
   const mayReversePayment = canReverseSupplierPayment(can);
-  const mayEditPurchase = canCorrectPurchase(can);
-  const mayDeletePurchase = canReverseMovement(can);
-  const mayChangePriced = canReversePricedPurchase(can);
+  const mayVoidInvoice = canVoidInvoice(can);
 
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [reversing, setReversing] = useState<string | null>(null);
-  const [editing, setEditing] = useState<SupplierStatementEntry | null>(null);
-  const [deleting, setDeleting] = useState<SupplierStatementEntry | null>(null);
+  const [voiding, setVoiding] = useState<string | null>(null);
 
   const isOpen = (row: SupplierStatementEntry): boolean => !row.isReversal && !row.isReversed;
   const rowActions = (row: SupplierStatementEntry): JSX.Element | null => {
@@ -66,38 +54,17 @@ export function SupplierAccount({
       return null;
     }
 
-    const mayChange = row.amount === null || mayChangePriced;
-
-    if (
-      row.kind === SUPPLIER_ENTRY_KIND.PURCHASE &&
-      mayChange &&
-      (mayEditPurchase || mayDeletePurchase)
-    ) {
+    if (row.kind === SUPPLIER_ENTRY_KIND.PURCHASE && mayVoidInvoice) {
       return (
-        <RowMenu
-          label={t("inventory.suppliers.purchase.menu")}
-          data-testid="supplier-purchase-menu"
+        <Button
+          size="sm"
+          variant="ghost"
+          icon={<Icon name="reset" />}
+          data-testid="supplier-invoice-void"
+          onClick={() => setVoiding(row.id)}
         >
-          {mayEditPurchase && (
-            <MenuItem
-              icon="edit"
-              data-testid="supplier-purchase-edit"
-              onSelect={() => setEditing(row)}
-            >
-              {t("common.edit")}
-            </MenuItem>
-          )}
-          {mayDeletePurchase && (
-            <MenuItem
-              icon="trash"
-              tone="danger"
-              data-testid="supplier-purchase-delete"
-              onSelect={() => setDeleting(row)}
-            >
-              {t("common.delete")}
-            </MenuItem>
-          )}
-        </RowMenu>
+          {t("inventory.suppliers.invoice.void")}
+        </Button>
       );
     }
 
@@ -128,18 +95,12 @@ export function SupplierAccount({
   const describe = (row: SupplierStatementEntry): JSX.Element => {
     if (row.kind === SUPPLIER_ENTRY_KIND.PURCHASE) {
       return (
-        <span className="flex flex-wrap items-baseline gap-x-2">
-          <bdi className="font-medium text-ink">{row.itemName}</bdi>
-          <span className="flex items-baseline gap-1 text-label text-ink-muted">
-            <Ltr>{row.quantity}</Ltr>
-            <span>{row.unit ? unitLabel(row.unit) : ""}</span>
-            {row.unitPrice && (
-              <>
-                <span aria-hidden="true">×</span>
-                <Money amount={row.unitPrice} currency={currency} />
-              </>
-            )}
+        <span className="flex flex-col items-start">
+          <span className="flex items-baseline gap-1.5 font-medium text-ink">
+            {t("inventory.suppliers.statement.kinds.invoice")}
+            <Ltr className="text-label text-ink-muted">{row.reference}</Ltr>
           </span>
+          {row.note && <span className="text-label text-ink-muted">{row.note}</span>}
         </span>
       );
     }
@@ -207,7 +168,7 @@ export function SupplierAccount({
       hideOnMobile: true,
       render: (row) => <Money amount={row.runningBalance} currency={currency} />,
     },
-    ...(mayReversePayment || mayEditPurchase || mayDeletePurchase
+    ...(mayReversePayment || mayVoidInvoice
       ? [
           {
             key: "actions",
@@ -281,8 +242,7 @@ export function SupplierAccount({
       />
 
       <ReverseSupplierPaymentModal paymentId={reversing} onClose={() => setReversing(null)} />
-      <EditPurchaseModal purchase={editing} currency={currency} onClose={() => setEditing(null)} />
-      <ReverseMovementModal movement={deleting} onClose={() => setDeleting(null)} />
+      <VoidInvoiceModal invoiceId={voiding} onClose={() => setVoiding(null)} />
     </section>
   );
 }

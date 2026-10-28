@@ -2,7 +2,6 @@ import { toQueryString } from "@web/shared/lib/query-string";
 import type {
   AdjustStockInput,
   ConsumeStockInput,
-  CorrectPurchaseInput,
   CreateInventoryItemInput,
   CreateSupplierInput,
   CreateSupplierPaymentInput,
@@ -62,9 +61,6 @@ export const inventoryApi = {
   adjust: (body: AdjustStockInput) =>
     apiRequest<StockMovement>("/inventory/movements/adjust", { method: "POST", body }),
 
-  correctPurchase: (id: string, body: CorrectPurchaseInput) =>
-    apiRequest<StockMovement>(`/inventory/movements/${id}/correct`, { method: "PATCH", body }),
-
   reverse: (id: string, body: ReverseMovementInput) =>
     apiRequest<StockMovement>(`/inventory/movements/${id}/reverse`, { method: "PATCH", body }),
 
@@ -97,6 +93,9 @@ export const suppliersApi = {
 
   pay: (body: CreateSupplierPaymentInput) =>
     apiRequest<SupplierPayment>("/supplier-payments", { method: "POST", body }),
+
+  voidInvoice: (id: string, reason: string) =>
+    apiRequest<void>(`/purchases/invoices/${id}/void`, { method: "PATCH", body: { reason } }),
 
   reversePayment: (id: string, reason: string) =>
     apiRequest<SupplierPayment>(`/supplier-payments/${id}/reverse`, {

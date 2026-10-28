@@ -1,6 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
 import {
-  MOVEMENT_TYPE,
   type InventoryAlerts,
   type ShoppingList,
   type StatementRangeQuery,
@@ -11,7 +10,7 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import {
   inventoryItems,
-  stockMovements,
+  supplierInvoices,
   supplierOpeningBalances,
   supplierPayments,
   suppliers,
@@ -24,8 +23,8 @@ import {
   byOccurrence,
   ledgerStatement,
   openingLine,
+  invoiceLines,
   paymentLine,
-  purchaseLine,
   SupplierLedgerLine,
 } from "@api/modules/inventory/lib/supplier-ledger";
 
@@ -69,7 +68,7 @@ export class InventoryReportsService {
 
     await this.suppliersService.assertSeesCosts(actor);
 
-    const [openingRows, purchaseRows, paymentRows] = await Promise.all([
+    const [openingRows, invoiceRows, paymentRows] = await Promise.all([
       this.db
         .select()
         .from(supplierOpeningBalances)
@@ -81,18 +80,12 @@ export class InventoryReportsService {
           ),
         ),
       this.db
-        .select({
-          movement: stockMovements,
-          itemName: inventoryItems.name,
-          unit: inventoryItems.unit,
-        })
-        .from(stockMovements)
-        .innerJoin(inventoryItems, eq(inventoryItems.id, stockMovements.itemId))
+        .select()
+        .from(supplierInvoices)
         .where(
           and(
-            eq(stockMovements.clinicId, actor.clinicId),
-            eq(stockMovements.supplierId, supplierId),
-            eq(stockMovements.type, MOVEMENT_TYPE.PURCHASE),
+            eq(supplierInvoices.clinicId, actor.clinicId),
+            eq(supplierInvoices.supplierId, supplierId),
           ),
         ),
       this.db
@@ -109,7 +102,7 @@ export class InventoryReportsService {
 
     const lines: SupplierLedgerLine[] = [
       ...openingRows.map((row) => openingLine(row)),
-      ...purchaseRows.map(({ movement, itemName, unit }) => purchaseLine(movement, itemName, unit)),
+      ...invoiceRows.flatMap((row) => invoiceLines(row)),
       ...paymentRows.map((row) => paymentLine(row)),
     ].sort(byOccurrence);
 

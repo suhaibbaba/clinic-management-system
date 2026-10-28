@@ -5,8 +5,6 @@ import {
   formatThousandths,
   subtractQuantity,
   compareQuantity,
-  toMinorUnits,
-  formatMinorUnits,
 } from "@clinic/shared";
 
 export function byUrgency(left: InventoryItemRow, right: InventoryItemRow): number {
@@ -34,10 +32,4 @@ export function toShoppingLine(item: InventoryItemRow): ShoppingListLine {
     suggested: compareQuantity(suggested, "0") > 0 ? suggested : "0",
     supplierName: item.supplierName,
   };
-}
-
-export function lineTotal(quantity: string, unitPrice: string): string {
-  const millionths = toThousandths(quantity) * toMinorUnits(unitPrice);
-
-  return formatMinorUnits(Math.round(millionths / 1000));
 }

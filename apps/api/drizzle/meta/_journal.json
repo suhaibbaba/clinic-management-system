@@ -498,6 +498,20 @@
       "when": 1793142274232,
       "tag": "0070_idempotent_stock_and_payments",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1793189279124,
+      "tag": "0071_purchase_documents",
+      "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1793189354239,
+      "tag": "0072_purchase_documents_data",
+      "breakpoints": true
     }
   ]
 }

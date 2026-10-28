@@ -22,7 +22,7 @@ export const canAdjustStock = (can: Can): boolean => can("inventory.adjust");
 
 export const canReverseMovement = (can: Can): boolean => can("inventory.reverse");
 
-export const canCorrectPurchase = (can: Can): boolean => can("inventory.correctPurchase");
+export const canVoidInvoice = (can: Can): boolean => can("purchases.voidInvoice");
 
 export const canSeeCosts = (can: Can): boolean => can(RULE.INVENTORY_COSTS);
 
