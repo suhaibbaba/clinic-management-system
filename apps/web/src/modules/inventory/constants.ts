@@ -6,6 +6,7 @@ import {
   PURCHASE_REQUEST_STATUS,
 } from "@clinic/shared";
 import type { BadgeTone } from "@clinic/ui/components/badge";
+import type { ProgressTone } from "@clinic/ui/components/progress-bar";
 import type { IconName } from "@clinic/ui/components/icon";
 
 export const INVENTORY_TAB_STOCK = "stock";
@@ -39,8 +40,6 @@ export const MOVEMENT_ACTIONS: readonly RecordableMovementType[] = [
 ];
 
 export const UNBATCHED_ROW_KEY = "unbatched";
-
-export const ALERT_PREVIEW_COUNT = 2;
 
 export type InventoryTab =
   | typeof INVENTORY_TAB_STOCK
@@ -77,3 +76,10 @@ export const REQUEST_FILTERS = [
 export type RequestFilter = (typeof REQUEST_FILTERS)[number];
 
 export const STOCK_COUNT_PATH = "/inventory/counts";
+
+export const STOCK_DOT: Record<ProgressTone, string> = {
+  primary: "bg-primary-600",
+  success: "bg-success-600",
+  warning: "bg-warning-500",
+  danger: "bg-danger-600",
+};

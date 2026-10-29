@@ -1487,7 +1487,8 @@
       "item": "المادة",
       "category": "الصنف",
       "quantity": "المتوفر",
-      "expiry": "أقرب انتهاء"
+      "expiry": "أقرب انتهاء",
+      "stockOfMinimum": "المتوفر / الحد الأدنى"
     },
     "movements": {
       "purchase": "شراء",
@@ -1500,14 +1501,6 @@
       "low": "تحت الحد",
       "expiring": "قاربت الانتهاء",
       "expired": "منتهية"
-    },
-    "alerts": {
-      "low": "{{count}} مادة تحت الحد الأدنى",
-      "lowHint": "الكميات التي وصلت حد إعادة الطلب أو نزلت تحته",
-      "expiring": "{{count}} مادة قريبة على الانتهاء",
-      "expiringHint": "تنتهي صلاحيتها خلال {{days}} يومًا أو انتهت",
-      "showMore": "عرض المزيد ({{count}})",
-      "showInTable": "تصفية الجدول"
     },
     "batches": {
       "title": "الكمية حسب تاريخ الانتهاء",
@@ -1974,7 +1967,10 @@
         "date": "التاريخ",
         "variance": "الفرق"
       }
-    }
+    },
+    "ofMinimum": "من {{minimum}} {{unit}}",
+    "moreActions": "إجراءات أخرى",
+    "allCategories": "كل الأصناف"
   },
   "lookups": {
     "title": "القوائم",

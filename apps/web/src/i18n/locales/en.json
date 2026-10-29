@@ -1423,7 +1423,8 @@
       "item": "Item",
       "category": "Category",
       "quantity": "In Stock",
-      "expiry": "Next Expiry"
+      "expiry": "Next Expiry",
+      "stockOfMinimum": "Stock / Minimum"
     },
     "movements": {
       "purchase": "Purchase",
@@ -1436,14 +1437,6 @@
       "low": "Low",
       "expiring": "Expiring",
       "expired": "Expired"
-    },
-    "alerts": {
-      "low": "{{count}} items below their minimum",
-      "lowHint": "At or under the level somebody set for reordering",
-      "expiring": "{{count}} items need attention",
-      "expiringHint": "Going off within {{days}} days, or already gone",
-      "showMore": "Show More ({{count}})",
-      "showInTable": "Filter the Table"
     },
     "batches": {
       "title": "Stock by Expiry Date",
@@ -1894,7 +1887,10 @@
         "date": "Date",
         "variance": "Variance"
       }
-    }
+    },
+    "ofMinimum": "of {{minimum}} {{unit}}",
+    "moreActions": "More Actions",
+    "allCategories": "All categories"
   },
   "lookups": {
     "title": "Lists",

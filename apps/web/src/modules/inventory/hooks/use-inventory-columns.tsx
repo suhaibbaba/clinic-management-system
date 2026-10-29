@@ -1,8 +1,7 @@
 import { LOOKUP_LIST, type InventoryItemRow } from "@clinic/shared";
-import { Badge, type Column } from "@clinic/ui";
+import { type Column } from "@clinic/ui";
 import { ExpiryCell } from "@web/modules/inventory/components/expiry-cell";
 import { StockCell } from "@web/modules/inventory/components/stock-cell";
-import { categoryTone } from "@web/modules/inventory/lib/display";
 import { useLookupLabels } from "@web/shared/queries/lookups";
 
 export function useInventoryColumns(): readonly Column<InventoryItemRow>[] {
@@ -25,15 +24,16 @@ export function useInventoryColumns(): readonly Column<InventoryItemRow>[] {
     {
       key: "category",
       header: "inventory.columns.category",
+      hideOnMobile: true,
       render: (row) => (
-        <Badge tone={categoryTone(row.category)} data-testid="inventory-category">
+        <span data-testid="inventory-category" className="text-ink-muted">
           {categoryLabel(row.category)}
-        </Badge>
+        </span>
       ),
     },
     {
       key: "quantity",
-      header: "inventory.columns.quantity",
+      header: "inventory.columns.stockOfMinimum",
       render: (row) => <StockCell item={row} />,
     },
     {

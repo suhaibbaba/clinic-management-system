@@ -23,7 +23,7 @@ import {
   useToast,
 } from "@clinic/ui";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
-import { InventoryAlertCards } from "@web/modules/inventory/components/alert-cards";
+import { useIsMobile } from "@clinic/ui/lib/use-media-query";
 import { ItemFormModal } from "@web/modules/inventory/components/item-form-modal";
 import { useInventoryColumns } from "@web/modules/inventory/hooks/use-inventory-columns";
 import { useInventoryFilters } from "@web/modules/inventory/hooks/use-inventory-filters";
@@ -33,6 +33,7 @@ import {
   canManageInventory,
   canPostPurchase,
   canWriteOff,
+  seesInventory,
 } from "@web/shared/permissions/inventory";
 import { MovementModal } from "@web/modules/inventory/components/movement-modal";
 import {
@@ -43,6 +44,7 @@ import { STOCK_COUNT_PATH } from "@web/modules/inventory/constants";
 import { errorToast } from "@web/shared/lib/api-error";
 import { useSession } from "@web/shared/providers/session";
 import {
+  useInventoryAlerts,
   useInventoryItems,
   useStartStockCount,
   useStockCounts,
@@ -61,6 +63,7 @@ export function InventoryPage(): JSX.Element {
   const [creating, setCreating] = useState(false);
   const [using, setUsing] = useState<InventoryItemRow | null>(null);
   const [writingOff, setWritingOff] = useState<WriteOffTarget | null>(null);
+  const isMobile = useIsMobile();
   const mayUse = canConsumeStock(can);
   const mayReceive = canPostPurchase(can);
   const mayWriteOff = canWriteOff(can);
@@ -72,44 +75,79 @@ export function InventoryPage(): JSX.Element {
             key: "actions",
             header: "common.actions",
             actions: true,
-            render: (row) => (
-              <RowMenu label={t("inventory.rowMenu")} data-testid="inventory-row-actions">
-                {mayUse && (
-                  <MenuItem
-                    icon="trend-down"
-                    data-testid="inventory-row-use"
-                    onSelect={() => setUsing(row)}
-                  >
-                    {t(`inventory.movement.action.${MOVEMENT_TYPE.CONSUME}`)}
-                  </MenuItem>
-                )}
-                {mayReceive && (
-                  <MenuItem
-                    icon="package"
-                    data-testid="inventory-row-receive"
-                    onSelect={() =>
-                      void navigate(
-                        `/inventory/purchases/new?item=${row.id}${row.defaultSupplierId ? `&supplier=${row.defaultSupplierId}` : ""}`,
-                      )
-                    }
-                  >
-                    {t("inventory.requests.receive")}
-                  </MenuItem>
-                )}
-                {mayWriteOff && (
-                  <MenuItem
-                    icon="trash"
-                    tone="danger"
-                    data-testid="inventory-row-write-off"
-                    onSelect={() =>
-                      setWritingOff({ itemId: row.id, itemName: row.name, batchNo: null })
-                    }
-                  >
-                    {t("inventory.writeOff.action")}
-                  </MenuItem>
-                )}
-              </RowMenu>
-            ),
+            besideTitleOnMobile: true,
+            render: (row) => {
+              const receive = (): void =>
+                void navigate(
+                  `/inventory/purchases/new?item=${row.id}${row.defaultSupplierId ? `&supplier=${row.defaultSupplierId}` : ""}`,
+                );
+              const writeOff = (): void =>
+                setWritingOff({ itemId: row.id, itemName: row.name, batchNo: null });
+
+              return isMobile ? (
+                <RowMenu label={t("inventory.rowMenu")} data-testid="inventory-row-actions">
+                  {mayUse && (
+                    <MenuItem
+                      icon="trend-down"
+                      data-testid="inventory-row-use"
+                      onSelect={() => setUsing(row)}
+                    >
+                      {t(`inventory.movement.action.${MOVEMENT_TYPE.CONSUME}`)}
+                    </MenuItem>
+                  )}
+                  {mayReceive && (
+                    <MenuItem icon="package" data-testid="inventory-row-receive" onSelect={receive}>
+                      {t("inventory.requests.receive")}
+                    </MenuItem>
+                  )}
+                  {mayWriteOff && (
+                    <MenuItem
+                      icon="trash"
+                      tone="danger"
+                      data-testid="inventory-row-write-off"
+                      onSelect={writeOff}
+                    >
+                      {t("inventory.writeOff.action")}
+                    </MenuItem>
+                  )}
+                </RowMenu>
+              ) : (
+                <span className="flex items-center justify-end gap-1.5">
+                  {mayUse && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      data-testid="inventory-row-use"
+                      onClick={() => setUsing(row)}
+                    >
+                      {t(`inventory.movement.action.${MOVEMENT_TYPE.CONSUME}`)}
+                    </Button>
+                  )}
+                  {mayReceive && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      data-testid="inventory-row-receive"
+                      onClick={receive}
+                    >
+                      {t("inventory.requests.receive")}
+                    </Button>
+                  )}
+                  {mayWriteOff && (
+                    <RowMenu label={t("inventory.rowMenu")} data-testid="inventory-row-actions">
+                      <MenuItem
+                        icon="trash"
+                        tone="danger"
+                        data-testid="inventory-row-write-off"
+                        onSelect={writeOff}
+                      >
+                        {t("inventory.writeOff.action")}
+                      </MenuItem>
+                    </RowMenu>
+                  )}
+                </span>
+              );
+            },
           } satisfies Column<InventoryItemRow>,
         ]
       : baseColumns;
@@ -129,6 +167,9 @@ export function InventoryPage(): JSX.Element {
   );
 
   const items = useInventoryItems(query);
+  const alerts = useInventoryAlerts(seesInventory(can));
+  const lowCount = alerts.data?.low.length ?? 0;
+  const expiringCount = (alerts.data?.expiring.length ?? 0) + (alerts.data?.expired.length ?? 0);
   const rows = items.data?.items ?? [];
   const mayManage = canManageInventory(can);
   const mayCount = canCountStock(can);
@@ -159,14 +200,6 @@ export function InventoryPage(): JSX.Element {
         subtitle="inventory.subtitle"
         primaryAction={
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="secondary"
-              icon={<Icon name="clipboard" />}
-              data-testid="inventory-shopping-list"
-              onClick={() => void navigate("/inventory/shopping-list")}
-            >
-              {t("inventory.shoppingList.action")}
-            </Button>
             {mayCount && (
               <Button
                 variant="secondary"
@@ -178,18 +211,9 @@ export function InventoryPage(): JSX.Element {
                 {t(openCount ? "inventory.counts.resume" : "inventory.counts.start")}
               </Button>
             )}
-            {canPostPurchase(can) && (
-              <Button
-                variant="secondary"
-                icon={<Icon name="package" />}
-                data-testid="inventory-new-purchase"
-                onClick={() => void navigate("/inventory/purchases/new")}
-              >
-                {t("inventory.purchase.action")}
-              </Button>
-            )}
             {mayManage && (
               <Button
+                variant="secondary"
                 icon={<Icon name="plus" />}
                 data-testid="inventory-add-item"
                 onClick={() => setCreating(true)}
@@ -197,17 +221,29 @@ export function InventoryPage(): JSX.Element {
                 {t("inventory.addItem")}
               </Button>
             )}
+            {mayReceive && (
+              <Button
+                icon={<Icon name="package" />}
+                data-testid="inventory-new-purchase"
+                onClick={() => void navigate("/inventory/purchases/new")}
+              >
+                {t("inventory.purchase.action")}
+              </Button>
+            )}
+            <RowMenu size="target" label={t("inventory.moreActions")} data-testid="inventory-more">
+              <MenuItem
+                icon="clipboard"
+                data-testid="inventory-shopping-list"
+                onSelect={() => void navigate("/inventory/shopping-list")}
+              >
+                {t("inventory.shoppingList.action")}
+              </MenuItem>
+            </RowMenu>
           </div>
         }
       />
 
-      <InventoryAlertCards
-        onSelectItem={openItem}
-        onShowLow={() => setFilters({ low: true, expiring: false })}
-        onShowExpiring={() => setFilters({ expiring: true, low: false })}
-      />
-
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <SearchField
           data-testid="inventory-search"
           className="w-full min-w-0 sm:max-w-md"
@@ -220,38 +256,47 @@ export function InventoryPage(): JSX.Element {
           onClear={() => setSearch("")}
         />
 
-        <div className="min-w-44">
-          <label htmlFor="inventory-category" className="mb-1 block text-label text-ink-muted">
-            {t("inventory.filterCategory")}
-          </label>
-          <Select
-            id="inventory-category"
-            data-testid="inventory-filter-category"
-            value={category}
-            placeholder={t("common.all")}
-            onChange={(event) => setFilters({ category: event.target.value })}
-            options={categoryOptions}
-          />
-        </div>
+        <Select
+          id="inventory-category"
+          data-testid="inventory-filter-category"
+          className="w-auto min-w-44"
+          aria-label={t("inventory.filterCategory")}
+          value={category}
+          placeholder={t("inventory.allCategories")}
+          onChange={(event) => setFilters({ category: event.target.value })}
+          options={categoryOptions}
+        />
 
         <Button
           variant={low ? "danger" : "secondary"}
           icon={<Icon name="alert" />}
           data-testid="inventory-filter-low"
+          aria-pressed={low}
           className="font-normal"
           onClick={() => setFilters({ low: !low })}
         >
           {t("inventory.filterLow")}
+          {lowCount > 0 && (
+            <span data-testid="inventory-filter-low-count" className="tabular-nums">
+              ({lowCount})
+            </span>
+          )}
         </Button>
 
         <Button
           variant={expiring ? "danger" : "secondary"}
           icon={<Icon name="clock" />}
           data-testid="inventory-filter-expiring"
+          aria-pressed={expiring}
           className="font-normal"
           onClick={() => setFilters({ expiring: !expiring })}
         >
           {t("inventory.filterExpiring")}
+          {expiringCount > 0 && (
+            <span data-testid="inventory-filter-expiring-count" className="tabular-nums">
+              ({expiringCount})
+            </span>
+          )}
         </Button>
 
         {items.data !== undefined && (
