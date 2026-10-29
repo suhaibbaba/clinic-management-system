@@ -135,3 +135,22 @@ export function linesFromRequest(request: PurchaseRequest): PurchaseLineDraft[] 
       unitPrice: line.lastPrice ?? "",
     }));
 }
+
+export interface PurchaseCounts {
+  readonly lines: number;
+  readonly quantity: number;
+  readonly free: number;
+  readonly gifts: number;
+}
+
+export function purchaseCounts(lines: readonly PurchaseLineDraft[]): PurchaseCounts {
+  return lines.reduce<PurchaseCounts>(
+    (counts, line) => ({
+      lines: counts.lines + (line.itemId === "" ? 0 : 1),
+      quantity: counts.quantity + Number(line.quantity || "0"),
+      free: counts.free + Number(line.freeQuantity || "0"),
+      gifts: counts.gifts + (line.gift ? 1 : 0),
+    }),
+    { lines: 0, quantity: 0, free: 0, gifts: 0 },
+  );
+}

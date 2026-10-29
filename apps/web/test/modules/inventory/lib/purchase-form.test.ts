@@ -4,6 +4,7 @@ import {
   blankLine,
   linesFromRequest,
   previewTotals,
+  purchaseCounts,
   toPostPurchase,
   type PurchaseDraft,
 } from "@web/modules/inventory/lib/purchase-form";
@@ -127,5 +128,14 @@ describe("the purchase form", () => {
 
     expect(body.lines[0]).toMatchObject({ packSizeId: "box", quantity: "2" });
     expect(body.lines[1]).not.toHaveProperty("packSizeId");
+  });
+
+  it("counts the lines with an item, their units, the free units and the gifts", () => {
+    expect(purchaseCounts([...draft().lines, blankLine("e")])).toEqual({
+      lines: 4,
+      quantity: 25,
+      free: 2,
+      gifts: 1,
+    });
   });
 });

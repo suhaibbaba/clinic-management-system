@@ -1,7 +1,7 @@
 import { LOOKUP_LIST } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { FormField, Select } from "@clinic/ui";
+import { Select } from "@clinic/ui";
 import { useLookupLabels } from "@web/shared/queries/lookups";
 import { usePackSizes } from "@web/modules/inventory/queries";
 
@@ -27,24 +27,23 @@ export function PackSizeSelect({
   }
 
   return (
-    <FormField label="inventory.packSizes.buyIn" htmlFor={id}>
-      <Select
-        id={id}
-        data-testid="purchase-line-pack"
-        value={value === "" ? "base" : value}
-        onChange={(event) => onChange(event.target.value === "base" ? "" : event.target.value)}
-        options={[
-          { value: "base", label: unitLabel(baseUnit) },
-          ...packs.data.map((pack) => ({
-            value: pack.id,
-            label: t("inventory.packSizes.holds", {
-              pack: unitLabel(pack.unit),
-              count: Number(pack.unitsPer),
-              unit: unitLabel(baseUnit),
-            }),
-          })),
-        ]}
-      />
-    </FormField>
+    <Select
+      id={id}
+      data-testid="purchase-line-pack"
+      aria-label={t("inventory.packSizes.buyIn")}
+      value={value === "" ? "base" : value}
+      onChange={(event) => onChange(event.target.value === "base" ? "" : event.target.value)}
+      options={[
+        { value: "base", label: unitLabel(baseUnit) },
+        ...packs.data.map((pack) => ({
+          value: pack.id,
+          label: t("inventory.packSizes.holds", {
+            pack: unitLabel(pack.unit),
+            count: Number(pack.unitsPer),
+            unit: unitLabel(baseUnit),
+          }),
+        })),
+      ]}
+    />
   );
 }
