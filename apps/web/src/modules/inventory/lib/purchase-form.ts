@@ -154,3 +154,16 @@ export function purchaseCounts(lines: readonly PurchaseLineDraft[]): PurchaseCou
     { lines: 0, quantity: 0, free: 0, gifts: 0 },
   );
 }
+
+export function lineReady(
+  line: PurchaseLineDraft,
+  withInvoice: boolean,
+  minExpiry: string,
+): boolean {
+  return (
+    line.itemId !== "" &&
+    (line.expiryDate === "" || line.expiryDate >= minExpiry) &&
+    Number(line.quantity || "0") + Number(line.freeQuantity || "0") > 0 &&
+    (!withInvoice || line.gift || filled(line.unitPrice))
+  );
+}

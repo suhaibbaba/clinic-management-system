@@ -26,7 +26,7 @@ function Cell({
   children,
 }: {
   readonly label: string;
-  readonly htmlFor?: string | undefined;
+  readonly htmlFor: string;
   readonly className?: string | undefined;
   readonly persistentLabel?: boolean | undefined;
   readonly children: ReactNode;
@@ -173,8 +173,8 @@ export function PurchaseLineRow({
           <div
             data-testid="purchase-line-cost"
             className={cn(
-              "col-span-2 flex h-(--control-h) items-center justify-between gap-2 font-semibold @min-[26rem]:col-span-1",
-              "@min-[40rem]:col-span-1 @min-[40rem]:justify-end",
+              "col-span-2 flex h-(--control-h) items-center justify-between gap-2 font-semibold",
+              "@min-[26rem]:col-span-1 @min-[40rem]:justify-end",
             )}
           >
             <span className="text-label font-medium text-ink-muted @min-[40rem]:sr-only">
@@ -250,15 +250,15 @@ export function PurchaseLineRow({
               onChange={(expiryDate) => onChange({ expiryDate })}
             />
           </Cell>
-          <div className="flex min-h-(--control-h) items-center @min-[26rem]:col-span-2 @min-[40rem]:col-span-1">
-            {layout === "invoice" && (
+          {layout === "invoice" && (
+            <div className="flex min-h-(--control-h) items-center @min-[26rem]:col-span-2 @min-[40rem]:col-span-1">
               <Switch
                 checked={line.gift}
                 onCheckedChange={(gift) => onChange({ gift })}
                 label={t("inventory.purchase.gift")}
               />
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
     </li>

@@ -86,8 +86,8 @@ export const STOCK_DOT: Record<ProgressTone, string> = {
 
 export const PURCHASE_LINE_GRID = {
   invoice: [
-    "@min-[40rem]:grid-cols-[minmax(8rem,1fr)_4rem_4rem_5.5rem_7rem_4.5rem_4.75rem]",
-    "@min-[56rem]:grid-cols-[minmax(9rem,1.4fr)_5.5rem_5.5rem_7.5rem_minmax(7rem,1fr)_minmax(5rem,0.5fr)_4.75rem]",
+    "@min-[40rem]:grid-cols-[minmax(8rem,1fr)_4rem_4rem_5.5rem_140px_4.5rem_4.75rem]",
+    "@min-[56rem]:grid-cols-[minmax(9rem,1.4fr)_5.5rem_5.5rem_7.5rem_140px_minmax(5rem,0.5fr)_4.75rem]",
   ].join(" "),
   priced: [
     "@min-[40rem]:grid-cols-[minmax(8rem,1fr)_4rem_4rem_5.5rem_4.75rem]",

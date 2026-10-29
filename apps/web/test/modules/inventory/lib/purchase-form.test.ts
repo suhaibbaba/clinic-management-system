@@ -2,6 +2,7 @@ import { DISCOUNT_KIND, PURCHASE_REQUEST_STATUS } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
 import {
   blankLine,
+  lineReady,
   linesFromRequest,
   previewTotals,
   purchaseCounts,
@@ -137,5 +138,24 @@ describe("the purchase form", () => {
       free: 2,
       gifts: 1,
     });
+  });
+
+  it("takes a line once it has an item, units, a price on an invoice and a far enough expiry", () => {
+    const line = { ...blankLine("a", "composite"), quantity: "2", unitPrice: "45" };
+
+    expect(lineReady(line, true, "2026-11-01")).toBe(true);
+    expect(lineReady({ ...line, unitPrice: "" }, true, "2026-11-01")).toBe(false);
+    expect(lineReady({ ...line, unitPrice: "", gift: true }, true, "2026-11-01")).toBe(true);
+    expect(lineReady({ ...line, unitPrice: "" }, false, "2026-11-01")).toBe(true);
+    expect(lineReady({ ...line, quantity: "", freeQuantity: "1" }, true, "2026-11-01")).toBe(true);
+    expect(lineReady({ ...line, quantity: "" }, true, "2026-11-01")).toBe(false);
+    expect(lineReady({ ...line, itemId: "" }, true, "2026-11-01")).toBe(false);
+  });
+
+  it("refuses an expiry earlier than the first allowed day", () => {
+    const line = { ...blankLine("a", "composite"), quantity: "2", unitPrice: "45" };
+
+    expect(lineReady({ ...line, expiryDate: "2026-10-31" }, true, "2026-11-01")).toBe(false);
+    expect(lineReady({ ...line, expiryDate: "2026-11-01" }, true, "2026-11-01")).toBe(true);
   });
 });

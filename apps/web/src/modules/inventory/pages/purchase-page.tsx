@@ -1,8 +1,8 @@
 import {
   DEFAULT_TIME_ZONE,
-  addDays,
   DISCOUNT_KIND,
   LOOKUP_LIST,
+  addDays,
   localDate,
   toMinorUnits,
 } from "@clinic/shared";
@@ -39,6 +39,7 @@ import { ItemFormModal } from "@web/modules/inventory/components/item-form-modal
 import {
   blankLine,
   invoices,
+  lineReady,
   linesFromRequest,
   previewTotals,
   purchaseCounts,
@@ -126,29 +127,28 @@ export function PurchasePage(): JSX.Element {
   const paid = draft.paidNow.trim() === "" ? 0 : toMinorUnits(draft.paidNow.trim());
   const overpaid = totals !== null && paid > toMinorUnits(totals.total);
   const minExpiry = addDays(localDate(new Date(), DEFAULT_TIME_ZONE), EXPIRY_MIN_DAYS_AHEAD);
-  const linesReady = draft.lines.every(
-    (line) =>
-      line.itemId !== "" &&
-      (line.expiryDate === "" || line.expiryDate >= minExpiry) &&
-      Number(line.quantity || "0") + Number(line.freeQuantity || "0") > 0 &&
-      (!withInvoice || line.gift || line.unitPrice.trim() !== ""),
-  );
-  const ready = linesReady && (!withInvoice || totals !== null);
+  const ready =
+    draft.lines.every((line) => lineReady(line, withInvoice, minExpiry)) &&
+    (!withInvoice || totals !== null);
   const counts = purchaseCounts(draft.lines);
 
   const layout: PurchaseLineLayout = withInvoice ? "invoice" : seesCosts ? "priced" : "plain";
   const columns = [
-    "inventory.movement.item",
-    "inventory.movement.quantity",
-    "inventory.purchase.freeShort",
-    ...(layout === "plain" ? [] : ["inventory.movement.unitPrice"]),
+    { label: "inventory.movement.item", end: false },
+    { label: "inventory.movement.quantity", end: false },
+    { label: "inventory.purchase.freeShort", end: false },
+    ...(layout === "plain" ? [] : [{ label: "inventory.movement.unitPrice", end: false }]),
     ...(layout === "invoice"
-      ? ["inventory.purchase.lineDiscount", "inventory.purchase.lineTotal"]
+      ? [
+          { label: "inventory.purchase.lineDiscount", end: false },
+          { label: "inventory.purchase.lineTotal", end: true },
+        ]
       : []),
   ];
 
   const unitOf = (itemId: string): string =>
     items.data?.items.find((item) => item.id === itemId)?.unit ?? "";
+
   const itemOptions = (items.data?.items ?? []).map((item) => ({
     value: item.id,
     label: `${item.name} — ${unitLabel(item.unit)}`,
@@ -180,197 +180,186 @@ export function PurchasePage(): JSX.Element {
         subtitle="inventory.purchase.subtitle"
       />
 
-      <div className="@container flex min-w-0 flex-col gap-5">
-        <Card data-testid="purchase-details">
-          <div className="grid gap-4 @xl:grid-cols-2 @min-[44rem]:grid-cols-4">
-            <div className="@xl:col-span-2">
-              <FormField label="inventory.movement.supplier" htmlFor="purchase-supplier" optional>
-                <Select
-                  searchable
-                  id="purchase-supplier"
-                  data-testid="purchase-field-supplier"
-                  value={draft.supplierId}
-                  placeholder={t("inventory.purchase.noSupplier")}
-                  onChange={(event) => change({ supplierId: event.target.value })}
-                  options={(suppliers.data?.items ?? []).map((supplier) => ({
-                    value: supplier.id,
-                    label: supplier.name,
-                  }))}
-                />
-              </FormField>
-            </div>
-            <FormField label="inventory.purchase.date" htmlFor="purchase-date" required>
-              <DatePicker
-                id="purchase-date"
-                data-testid="purchase-field-date"
-                label={t("inventory.purchase.date")}
-                value={draft.date}
-                max={localDate(new Date(), DEFAULT_TIME_ZONE)}
-                onChange={(date) => change({ date })}
+      <Card data-testid="purchase-details">
+        <div className="grid gap-4 @xl:grid-cols-2 @min-[44rem]:grid-cols-4">
+          <div className="@xl:col-span-2">
+            <FormField label="inventory.movement.supplier" htmlFor="purchase-supplier" optional>
+              <Select
+                searchable
+                id="purchase-supplier"
+                data-testid="purchase-field-supplier"
+                value={draft.supplierId}
+                placeholder={t("inventory.purchase.noSupplier")}
+                onChange={(event) => change({ supplierId: event.target.value })}
+                options={(suppliers.data?.items ?? []).map((supplier) => ({
+                  value: supplier.id,
+                  label: supplier.name,
+                }))}
               />
             </FormField>
-            {withInvoice && (
-              <FormField label="inventory.purchase.supplierRef" htmlFor="purchase-ref" optional>
-                <Input
-                  id="purchase-ref"
-                  data-testid="purchase-field-ref"
-                  dir="ltr"
-                  placeholder={t("inventory.purchase.refPlaceholder")}
-                  value={draft.supplierRef}
-                  onChange={(event) => change({ supplierRef: event.target.value })}
-                />
-              </FormField>
-            )}
-            {seesCosts && draft.supplierId !== "" && (
-              <div className="@xl:col-span-2 @min-[44rem]:col-span-4">
-                <Switch
-                  checked={draft.withInvoice}
-                  onCheckedChange={(withInvoiceNow) => change({ withInvoice: withInvoiceNow })}
-                  label={t("inventory.purchase.withInvoice")}
-                />
-              </div>
-            )}
           </div>
-        </Card>
-
-        <Card data-testid="purchase-lines" className="@container">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-section font-semibold text-ink">
-              {t("inventory.purchase.lines")}{" "}
-              <span className="font-medium text-ink-muted">({draft.lines.length})</span>
-            </h2>
-            <Button
-              variant="secondary"
-              icon={<Icon name="plus" />}
-              data-testid="purchase-add-line"
-              onClick={() =>
-                setDraft((current) => ({
-                  ...current,
-                  lines: [...current.lines, blankLine(newKey())],
-                }))
-              }
-            >
-              {t("inventory.purchase.addLine")}
-            </Button>
-          </div>
-
-          <div
-            aria-hidden="true"
-            className={cn(
-              "mt-3 hidden gap-2 @min-[56rem]:gap-3 border-b border-line pb-2 text-label font-medium text-ink-muted",
-              "@min-[40rem]:grid",
-              PURCHASE_LINE_GRID[layout],
-            )}
-          >
-            {columns.map((column) => (
-              <span
-                key={column}
-                className={cn("truncate", column === "inventory.purchase.lineTotal" && "text-end")}
-              >
-                {t(column)}
-              </span>
-            ))}
-          </div>
-
-          <ol className="flex flex-col divide-y divide-line">
-            {draft.lines.map((line, index) => (
-              <PurchaseLineRow
-                key={line.key}
-                line={line}
-                layout={layout}
-                itemOptions={itemOptions}
-                baseUnit={unitOf(line.itemId)}
-                minExpiry={minExpiry}
-                currency={currency}
-                cost={totals?.lines[index]?.cost}
-                removable={draft.lines.length > 1}
-                onChange={(patch) => changeLine(line.key, patch)}
-                onRemove={() =>
-                  setDraft((current) => ({
-                    ...current,
-                    lines: current.lines.filter((other) => other.key !== line.key),
-                  }))
-                }
-                onCreateItem={
-                  mayAddItem ? (name) => setNewItem({ key: line.key, name }) : undefined
-                }
-              />
-            ))}
-          </ol>
-        </Card>
-
-        {withInvoice && (
-          <Card data-testid="purchase-adjustments">
-            <div className="grid items-end gap-4 @xl:grid-cols-2 @min-[56rem]:grid-cols-4">
-              <FormField
-                label="inventory.purchase.invoiceDiscount"
-                htmlFor="purchase-discount"
-                optional
-              >
-                <DiscountInput
-                  id="purchase-discount"
-                  data-testid="purchase-field-discount"
-                  kind={draft.discountKind}
-                  value={draft.discountValue}
-                  currency={currency}
-                  onKindChange={(discountKind) => change({ discountKind })}
-                  onValueChange={(discountValue) => change({ discountValue })}
-                />
-              </FormField>
-              <FormField label="inventory.purchase.charges" htmlFor="purchase-charges" optional>
-                <MoneyInput
-                  cents
-                  id="purchase-charges"
-                  data-testid="purchase-field-charges"
-                  currency={currency}
-                  placeholder="0"
-                  value={draft.charges}
-                  onChange={(event) => change({ charges: event.target.value })}
-                />
-              </FormField>
-              <FormField label="inventory.purchase.taxRate" htmlFor="purchase-tax-rate" optional>
-                <Input
-                  id="purchase-tax-rate"
-                  data-testid="purchase-field-tax-rate"
-                  dir="ltr"
-                  inputMode="decimal"
-                  autoComplete="off"
-                  placeholder="0"
-                  value={draft.taxRate}
-                  onChange={(event) => change({ taxRate: event.target.value })}
-                />
-              </FormField>
-              <FormField
-                label="inventory.purchase.taxAmount"
-                htmlFor="purchase-tax-amount"
-                optional
-              >
-                <MoneyInput
-                  cents
-                  id="purchase-tax-amount"
-                  data-testid="purchase-field-tax-amount"
-                  currency={currency}
-                  placeholder="0"
-                  value={draft.taxAmount}
-                  onChange={(event) => change({ taxAmount: event.target.value })}
-                />
-              </FormField>
-            </div>
-          </Card>
-        )}
-
-        <div className="max-w-(--form-max)">
-          <FormField label="inventory.notes" htmlFor="purchase-note" optional>
-            <Textarea
-              id="purchase-note"
-              data-testid="purchase-field-note"
-              rows={2}
-              placeholder={t("common.placeholders.note")}
-              value={draft.note}
-              onChange={(event) => change({ note: event.target.value })}
+          <FormField label="inventory.purchase.date" htmlFor="purchase-date" required>
+            <DatePicker
+              id="purchase-date"
+              data-testid="purchase-field-date"
+              label={t("inventory.purchase.date")}
+              value={draft.date}
+              max={localDate(new Date(), DEFAULT_TIME_ZONE)}
+              onChange={(date) => change({ date })}
             />
           </FormField>
+          {withInvoice && (
+            <FormField label="inventory.purchase.supplierRef" htmlFor="purchase-ref" optional>
+              <Input
+                id="purchase-ref"
+                data-testid="purchase-field-ref"
+                dir="ltr"
+                placeholder={t("inventory.purchase.refPlaceholder")}
+                value={draft.supplierRef}
+                onChange={(event) => change({ supplierRef: event.target.value })}
+              />
+            </FormField>
+          )}
+          {seesCosts && draft.supplierId !== "" && (
+            <div className="@xl:col-span-2 @min-[44rem]:col-span-4">
+              <Switch
+                checked={draft.withInvoice}
+                onCheckedChange={(withInvoiceNow) => change({ withInvoice: withInvoiceNow })}
+                label={t("inventory.purchase.withInvoice")}
+              />
+            </div>
+          )}
         </div>
+      </Card>
+
+      <Card data-testid="purchase-lines" className="@container">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-section font-semibold text-ink">
+            {t("inventory.purchase.lines")}{" "}
+            <span className="font-medium text-ink-muted">({draft.lines.length})</span>
+          </h2>
+          <Button
+            variant="secondary"
+            icon={<Icon name="plus" />}
+            data-testid="purchase-add-line"
+            onClick={() =>
+              setDraft((current) => ({
+                ...current,
+                lines: [...current.lines, blankLine(newKey())],
+              }))
+            }
+          >
+            {t("inventory.purchase.addLine")}
+          </Button>
+        </div>
+
+        <div
+          aria-hidden="true"
+          className={cn(
+            "mt-3 hidden border-b border-line pb-2 text-label font-medium text-ink-muted",
+            "@min-[40rem]:grid @min-[40rem]:gap-2 @min-[56rem]:gap-3",
+            PURCHASE_LINE_GRID[layout],
+          )}
+        >
+          {columns.map((column) => (
+            <span key={column.label} className={cn("truncate", column.end && "text-end")}>
+              {t(column.label)}
+            </span>
+          ))}
+        </div>
+
+        <ol className="flex flex-col divide-y divide-line">
+          {draft.lines.map((line, index) => (
+            <PurchaseLineRow
+              key={line.key}
+              line={line}
+              layout={layout}
+              itemOptions={itemOptions}
+              baseUnit={unitOf(line.itemId)}
+              minExpiry={minExpiry}
+              currency={currency}
+              cost={totals?.lines[index]?.cost}
+              removable={draft.lines.length > 1}
+              onChange={(patch) => changeLine(line.key, patch)}
+              onRemove={() =>
+                setDraft((current) => ({
+                  ...current,
+                  lines: current.lines.filter((other) => other.key !== line.key),
+                }))
+              }
+              onCreateItem={mayAddItem ? (name) => setNewItem({ key: line.key, name }) : undefined}
+            />
+          ))}
+        </ol>
+      </Card>
+
+      {withInvoice && (
+        <Card data-testid="purchase-adjustments">
+          <div className="grid items-end gap-4 @xl:grid-cols-2 @min-[56rem]:grid-cols-4">
+            <FormField
+              label="inventory.purchase.invoiceDiscount"
+              htmlFor="purchase-discount"
+              optional
+            >
+              <DiscountInput
+                id="purchase-discount"
+                data-testid="purchase-field-discount"
+                kind={draft.discountKind}
+                value={draft.discountValue}
+                currency={currency}
+                onKindChange={(discountKind) => change({ discountKind })}
+                onValueChange={(discountValue) => change({ discountValue })}
+              />
+            </FormField>
+            <FormField label="inventory.purchase.charges" htmlFor="purchase-charges" optional>
+              <MoneyInput
+                cents
+                id="purchase-charges"
+                data-testid="purchase-field-charges"
+                currency={currency}
+                placeholder="0"
+                value={draft.charges}
+                onChange={(event) => change({ charges: event.target.value })}
+              />
+            </FormField>
+            <FormField label="inventory.purchase.taxRate" htmlFor="purchase-tax-rate" optional>
+              <Input
+                id="purchase-tax-rate"
+                data-testid="purchase-field-tax-rate"
+                dir="ltr"
+                inputMode="decimal"
+                autoComplete="off"
+                placeholder="0"
+                value={draft.taxRate}
+                onChange={(event) => change({ taxRate: event.target.value })}
+              />
+            </FormField>
+            <FormField label="inventory.purchase.taxAmount" htmlFor="purchase-tax-amount" optional>
+              <MoneyInput
+                cents
+                id="purchase-tax-amount"
+                data-testid="purchase-field-tax-amount"
+                currency={currency}
+                placeholder="0"
+                value={draft.taxAmount}
+                onChange={(event) => change({ taxAmount: event.target.value })}
+              />
+            </FormField>
+          </div>
+        </Card>
+      )}
+
+      <div className="max-w-(--form-max)">
+        <FormField label="inventory.notes" htmlFor="purchase-note" optional>
+          <Textarea
+            id="purchase-note"
+            data-testid="purchase-field-note"
+            rows={2}
+            placeholder={t("common.placeholders.note")}
+            value={draft.note}
+            onChange={(event) => change({ note: event.target.value })}
+          />
+        </FormField>
       </div>
 
       <PurchaseTotalBar
@@ -381,7 +370,11 @@ export function PurchasePage(): JSX.Element {
           withInvoice ? "inventory.purchase.review" : "inventory.purchase.reviewReceipt",
         )}
         ready={ready}
-        onReview={() => ready && setReviewing(true)}
+        onReview={() => {
+          if (ready) {
+            setReviewing(true);
+          }
+        }}
         onCancel={() => void navigate(-1)}
       />
 
