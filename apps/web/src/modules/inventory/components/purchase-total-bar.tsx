@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Money } from "@clinic/ui";
+import { cn } from "@clinic/ui/lib/cn";
 
 export function PurchaseTotalBar({
   lines,
@@ -26,12 +27,16 @@ export function PurchaseTotalBar({
       data-testid="purchase-bar"
       role="region"
       aria-label={t("inventory.purchase.reviewTitle")}
-      className="sticky bottom-[max(1rem,env(safe-area-inset-bottom))] z-20 flex items-center gap-2 rounded-pill border border-line bg-surface p-1.5 ps-5 shadow-card"
+      className={cn(
+        "sticky bottom-[max(1rem,env(safe-area-inset-bottom))] z-20 flex flex-wrap items-center gap-2",
+        "rounded-card border border-line bg-surface p-2 ps-4 shadow-card",
+        "sm:flex-nowrap sm:rounded-pill sm:p-1.5 sm:ps-5",
+      )}
     >
-      <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden whitespace-nowrap">
+      <div className="flex flex-[1_1_auto] flex-wrap items-center gap-x-3 gap-y-1">
         {total !== null && (
           <>
-            <span className="flex items-baseline gap-2">
+            <span className="flex items-baseline gap-2 whitespace-nowrap">
               <span className="text-label text-ink-muted">{t("inventory.purchase.total")}</span>
               <span data-testid="purchase-bar-total" className="text-title font-semibold text-ink">
                 <Money cents amount={total} currency={currency} />
@@ -40,26 +45,31 @@ export function PurchaseTotalBar({
             <span aria-hidden="true" className="h-4 w-px shrink-0 bg-line" />
           </>
         )}
-        <span data-testid="purchase-bar-count" className="truncate text-label text-ink-muted">
+        <span
+          data-testid="purchase-bar-count"
+          className="whitespace-nowrap text-label text-ink-muted"
+        >
           {t("inventory.purchase.itemCount", { count: lines })}
         </span>
       </div>
-      <Button
-        variant="secondary"
-        data-testid="purchase-cancel"
-        className="shrink-0 rounded-pill"
-        onClick={onCancel}
-      >
-        {t("common.cancel")}
-      </Button>
-      <Button
-        data-testid="purchase-review"
-        className="shrink-0 rounded-pill"
-        aria-disabled={!ready || undefined}
-        onClick={onReview}
-      >
-        {reviewLabel}
-      </Button>
+      <div className="flex grow gap-2 sm:grow-0">
+        <Button
+          variant="secondary"
+          data-testid="purchase-cancel"
+          className="flex-1 rounded-pill sm:flex-none"
+          onClick={onCancel}
+        >
+          {t("common.cancel")}
+        </Button>
+        <Button
+          data-testid="purchase-review"
+          className="flex-1 rounded-pill sm:flex-none"
+          aria-disabled={!ready || undefined}
+          onClick={onReview}
+        >
+          {reviewLabel}
+        </Button>
+      </div>
     </div>
   );
 }

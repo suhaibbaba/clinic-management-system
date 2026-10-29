@@ -79,7 +79,12 @@ export function PurchaseLineRow({
 
   return (
     <li data-testid="purchase-line" data-line={line.key} className="py-3">
-      <div className={cn("grid grid-cols-2 gap-3", PURCHASE_LINE_GRID[layout])}>
+      <div
+        className={cn(
+          "grid grid-cols-2 gap-3 @min-[40rem]:gap-2 @min-[56rem]:gap-3",
+          PURCHASE_LINE_GRID[layout],
+        )}
+      >
         <Cell
           label={t("inventory.movement.item")}
           htmlFor={id("item")}
@@ -168,7 +173,7 @@ export function PurchaseLineRow({
           <div
             data-testid="purchase-line-cost"
             className={cn(
-              "flex h-(--control-h) items-center justify-between gap-2 font-semibold",
+              "col-span-2 flex h-(--control-h) items-center justify-between gap-2 font-semibold @min-[26rem]:col-span-1",
               "@min-[40rem]:col-span-1 @min-[40rem]:justify-end",
             )}
           >
@@ -185,13 +190,17 @@ export function PurchaseLineRow({
 
         <div
           className={cn(
-            "flex items-center justify-end gap-1 @min-[40rem]:col-span-1",
-            layout !== "invoice" && "col-span-2",
+            "col-span-2 flex items-center justify-between gap-1 @min-[26rem]:justify-end @min-[40rem]:col-span-1",
+            layout === "invoice" && "@min-[26rem]:col-span-1",
           )}
         >
           <Button
             size="sm"
-            variant="quiet"
+            variant="secondary"
+            className={cn(
+              "@min-[40rem]:border-transparent @min-[40rem]:bg-transparent @min-[40rem]:text-ink-muted",
+              "@min-[40rem]:hover:border-transparent @min-[40rem]:hover:bg-inset @min-[40rem]:hover:text-ink",
+            )}
             data-testid="purchase-line-details"
             aria-expanded={open}
             aria-controls={detailsId}
@@ -219,7 +228,7 @@ export function PurchaseLineRow({
         <div
           id={detailsId}
           data-testid="purchase-line-extra"
-          className="mt-3 grid gap-3 rounded-panel bg-inset p-3 @min-[40rem]:grid-cols-3 @min-[40rem]:items-end"
+          className="mt-3 grid items-end gap-3 rounded-panel bg-inset p-3 @min-[26rem]:grid-cols-2 @min-[40rem]:grid-cols-3"
         >
           <Cell label={t("inventory.movement.batchNo")} htmlFor={id("batch")} persistentLabel>
             <Input
@@ -241,7 +250,7 @@ export function PurchaseLineRow({
               onChange={(expiryDate) => onChange({ expiryDate })}
             />
           </Cell>
-          <div className="flex min-h-(--control-h) items-center justify-between gap-3">
+          <div className="flex min-h-(--control-h) items-center @min-[26rem]:col-span-2 @min-[40rem]:col-span-1">
             {layout === "invoice" && (
               <Switch
                 checked={line.gift}

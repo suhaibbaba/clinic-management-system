@@ -85,10 +85,18 @@ export const STOCK_DOT: Record<ProgressTone, string> = {
 };
 
 export const PURCHASE_LINE_GRID = {
-  invoice:
-    "@min-[40rem]:grid-cols-[minmax(9rem,1.4fr)_5.5rem_5.5rem_7.5rem_minmax(6.5rem,0.6fr)_minmax(6rem,0.8fr)_4.75rem]",
-  priced: "@min-[40rem]:grid-cols-[minmax(9rem,1fr)_5.5rem_5.5rem_7.5rem_4.75rem]",
-  plain: "@min-[40rem]:grid-cols-[minmax(9rem,1fr)_5.5rem_5.5rem_4.75rem]",
+  invoice: [
+    "@min-[40rem]:grid-cols-[minmax(8rem,1fr)_4rem_4rem_5.5rem_7rem_4.5rem_4.75rem]",
+    "@min-[56rem]:grid-cols-[minmax(9rem,1.4fr)_5.5rem_5.5rem_7.5rem_minmax(7rem,1fr)_minmax(5rem,0.5fr)_4.75rem]",
+  ].join(" "),
+  priced: [
+    "@min-[40rem]:grid-cols-[minmax(8rem,1fr)_4rem_4rem_5.5rem_4.75rem]",
+    "@min-[56rem]:grid-cols-[minmax(9rem,1fr)_5.5rem_5.5rem_7.5rem_4.75rem]",
+  ].join(" "),
+  plain: [
+    "@min-[40rem]:grid-cols-[minmax(8rem,1fr)_4rem_4rem_4.75rem]",
+    "@min-[56rem]:grid-cols-[minmax(9rem,1fr)_5.5rem_5.5rem_4.75rem]",
+  ].join(" "),
 } as const;
 
 export type PurchaseLineLayout = keyof typeof PURCHASE_LINE_GRID;

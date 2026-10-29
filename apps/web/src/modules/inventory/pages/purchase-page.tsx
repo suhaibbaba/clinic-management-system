@@ -257,7 +257,7 @@ export function PurchasePage(): JSX.Element {
           <div
             aria-hidden="true"
             className={cn(
-              "mt-3 hidden gap-3 border-b border-line pb-2 text-label font-medium text-ink-muted",
+              "mt-3 hidden gap-2 @min-[56rem]:gap-3 border-b border-line pb-2 text-label font-medium text-ink-muted",
               "@min-[40rem]:grid",
               PURCHASE_LINE_GRID[layout],
             )}
