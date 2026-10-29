@@ -79,7 +79,7 @@ export function ChatComposer({
         className={cn(
           "flex items-end gap-2 rounded-card border-[1.5px] border-line-strong bg-surface p-2",
           "transition-[border-color,box-shadow] duration-150",
-          "focus-within:border-primary-600 focus-within:shadow-field-focus",
+          "focus-within:border-primary-600",
         )}
       >
         <textarea

@@ -4,7 +4,13 @@ import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@ui/components/button";
 import { Calendar, dateLocale } from "@ui/components/calendar";
-import { FIELD_BUTTON, FIELD_TEXT, FieldLock, fieldShell } from "@ui/components/field";
+import {
+  FIELD_BUTTON,
+  FIELD_TEXT,
+  FieldDivider,
+  FieldLock,
+  fieldShell,
+} from "@ui/components/field";
 import { Icon } from "@ui/components/icon";
 import { openOnArrowDown, usePickerOpen } from "@ui/lib/picker-open";
 import { Popover } from "@ui/components/popover";
@@ -123,15 +129,18 @@ export function DatePicker({
           {disabled ? (
             <FieldLock {...part("lock")} />
           ) : (
-            <button
-              type="button"
-              {...part("trigger")}
-              aria-label={t("common.openCalendar")}
-              {...picker.opens(true)}
-              className={FIELD_BUTTON}
-            >
-              <Icon name="calendar" className="size-4" />
-            </button>
+            <>
+              <FieldDivider />
+              <button
+                type="button"
+                {...part("trigger")}
+                aria-label={t("common.openCalendar")}
+                {...picker.opens(true)}
+                className={FIELD_BUTTON}
+              >
+                <Icon name="calendar" className="size-4" />
+              </button>
+            </>
           )}
         </div>
       }

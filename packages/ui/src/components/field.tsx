@@ -14,15 +14,16 @@ export function fieldShell({ hasError = false, disabled = false }: FieldState): 
     "h-(--control-h) transition-[border-color,box-shadow,background-color] duration-150",
     disabled && "cursor-not-allowed border-transparent bg-inset",
     !disabled && "bg-surface",
-    !disabled &&
-      hasError &&
-      "border-danger-600 shadow-field-error focus-within:shadow-field-error-ring",
+    !disabled && hasError && "border-danger-600 shadow-field-error",
     !disabled &&
       !hasError &&
-      cn(
-        "border-line-strong hover:border-neutral-400",
-        "focus-within:border-primary-600 focus-within:shadow-field-focus",
-      ),
+      cn("border-line hover:border-line-strong", "focus-within:border-primary-600"),
+  );
+}
+
+export function FieldDivider(): JSX.Element {
+  return (
+    <span data-part="field-divider" aria-hidden="true" className="h-5 w-px shrink-0 bg-line" />
   );
 }
 

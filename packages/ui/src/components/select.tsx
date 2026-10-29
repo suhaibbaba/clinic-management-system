@@ -103,7 +103,7 @@ function PlainSelect({
         <span
           {...part("value")}
           className={cn(
-            "min-w-0 flex-1 truncate",
+            "min-w-0 flex-1 truncate [unicode-bidi:plaintext] page-rtl:text-right page-ltr:text-left",
             disabled ? "text-ink-faint" : empty ? "text-ink-subtle" : "text-ink",
           )}
         >
@@ -324,7 +324,11 @@ function SearchableSelect({
       >
         <span
           {...part("value")}
-          className={cn("min-w-0 flex-1 truncate", chosen ? "text-ink" : "text-ink-subtle")}
+          title={chosen?.label}
+          className={cn(
+            "min-w-0 flex-1 truncate [unicode-bidi:plaintext] page-rtl:text-right page-ltr:text-left",
+            chosen ? "text-ink" : "text-ink-subtle",
+          )}
         >
           {chosen?.label ?? placeholder}
         </span>
@@ -391,9 +395,9 @@ function SearchableSelect({
                   option.value === value && "font-medium",
                 )}
               >
-                <span className="inline-flex min-w-0 items-center gap-2 truncate">
+                <span className="inline-flex min-w-0 items-center gap-2">
                   {option.icon}
-                  {option.label}
+                  <span className="truncate [unicode-bidi:plaintext]">{option.label}</span>
                 </span>
                 {option.value === value && (
                   <Icon name="check" className="size-4 shrink-0 text-primary-600" />

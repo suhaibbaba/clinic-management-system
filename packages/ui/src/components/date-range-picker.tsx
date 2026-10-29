@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@ui/components/button";
 import { Calendar } from "@ui/components/calendar";
 import { fromIsoDate, toIsoDate } from "@ui/components/date-picker";
-import { fieldShell } from "@ui/components/field";
+import { FieldDivider, fieldShell } from "@ui/components/field";
 import { Icon } from "@ui/components/icon";
 import { openOnArrowDown, usePickerOpen } from "@ui/lib/picker-open";
 import { Popover } from "@ui/components/popover";
@@ -73,6 +73,7 @@ export function DateRangePicker({
               t("common.placeholders.dateRange")
             )}
           </span>
+          <FieldDivider />
           <Icon name="calendar" className="size-4 shrink-0 text-ink-faint" />
         </button>
       }

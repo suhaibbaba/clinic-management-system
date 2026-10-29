@@ -28,8 +28,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
           : cn(
               "bg-surface",
               hasError
-                ? "border-danger-600 shadow-field-error focus:shadow-field-error-ring"
-                : "border-line-strong hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus",
+                ? "border-danger-600 shadow-field-error"
+                : "border-line hover:border-line-strong focus:border-primary-600",
             ),
         className,
       )}

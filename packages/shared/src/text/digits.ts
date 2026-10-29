@@ -26,7 +26,16 @@ export function cleanTypedNumber(value: string, inputMode: string | undefined): 
     return foldDigits(value).replace(/\D/g, "");
   }
 
-  if (inputMode === "decimal" || inputMode === "tel") {
+  if (inputMode === "decimal") {
+    const [whole = "", ...fraction] = foldDigits(value)
+      .replace(/[\u066B,]/g, ".")
+      .replace(/[^\d.]/g, "")
+      .split(".");
+
+    return fraction.length > 0 ? `${whole}.${fraction.join("")}` : whole;
+  }
+
+  if (inputMode === "tel") {
     return foldDigits(value);
   }
 

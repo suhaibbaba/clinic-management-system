@@ -4,6 +4,7 @@ import {
   FIELD_TEXT,
   FIELD_TEXT_OVERLAID,
   FieldClear,
+  FieldDivider,
   FieldIcon,
   FieldLock,
   FieldText,
@@ -54,6 +55,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           {...testid(testId, "icon")}
         />
       )}
+      {adornment !== undefined && <FieldDivider />}
 
       <FieldText placeholder={props.placeholder} dir={props.dir}>
         <input
@@ -88,6 +90,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         <FieldClear label={clearLabel} onClear={onClear} {...testid(testId, "clear")} />
       )}
 
+      {suffix !== undefined && <FieldDivider />}
       {suffix !== undefined && (
         <span
           data-part="input-suffix"

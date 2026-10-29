@@ -1,6 +1,12 @@
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { FIELD_BUTTON, FIELD_TEXT, FieldLock, fieldShell } from "@ui/components/field";
+import {
+  FIELD_BUTTON,
+  FIELD_TEXT,
+  FieldDivider,
+  FieldLock,
+  fieldShell,
+} from "@ui/components/field";
 import { Icon } from "@ui/components/icon";
 import { openOnArrowDown, usePickerOpen } from "@ui/lib/picker-open";
 import { Popover } from "@ui/components/popover";
@@ -116,9 +122,12 @@ export function TimePicker({
           {disabled ? (
             <FieldLock {...part("lock")} />
           ) : (
-            <span {...part("icon")} aria-hidden="true" className={FIELD_BUTTON}>
-              <Icon name="clock" className="size-4" />
-            </span>
+            <>
+              <FieldDivider />
+              <span {...part("icon")} aria-hidden="true" className={FIELD_BUTTON}>
+                <Icon name="clock" className="size-4" />
+              </span>
+            </>
           )}
         </button>
       }

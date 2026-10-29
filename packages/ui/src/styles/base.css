@@ -105,6 +105,8 @@
   --shadow-drawer: calc(20px * var(--drawer-direction, 1)) 0 48px -16px rgb(47 88 120 / 0.32);
   --shadow-now: 0 10px 22px -14px rgb(42 130 104 / 0.5);
   --shadow-pill: 0 1px 2px rgb(29 40 48 / 0.08);
+  --shadow-chip: 0 1px 3px rgb(29 40 48 / 0.12);
+  --ease-glide: cubic-bezier(0.22, 1, 0.36, 1);
   --shadow-ring: 0 0 0 3px var(--color-primary-100);
 
   --tracking-body: 0em;
@@ -481,4 +483,22 @@ body {
 
 :root {
   font-variant-numeric: lining-nums tabular-nums;
+}
+
+@utility fade-l {
+  mask-image: linear-gradient(to right, transparent, black 2.5rem);
+}
+
+@utility fade-r {
+  mask-image: linear-gradient(to left, transparent, black 2.5rem);
+}
+
+@utility fade-x {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 2.5rem,
+    black calc(100% - 2.5rem),
+    transparent
+  );
 }
