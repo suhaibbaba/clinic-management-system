@@ -167,3 +167,13 @@ export function lineReady(
     (!withInvoice || line.gift || filled(line.unitPrice))
   );
 }
+
+export function linesFromLinks(values: readonly string[], key: () => string): PurchaseLineDraft[] {
+  return values.flatMap((value) => {
+    const [itemId = "", quantity = ""] = value.split(":");
+
+    return itemId === ""
+      ? []
+      : [{ ...blankLine(key(), itemId), quantity: Number(quantity) > 0 ? quantity : "" }];
+  });
+}

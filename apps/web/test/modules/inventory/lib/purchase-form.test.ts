@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   blankLine,
   lineReady,
+  linesFromLinks,
   linesFromRequest,
   previewTotals,
   purchaseCounts,
@@ -157,5 +158,16 @@ describe("the purchase form", () => {
 
     expect(lineReady({ ...line, expiryDate: "2026-10-31" }, true, "2026-11-01")).toBe(false);
     expect(lineReady({ ...line, expiryDate: "2026-11-01" }, true, "2026-11-01")).toBe(true);
+  });
+
+  it("starts a line for each linked item, with its quantity when the link gives one", () => {
+    let next = 0;
+    const key = (): string => `k${++next}`;
+
+    expect(linesFromLinks(["gloves:12", "composite", "", "needles:0"], key)).toEqual([
+      { ...blankLine("k1", "gloves"), quantity: "12" },
+      { ...blankLine("k2", "composite"), quantity: "" },
+      { ...blankLine("k3", "needles"), quantity: "" },
+    ]);
   });
 });

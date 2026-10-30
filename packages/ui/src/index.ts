@@ -2,6 +2,7 @@ export { Avatar } from "@ui/components/avatar";
 export { Badge, Chip, type BadgeTone } from "@ui/components/badge";
 export { Button, type ButtonVariant } from "@ui/components/button";
 export { Card } from "@ui/components/card";
+export { Checkbox } from "@ui/components/checkbox";
 export { ChatBubble, type ChatAuthor } from "@ui/components/chat-bubble";
 export { ChatComposer } from "@ui/components/chat-composer";
 export { ChatThread } from "@ui/components/chat-thread";

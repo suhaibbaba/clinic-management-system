@@ -262,7 +262,9 @@ export const shoppingListLineSchema = z.object({
   quantity: signedQuantitySchema,
   minQuantity: quantitySchema,
   suggested: quantitySchema,
+  supplierId: uuidSchema.nullable(),
   supplierName: z.string().nullable(),
+  lastPrice: moneySchema.nullable().optional(),
 });
 export type ShoppingListLine = z.infer<typeof shoppingListLineSchema>;
 

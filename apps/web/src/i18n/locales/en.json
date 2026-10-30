@@ -1575,7 +1575,12 @@
       "suggested": "Suggested",
       "empty": "Nothing below its minimum",
       "emptyHint": "Everything is within its levels — nothing to order",
-      "note": "Suggested = twice the minimum less what is in stock; a starting figure only"
+      "note": "Suggested = twice the minimum less what is in stock; a starting figure only",
+      "lastPrice": "Last price",
+      "pickAll": "Select all",
+      "buy": "Buy selected",
+      "picked_one": "{{count}} item selected",
+      "picked_other": "{{count}} items selected"
     },
     "suppliers": {
       "title": "Suppliers",

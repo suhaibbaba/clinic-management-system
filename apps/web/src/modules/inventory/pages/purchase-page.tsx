@@ -40,6 +40,7 @@ import {
   blankLine,
   invoices,
   lineReady,
+  linesFromLinks,
   linesFromRequest,
   previewTotals,
   purchaseCounts,
@@ -82,21 +83,25 @@ export function PurchasePage(): JSX.Element {
     null,
   );
 
-  const [draft, setDraft] = useState<PurchaseDraft>(() => ({
-    supplierId: params.get("supplier") ?? "",
-    date: localDate(new Date(), DEFAULT_TIME_ZONE),
-    withInvoice: seesCosts,
-    supplierRef: "",
-    discountKind: DISCOUNT_KIND.PERCENT,
-    discountValue: "",
-    charges: "",
-    taxRate: "",
-    taxAmount: "",
-    paidNow: "",
-    paymentMethod: "",
-    note: "",
-    lines: [blankLine(newKey(), params.get("item") ?? "")],
-  }));
+  const [draft, setDraft] = useState<PurchaseDraft>(() => {
+    const linked = linesFromLinks(params.getAll("item"), newKey);
+
+    return {
+      supplierId: params.get("supplier") ?? "",
+      date: localDate(new Date(), DEFAULT_TIME_ZONE),
+      withInvoice: seesCosts,
+      supplierRef: "",
+      discountKind: DISCOUNT_KIND.PERCENT,
+      discountValue: "",
+      charges: "",
+      taxRate: "",
+      taxAmount: "",
+      paidNow: "",
+      paymentMethod: "",
+      note: "",
+      lines: linked.length > 0 ? linked : [blankLine(newKey())],
+    };
+  });
 
   useEffect(() => {
     if (!request.data || prefilled.current) {

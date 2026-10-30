@@ -1,11 +1,12 @@
 import { Inject, Injectable } from "@nestjs/common";
 import {
+  RULE,
   type InventoryAlerts,
   type ShoppingList,
   type StatementRangeQuery,
   type SupplierStatement,
 } from "@clinic/shared";
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import {
@@ -16,6 +17,7 @@ import {
   suppliers,
 } from "@api/database/schema";
 import { InventoryItemsService } from "@api/modules/inventory/services/inventory-items.service";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import { StockService } from "@api/modules/inventory/services/stock.service";
 import { SuppliersService } from "@api/modules/inventory/services/suppliers.service";
 import { byUrgency, byExpiry, toShoppingLine } from "@api/modules/inventory/lib/inventory-reports";
@@ -35,6 +37,7 @@ export class InventoryReportsService {
     private readonly items: InventoryItemsService,
     private readonly stock: StockService,
     private readonly suppliersService: SuppliersService,
+    private readonly permissions: PermissionsService,
   ) {}
 
   async alerts(actor: AuthenticatedUser): Promise<InventoryAlerts> {
@@ -51,12 +54,50 @@ export class InventoryReportsService {
   }
 
   async shoppingList(actor: AuthenticatedUser): Promise<ShoppingList> {
-    const { low } = await this.alerts(actor);
+    const [{ low }, seesCosts] = await Promise.all([
+      this.alerts(actor),
+      this.permissions.can(actor, RULE.INVENTORY_COSTS),
+    ]);
+
+    const prices = seesCosts
+      ? await this.lastPrices(
+          actor.clinicId,
+          low.map((item) => item.id),
+        )
+      : new Map<string, string>();
 
     return {
       generatedAt: new Date().toISOString(),
-      lines: low.map(toShoppingLine),
+      lines: low.map((item) =>
+        toShoppingLine(item, seesCosts ? (prices.get(item.id) ?? null) : undefined),
+      ),
     };
+  }
+
+  private async lastPrices(
+    clinicId: string,
+    itemIds: readonly string[],
+  ): Promise<Map<string, string>> {
+    if (itemIds.length === 0) {
+      return new Map();
+    }
+
+    const prices = await this.db.execute<{ itemId: string; price: string }>(sql`
+      select distinct on (l.item_id)
+        l.item_id::text as "itemId",
+        round(l.unit_price / l.units_per_purchase_unit, 2)::text as price
+      from stock_receipt_lines l
+      join stock_receipts r on r.id = l.receipt_id
+      where r.clinic_id = ${clinicId} and r.status = 'posted' and r.kind = 'receipt'
+        and l.unit_price is not null
+        and l.item_id in (${sql.join(
+          itemIds.map((id) => sql`${id}::uuid`),
+          sql`, `,
+        )})
+      order by l.item_id, r.received_on desc, l.created_at desc
+    `);
+
+    return new Map([...prices].map((row) => [row.itemId, row.price]));
   }
 
   async supplierStatement(

@@ -10,6 +10,7 @@ import {
   type ItemBatches,
   type Paginated,
   type ShoppingList,
+  type ShoppingListLine,
   type StockMovement,
   type StockMovementRow,
   type SupplierStatement,
@@ -522,6 +523,29 @@ describe("Inventory (e2e)", () => {
 
     expect(line?.quantity).toBe("3");
     expect(line?.suggested).toBe("17");
+  });
+
+  it("shows the last price paid on the shopping list, only to those who see costs", async () => {
+    const itemId = await createItem({
+      name: `إبر ناقصة ${uniquePhone()}`,
+      minQuantity: "10",
+    });
+    await move("purchase", { itemId, quantity: "2", unitPrice: "7" });
+    await move("purchase", { itemId, quantity: "1", unitPrice: "9" });
+
+    const lineFor = async (role: UserRole): Promise<ShoppingListLine | undefined> => {
+      const response = await context.app.inject({
+        method: "GET",
+        url: "/inventory/shopping-list",
+        headers: auth(tokens[role]),
+      });
+
+      expect(response.statusCode).toBe(200);
+      return (response.json() as ShoppingList).lines.find((entry) => entry.itemId === itemId);
+    };
+
+    expect((await lineFor(USER_ROLE.TECHNICIAN))?.lastPrice).toBe("9.00");
+    expect(await lineFor(USER_ROLE.DOCTOR)).not.toHaveProperty("lastPrice");
   });
 
   it("shows each priced purchase from a supplier as an invoice on its statement", async () => {
