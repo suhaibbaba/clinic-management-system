@@ -86,30 +86,29 @@ export const STOCK_DOT: Record<ProgressTone, string> = {
   danger: "bg-danger-600",
 };
 
-export const PURCHASE_LINE_GRID = {
-  invoice: [
-    "@min-[40rem]:grid-cols-[minmax(6rem,360px)_4rem_4rem_7rem_140px_6.5rem_minmax(4.75rem,auto)]",
-    "@min-[56rem]:grid-cols-[minmax(9rem,360px)_5.5rem_5.5rem_7.5rem_140px_6.5rem_minmax(4.75rem,auto)]",
-    "@min-[60rem]:grid-cols-[minmax(6rem,360px)_minmax(132px,160px)_5rem_5rem_7.5rem_140px_6.5rem_minmax(4.75rem,auto)]",
-  ].join(" "),
-  priced: [
-    "@min-[40rem]:grid-cols-[minmax(8rem,360px)_4rem_4rem_5.5rem_6.5rem_minmax(4.75rem,auto)]",
-    "@min-[50rem]:grid-cols-[minmax(8rem,360px)_minmax(132px,160px)_4.5rem_4.5rem_6rem_6.5rem_minmax(4.75rem,auto)]",
-  ].join(" "),
+export type PurchaseLineLayout = "invoice" | "priced" | "plain";
+
+const PRICED_LINE_GRID = [
+  "@min-[40rem]:grid-cols-[minmax(6rem,360px)_4rem_4rem_7.5rem_140px_6.5rem_minmax(4.75rem,auto)]",
+  "@min-[56rem]:grid-cols-[minmax(9rem,360px)_5.5rem_5.5rem_7.5rem_140px_6.5rem_minmax(4.75rem,auto)]",
+  "@min-[60rem]:grid-cols-[minmax(6rem,360px)_minmax(132px,160px)_5rem_5rem_7.5rem_140px_6.5rem_minmax(4.75rem,auto)]",
+].join(" ");
+
+export const PURCHASE_LINE_GRID: Record<PurchaseLineLayout, string> = {
+  invoice: PRICED_LINE_GRID,
+  priced: PRICED_LINE_GRID,
   plain: [
     "@min-[40rem]:grid-cols-[minmax(8rem,360px)_minmax(132px,160px)_4rem_4rem_minmax(4.75rem,auto)]",
     "@min-[56rem]:grid-cols-[minmax(9rem,360px)_minmax(132px,160px)_5.5rem_5.5rem_minmax(4.75rem,auto)]",
   ].join(" "),
-} as const;
-
-export type PurchaseLineLayout = keyof typeof PURCHASE_LINE_GRID;
+};
 
 export const PURCHASE_UNIT_COLUMN: Record<
   PurchaseLineLayout,
   { readonly cell: string; readonly column: string }
 > = {
   invoice: { cell: "@min-[60rem]:contents", column: "hidden @min-[60rem]:block" },
-  priced: { cell: "@min-[50rem]:contents", column: "hidden @min-[50rem]:block" },
+  priced: { cell: "@min-[60rem]:contents", column: "hidden @min-[60rem]:block" },
   plain: { cell: "@min-[40rem]:contents", column: "hidden @min-[40rem]:block" },
 };
 

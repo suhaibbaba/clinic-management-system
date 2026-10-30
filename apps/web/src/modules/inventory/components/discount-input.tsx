@@ -10,6 +10,7 @@ export function DiscountInput({
   currency,
   onKindChange,
   onValueChange,
+  disabled = false,
   "data-testid": testId,
 }: {
   readonly id: string;
@@ -18,6 +19,7 @@ export function DiscountInput({
   readonly currency: string | undefined;
   readonly onKindChange: (kind: DiscountKind) => void;
   readonly onValueChange: (value: string) => void;
+  readonly disabled?: boolean | undefined;
   readonly "data-testid": string;
 }): JSX.Element {
   const { t } = useTranslation();
@@ -33,22 +35,25 @@ export function DiscountInput({
       placeholder="0"
       className="pe-1 tabular-nums"
       value={value}
+      disabled={disabled}
       onChange={(event) => onValueChange(event.target.value)}
       suffix={
-        <SegmentedControl<DiscountKind>
-          size="sm"
-          data-testid={`${testId}-kind`}
-          label={t("inventory.purchase.discountKind")}
-          value={kind}
-          onChange={onKindChange}
-          options={[
-            { value: DISCOUNT_KIND.PERCENT, label: "%" },
-            {
-              value: DISCOUNT_KIND.AMOUNT,
-              label: symbol === "" ? t("inventory.purchase.amount") : symbol,
-            },
-          ]}
-        />
+        !disabled && (
+          <SegmentedControl<DiscountKind>
+            size="sm"
+            data-testid={`${testId}-kind`}
+            label={t("inventory.purchase.discountKind")}
+            value={kind}
+            onChange={onKindChange}
+            options={[
+              { value: DISCOUNT_KIND.PERCENT, label: "%" },
+              {
+                value: DISCOUNT_KIND.AMOUNT,
+                label: symbol === "" ? t("inventory.purchase.amount") : symbol,
+              },
+            ]}
+          />
+        )
       }
     />
   );

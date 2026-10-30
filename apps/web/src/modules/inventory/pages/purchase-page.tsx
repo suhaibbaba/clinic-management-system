@@ -156,7 +156,15 @@ export function PurchasePage(): JSX.Element {
     { label: "inventory.movement.quantity", end: false },
     { label: "inventory.purchase.freeShort", end: false, hint: "inventory.purchase.freeHint" },
     ...(layout === "plain" ? [] : [{ label: "inventory.movement.unitPrice", end: false }]),
-    ...(layout === "invoice" ? [{ label: "inventory.purchase.lineDiscount", end: false }] : []),
+    ...(layout === "plain"
+      ? []
+      : [
+          {
+            label: "inventory.purchase.lineDiscount",
+            end: false,
+            ...(layout === "priced" && { hint: "inventory.purchase.discountNeedsInvoice" }),
+          },
+        ]),
     ...(layout === "plain" ? [] : [{ label: "inventory.purchase.lineTotal", end: true }]),
   ];
 

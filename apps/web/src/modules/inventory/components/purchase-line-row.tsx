@@ -179,14 +179,19 @@ export function PurchaseLineRow({
           </Cell>
         )}
 
-        {layout === "invoice" && (
-          <Cell label={t("inventory.purchase.lineDiscount")} htmlFor={id("discount")}>
+        {layout !== "plain" && (
+          <Cell
+            label={t("inventory.purchase.lineDiscount")}
+            htmlFor={id("discount")}
+            hint={layout === "priced" ? t("inventory.purchase.discountNeedsInvoice") : undefined}
+          >
             {!line.gift && (
               <DiscountInput
                 id={id("discount")}
                 data-testid="purchase-line-discount"
+                disabled={layout === "priced"}
                 kind={line.discountKind}
-                value={line.discountValue}
+                value={layout === "priced" ? "" : line.discountValue}
                 currency={currency}
                 onKindChange={(discountKind) => onChange({ discountKind })}
                 onValueChange={(discountValue) => onChange({ discountValue })}

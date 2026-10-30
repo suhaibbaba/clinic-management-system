@@ -1696,6 +1696,7 @@
       "batchPlaceholder": "e.g. L-2231",
       "refPlaceholder": "e.g. INV-1024",
       "freeShort": "Free",
+      "discountNeedsInvoice": "A discount comes on a supplier's invoice. Choose a supplier and turn on the invoice to enter one.",
       "freeHint": "Extra units the supplier adds at no charge. They go into stock on top of the quantity; you pay only for the quantity, so each unit costs less.",
       "unitShort": "Unit",
       "reviewTitle": "Purchase summary",
