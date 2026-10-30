@@ -65,7 +65,7 @@ export function BookingBand(): JSX.Element {
     <section
       data-testid="site-booking-band"
       aria-labelledby="booking-band-title"
-      className="relative isolate mt-6 overflow-hidden"
+      className="relative isolate overflow-hidden"
     >
       {image && (
         <SiteImage
