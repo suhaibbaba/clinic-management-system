@@ -266,7 +266,7 @@ export function PatientFormModal({
           label="patients.dateOfBirth"
           htmlFor="patient-dob"
           error={errors.dateOfBirth}
-          {...(needed("dateOfBirth") ? { hint: "patients.neededToComplete" } : { optional: true })}
+          {...(needed("dateOfBirth") ? { note: "patients.neededToComplete" } : { optional: true })}
         >
           <Controller
             control={control}
@@ -289,7 +289,7 @@ export function PatientFormModal({
           label="patients.gender"
           htmlFor="patient-gender"
           error={errors.gender}
-          {...(needed("gender") ? { hint: "patients.neededToComplete" } : { optional: true })}
+          {...(needed("gender") ? { note: "patients.neededToComplete" } : { optional: true })}
         >
           <Controller
             name="gender"

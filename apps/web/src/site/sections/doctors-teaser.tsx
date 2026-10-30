@@ -52,7 +52,7 @@ export function DoctorsTeaser(): JSX.Element | null {
                 key={doctor.id}
                 to={`${SITE_PATH.DOCTORS}/${doctor.id}`}
                 data-testid={`site-doctor-tile-${doctor.id}`}
-                className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card transition-colors duration-300 hover:border-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card transition-colors duration-300 hover:border-primary-700"
               >
                 <SiteImage
                   src={doctor.photoUrl}

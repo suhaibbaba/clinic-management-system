@@ -403,7 +403,7 @@ function EmptyIntro({
                 "bg-surface p-3 text-start shadow-card transition-colors duration-150",
                 "sm:flex-col sm:items-start sm:gap-1 sm:p-4",
                 "hover:border-primary-300 hover:bg-primary-50",
-                "outline-none focus-visible:ring-2 focus-visible:ring-primary-300",
+                "outline-none",
                 "disabled:cursor-not-allowed disabled:opacity-60",
               )}
             >

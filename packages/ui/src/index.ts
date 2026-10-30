@@ -24,6 +24,7 @@ export {
 export { EmptyState } from "@ui/components/empty-state";
 export { EntityCard, EntityGrid } from "@ui/components/entity-card";
 export { FormField } from "@ui/components/form-field";
+export { InfoTip, type InfoTipProps } from "@ui/components/info-tip";
 export { Icon, type IconName } from "@ui/components/icon";
 export { BannerIcon, type BannerIconProps } from "@ui/components/icons/banner-icon";
 export { Img } from "@ui/components/img";

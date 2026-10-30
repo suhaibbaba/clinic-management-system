@@ -196,6 +196,13 @@ through its `className` or a `data-part`, never a fork.
   RTL), Home and End. A closing drawer or dialog returns focus to what opened it. A calendar opens
   on its selected day. The shell starts with a skip-to-content link. An unavailable action is
   `aria-disabled`, never `disabled`: it stays a Tab stop, reads as unavailable, and ignores presses.
+- **No focus outline or ring on any component.** `base.css` clears `outline` on `:focus` and
+  `:focus-visible`; never add an `outline-*` or `ring-*` focus utility. A field shows focus through
+  its border (`fieldShell()`), nothing else.
+- **A field's explanation is an `InfoTip` in its label**, never a hint line under the field.
+  `FormField`'s `hint` renders one; a column header or custom label uses `InfoTip` directly. Only
+  a live status that changes with the input (a balance after payment, what a file still needs) is
+  a visible `note` under the field.
 - `Select` is Radix's, not the platform's: a native `<select>` did nothing on iOS Safari and cannot
   be tested off the device.
 - **Use the shared control:** `<Money>`, `<MoneyInput>`, `<PersonName>`, `<PhoneLink>`,

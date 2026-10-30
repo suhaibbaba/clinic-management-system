@@ -193,7 +193,6 @@ export function SegmentedControl<TValue extends string>({
               className={cn(
                 "pill-text inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5",
                 "whitespace-nowrap rounded-pill text-label font-medium transition-colors",
-                "focus-visible:outline-2 focus-visible:outline-primary-600",
                 SIZES[size].option,
                 isSelected ? "text-ink" : "text-ink-muted hover:text-ink",
               )}

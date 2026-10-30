@@ -162,8 +162,8 @@ export function PaymentModal({
             label="billing.amount"
             htmlFor="payment-amount"
             error={errors.amount}
-            hint="billing.balanceAfter"
-            hintValues={{ amount: moneyText(after, currency) }}
+            note="billing.balanceAfter"
+            noteValues={{ amount: moneyText(after, currency) }}
             {...(exceeds && {
               error: { type: "too_big" },
               errorKey: "errors.payment.exceedsBalance",

@@ -55,7 +55,6 @@ export function ConversationItem({
         className={cn(
           "min-w-0 flex-1 rounded-nav px-3 py-2 pe-9 outline-none",
           "transition-colors duration-150",
-          "focus-visible:ring-2 focus-visible:ring-primary-300",
           selected ? "bg-selected text-ink" : "text-ink-muted hover:bg-inset hover:text-ink",
         )}
       >

@@ -23,6 +23,7 @@
     "all": "All",
     "none": "None",
     "optional": "Optional",
+    "moreInfo": "More information",
     "delete": "Delete",
     "placeholders": {
       "identifier": "05XXXXXXXX",
@@ -637,6 +638,7 @@
     "purchase": {
       "closedMonth": "That month is closed; date it in an open month",
       "futureDate": "The date cannot be in the future",
+      "tooOld": "The date cannot be more than 30 days back",
       "backdateNotAllowed": "Only a manager can date this more than 7 days back",
       "duplicateReference": "This supplier invoice number is already recorded",
       "alreadyInvoiced": "These goods are already on an invoice",
@@ -1694,6 +1696,8 @@
       "batchPlaceholder": "e.g. L-2231",
       "refPlaceholder": "e.g. INV-1024",
       "freeShort": "Free",
+      "freeHint": "Extra units the supplier adds at no charge. They go into stock on top of the quantity; you pay only for the quantity, so each unit costs less.",
+      "unitShort": "Unit",
       "reviewTitle": "Purchase summary",
       "review": "Review and post",
       "reviewReceipt": "Review and receive",
@@ -1858,6 +1862,7 @@
       "title": "Pack Sizes",
       "hint": "How this item is bought. Stock is always kept in its own unit.",
       "holds": "{{pack}} of {{count}} {{unit}}",
+      "holdsShort": "{{pack}} = {{count}} {{unit}}",
       "pack": "Pack",
       "unitsPer": "Units in a pack",
       "add": "Add Pack Size",

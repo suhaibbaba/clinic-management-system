@@ -65,10 +65,7 @@ export function ChatThread({
         {...part("viewport")}
         onScroll={onScroll}
         tabIndex={0}
-        className={cn(
-          "h-full overflow-y-auto scroll-smooth px-4 py-5 sm:px-6",
-          "outline-none focus-visible:ring-2 focus-visible:ring-primary-300",
-        )}
+        className={cn("h-full overflow-y-auto scroll-smooth px-4 py-5 sm:px-6", "outline-none")}
       >
         <div ref={content} {...part("content")} className="mx-auto flex max-w-3xl flex-col gap-4">
           {children}

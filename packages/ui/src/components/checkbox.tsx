@@ -52,7 +52,6 @@ export function Checkbox({
           className={cn(
             "pointer-events-none grid size-5 place-items-center rounded-chip border-[1.5px]",
             "transition-colors duration-150",
-            "peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary-600",
             marked
               ? "border-primary-600 bg-primary-600 text-ink-inverse"
               : "border-line-strong bg-surface",

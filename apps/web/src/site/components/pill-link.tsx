@@ -39,7 +39,6 @@ export function PillLink({
       data-testid={testId}
       className={cx(
         "pill-text group/pill inline-flex min-h-(--control-h) items-center justify-center gap-2.5 rounded-pill font-medium transition-colors duration-150",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600",
         size === "lg" ? "px-8 text-field" : "px-5 text-label",
         TONES[tone],
         className,
