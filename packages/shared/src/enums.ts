@@ -1069,7 +1069,11 @@ export const RECEIPT_KIND = {
   RETURN: "return",
 } as const satisfies Record<string, string>;
 export type ReceiptKind = EnumValue<typeof RECEIPT_KIND>;
-export const RECEIPT_KINDS = [RECEIPT_KIND.RECEIPT, RECEIPT_KIND.OPENING, RECEIPT_KIND.RETURN] as const;
+export const RECEIPT_KINDS = [
+  RECEIPT_KIND.RECEIPT,
+  RECEIPT_KIND.OPENING,
+  RECEIPT_KIND.RETURN,
+] as const;
 
 export const SUPPLIER_DOCUMENT_KIND = {
   INVOICE: "invoice",
