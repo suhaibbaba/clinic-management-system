@@ -53,11 +53,13 @@ export function currencySymbol(code: string | undefined): string {
   return CURRENCY_SYMBOLS[code.toUpperCase()] ?? code;
 }
 
+const groupThousands = (whole: string): string => whole.replace(/\B(?=(\d{3})+$)/g, ",");
+
 export function formatWholeMoney(amount: string): string {
   const negative = amount.startsWith("-");
   const [whole = "0"] = (negative ? amount.slice(1) : amount).split(".");
 
-  return `${negative ? "-" : ""}${whole}`;
+  return `${negative ? "-" : ""}${groupThousands(whole)}`;
 }
 
 export function formatCentsMoney(amount: string): string {
@@ -65,5 +67,5 @@ export function formatCentsMoney(amount: string): string {
   const [whole = "0", fraction = ""] = (negative ? amount.slice(1) : amount).split(".");
   const cents = fraction.padEnd(2, "0").slice(0, 2);
 
-  return `${negative ? "-" : ""}${whole}${cents === "00" ? "" : `.${cents}`}`;
+  return `${negative ? "-" : ""}${groupThousands(whole)}${cents === "00" ? "" : `.${cents}`}`;
 }
