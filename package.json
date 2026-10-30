@@ -23,6 +23,7 @@
     "version:check": "node scripts/sync-version.mjs --check",
     "test": "pnpm -r test",
     "seed": "pnpm --filter @clinic/api seed",
+    "seed:inventory": "pnpm --filter @clinic/api seed:inventory",
     "db:reset": "pnpm --filter @clinic/api db:reset"
   },
   "devDependencies": {
