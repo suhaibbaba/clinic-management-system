@@ -1,4 +1,14 @@
-import { addMonths, addYears, format, setMonth, setYear, startOfMonth } from "date-fns";
+import {
+  addMonths,
+  addYears,
+  endOfYear,
+  format,
+  max as latestOf,
+  min as earliestOf,
+  setMonth,
+  setYear,
+  startOfMonth,
+} from "date-fns";
 import { ar, enGB, type Locale } from "date-fns/locale";
 import { useEffect, useRef, useState, type JSX, type ReactNode } from "react";
 import {
@@ -204,9 +214,14 @@ interface PeriodOption {
   readonly label: string;
   readonly isSelected: boolean;
   readonly isCurrent: boolean;
+  readonly isDisabled?: boolean | undefined;
 }
 
 function periodInk(option: PeriodOption): string {
+  if (option.isDisabled === true) {
+    return DAY_STATES.disabled.button;
+  }
+
   if (option.isSelected) {
     return cn(
       option.isCurrent ? DAY_STATES.todaySelected.button : DAY_STATES.selected.button,
@@ -263,7 +278,8 @@ function PeriodGrid({
           data-part="calendar-period"
           data-testid={`calendar-period-${String(option.key)}`}
           aria-current={option.isSelected ? "true" : undefined}
-          onClick={() => onPick(option.key)}
+          aria-disabled={option.isDisabled === true || undefined}
+          onClick={() => option.isDisabled !== true && onPick(option.key)}
           className={cn(PERIOD_CELL, periodInk(option))}
         >
           {option.label}
@@ -278,21 +294,30 @@ export function Calendar(props: DayPickerProps): JSX.Element {
   const locale = dateLocale(i18n.language);
   const isRtl = i18n.language.split("-")[0] === "ar";
 
+  const lastYear = new Date().getFullYear() + 1;
+  const firstMonth = startOfMonth(props.startMonth ?? new Date(FIRST_YEAR, 0, 1));
+  const lastMonth = startOfMonth(props.endMonth ?? endOfYear(new Date(lastYear, 0, 1)));
+  const within = (date: Date): Date =>
+    latestOf([firstMonth, earliestOf([lastMonth, startOfMonth(date)])]);
+
   const [view, setView] = useState<CalendarView>("days");
-  const [month, goToMonth] = useState(() =>
+  const [shown, setShown] = useState(() =>
     startOfMonth(props.month ?? props.defaultMonth ?? new Date()),
   );
+  const month = within(shown);
+  const goToMonth = (date: Date): void => setShown(within(date));
 
   const shownOn = (props.month ?? props.defaultMonth)?.getTime();
 
   useEffect(() => {
     if (shownOn !== undefined) {
-      goToMonth(startOfMonth(new Date(shownOn)));
+      setShown(startOfMonth(new Date(shownOn)));
     }
   }, [shownOn]);
 
-  const lastYear = new Date().getFullYear() + 1;
   const year = month.getFullYear();
+  const firstYear = firstMonth.getFullYear();
+  const finalYear = lastMonth.getFullYear();
 
   const body =
     view === "days" ? (
@@ -341,6 +366,7 @@ export function Calendar(props: DayPickerProps): JSX.Element {
           label: format(setMonth(month, index), "LLL", { locale }),
           isSelected: month.getMonth() === index,
           isCurrent: new Date().getFullYear() === year && new Date().getMonth() === index,
+          isDisabled: setMonth(month, index) < firstMonth || setMonth(month, index) > lastMonth,
         }))}
         onPick={(index) => {
           goToMonth(startOfMonth(setMonth(month, index)));
@@ -352,8 +378,8 @@ export function Calendar(props: DayPickerProps): JSX.Element {
         label={t("common.calendar.chooseYear")}
         columns={4}
         scrolls
-        options={Array.from({ length: lastYear - FIRST_YEAR + 1 }, (_, index) => {
-          const value = FIRST_YEAR + index;
+        options={Array.from({ length: finalYear - firstYear + 1 }, (_, index) => {
+          const value = firstYear + index;
 
           return {
             key: value,
@@ -377,12 +403,12 @@ export function Calendar(props: DayPickerProps): JSX.Element {
           previous: {
             label: t("common.calendar.previousMonth"),
             onClick: () => goToMonth(addMonths(month, -1)),
-            can: year > FIRST_YEAR || month.getMonth() > 0,
+            can: month > firstMonth,
           },
           next: {
             label: t("common.calendar.nextMonth"),
             onClick: () => goToMonth(addMonths(month, 1)),
-            can: year < lastYear || month.getMonth() < 11,
+            can: month < lastMonth,
           },
         }
       : view === "months"
@@ -392,12 +418,12 @@ export function Calendar(props: DayPickerProps): JSX.Element {
             previous: {
               label: t("common.calendar.previousYear"),
               onClick: () => goToMonth(addYears(month, -1)),
-              can: year > FIRST_YEAR,
+              can: year > firstYear,
             },
             next: {
               label: t("common.calendar.nextYear"),
               onClick: () => goToMonth(addYears(month, 1)),
-              can: year < lastYear,
+              can: year < finalYear,
             },
           }
         : { label: t("common.calendar.chooseYear"), zoomOut: null };
