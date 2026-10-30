@@ -261,7 +261,7 @@ export function PurchaseLineRow({
         <div
           id={detailsId}
           data-testid="purchase-line-extra"
-          className="mt-3 grid items-end gap-3 rounded-panel bg-inset p-3 @min-[26rem]:grid-cols-2 @min-[40rem]:grid-cols-3"
+          className="mt-3 grid items-end gap-3 border-t border-line pt-3 @min-[26rem]:grid-cols-2 @min-[40rem]:grid-cols-3"
         >
           <Cell label={t("inventory.movement.batchNo")} htmlFor={id("batch")} persistentLabel>
             <Input

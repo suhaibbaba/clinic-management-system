@@ -77,13 +77,13 @@ export function PurchaseReviewModal({
       }
     >
       <div className="flex flex-col gap-5">
-        <dl data-testid="purchase-review-counts" className="grid grid-cols-2 gap-3">
+        <dl data-testid="purchase-review-counts" className="flex flex-col gap-2">
           {stats
             .filter(([, , shown]) => shown)
             .map(([label, value]) => (
-              <div key={label} className="flex flex-col gap-1 rounded-panel bg-inset p-3">
-                <dt className="text-label text-ink-muted">{t(label)}</dt>
-                <dd className="text-title font-semibold text-ink">
+              <div key={label} className="flex items-baseline justify-between gap-3 text-value">
+                <dt className="text-ink-muted">{t(label)}</dt>
+                <dd className="font-semibold text-ink">
                   <Ltr>{value}</Ltr>
                 </dd>
               </div>
