@@ -35,6 +35,7 @@ export interface SelectProps
   renderValue?: ((option: SelectOption) => ReactNode) | undefined;
   listClassName?: string | undefined;
   searchable?: boolean | undefined;
+  bare?: boolean | undefined;
   onCreate?: ((text: string) => void) | undefined;
 }
 
@@ -57,6 +58,7 @@ function PlainSelect({
   required,
   renderValue,
   listClassName,
+  bare = false,
   "aria-label": ariaLabel,
   "aria-describedby": describedBy,
   "data-testid": testId,
@@ -93,10 +95,12 @@ function PlainSelect({
         aria-required={required || undefined}
         aria-invalid={hasError || undefined}
         className={cn(
-          fieldShell({ hasError, disabled }),
+          bare
+            ? "flex shrink-0 items-center gap-1.5 self-stretch bg-transparent"
+            : fieldShell({ hasError, disabled }),
           "cursor-pointer text-start text-field",
           "focus-visible:outline-none",
-          disabled && "text-ink-faint",
+          disabled && "cursor-not-allowed text-ink-faint",
           className,
         )}
       >
@@ -113,7 +117,7 @@ function PlainSelect({
         </span>
 
         {disabled ? (
-          <FieldLock {...testid(testId, "lock")} />
+          !bare && <FieldLock {...testid(testId, "lock")} />
         ) : (
           <SelectPrimitive.Icon asChild>
             <Icon

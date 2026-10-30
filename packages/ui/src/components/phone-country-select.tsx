@@ -24,7 +24,7 @@ export function PhoneCountrySelect({
 
   return (
     <Select
-      className="w-[7.5rem] shrink-0"
+      bare
       listClassName="w-auto min-w-64"
       {...(testId !== undefined && { "data-testid": testId })}
       aria-label={label}
@@ -40,8 +40,7 @@ export function PhoneCountrySelect({
         const entry = PHONE_COUNTRIES.find((item) => item.country === option.value);
 
         return entry ? (
-          <span className="inline-flex items-center gap-2 tabular-nums" dir="ltr">
-            <Flag country={entry.country} />
+          <span className="tabular-nums" dir="ltr">
             {entry.dial}
           </span>
         ) : null;
