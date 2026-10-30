@@ -1141,6 +1141,7 @@ export const PAYMENT_DIRECTIONS = [PAYMENT_DIRECTION.PAID, PAYMENT_DIRECTION.REF
 export const PURCHASE_ERROR = {
   CLOSED_MONTH: "purchase_closed_month",
   FUTURE_DATE: "purchase_future_date",
+  TOO_OLD: "purchase_too_old",
   BACKDATE_NOT_ALLOWED: "purchase_backdate_not_allowed",
   DUPLICATE_REFERENCE: "purchase_duplicate_reference",
   ALREADY_INVOICED: "purchase_already_invoiced",
@@ -1153,6 +1154,8 @@ export const PURCHASE_ERROR = {
 } as const satisfies Record<string, string>;
 
 export const PURCHASE_BACKDATE_DAYS = 7;
+
+export const PURCHASE_MAX_BACKDATE_DAYS = 30;
 
 export const STOCK_ERROR = {
   INSUFFICIENT: "insufficient_stock",

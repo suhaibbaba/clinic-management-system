@@ -16,6 +16,9 @@ import { useCurrency } from "@web/shared/queries/clinic";
 import { errorToast } from "@web/shared/lib/api-error";
 import { formatDate } from "@web/shared/lib/format";
 import { useInvoiceReceipts, useUninvoiced } from "@web/modules/inventory/queries";
+import { earliestPurchaseDate } from "@web/modules/inventory/lib/purchase-form";
+import { useSession } from "@web/shared/providers/session";
+import { canBackdatePurchase } from "@web/shared/permissions/inventory";
 import { Quantity } from "@web/modules/inventory/components/quantity";
 
 interface Picked {
@@ -34,6 +37,7 @@ export function UninvoicedLines({
   const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const lines = useUninvoiced(supplierId);
   const invoice = useInvoiceReceipts();
+  const { can } = useSession();
   const today = localDate(new Date(), DEFAULT_TIME_ZONE);
 
   const [picked, setPicked] = useState<Record<string, Picked>>({});
@@ -137,6 +141,7 @@ export function UninvoicedLines({
             data-testid="uninvoiced-date"
             label={t("inventory.purchase.date")}
             value={date}
+            min={earliestPurchaseDate(today, canBackdatePurchase(can))}
             max={today}
             onChange={setDate}
           />

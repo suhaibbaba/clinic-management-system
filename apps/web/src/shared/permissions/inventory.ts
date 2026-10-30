@@ -58,6 +58,8 @@ export const canVoidInvoice = (can: Can): boolean => can("purchases.voidInvoice"
 
 export const canSeeCosts = (can: Can): boolean => can(RULE.INVENTORY_COSTS);
 
+export const canBackdatePurchase = (can: Can): boolean => can(RULE.BACKDATE_PURCHASES);
+
 export const canReversePricedPurchase = (can: Can): boolean => can(RULE.REVERSE_PRICED_PURCHASE);
 
 export const mayRecord = (

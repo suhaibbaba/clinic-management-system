@@ -79,6 +79,7 @@ const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [STOCK_ERROR.LOT_REQUIRED]: "errors.stock.lotRequired",
   [PURCHASE_ERROR.CLOSED_MONTH]: "errors.purchase.closedMonth",
   [PURCHASE_ERROR.FUTURE_DATE]: "errors.purchase.futureDate",
+  [PURCHASE_ERROR.TOO_OLD]: "errors.purchase.tooOld",
   [PURCHASE_ERROR.BACKDATE_NOT_ALLOWED]: "errors.purchase.backdateNotAllowed",
   [PURCHASE_ERROR.DUPLICATE_REFERENCE]: "errors.purchase.duplicateReference",
   [PURCHASE_ERROR.ALREADY_INVOICED]: "errors.purchase.alreadyInvoiced",

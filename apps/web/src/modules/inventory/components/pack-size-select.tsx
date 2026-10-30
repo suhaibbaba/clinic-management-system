@@ -17,13 +17,24 @@ export function PackSizeSelect({
   readonly baseUnit: string;
   readonly value: string;
   readonly onChange: (packSizeId: string) => void;
-}): JSX.Element | null {
+}): JSX.Element {
   const { t } = useTranslation();
   const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const packs = usePackSizes(itemId);
 
   if (!packs.data || packs.data.length === 0) {
-    return null;
+    return (
+      <Select
+        disabled
+        id={id}
+        data-testid="purchase-line-pack"
+        aria-label={t("inventory.packSizes.buyIn")}
+        value={baseUnit === "" ? "" : "base"}
+        placeholder="—"
+        onChange={() => undefined}
+        options={baseUnit === "" ? [] : [{ value: "base", label: unitLabel(baseUnit) }]}
+      />
+    );
   }
 
   return (
@@ -37,7 +48,7 @@ export function PackSizeSelect({
         { value: "base", label: unitLabel(baseUnit) },
         ...packs.data.map((pack) => ({
           value: pack.id,
-          label: t("inventory.packSizes.holds", {
+          label: t("inventory.packSizes.holdsShort", {
             pack: unitLabel(pack.unit),
             count: Number(pack.unitsPer),
             unit: unitLabel(baseUnit),

@@ -15,6 +15,7 @@ import {
   DatePicker,
   FormField,
   Icon,
+  InfoTip,
   Input,
   MoneyInput,
   PageHeader,
@@ -24,7 +25,7 @@ import {
   useToast,
 } from "@clinic/ui";
 import { cn } from "@clinic/ui/lib/cn";
-import { useLookupLabels, useLookupOptions } from "@web/shared/queries/lookups";
+import { useLookupOptions } from "@web/shared/queries/lookups";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { errorToast } from "@web/shared/lib/api-error";
 import {
@@ -34,15 +35,22 @@ import {
   useSuppliers,
 } from "@web/modules/inventory/queries";
 import { useSession } from "@web/shared/providers/session";
-import { canManageInventory, canPaySupplier, canSeeCosts } from "@web/shared/permissions/inventory";
+import {
+  canBackdatePurchase,
+  canManageInventory,
+  canPaySupplier,
+  canSeeCosts,
+} from "@web/shared/permissions/inventory";
 import { ItemFormModal } from "@web/modules/inventory/components/item-form-modal";
 import {
   blankLine,
+  earliestPurchaseDate,
   invoices,
   lineReady,
   linesFromLinks,
   linesFromRequest,
   previewTotals,
+  pricedTotals,
   purchaseCounts,
   returnTarget,
   toPostPurchase,
@@ -56,6 +64,7 @@ import { PurchaseTotalBar } from "@web/modules/inventory/components/purchase-tot
 import {
   EXPIRY_MIN_DAYS_AHEAD,
   PURCHASE_LINE_GRID,
+  PURCHASE_UNIT_COLUMN,
   RETURN_PARAM,
   type PurchaseLineLayout,
 } from "@web/modules/inventory/constants";
@@ -68,7 +77,6 @@ export function PurchasePage(): JSX.Element {
   const navigate = useNavigate();
   const currency = useCurrency();
   const [params] = useSearchParams();
-  const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const methods = useLookupOptions(LOOKUP_LIST.PAYMENT_METHOD);
   const items = useInventoryItems({ limit: 100 });
   const suppliers = useSuppliers({ limit: 100 });
@@ -130,10 +138,12 @@ export function PurchasePage(): JSX.Element {
 
   const withInvoice = invoices(draft);
   const totals = withInvoice ? previewTotals(draft) : null;
+  const costs = withInvoice ? totals : seesCosts ? pricedTotals(draft) : null;
   const method = draft.paymentMethod || (methods[0]?.value ?? "");
   const paid = draft.paidNow.trim() === "" ? 0 : toMinorUnits(draft.paidNow.trim());
   const overpaid = totals !== null && paid > toMinorUnits(totals.total);
-  const minExpiry = addDays(localDate(new Date(), DEFAULT_TIME_ZONE), EXPIRY_MIN_DAYS_AHEAD);
+  const today = localDate(new Date(), DEFAULT_TIME_ZONE);
+  const minExpiry = addDays(today, EXPIRY_MIN_DAYS_AHEAD);
   const ready =
     draft.lines.every((line) => lineReady(line, withInvoice, minExpiry)) &&
     (!withInvoice || totals !== null);
@@ -142,15 +152,12 @@ export function PurchasePage(): JSX.Element {
   const layout: PurchaseLineLayout = withInvoice ? "invoice" : seesCosts ? "priced" : "plain";
   const columns = [
     { label: "inventory.movement.item", end: false },
+    { label: "inventory.purchase.unitShort", end: false, wide: true },
     { label: "inventory.movement.quantity", end: false },
-    { label: "inventory.purchase.freeShort", end: false },
+    { label: "inventory.purchase.freeShort", end: false, hint: "inventory.purchase.freeHint" },
     ...(layout === "plain" ? [] : [{ label: "inventory.movement.unitPrice", end: false }]),
-    ...(layout === "invoice"
-      ? [
-          { label: "inventory.purchase.lineDiscount", end: false },
-          { label: "inventory.purchase.lineTotal", end: true },
-        ]
-      : []),
+    ...(layout === "invoice" ? [{ label: "inventory.purchase.lineDiscount", end: false }] : []),
+    ...(layout === "plain" ? [] : [{ label: "inventory.purchase.lineTotal", end: true }]),
   ];
 
   const unitOf = (itemId: string): string =>
@@ -158,7 +165,7 @@ export function PurchasePage(): JSX.Element {
 
   const itemOptions = (items.data?.items ?? []).map((item) => ({
     value: item.id,
-    label: `${item.name} — ${unitLabel(item.unit)}`,
+    label: item.name,
   }));
 
   const submit = async (): Promise<void> => {
@@ -190,8 +197,13 @@ export function PurchasePage(): JSX.Element {
       />
 
       <Card data-testid="purchase-details">
-        <div className="grid gap-4 @xl:grid-cols-2 @min-[44rem]:grid-cols-4">
-          <div className="@xl:col-span-2">
+        <div
+          className={cn(
+            "grid gap-4 @xl:grid-cols-2",
+            "@min-[44rem]:grid-cols-[minmax(12rem,360px)_11rem_13rem_max-content] @min-[44rem]:items-end",
+          )}
+        >
+          <div className="@xl:col-span-2 @min-[44rem]:col-span-1">
             <FormField label="inventory.movement.supplier" htmlFor="purchase-supplier" optional>
               <Select
                 searchable
@@ -213,7 +225,8 @@ export function PurchasePage(): JSX.Element {
               data-testid="purchase-field-date"
               label={t("inventory.purchase.date")}
               value={draft.date}
-              max={localDate(new Date(), DEFAULT_TIME_ZONE)}
+              min={earliestPurchaseDate(today, canBackdatePurchase(can))}
+              max={today}
               onChange={(date) => change({ date })}
             />
           </FormField>
@@ -230,7 +243,7 @@ export function PurchasePage(): JSX.Element {
             </FormField>
           )}
           {seesCosts && draft.supplierId !== "" && (
-            <div className="@xl:col-span-2 @min-[44rem]:col-span-4">
+            <div className="flex items-center @xl:col-span-2 @min-[44rem]:col-span-1 @min-[44rem]:col-start-4 @min-[44rem]:h-(--control-h)">
               <Switch
                 checked={draft.withInvoice}
                 onCheckedChange={(withInvoiceNow) => change({ withInvoice: withInvoiceNow })}
@@ -263,7 +276,6 @@ export function PurchasePage(): JSX.Element {
         </div>
 
         <div
-          aria-hidden="true"
           className={cn(
             "mt-3 hidden border-b border-line pb-2 text-label font-medium text-ink-muted",
             "@min-[40rem]:grid @min-[40rem]:gap-2 @min-[56rem]:gap-3",
@@ -271,8 +283,18 @@ export function PurchasePage(): JSX.Element {
           )}
         >
           {columns.map((column) => (
-            <span key={column.label} className={cn("truncate", column.end && "text-end")}>
-              {t(column.label)}
+            <span
+              key={column.label}
+              className={cn(
+                "flex min-w-0 items-center gap-1",
+                column.end && "justify-end",
+                "wide" in column && PURCHASE_UNIT_COLUMN[layout].column,
+              )}
+            >
+              <span aria-hidden="true" className="truncate">
+                {t(column.label)}
+              </span>
+              {"hint" in column && <InfoTip label={t("common.moreInfo")}>{t(column.hint)}</InfoTip>}
             </span>
           ))}
         </div>
@@ -287,7 +309,7 @@ export function PurchasePage(): JSX.Element {
               baseUnit={unitOf(line.itemId)}
               minExpiry={minExpiry}
               currency={currency}
-              cost={totals?.lines[index]?.cost}
+              cost={costs?.lines[index]?.cost}
               removable={draft.lines.length > 1}
               onChange={(patch) => changeLine(line.key, patch)}
               onRemove={() =>

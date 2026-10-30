@@ -13,6 +13,7 @@ import {
   DEFAULT_TIME_ZONE,
   MOVEMENT_TYPE,
   PURCHASE_BACKDATE_DAYS,
+  PURCHASE_MAX_BACKDATE_DAYS,
   PURCHASE_DOCUMENT_STATUS,
   PURCHASE_ERROR,
   PURCHASE_REQUEST_ERROR,
@@ -1273,6 +1274,9 @@ export class PurchasingService implements OnModuleInit {
 
     if (date > now) {
       throw new BadRequestException(PURCHASE_ERROR.FUTURE_DATE);
+    }
+    if (date < addDays(now, -PURCHASE_MAX_BACKDATE_DAYS)) {
+      throw new BadRequestException(PURCHASE_ERROR.TOO_OLD);
     }
     if (date < addDays(now, -PURCHASE_BACKDATE_DAYS) && !mayBackdate) {
       throw new ForbiddenException(PURCHASE_ERROR.BACKDATE_NOT_ALLOWED);

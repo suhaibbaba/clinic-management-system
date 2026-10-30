@@ -1,6 +1,9 @@
 import { SHOPPING_LIST_PATH } from "@web/modules/inventory/constants";
 import {
   DISCOUNT_KIND,
+  PURCHASE_BACKDATE_DAYS,
+  PURCHASE_MAX_BACKDATE_DAYS,
+  addDays,
   computeInvoice,
   type DiscountKind,
   type InvoiceResult,
@@ -82,6 +85,15 @@ export function previewTotals(draft: PurchaseDraft): InvoiceResult | null {
   } catch {
     return null;
   }
+}
+
+export function pricedTotals(draft: PurchaseDraft): InvoiceResult | null {
+  return previewTotals({
+    ...draft,
+    discountValue: "",
+    charges: "",
+    lines: draft.lines.map((line) => ({ ...line, discountValue: "", gift: false })),
+  });
 }
 
 export function toPostPurchase(draft: PurchaseDraft, requestId: string): PostPurchaseInput {
@@ -193,4 +205,8 @@ export function itemPurchaseLink(itemId: string, supplierId: string | null): str
   }
 
   return `/inventory/purchases/new?${params.toString()}`;
+}
+
+export function earliestPurchaseDate(today: string, mayBackdate: boolean): string {
+  return addDays(today, -(mayBackdate ? PURCHASE_MAX_BACKDATE_DAYS : PURCHASE_BACKDATE_DAYS));
 }

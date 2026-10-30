@@ -2,6 +2,7 @@ import { DISCOUNT_KIND, PURCHASE_REQUEST_STATUS } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
 import {
   blankLine,
+  earliestPurchaseDate,
   itemPurchaseLink,
   lineReady,
   linesFromLinks,
@@ -189,5 +190,12 @@ describe("itemPurchaseLink", () => {
       "/inventory/purchases/new?item=gloves&supplier=s-1",
     );
     expect(itemPurchaseLink("gloves", null)).toBe("/inventory/purchases/new?item=gloves");
+  });
+});
+
+describe("earliestPurchaseDate", () => {
+  it("reaches 7 days back without the backdate rule and 30 days with it", () => {
+    expect(earliestPurchaseDate("2026-10-30", false)).toBe("2026-10-23");
+    expect(earliestPurchaseDate("2026-10-30", true)).toBe("2026-09-30");
   });
 });

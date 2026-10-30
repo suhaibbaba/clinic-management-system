@@ -5,6 +5,7 @@ import {
   Button,
   DatePicker,
   Icon,
+  InfoTip,
   Input,
   Money,
   MoneyInput,
@@ -15,7 +16,11 @@ import {
 import { cn } from "@clinic/ui/lib/cn";
 import { DiscountInput } from "@web/modules/inventory/components/discount-input";
 import { PackSizeSelect } from "@web/modules/inventory/components/pack-size-select";
-import { PURCHASE_LINE_GRID, type PurchaseLineLayout } from "@web/modules/inventory/constants";
+import {
+  PURCHASE_LINE_GRID,
+  PURCHASE_UNIT_COLUMN,
+  type PurchaseLineLayout,
+} from "@web/modules/inventory/constants";
 import type { PurchaseLineDraft } from "@web/modules/inventory/lib/purchase-form";
 
 function Cell({
@@ -23,25 +28,39 @@ function Cell({
   htmlFor,
   className,
   persistentLabel = false,
+  hint,
   children,
 }: {
   readonly label: string;
   readonly htmlFor: string;
   readonly className?: string | undefined;
   readonly persistentLabel?: boolean | undefined;
+  readonly hint?: string | undefined;
   readonly children: ReactNode;
 }): JSX.Element {
+  const { t } = useTranslation();
+
   return (
     <div className={cn("flex min-w-0 flex-col gap-1.5", className)}>
-      <label
-        htmlFor={htmlFor}
-        className={cn(
-          "text-label font-medium text-ink",
-          !persistentLabel && "@min-[40rem]:sr-only",
+      <span className="flex items-center gap-1">
+        <label
+          htmlFor={htmlFor}
+          className={cn(
+            "text-label font-medium text-ink",
+            !persistentLabel && "@min-[40rem]:sr-only",
+          )}
+        >
+          {label}
+        </label>
+        {hint !== undefined && (
+          <InfoTip
+            label={t("common.moreInfo")}
+            className={cn(!persistentLabel && "@min-[40rem]:hidden")}
+          >
+            {hint}
+          </InfoTip>
         )}
-      >
-        {label}
-      </label>
+      </span>
       {children}
     </div>
   );
@@ -85,22 +104,25 @@ export function PurchaseLineRow({
           PURCHASE_LINE_GRID[layout],
         )}
       >
-        <Cell
-          label={t("inventory.movement.item")}
-          htmlFor={id("item")}
-          className="col-span-2 @min-[40rem]:col-span-1"
+        <div
+          className={cn(
+            "col-span-2 flex min-w-0 flex-col gap-3 @min-[40rem]:col-span-1 @min-[40rem]:gap-1.5",
+            PURCHASE_UNIT_COLUMN[layout].cell,
+          )}
         >
-          <Select
-            searchable
-            id={id("item")}
-            data-testid="purchase-line-item"
-            value={line.itemId}
-            placeholder={t("inventory.movement.selectItem")}
-            onChange={(event) => onChange({ itemId: event.target.value, packSizeId: "" })}
-            onCreate={onCreateItem}
-            options={itemOptions}
-          />
-          {line.itemId !== "" && (
+          <Cell label={t("inventory.movement.item")} htmlFor={id("item")}>
+            <Select
+              searchable
+              id={id("item")}
+              data-testid="purchase-line-item"
+              value={line.itemId}
+              placeholder={t("inventory.movement.selectItem")}
+              onChange={(event) => onChange({ itemId: event.target.value, packSizeId: "" })}
+              onCreate={onCreateItem}
+              options={itemOptions}
+            />
+          </Cell>
+          <Cell label={t("inventory.purchase.unitShort")} htmlFor={id("pack")}>
             <PackSizeSelect
               id={id("pack")}
               itemId={line.itemId}
@@ -108,8 +130,8 @@ export function PurchaseLineRow({
               value={line.packSizeId ?? ""}
               onChange={(packSizeId) => onChange({ packSizeId })}
             />
-          )}
-        </Cell>
+          </Cell>
+        </div>
 
         <Cell label={t("inventory.movement.quantity")} htmlFor={id("qty")}>
           <QuantityInput
@@ -121,7 +143,11 @@ export function PurchaseLineRow({
           />
         </Cell>
 
-        <Cell label={t("inventory.purchase.free")} htmlFor={id("free")}>
+        <Cell
+          label={t("inventory.purchase.free")}
+          htmlFor={id("free")}
+          hint={t("inventory.purchase.freeHint")}
+        >
           <QuantityInput
             id={id("free")}
             data-testid="purchase-line-free"
@@ -169,7 +195,7 @@ export function PurchaseLineRow({
           </Cell>
         )}
 
-        {layout === "invoice" && (
+        {layout !== "plain" && (
           <div
             data-testid="purchase-line-cost"
             className={cn(
@@ -191,7 +217,7 @@ export function PurchaseLineRow({
         <div
           className={cn(
             "col-span-2 flex items-center justify-between gap-1 @min-[26rem]:justify-end @min-[40rem]:col-span-1",
-            layout === "invoice" && "@min-[26rem]:col-span-1",
+            layout !== "plain" && "@min-[26rem]:col-span-1",
           )}
         >
           <Button
@@ -210,17 +236,19 @@ export function PurchaseLineRow({
           >
             <span className="@min-[40rem]:sr-only">{t("inventory.purchase.lineDetails")}</span>
           </Button>
-          {removable && (
-            <Button
-              size="sm"
-              variant="quiet"
-              data-testid="purchase-line-remove"
-              aria-label={t("inventory.purchase.removeLine")}
-              icon={<Icon name="trash" />}
-              className="text-danger-600 hover:bg-danger-50 hover:text-danger-700 active:bg-danger-100"
-              onClick={onRemove}
-            />
-          )}
+          <Button
+            size="sm"
+            variant="quiet"
+            data-testid="purchase-line-remove"
+            aria-label={t("inventory.purchase.removeLine")}
+            aria-hidden={!removable || undefined}
+            icon={<Icon name="trash" />}
+            className={cn(
+              "text-danger-600 hover:bg-danger-50 hover:text-danger-700 active:bg-danger-100",
+              !removable && "invisible",
+            )}
+            onClick={onRemove}
+          />
         </div>
       </div>
 
