@@ -3546,5 +3546,11 @@
     "monthTotal": "This month's expenses",
     "empty": "No expenses this month",
     "reverseTitle": "Reverse this expense?"
+  },
+  "whatsappCheck": {
+    "checking": "Checking",
+    "available": "On WhatsApp",
+    "unavailable": "Not on WhatsApp",
+    "error": "Couldn't check"
   }
 }

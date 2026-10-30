@@ -15,3 +15,15 @@ export const REMINDERS: readonly Reminder[] = [
   { template: NOTIFICATION_TEMPLATE.REMINDER_24H, leadMs: 24 * HOUR, setting: "remind24h" },
   { template: NOTIFICATION_TEMPLATE.REMINDER_2H, leadMs: 2 * HOUR, setting: "remind2h" },
 ];
+
+export const WHATSAPP_CHECK_FRESH_MS = 30 * 24 * HOUR;
+
+export const WHATSAPP_RESEND_AFTER_MS = 20 * MINUTE;
+
+export const WHATSAPP_AWAIT_DELIVERY_MS = 30_000;
+
+export const WHATSAPP_CODE_TTL_MS = 5 * MINUTE;
+
+export const WHATSAPP_UNDELIVERABLE = 131026;
+
+export const WHATSAPP_SIGNATURE_HEADER = "x-hub-signature-256";

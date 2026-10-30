@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { EXCLUSION_VIOLATION } from "@api/common/constants/postgres-errors";
 import { type BookingSettings, type NotificationChannel, type PersonName } from "@clinic/shared";
-import { createHash } from "node:crypto";
 
 export const slugParamSchema = z.object({
   clinicSlug: z
@@ -42,5 +41,3 @@ export interface ClinicContext {
   readonly booking: BookingSettings;
   readonly messageChannel: NotificationChannel;
 }
-
-export const hashCode = (code: string): string => createHash("sha256").update(code).digest("hex");

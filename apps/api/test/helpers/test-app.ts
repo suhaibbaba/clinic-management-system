@@ -53,6 +53,7 @@ export async function createTestContext(): Promise<TestContext> {
 
   const app = moduleRef.createNestApplication<NestFastifyApplication>(createFastifyAdapter(), {
     logger: false,
+    rawBody: true,
   });
 
   await registerFastifyPlugins(app);

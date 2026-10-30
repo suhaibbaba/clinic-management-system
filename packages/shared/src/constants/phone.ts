@@ -116,3 +116,23 @@ export const canonicalPhoneDigits = (phone: string): string => phoneDigitVariant
 
 export const isSamePhone = (a: string, b: string): boolean =>
   canonicalPhoneDigits(a) === canonicalPhoneDigits(b);
+
+const MOBILE_NATIONAL_PATTERNS: Readonly<Record<string, RegExp>> = {
+  "+970": /^5\d{8}$/,
+  "+972": /^5\d{8}$/,
+  "+962": /^7[789]\d{7}$/,
+  "+20": /^1[0125]\d{8}$/,
+  "+966": /^5\d{8}$/,
+  "+971": /^5\d{8}$/,
+};
+
+export function isMobilePhone(phone: string): boolean {
+  if (!INTERNATIONAL_PHONE_PATTERN.test(phone)) {
+    return false;
+  }
+
+  const known = BY_DIAL_LENGTH.find((entry) => phone.startsWith(entry.dial));
+  const pattern = known ? MOBILE_NATIONAL_PATTERNS[known.dial] : undefined;
+
+  return pattern ? pattern.test(phone.slice(known?.dial.length ?? 0)) : true;
+}

@@ -48,7 +48,7 @@ export { SaveBar, type SaveBarProps } from "@ui/components/save-bar";
 export { PasswordInput } from "@ui/components/password-input";
 export { Flag } from "@ui/components/flag";
 export { PhoneCountrySelect } from "@ui/components/phone-country-select";
-export { PhoneCountryProvider, PhoneInput } from "@ui/components/phone-input";
+export { PhoneCountryProvider, PhoneInput, type PhoneInputProps } from "@ui/components/phone-input";
 export { PersonName, usePersonName } from "@ui/components/person-name";
 export { Popover, type PopoverProps } from "@ui/components/popover";
 export { ProgressBar } from "@ui/components/progress-bar";

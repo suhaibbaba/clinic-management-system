@@ -18,10 +18,13 @@ import { DocumentDeliveryController } from "@api/modules/notifications/controlle
 import { DocumentDeliveryService } from "@api/modules/notifications/services/document-delivery.service";
 import { RemindersScheduler } from "@api/modules/notifications/services/reminders.scheduler";
 import { SecretsModule } from "@api/modules/secrets/secrets.module";
+import { WhatsAppChecksController } from "@api/modules/notifications/controllers/whatsapp-checks.controller";
+import { WhatsAppWebhookController } from "@api/modules/notifications/controllers/whatsapp-webhook.controller";
+import { WhatsAppChecksService } from "@api/modules/notifications/services/whatsapp-checks.service";
 
 @Module({
   imports: [DatabaseModule, AppConfigModule, SecretsModule],
-  controllers: [DocumentDeliveryController],
+  controllers: [DocumentDeliveryController, WhatsAppChecksController, WhatsAppWebhookController],
   providers: [
     LogNotificationProvider,
     HttpNotificationProvider,
@@ -67,6 +70,7 @@ import { SecretsModule } from "@api/modules/secrets/secrets.module";
     NotificationsService,
     DocumentDeliveryService,
     RemindersScheduler,
+    WhatsAppChecksService,
   ],
   exports: [NotificationsService, DocumentDeliveryService, RemindersScheduler],
 })

@@ -3700,5 +3700,11 @@
     "monthTotal": "مصاريف هذا الشهر",
     "empty": "لا مصاريف هذا الشهر",
     "reverseTitle": "عكس هذا المصروف؟"
+  },
+  "whatsappCheck": {
+    "checking": "جارٍ التحقق",
+    "available": "على واتساب",
+    "unavailable": "ليس على واتساب",
+    "error": "تعذّر التحقق"
   }
 }

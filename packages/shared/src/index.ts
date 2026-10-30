@@ -50,3 +50,4 @@ export * from "@shared/schemas/users";
 export * from "@shared/schemas/visits";
 export * from "@shared/schemas/portal";
 export * from "@shared/schemas/website";
+export * from "@shared/schemas/whatsapp";

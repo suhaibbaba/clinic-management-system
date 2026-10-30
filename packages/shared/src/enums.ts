@@ -1258,3 +1258,39 @@ export const PAYROLL_ERROR = {
   NOT_ON_PERCENTAGE: "payroll_not_on_percentage",
   PAST_MONTH: "payroll_past_month",
 } as const;
+
+export const WHATSAPP_STATUS = {
+  UNKNOWN: "unknown",
+  AVAILABLE: "available",
+  UNAVAILABLE: "unavailable",
+  ERROR: "error",
+} as const satisfies Record<string, string>;
+
+export type WhatsAppStatus = EnumValue<typeof WHATSAPP_STATUS>;
+
+export const WHATSAPP_STATUSES = [
+  WHATSAPP_STATUS.UNKNOWN,
+  WHATSAPP_STATUS.AVAILABLE,
+  WHATSAPP_STATUS.UNAVAILABLE,
+  WHATSAPP_STATUS.ERROR,
+] as const;
+
+export const WHATSAPP_STATUS_SOURCE = {
+  OTP: "otp",
+  NOTIFICATION: "notification",
+  INBOUND: "inbound",
+  MANUAL: "manual",
+} as const satisfies Record<string, string>;
+export type WhatsAppStatusSource = EnumValue<typeof WHATSAPP_STATUS_SOURCE>;
+
+export const WHATSAPP_STATUS_SOURCES = [
+  WHATSAPP_STATUS_SOURCE.OTP,
+  WHATSAPP_STATUS_SOURCE.NOTIFICATION,
+  WHATSAPP_STATUS_SOURCE.INBOUND,
+  WHATSAPP_STATUS_SOURCE.MANUAL,
+] as const;
+
+export const WHATSAPP_CHECK_ERROR = {
+  NOT_MOBILE: "whatsapp_not_mobile",
+  UNAVAILABLE: "whatsapp_unavailable",
+} as const satisfies Record<string, string>;

@@ -8,7 +8,9 @@ import { createFastifyAdapter, registerFastifyPlugins } from "@api/bootstrap";
 import type { Env } from "@api/config/env.schema";
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create<NestFastifyApplication>(AppModule, createFastifyAdapter());
+  const app = await NestFactory.create<NestFastifyApplication>(AppModule, createFastifyAdapter(), {
+    rawBody: true,
+  });
 
   await registerFastifyPlugins(app);
 
