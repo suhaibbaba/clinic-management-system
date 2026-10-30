@@ -27,4 +27,5 @@ export interface SendDocument {
   readonly to: string;
   readonly kind: DocumentKind;
   readonly pdf: Buffer;
+  readonly message?: string | undefined;
 }

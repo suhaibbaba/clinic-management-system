@@ -89,6 +89,7 @@ describe("the purchase form", () => {
       cancelReason: null,
       createdByName: null,
       createdAt: "2026-10-28T08:00:00.000Z",
+      sends: [],
       lines: [
         {
           id: "line-1",

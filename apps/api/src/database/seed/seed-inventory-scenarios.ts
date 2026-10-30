@@ -458,7 +458,13 @@ export async function seedInventoryScenarios(
 
   if (ordered) {
     await step("mark request as ordered", () =>
-      requests.markOrdered(manager, ordered.id, SCENARIO_SUPPLIERS[3]?.phone ?? null),
+      requests.markOrdered(
+        manager,
+        ordered.id,
+        SCENARIO_SUPPLIERS[3]?.phone
+          ? { to: SCENARIO_SUPPLIERS[3].phone, withPrices: false, message: null }
+          : null,
+      ),
     );
   }
 

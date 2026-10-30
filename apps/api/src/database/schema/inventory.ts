@@ -452,6 +452,25 @@ export const purchaseRequestLines = pgTable(
   (table) => [index("purchase_request_lines_request_idx").on(table.requestId)],
 );
 
+export const purchaseRequestSends = pgTable(
+  "purchase_request_sends",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => purchaseRequests.id),
+    sentTo: text("sent_to"),
+    withPrices: boolean("with_prices").notNull().default(false),
+    message: text("message"),
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+    sentBy: uuid("sent_by"),
+  },
+  (table) => [index("purchase_request_sends_request_idx").on(table.requestId, table.sentAt)],
+);
+
 export const stockCounts = pgTable(
   "stock_counts",
   {

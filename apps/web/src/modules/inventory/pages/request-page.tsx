@@ -189,7 +189,11 @@ export function RequestPage(): JSX.Element {
               {data.sentAt ? (
                 <span className="flex flex-col items-start gap-0.5">
                   <Ltr>{formatDateTime(data.sentAt)}</Ltr>
-                  {data.sentTo && <PhoneLink value={data.sentTo} />}
+                  {data.sends.length > 0 && (
+                    <span data-testid="request-send-count" className="text-meta text-ink-muted">
+                      {t("inventory.requests.sendCount", { count: data.sends.length })}
+                    </span>
+                  )}
                 </span>
               ) : (
                 "—"
@@ -206,6 +210,40 @@ export function RequestPage(): JSX.Element {
               </Field>
             )}
           </dl>
+        </Card>
+      )}
+
+      {data && data.sends.length > 0 && (
+        <Card data-testid="request-sends">
+          <h2 className="text-label font-semibold text-ink">
+            {t("inventory.requests.sendsTitle")}
+          </h2>
+          <ol className="mt-3 flex flex-col divide-y divide-line">
+            {data.sends.map((send, index) => (
+              <li
+                key={send.id}
+                data-testid={`request-send-${send.id}`}
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5 text-value first:pt-0 last:pb-0"
+              >
+                <Badge tone="neutral">
+                  {t("inventory.requests.sendNumber", {
+                    number: String(data.sends.length - index),
+                  })}
+                </Badge>
+                <Ltr className="text-ink">{formatDateTime(send.sentAt)}</Ltr>
+                {send.sentTo ? (
+                  <PhoneLink value={send.sentTo} />
+                ) : (
+                  <span className="text-ink-muted">{t("inventory.requests.markOrdered")}</span>
+                )}
+                {send.sentByName && (
+                  <span className="text-meta text-ink-muted">
+                    {t("inventory.requests.sentBy")} <PersonName name={send.sentByName} />
+                  </span>
+                )}
+              </li>
+            ))}
+          </ol>
         </Card>
       )}
 

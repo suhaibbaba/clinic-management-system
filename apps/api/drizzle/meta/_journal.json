@@ -554,6 +554,13 @@
       "when": 1793373161840,
       "tag": "0078_stock_count_line_price",
       "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1793374989479,
+      "tag": "0079_purchase_request_sends",
+      "breakpoints": true
     }
   ]
 }

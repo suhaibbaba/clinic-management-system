@@ -1,43 +1,26 @@
 import { shortDate, type PurchaseRequest } from "@clinic/shared";
 
-export interface OrderMessageWords {
-  readonly translate: (key: string, values: Record<string, string>) => string;
-  readonly unitLabel: (code: string) => string;
-  readonly price: ((amount: string) => string) | null;
+export interface OrderSender {
+  readonly name: string;
+  readonly clinic: string;
 }
 
-export function orderMessage(request: PurchaseRequest, words: OrderMessageWords): string {
-  const lines = request.lines.map((line) => {
-    const values = {
-      item: line.itemName,
-      quantity: String(Number(line.quantity)),
-      unit: words.unitLabel(line.unit),
-    };
-
-    return `• ${
-      words.price && line.lastPrice
-        ? words.translate("inventory.requests.message.linePriced", {
-            ...values,
-            price: words.price(line.lastPrice),
-          })
-        : words.translate("inventory.requests.message.line", values)
-    }`;
-  });
-
+export function orderMessage(
+  request: PurchaseRequest,
+  sender: OrderSender,
+  translate: (key: string, values?: Record<string, string>) => string,
+): string {
   return [
-    words.translate("inventory.requests.message.title", { number: request.number }),
-    ...lines,
+    request.supplierName
+      ? translate("inventory.requests.message.greetingNamed", { supplier: request.supplierName })
+      : translate("inventory.requests.message.greeting"),
+    sender.name
+      ? translate("inventory.requests.message.from", { name: sender.name, clinic: sender.clinic })
+      : translate("inventory.requests.message.fromClinic", { clinic: sender.clinic }),
+    translate("inventory.requests.message.body", { number: request.number }),
     ...(request.neededBy
-      ? [
-          words.translate("inventory.requests.message.neededBy", {
-            date: shortDate(request.neededBy),
-          }),
-        ]
+      ? [translate("inventory.requests.message.neededBy", { date: shortDate(request.neededBy) })]
       : []),
-    ...(request.note ? [request.note] : []),
-  ].join("\n");
-}
-
-export function whatsappLink(phone: string, text: string): string {
-  return `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`;
+    translate("inventory.requests.message.closing"),
+  ].join(" ");
 }

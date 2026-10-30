@@ -641,6 +641,7 @@ export type RequestBelowMinimumInput = z.infer<typeof requestBelowMinimumSchema>
 export const sendPurchaseRequestSchema = z.object({
   to: phoneSchema.optional(),
   withPrices: z.boolean().optional(),
+  message: z.string().trim().max(1000).optional(),
 });
 export type SendPurchaseRequestInput = z.infer<typeof sendPurchaseRequestSchema>;
 
@@ -677,6 +678,14 @@ export const purchaseRequestLineSchema = z.object({
 });
 export type PurchaseRequestLine = z.infer<typeof purchaseRequestLineSchema>;
 
+export const purchaseRequestSendSchema = z.object({
+  id: uuidSchema,
+  sentAt: z.iso.datetime(),
+  sentTo: z.string().nullable(),
+  sentByName: personNameSchema.nullable(),
+});
+export type PurchaseRequestSend = z.infer<typeof purchaseRequestSendSchema>;
+
 export const purchaseRequestSchema = z.object({
   id: uuidSchema,
   number: z.string(),
@@ -692,6 +701,7 @@ export const purchaseRequestSchema = z.object({
   createdByName: personNameSchema.nullable(),
   createdAt: z.iso.datetime(),
   lines: z.array(purchaseRequestLineSchema),
+  sends: z.array(purchaseRequestSendSchema),
 });
 export type PurchaseRequest = z.infer<typeof purchaseRequestSchema>;
 
