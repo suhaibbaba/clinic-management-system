@@ -1870,7 +1870,7 @@
       "editTitle": "تعديل الطلب",
       "neededBy": "مطلوب قبل",
       "sendTitle": "إرسال الطلب للمورّد",
-      "sendText": "إرسال من واتسابي",
+      "sendText": "إرسال",
       "sendPdf": "إرسال كملف PDF",
       "sendPdfCost": "يُرسل كملف PDF من حساب واتساب العيادة، ولكل رسالة تكلفة.",
       "message": {
@@ -1900,13 +1900,14 @@
         "closed": "مغلق",
         "cancelled": "ملغى"
       },
-      "detailsDescription": "ما طُلب ومن أي مورّد وما وصل منه",
       "createdBy": "طلبه",
       "sentAt": "أُرسل",
       "note": "ملاحظة",
       "ordered": "المطلوب",
       "received": "المستلم",
-      "remaining": "المتبقي"
+      "remaining": "المتبقي",
+      "detailsTitle": "طلب شراء",
+      "detailsSubtitle": "ما طُلب ومن أي مورّد وما وصل منه"
     },
     "counts": {
       "start": "جرد المخزون",

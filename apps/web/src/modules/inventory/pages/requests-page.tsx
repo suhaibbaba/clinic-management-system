@@ -1,7 +1,7 @@
-import { PURCHASE_REQUEST_STATUS, type PurchaseRequest } from "@clinic/shared";
-import { useState, type JSX } from "react";
+import { type PurchaseRequest } from "@clinic/shared";
+import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Badge,
   Button,
@@ -16,57 +16,26 @@ import {
   Table,
   usePageParams,
   useTabParam,
-  useToast,
 } from "@clinic/ui";
-import type { IconName } from "@clinic/ui/components/icon";
-import { errorToast } from "@web/shared/lib/api-error";
 import { formatDate } from "@web/shared/lib/format";
 import { useSession } from "@web/shared/providers/session";
-import {
-  canManagePurchaseRequest,
-  canPostPurchase,
-  canRequestPurchase,
-  canSeeCosts,
-  canSendPurchaseRequest,
-} from "@web/shared/permissions/inventory";
-import {
-  useCloseRequest,
-  usePurchaseRequest,
-  usePurchaseRequests,
-} from "@web/modules/inventory/queries";
+import { canRequestPurchase } from "@web/shared/permissions/inventory";
+import { usePurchaseRequests } from "@web/modules/inventory/queries";
 import {
   MODE_PARAM,
-  ORDER_PARAM,
+  REQUESTS_PATH,
   REQUEST_FILTERS,
-  REQUEST_PARAM,
   REQUEST_STATUS_TONES,
   SHOPPING_LIST_PATH,
   type RequestFilter,
 } from "@web/modules/inventory/constants";
-import { SendRequestModal } from "@web/modules/inventory/components/send-request-modal";
-import { CancelRequestModal } from "@web/modules/inventory/components/cancel-request-modal";
-import { RequestDrawer } from "@web/modules/inventory/components/request-drawer";
+import { useRequestActions } from "@web/modules/inventory/hooks/use-request-actions";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
-
-interface RequestAction {
-  readonly key: string;
-  readonly icon: IconName;
-  readonly label: string;
-  readonly danger?: boolean;
-  readonly run: () => void;
-}
-
-const isOpen = (request: PurchaseRequest): boolean =>
-  request.status === PURCHASE_REQUEST_STATUS.REQUESTED ||
-  request.status === PURCHASE_REQUEST_STATUS.ORDERED ||
-  request.status === PURCHASE_REQUEST_STATUS.PARTLY_RECEIVED;
 
 export function RequestsPage(): JSX.Element {
   const { t } = useTranslation();
-  const toast = useToast();
   const navigate = useNavigate();
   const { can } = useSession();
-  const [params, setParams] = useSearchParams();
   const { page, perPage, setPage, setPerPage, resetPage } = usePageParams();
   const [filter, setFilter] = useTabParam<RequestFilter>("status", REQUEST_FILTERS, "all", [
     "page",
@@ -76,103 +45,8 @@ export function RequestsPage(): JSX.Element {
     limit: perPage,
     ...(filter !== "all" && { status: filter }),
   });
-  const close = useCloseRequest();
-  const [sending, setSending] = useState<PurchaseRequest | null>(null);
-  const [cancelling, setCancelling] = useState<string | null>(null);
-
+  const { actionsFor, dialogs } = useRequestActions();
   const mayRequest = canRequestPurchase(can);
-  const maySend = canSendPurchaseRequest(can);
-  const mayManage = canManagePurchaseRequest(can);
-  const mayReceive = canPostPurchase(can);
-
-  const closeRemainder = async (id: string): Promise<void> => {
-    try {
-      await close.mutateAsync(id);
-      toast.success("inventory.requests.closed");
-    } catch (error) {
-      toast.error(...errorToast(error));
-    }
-  };
-
-  const actionsFor = (row: PurchaseRequest): readonly RequestAction[] =>
-    isOpen(row)
-      ? [
-          ...(mayReceive
-            ? [
-                {
-                  key: "receive",
-                  icon: "package" as const,
-                  label: "inventory.requests.receive",
-                  run: () => void navigate(`/inventory/purchases/new?request=${row.id}`),
-                },
-              ]
-            : []),
-          ...(maySend && row.supplierId
-            ? [
-                {
-                  key: "send",
-                  icon: "whatsapp" as const,
-                  label: row.sentAt ? "inventory.requests.sendUpdate" : "inventory.requests.send",
-                  run: () => setSending(row),
-                },
-              ]
-            : []),
-          ...(mayRequest && row.status !== PURCHASE_REQUEST_STATUS.PARTLY_RECEIVED
-            ? [
-                {
-                  key: "edit",
-                  icon: "edit" as const,
-                  label: "common.edit",
-                  run: () => void navigate(`/inventory/purchases/new?${ORDER_PARAM}=${row.id}`),
-                },
-              ]
-            : []),
-          ...(mayManage && row.status === PURCHASE_REQUEST_STATUS.PARTLY_RECEIVED
-            ? [
-                {
-                  key: "close",
-                  icon: "check" as const,
-                  label: "inventory.requests.closeRemainder",
-                  run: () => void closeRemainder(row.id),
-                },
-              ]
-            : []),
-          ...(mayManage
-            ? [
-                {
-                  key: "cancel",
-                  icon: "x" as const,
-                  label: "inventory.requests.cancel",
-                  danger: true,
-                  run: () => setCancelling(row.id),
-                },
-              ]
-            : []),
-        ]
-      : [];
-
-  const openedId = params.get(REQUEST_PARAM) ?? "";
-  const fetched = usePurchaseRequest(openedId);
-  const opened =
-    openedId === ""
-      ? undefined
-      : (fetched.data ?? requests.data?.items.find((row) => row.id === openedId));
-  const setOpened = (id: string | null): void =>
-    setParams(
-      (current) => {
-        const next = new URLSearchParams(current);
-
-        if (id === null) {
-          next.delete(REQUEST_PARAM);
-        } else {
-          next.set(REQUEST_PARAM, id);
-        }
-
-        return next;
-      },
-      { replace: id === null },
-    );
-  const openedActions = opened ? actionsFor(opened) : [];
 
   const columns: readonly Column<PurchaseRequest>[] = [
     {
@@ -297,7 +171,7 @@ export function RequestsPage(): JSX.Element {
         columns={columns}
         rows={data?.items ?? []}
         rowKey={(row) => row.id}
-        onRowClick={(row) => setOpened(row.id)}
+        onRowClick={(row) => void navigate(`${REQUESTS_PATH}/${row.id}`)}
         isLoading={requests.isPending}
         isRefreshing={isRefetching(requests)}
         pagination={{
@@ -317,52 +191,7 @@ export function RequestsPage(): JSX.Element {
         }
       />
 
-      <RequestDrawer
-        request={opened}
-        onClose={() => setOpened(null)}
-        footer={
-          openedActions.length > 0 ? (
-            <div className="flex items-center gap-2">
-              {openedActions.slice(0, 1).map((action) => (
-                <Button
-                  key={action.key}
-                  icon={<Icon name={action.icon} />}
-                  data-testid={`request-drawer-${action.key}`}
-                  onClick={action.run}
-                >
-                  {t(action.label)}
-                </Button>
-              ))}
-              {openedActions.length > 1 && (
-                <RowMenu
-                  size="target"
-                  label={t("inventory.requests.menu")}
-                  data-testid="request-drawer-more"
-                >
-                  {openedActions.slice(1).map((action) => (
-                    <MenuItem
-                      key={action.key}
-                      icon={action.icon}
-                      {...(action.danger && { tone: "danger" as const })}
-                      data-testid={`request-drawer-${action.key}`}
-                      onSelect={action.run}
-                    >
-                      {t(action.label)}
-                    </MenuItem>
-                  ))}
-                </RowMenu>
-              )}
-            </div>
-          ) : undefined
-        }
-      />
-
-      <SendRequestModal
-        request={sending}
-        mayShowPrices={canSeeCosts(can)}
-        onClose={() => setSending(null)}
-      />
-      <CancelRequestModal requestId={cancelling} onClose={() => setCancelling(null)} />
+      {dialogs}
     </div>
   );
 }

@@ -44,6 +44,7 @@ export const PAGE_CAPABILITIES = {
   inventory: ["inventory.list"],
   purchase: ["purchases.post", "purchase-requests.create"],
   stockCount: ["stock-counts.findOne"],
+  purchaseRequest: ["purchase-requests.findOne"],
   users: ["users.list"],
   doctor: ["doctors.updateSchedule"],
   payroll: ["payroll.month"],
@@ -205,6 +206,11 @@ const BACK_ROUTES: readonly (BackTarget & { readonly pattern: RegExp })[] = [
   {
     pattern: /^\/inventory\/(?:items\/[^/]+|shopping-list|purchases\/new|counts\/[^/]+)$/,
     to: "/inventory",
+    label: "nav.inventory",
+  },
+  {
+    pattern: /^\/inventory\/requests\/[^/]+$/,
+    to: "/inventory?tab=requests",
     label: "nav.inventory",
   },
   {

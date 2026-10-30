@@ -16,6 +16,7 @@ import { SupplierPage } from "@web/modules/inventory/pages/supplier-page";
 import { PurchasePage } from "@web/modules/inventory/pages/purchase-page";
 import { StockCountPage } from "@web/modules/inventory/pages/stock-count-page";
 import { ShoppingListPage } from "@web/modules/inventory/pages/shopping-list-page";
+import { RequestPage } from "@web/modules/inventory/pages/request-page";
 import { LabsSection } from "@web/modules/labs/pages/labs-section";
 import { LabPage } from "@web/modules/labs/pages/lab-page";
 import { PatientPage } from "@web/modules/patients/pages/patient-page";
@@ -189,6 +190,14 @@ export function AppRoutes(): JSX.Element {
           element={
             <RequireCapability capabilities={PAGE_CAPABILITIES.stockCount} redirectTo={HOME}>
               <StockCountPage />
+            </RequireCapability>
+          }
+        />
+        <Route
+          path="/inventory/requests/:id"
+          element={
+            <RequireCapability capabilities={PAGE_CAPABILITIES.purchaseRequest} redirectTo={HOME}>
+              <RequestPage />
             </RequireCapability>
           }
         />

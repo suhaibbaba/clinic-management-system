@@ -1824,13 +1824,14 @@
         "closed": "Closed",
         "cancelled": "Cancelled"
       },
-      "detailsDescription": "What was ordered, from whom, and what has arrived",
       "createdBy": "Requested By",
       "sentAt": "Sent",
       "note": "Note",
       "ordered": "Ordered",
       "received": "Received",
-      "remaining": "To Arrive"
+      "remaining": "To Arrive",
+      "detailsTitle": "Purchase Request",
+      "detailsSubtitle": "What was ordered, from whom, and what has arrived"
     },
     "counts": {
       "start": "Count Stock",

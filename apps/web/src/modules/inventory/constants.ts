@@ -79,7 +79,7 @@ export type RequestFilter = (typeof REQUEST_FILTERS)[number];
 
 export const STOCK_COUNT_PATH = "/inventory/counts";
 
-export const REQUEST_PARAM = "request";
+export const REQUESTS_PATH = "/inventory/requests";
 
 export const COUNT_FILTERS = ["all", "remaining", "differences"] as const;
 
