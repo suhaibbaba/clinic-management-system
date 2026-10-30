@@ -39,6 +39,8 @@ export const MOVEMENT_ACTIONS: readonly RecordableMovementType[] = [
   MOVEMENT_TYPE.ADJUST,
 ];
 
+export type UsageMovementType = Exclude<RecordableMovementType, typeof MOVEMENT_TYPE.PURCHASE>;
+
 export const UNBATCHED_ROW_KEY = "unbatched";
 
 export type InventoryTab =
@@ -102,3 +104,9 @@ export const PURCHASE_LINE_GRID = {
 export type PurchaseLineLayout = keyof typeof PURCHASE_LINE_GRID;
 
 export const EXPIRY_MIN_DAYS_AHEAD = 2;
+
+export const PICK_PARAM = "pick";
+
+export const RETURN_PARAM = "return";
+
+export const SHOPPING_LIST_PATH = "/inventory/shopping-list";

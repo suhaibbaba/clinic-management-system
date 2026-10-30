@@ -140,6 +140,7 @@ export const stockMovementSchema = z.object({
   batchNo: z.string().nullable(),
   supplierId: uuidSchema.nullable(),
   patientId: uuidSchema.nullable(),
+  doctorId: uuidSchema.nullable(),
   performedProcedureId: uuidSchema.nullable(),
   reason: z.string().nullable(),
   reversesId: uuidSchema.nullable(),
@@ -152,6 +153,7 @@ export type StockMovement = z.infer<typeof stockMovementSchema>;
 export const stockMovementRowSchema = stockMovementSchema.extend({
   supplierName: z.string().nullable(),
   patientName: z.string().nullable(),
+  doctorName: personNameSchema.nullable(),
   procedureName: z.string().nullable(),
   createdByName: personNameSchema.nullable(),
   runningQuantity: signedQuantitySchema,
@@ -187,6 +189,7 @@ export const consumeStockSchema = z.object({
   itemId: uuidSchema,
   quantity: quantitySchema.refine((value) => Number(value) > 0, "A consumption must be positive"),
   patientId: uuidSchema.nullish(),
+  doctorId: uuidSchema.nullish(),
   performedProcedureId: uuidSchema.nullish(),
   batchNo: z.string().trim().max(64).nullish(),
   reason: z.string().trim().max(500).nullish(),

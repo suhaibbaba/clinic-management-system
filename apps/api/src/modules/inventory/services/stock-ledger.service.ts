@@ -24,6 +24,7 @@ export interface LedgerEntry {
   readonly unitPrice?: string | null;
   readonly supplierId?: string | null;
   readonly patientId?: string | null;
+  readonly doctorId?: string | null;
   readonly performedProcedureId?: string | null;
   readonly batchNo?: string | null;
   readonly expiryDate?: string | null;
@@ -95,6 +96,7 @@ export class StockLedgerService {
         unitPrice: entry.unitPrice ?? null,
         supplierId: entry.supplierId ?? null,
         patientId: entry.patientId ?? null,
+        doctorId: entry.doctorId ?? null,
         performedProcedureId: entry.performedProcedureId ?? null,
         batchNo: entry.batchNo ?? null,
         expiryDate: entry.expiryDate ?? null,
@@ -139,6 +141,7 @@ export class StockLedgerService {
         expiryDate: original.expiryDate,
         supplierId: original.supplierId,
         patientId: original.patientId,
+        doctorId: original.doctorId,
         performedProcedureId: original.performedProcedureId,
         receiptLineId: original.receiptLineId,
         reasonCode: original.reasonCode,

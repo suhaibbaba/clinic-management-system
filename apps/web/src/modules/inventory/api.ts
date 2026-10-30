@@ -43,7 +43,6 @@ import type {
   ListMovementsQuery,
   ListSuppliersQuery,
   Paginated,
-  PurchaseStockInput,
   ReverseMovementInput,
   ShoppingList,
   StatementRangeQuery,
@@ -81,9 +80,6 @@ export const inventoryApi = {
     apiRequest<Paginated<StockMovementRow>>(
       `/inventory/items/${id}/movements${toQueryString(params)}`,
     ),
-
-  purchase: (body: PurchaseStockInput) =>
-    apiRequest<StockMovement>("/inventory/movements/purchase", { method: "POST", body }),
 
   consume: (body: ConsumeStockInput) =>
     apiRequest<StockMovement>("/inventory/movements/consume", { method: "POST", body }),

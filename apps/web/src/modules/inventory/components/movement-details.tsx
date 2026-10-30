@@ -2,6 +2,7 @@ import type { StockMovementRow } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { usePersonName } from "@clinic/ui";
 import { moneyText } from "@web/shared/lib/format";
 
 export function MovementDetails({
@@ -12,7 +13,9 @@ export function MovementDetails({
   readonly currency: string | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
+  const personName = usePersonName();
   const details = [
+    row.doctorName ? t("inventory.history.doctor", { name: personName(row.doctorName) }) : null,
     row.supplierName,
     row.batchNo ? t("inventory.history.batch", { batch: row.batchNo }) : null,
     row.unitPrice

@@ -2,11 +2,13 @@ import { DISCOUNT_KIND, PURCHASE_REQUEST_STATUS } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
 import {
   blankLine,
+  itemPurchaseLink,
   lineReady,
   linesFromLinks,
   linesFromRequest,
   previewTotals,
   purchaseCounts,
+  returnTarget,
   toPostPurchase,
   type PurchaseDraft,
 } from "@web/modules/inventory/lib/purchase-form";
@@ -169,5 +171,23 @@ describe("the purchase form", () => {
       { ...blankLine("k2", "composite"), quantity: "" },
       { ...blankLine("k3", "needles"), quantity: "" },
     ]);
+  });
+
+  it("returns only to the shopping list, never to an address a link made up", () => {
+    expect(returnTarget("/inventory/shopping-list")).toBe("/inventory/shopping-list");
+    expect(returnTarget("/inventory/shopping-list?pick=a")).toBe("/inventory/shopping-list?pick=a");
+    expect(returnTarget("https://example.com")).toBeNull();
+    expect(returnTarget("//example.com/inventory/shopping-list")).toBeNull();
+    expect(returnTarget("/inventory/shopping-listing")).toBeNull();
+    expect(returnTarget(null)).toBeNull();
+  });
+});
+
+describe("itemPurchaseLink", () => {
+  it("opens the purchase page on the item, with its default supplier when it has one", () => {
+    expect(itemPurchaseLink("gloves", "s-1")).toBe(
+      "/inventory/purchases/new?item=gloves&supplier=s-1",
+    );
+    expect(itemPurchaseLink("gloves", null)).toBe("/inventory/purchases/new?item=gloves");
   });
 });

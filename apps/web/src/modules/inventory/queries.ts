@@ -39,7 +39,6 @@ import type {
   ListMovementsQuery,
   ListSuppliersQuery,
   Paginated,
-  PurchaseStockInput,
   ShoppingList,
   StatementRangeQuery,
   StockMovementRow,
@@ -248,10 +247,6 @@ export function useUpdateItem() {
 
 export function useDeleteItem() {
   return useStockMutation((id: string) => inventoryApi.removeItem(id));
-}
-
-export function usePurchaseStock() {
-  return useStockMutation((input: PurchaseStockInput) => inventoryApi.purchase(input));
 }
 
 export function useConsumeStock() {

@@ -1,7 +1,7 @@
 import { LOOKUP_LIST, type ShoppingListLine } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Badge,
   Button,
@@ -15,12 +15,19 @@ import {
   type Column,
 } from "@clinic/ui";
 import { shoppingListSource } from "@web/modules/inventory/lib/documents";
-import { purchaseLink } from "@web/modules/inventory/lib/shopping-list";
+import { SupplierSplitModal } from "@web/modules/inventory/components/supplier-split-modal";
+import {
+  bySupplier,
+  purchaseLink,
+  shoppingListLink,
+  type SupplierGroup,
+} from "@web/modules/inventory/lib/shopping-list";
 import { DocumentActions } from "@web/shared/components/document-actions";
 import { canPostPurchase, canSeeCosts } from "@web/shared/permissions/inventory";
 import { useSession } from "@web/shared/providers/session";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { useLookupLabels } from "@web/shared/queries/lookups";
+import { PICK_PARAM } from "@web/modules/inventory/constants";
 import { categoryTone } from "@web/modules/inventory/lib/display";
 import { useShoppingList } from "@web/modules/inventory/queries";
 import { formatDate } from "@web/shared/lib/format";
@@ -36,24 +43,47 @@ export function ShoppingListPage(): JSX.Element {
   const list = useShoppingList();
   const mayBuy = canPostPurchase(can);
   const seesCosts = canSeeCosts(can);
-  const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
+  const [params, setParams] = useSearchParams();
+  const [splitting, setSplitting] = useState<readonly SupplierGroup[] | null>(null);
+  const picked = new Set(params.getAll(PICK_PARAM));
 
   const lines = list.data?.lines ?? [];
   const chosen = lines.filter((line) => picked.has(line.itemId));
   const allPicked = lines.length > 0 && chosen.length === lines.length;
 
+  const pick = (itemIds: readonly string[]): void =>
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+
+        next.delete(PICK_PARAM);
+        itemIds.forEach((itemId) => next.append(PICK_PARAM, itemId));
+
+        return next;
+      },
+      { replace: true },
+    );
+
   const toggle = (itemId: string, on: boolean): void =>
-    setPicked((current) => {
-      const next = new Set(current);
+    pick(on ? [...picked, itemId] : [...picked].filter((id) => id !== itemId));
 
-      if (on) {
-        next.add(itemId);
-      } else {
-        next.delete(itemId);
-      }
+  const buy = (): void => {
+    const groups = bySupplier(chosen);
+    const [only] = groups;
 
-      return next;
-    });
+    if (groups.length > 1) {
+      setSplitting(groups);
+    } else if (only) {
+      buyFrom(only);
+    }
+  };
+
+  const buyFrom = (group: SupplierGroup): void => {
+    const bought = new Set(group.lines.map((line) => line.itemId));
+    const rest = chosen.filter((line) => !bought.has(line.itemId)).map((line) => line.itemId);
+
+    void navigate(purchaseLink(group.lines, shoppingListLink(rest)));
+  };
 
   const columns: readonly Column<ShoppingListLine>[] = [
     {
@@ -168,9 +198,7 @@ export function ShoppingListPage(): JSX.Element {
                 data-testid="shopping-list-pick-all"
                 checked={allPicked}
                 indeterminate={chosen.length > 0 && !allPicked}
-                onCheckedChange={(on) =>
-                  setPicked(on ? new Set(lines.map((line) => line.itemId)) : new Set())
-                }
+                onCheckedChange={(on) => pick(on ? lines.map((line) => line.itemId) : [])}
                 label={
                   chosen.length > 0
                     ? t("inventory.shoppingList.picked", { count: chosen.length })
@@ -181,11 +209,7 @@ export function ShoppingListPage(): JSX.Element {
                 data-testid="shopping-list-buy"
                 icon={<Icon name="package" />}
                 aria-disabled={chosen.length === 0 || undefined}
-                onClick={() => {
-                  if (chosen.length > 0) {
-                    void navigate(purchaseLink(chosen));
-                  }
-                }}
+                onClick={buy}
               >
                 {t("inventory.shoppingList.buy")}
               </Button>
@@ -201,6 +225,8 @@ export function ShoppingListPage(): JSX.Element {
           />
         }
       />
+
+      <SupplierSplitModal groups={splitting} onBuy={buyFrom} onClose={() => setSplitting(null)} />
 
       {list.data && list.data.lines.length > 0 && (
         <p data-testid="shopping-list-note" className="text-label text-ink-muted">

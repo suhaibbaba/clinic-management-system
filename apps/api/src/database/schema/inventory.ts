@@ -23,7 +23,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { clinics, users } from "@api/database/schema/core";
+import { clinics, doctors, users } from "@api/database/schema/core";
 import { normalizedName } from "@api/database/schema/normalized-name";
 import { patients, performedProcedures } from "@api/database/schema/patients";
 
@@ -127,6 +127,7 @@ export const stockMovements = pgTable(
     batchNo: text("batch_no"),
     supplierId: uuid("supplier_id").references(() => suppliers.id),
     patientId: uuid("patient_id").references(() => patients.id),
+    doctorId: uuid("doctor_id").references(() => doctors.id),
     performedProcedureId: uuid("performed_procedure_id").references(() => performedProcedures.id),
     reason: text("reason"),
     reversesId: uuid("reverses_id"),

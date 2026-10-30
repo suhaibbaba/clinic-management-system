@@ -36,6 +36,7 @@ import {
   seesInventory,
 } from "@web/shared/permissions/inventory";
 import { MovementModal } from "@web/modules/inventory/components/movement-modal";
+import { itemPurchaseLink } from "@web/modules/inventory/lib/purchase-form";
 import {
   WriteOffModal,
   type WriteOffTarget,
@@ -78,9 +79,7 @@ export function InventoryPage(): JSX.Element {
             besideTitleOnMobile: true,
             render: (row) => {
               const receive = (): void =>
-                void navigate(
-                  `/inventory/purchases/new?item=${row.id}${row.defaultSupplierId ? `&supplier=${row.defaultSupplierId}` : ""}`,
-                );
+                void navigate(itemPurchaseLink(row.id, row.defaultSupplierId));
               const writeOff = (): void =>
                 setWritingOff({ itemId: row.id, itemName: row.name, batchNo: null });
 

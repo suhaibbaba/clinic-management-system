@@ -1,3 +1,4 @@
+import { SHOPPING_LIST_PATH } from "@web/modules/inventory/constants";
 import {
   DISCOUNT_KIND,
   computeInvoice,
@@ -176,4 +177,20 @@ export function linesFromLinks(values: readonly string[], key: () => string): Pu
       ? []
       : [{ ...blankLine(key(), itemId), quantity: Number(quantity) > 0 ? quantity : "" }];
   });
+}
+
+export function returnTarget(value: string | null): string | null {
+  return value === SHOPPING_LIST_PATH || value?.startsWith(`${SHOPPING_LIST_PATH}?`) === true
+    ? value
+    : null;
+}
+
+export function itemPurchaseLink(itemId: string, supplierId: string | null): string {
+  const params = new URLSearchParams({ item: itemId });
+
+  if (supplierId) {
+    params.set("supplier", supplierId);
+  }
+
+  return `/inventory/purchases/new?${params.toString()}`;
 }

@@ -31,6 +31,7 @@ import {
   canDeleteItem,
   canLiftLotBlock,
   canManageInventory,
+  canPostPurchase,
   canWriteOff,
   mayRecord,
 } from "@web/shared/permissions/inventory";
@@ -43,6 +44,7 @@ import {
   type LotBlockTarget,
 } from "@web/modules/inventory/components/lot-block-modal";
 import { PackSizesCard } from "@web/modules/inventory/components/pack-sizes-card";
+import { itemPurchaseLink } from "@web/modules/inventory/lib/purchase-form";
 import { ItemPricesTab } from "@web/modules/inventory/pages/item-prices-tab";
 import { useDeleteItem, useInventoryItem, useItemBatches } from "@web/modules/inventory/queries";
 import { errorToast } from "@web/shared/lib/api-error";
@@ -54,6 +56,7 @@ import {
   ITEM_PAGE_TABS,
   MOVEMENT_ACTIONS,
   MOVEMENT_ACTION_ICONS,
+  type UsageMovementType,
 } from "@web/modules/inventory/constants";
 
 type Tab = (typeof ITEM_PAGE_TABS)[number];
@@ -72,7 +75,7 @@ export function ItemPage(): JSX.Element {
     "overview",
     ["page"],
   );
-  const [movement, setMovement] = useState<RecordableMovementType | null>(null);
+  const [movement, setMovement] = useState<UsageMovementType | null>(null);
   const [editing, setEditing] = useState(false);
   const [writingOff, setWritingOff] = useState<WriteOffTarget | null>(null);
   const [blocking, setBlocking] = useState<LotBlockTarget | null>(null);
@@ -84,7 +87,9 @@ export function ItemPage(): JSX.Element {
   const unit = row ? unitLabel(row.unit) : "";
 
   const isMobile = useIsMobile();
-  const allowed = MOVEMENT_ACTIONS.filter((type) => mayRecord(type, can));
+  const allowed = MOVEMENT_ACTIONS.filter((type) =>
+    type === MOVEMENT_TYPE.PURCHASE ? canPostPurchase(can) : mayRecord(type, can),
+  );
   const buttons = allowed.filter((type) => type !== MOVEMENT_TYPE.ADJUST);
   const menuActions = isMobile ? allowed : allowed.filter((type) => type === MOVEMENT_TYPE.ADJUST);
   const mayEdit = canManageInventory(can);
@@ -95,6 +100,14 @@ export function ItemPage(): JSX.Element {
   const toast = useToast();
   const remove = useDeleteItem();
   const { confirm, dialog } = useConfirm("item-confirm-delete");
+
+  const startMovement = (type: RecordableMovementType): void => {
+    if (type !== MOVEMENT_TYPE.PURCHASE) {
+      setMovement(type);
+    } else if (row) {
+      void navigate(itemPurchaseLink(row.id, row.defaultSupplierId));
+    }
+  };
 
   const askDelete = (): void => {
     if (!row) {
@@ -150,7 +163,7 @@ export function ItemPage(): JSX.Element {
                   key={type}
                   data-testid={`item-movement-${type}`}
                   variant={type === MOVEMENT_TYPE.PURCHASE ? "primary" : "secondary"}
-                  onClick={() => setMovement(type)}
+                  onClick={() => startMovement(type)}
                 >
                   {t(`inventory.movement.action.${type}`)}
                 </Button>
@@ -167,7 +180,7 @@ export function ItemPage(): JSX.Element {
                     key={type}
                     icon={MOVEMENT_ACTION_ICONS[type]}
                     data-testid={`item-movement-${type}`}
-                    onSelect={() => setMovement(type)}
+                    onSelect={() => startMovement(type)}
                   >
                     {t(`inventory.movement.action.${type}`)}
                   </MenuItem>

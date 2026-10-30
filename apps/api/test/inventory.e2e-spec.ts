@@ -435,6 +435,79 @@ describe("Inventory (e2e)", () => {
     expect(page.items[2]?.supplierName).toBe("مستودع الاختبار");
   });
 
+  it("never takes more than is on hand when two people use the same item at once", async () => {
+    const itemId = await createItem({ name: `بند متزامن ${uniquePhone()}` });
+
+    await move("purchase", { itemId, quantity: "3" });
+
+    const [three, two] = await Promise.all([
+      move("consume", { itemId, quantity: "3" }, tokens[USER_ROLE.TECHNICIAN]),
+      move("consume", { itemId, quantity: "2" }, tokens[USER_ROLE.DOCTOR]),
+    ]);
+    const quantity = (await readItem(itemId)).quantity;
+
+    expect([three.statusCode, two.statusCode].sort()).toEqual([201, 409]);
+    expect(quantity).toBe(three.statusCode === 201 ? "0" : "1");
+  });
+
+  describe("the doctor on a use", () => {
+    it("is stored with the use, named on the item card and carried by its reversal", async () => {
+      const itemId = await createItem({ name: `بند الطبيب ${uniquePhone()}` });
+
+      await move("purchase", { itemId, quantity: "5" });
+      const used = await move("consume", {
+        itemId,
+        quantity: "2",
+        doctorId: fixtures.doctorId,
+      });
+
+      expect(used.statusCode).toBe(201);
+      const movement = used.json() as StockMovement;
+      expect(movement.doctorId).toBe(fixtures.doctorId);
+
+      const reversed = await context.app.inject({
+        method: "PATCH",
+        url: `/inventory/movements/${movement.id}/reverse`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+        payload: { reason: "سجّلت بالخطأ" },
+      });
+
+      expect(reversed.statusCode).toBe(200);
+      expect((reversed.json() as StockMovement).doctorId).toBe(fixtures.doctorId);
+
+      const card = await context.app.inject({
+        method: "GET",
+        url: `/inventory/items/${itemId}/movements?type=consume`,
+        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+      });
+      const rows = (card.json() as Paginated<StockMovementRow>).items;
+
+      expect(rows.map((row) => row.doctorId)).toEqual([fixtures.doctorId, fixtures.doctorId]);
+      expect(rows.every((row) => row.doctorName !== null)).toBe(true);
+    });
+
+    it("refuses a doctor of another clinic as not found", async () => {
+      const other = await context.createClinic();
+      const otherFixtures = await seedClinicFixtures(
+        context,
+        other,
+        await context.login(other.phones[USER_ROLE.ADMIN]),
+      );
+      const itemId = await createItem({ name: `بند غريب ${uniquePhone()}` });
+
+      await move("purchase", { itemId, quantity: "3" });
+
+      const response = await move("consume", {
+        itemId,
+        quantity: "1",
+        doctorId: otherFixtures.doctorId,
+      });
+
+      expect(response.statusCode).toBe(404);
+      expect((await readItem(itemId)).quantity).toBe("3");
+    });
+  });
+
   it("keeps the running quantity of the whole ledger when the history is filtered", async () => {
     const itemId = await createItem({ name: `بند مصفّى ${uniquePhone()}` });
 

@@ -31,6 +31,7 @@ import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import {
+  doctors,
   patients,
   performedProcedures,
   procedureCatalog,
@@ -42,6 +43,7 @@ import { InventoryItemsService } from "@api/modules/inventory/services/inventory
 import { fefoSlices, normalise } from "@api/modules/inventory/lib/stock";
 import { STOCK_MOVEMENTS_ENTITY } from "@api/common/constants/audit-entities";
 import {
+  doctorUsers,
   toMovement,
   withoutCost,
   type MovementRow,
@@ -138,6 +140,8 @@ export class StockMovementsService implements OnModuleInit {
           movement: stockMovements,
           supplierName: suppliers.name,
           patientName: patients.fullName,
+          doctorNameAr: doctorUsers.nameAr,
+          doctorNameEn: doctorUsers.nameEn,
           procedureName: procedureCatalog.name,
           createdByNameAr: users.nameAr,
           createdByNameEn: users.nameEn,
@@ -147,6 +151,8 @@ export class StockMovementsService implements OnModuleInit {
         .innerJoin(ledger, eq(ledger.id, stockMovements.id))
         .leftJoin(suppliers, eq(suppliers.id, stockMovements.supplierId))
         .leftJoin(patients, eq(patients.id, stockMovements.patientId))
+        .leftJoin(doctors, eq(doctors.id, stockMovements.doctorId))
+        .leftJoin(doctorUsers, eq(doctorUsers.id, doctors.userId))
         .leftJoin(
           performedProcedures,
           eq(performedProcedures.id, stockMovements.performedProcedureId),
@@ -170,6 +176,7 @@ export class StockMovementsService implements OnModuleInit {
         ...withoutCost(toMovement(row.movement), seesCosts),
         supplierName: row.supplierName,
         patientName: row.patientName,
+        doctorName: toOptionalPersonName(row.doctorNameAr, row.doctorNameEn),
         procedureName: row.procedureName,
         createdByName: toOptionalPersonName(row.createdByNameAr, row.createdByNameEn),
         runningQuantity: normalise(row.runningQuantity),
@@ -225,6 +232,10 @@ export class StockMovementsService implements OnModuleInit {
       await this.scope.findOneOrFail(patients, actor.clinicId, patientId);
     }
 
+    if (input.doctorId) {
+      await this.scope.findOneOrFail(doctors, actor.clinicId, input.doctorId);
+    }
+
     return this.db.transaction(async (tx) => {
       await this.ledger.lockItems(tx, actor.clinicId, [input.itemId]);
 
@@ -259,6 +270,7 @@ export class StockMovementsService implements OnModuleInit {
             value: cost.value,
             unknown: cost.unknown,
             patientId,
+            doctorId: input.doctorId ?? null,
             performedProcedureId: input.performedProcedureId ?? null,
             batchNo: slice.batchNo,
             reason: input.reason ?? null,

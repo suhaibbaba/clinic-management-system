@@ -17,7 +17,6 @@ export const canReverseSupplierPayment = (can: Can): boolean => can("supplier-pa
 
 export const canConsumeStock = (can: Can): boolean => can("inventory.consume");
 
-export const canPurchaseStock = (can: Can): boolean => can("inventory.purchase");
 export const canAdjustStock = (can: Can): boolean => can("inventory.adjust");
 
 export const canReverseMovement = (can: Can): boolean => can("inventory.reverse");
@@ -61,9 +60,11 @@ export const canSeeCosts = (can: Can): boolean => can(RULE.INVENTORY_COSTS);
 
 export const canReversePricedPurchase = (can: Can): boolean => can(RULE.REVERSE_PRICED_PURCHASE);
 
-export const mayRecord = (type: RecordableMovementType, can: Can): boolean =>
+export const mayRecord = (
+  type: Exclude<RecordableMovementType, typeof MOVEMENT_TYPE.PURCHASE>,
+  can: Can,
+): boolean =>
   ({
-    [MOVEMENT_TYPE.PURCHASE]: canPurchaseStock,
     [MOVEMENT_TYPE.CONSUME]: canConsumeStock,
     [MOVEMENT_TYPE.ADJUST]: canAdjustStock,
   })[type](can);

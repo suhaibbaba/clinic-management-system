@@ -6,7 +6,7 @@ export interface PickedPatient {
   readonly fullName: string;
   readonly phone: string;
   readonly fileNumber: string;
-  readonly profileIncomplete?: boolean;
+  readonly assignedDoctorId?: string | null;
 }
 
 export interface PatientDraft {

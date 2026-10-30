@@ -540,6 +540,13 @@
       "when": 1793196516180,
       "tag": "0076_pack_sizes",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1793320325097,
+      "tag": "0077_stock_movement_doctor",
+      "breakpoints": true
     }
   ]
 }

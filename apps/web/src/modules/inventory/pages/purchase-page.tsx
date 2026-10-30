@@ -44,6 +44,7 @@ import {
   linesFromRequest,
   previewTotals,
   purchaseCounts,
+  returnTarget,
   toPostPurchase,
   type PurchaseDraft,
   type PurchaseLineDraft,
@@ -55,6 +56,7 @@ import { PurchaseTotalBar } from "@web/modules/inventory/components/purchase-tot
 import {
   EXPIRY_MIN_DAYS_AHEAD,
   PURCHASE_LINE_GRID,
+  RETURN_PARAM,
   type PurchaseLineLayout,
 } from "@web/modules/inventory/constants";
 
@@ -169,9 +171,11 @@ export function PurchasePage(): JSX.Element {
         toPostPurchase({ ...draft, paymentMethod: method }, requestId),
       );
       toast.success("inventory.purchase.posted");
-      void navigate(draft.supplierId ? `/inventory/suppliers/${draft.supplierId}` : "/inventory", {
-        state: { posted: result.receiptNumber },
-      });
+      const back =
+        returnTarget(params.get(RETURN_PARAM)) ??
+        (draft.supplierId ? `/inventory/suppliers/${draft.supplierId}` : "/inventory");
+
+      void navigate(back, { state: { posted: result.receiptNumber } });
     } catch (error) {
       toast.error(...errorToast(error));
     }

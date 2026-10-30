@@ -1463,6 +1463,7 @@
       "reverseTitle": "Reverse This Movement",
       "reverseDescription": "The original stays exactly as it is; the opposite entry is written beside it.",
       "batch": "Batch {{batch}}",
+      "doctor": "Dr. {{name}}",
       "unitPrice": "{{price}} per unit",
       "after": "Stock After",
       "menu": "Movement Options",
@@ -1517,6 +1518,8 @@
       "batchNo": "Lot Number",
       "expiry": "Expiry",
       "patient": "Patient",
+      "doctor": "Doctor",
+      "selectDoctor": "Choose a Doctor",
       "note": "Note",
       "reason": "Reason",
       "reasonHint": "It stays on the record — a correction has no other explanation",
@@ -1537,33 +1540,25 @@
         "adjust": "Correct Quantity"
       },
       "title": {
-        "purchase": "Purchase — {{item}}",
         "consume": "Use — {{item}}",
         "adjust": "Correct Quantity — {{item}}"
       },
       "description": {
-        "purchase": "Adds to stock, and the price appears on the supplier's statement.",
         "consume": "Comes off stock. Naming a patient puts it on their file.",
         "adjust": "When what is recorded does not match the shelf: a count that differs, a breakage, or expired stock thrown away. The reason is required and stays on the record."
       },
       "submit": {
-        "purchase": "Record Purchase",
         "consume": "Record Use",
         "adjust": "Record Correction"
       },
       "recorded": {
-        "purchase": "Purchase recorded",
         "consume": "Use recorded",
         "adjust": "Correction recorded"
       },
-      "restock": "Add Stock (a Purchase)",
-      "backToUse": "Back to Using It",
       "overStock": "More Than Is in Stock",
       "atLeastOne": "Take Off at Least 1",
-      "purchaseTotal": "Purchase Total",
       "paidNow": "Paid Now",
       "paymentMethod": "Payment Method",
-      "leftToPay": "Left to Pay",
       "paidTooMuch": "More than the purchase total"
     },
     "shoppingList": {
@@ -1580,7 +1575,10 @@
       "pickAll": "Select all",
       "buy": "Buy selected",
       "picked_one": "{{count}} item selected",
-      "picked_other": "{{count}} items selected"
+      "picked_other": "{{count}} items selected",
+      "splitTitle": "These items come from more than one supplier",
+      "splitDescription": "Each purchase is for one supplier. Buy from each in turn; the rest stay selected when you come back.",
+      "buyGroup": "Buy"
     },
     "suppliers": {
       "title": "Suppliers",
