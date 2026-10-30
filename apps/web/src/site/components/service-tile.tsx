@@ -17,7 +17,7 @@ export function ServiceTile({ service }: { readonly service: SiteService }): JSX
     <SiteLink
       to={SITE_PATH.SERVICES}
       data-testid={`site-service-tile-${service.id}`}
-      className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card transition-colors duration-300 hover:border-primary-700"
+      className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card shadow-primary-600/55 transition-[border-color,box-shadow] duration-300 hover:border-primary-700 hover:shadow-card-hover hover:shadow-primary-600/70"
     >
       <SiteImage
         src={imageOf(site, service.image)}
@@ -26,7 +26,7 @@ export function ServiceTile({ service }: { readonly service: SiteService }): JSX
       />
       <div className="relative isolate flex flex-1 flex-col items-center gap-1.5 px-4 pt-9 pb-5 text-center">
         <CardFill />
-        <span className="absolute -top-7 inline-flex size-14 items-center justify-center rounded-pill border-4 border-surface bg-primary-50 text-primary-600 shadow-float transition-colors duration-300 group-hover:border-primary-700 group-hover:bg-surface">
+        <span className="absolute -top-7 inline-flex size-14 items-center justify-center rounded-pill border-4 border-surface bg-primary-50 text-primary-600 shadow-float shadow-primary-600/35 transition-colors duration-300 group-hover:border-primary-700 group-hover:bg-surface">
           <SiteIcon name={service.icon} className="size-6" />
         </span>
         <span

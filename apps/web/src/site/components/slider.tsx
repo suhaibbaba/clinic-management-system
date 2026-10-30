@@ -74,7 +74,7 @@ export function Slider({
         aria-label={label}
         data-reveal-group
         className={cx(
-          "-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pt-1 pb-3 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden",
+          "-mx-4 -mb-9 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pt-1 pb-12 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden",
           !overflows && "justify-center",
         )}
       >
