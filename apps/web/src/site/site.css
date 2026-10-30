@@ -175,6 +175,16 @@ html {
   border-end-start-radius: 34% 50%;
 }
 
+@utility site-hero-arc {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H85C96 22 100 46 96 66C93 82 87 93 81 100H0Z'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+
+  [dir="ltr"] & {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M100 0H15C4 22 0 46 4 66C7 82 13 93 19 100H100Z'/%3E%3C/svg%3E");
+  }
+}
+
 @utility site-hero-wash {
   background-image:
     radial-gradient(700px 380px at 0% 0%, var(--color-primary-100), transparent 70%),

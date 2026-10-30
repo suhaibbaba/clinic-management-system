@@ -112,3 +112,16 @@ export function titleLines(title: string): readonly [string, string] {
 
   return [lead, rest.filter(Boolean).join(" ")];
 }
+
+export function heroLines(title: string): readonly [string, string] {
+  const [lead, accent] = titleLines(title);
+  const words = lead.split(/\s+/).filter(Boolean);
+
+  if (accent || words.length < 4) {
+    return [lead, accent];
+  }
+
+  const half = Math.floor(words.length / 2);
+
+  return [words.slice(0, half).join(" "), words.slice(half).join(" ")];
+}
