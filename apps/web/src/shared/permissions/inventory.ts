@@ -60,6 +60,9 @@ export const canSeeCosts = (can: Can): boolean => can(RULE.INVENTORY_COSTS);
 
 export const canBackdatePurchase = (can: Can): boolean => can(RULE.BACKDATE_PURCHASES);
 
+export const canSeeItemPrices = (can: Can): boolean =>
+  can("inventory.itemPrices") && can(RULE.INVENTORY_COSTS);
+
 export const canReversePricedPurchase = (can: Can): boolean => can(RULE.REVERSE_PRICED_PURCHASE);
 
 export const mayRecord = (

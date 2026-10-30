@@ -5,6 +5,7 @@ import {
   addDays,
   localDate,
   toMinorUnits,
+  type PurchaseRequest,
 } from "@clinic/shared";
 import { useEffect, useRef, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
@@ -19,6 +20,7 @@ import {
   Input,
   MoneyInput,
   PageHeader,
+  SegmentedControl,
   Select,
   Switch,
   Textarea,
@@ -29,18 +31,25 @@ import { useLookupOptions } from "@web/shared/queries/lookups";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { errorToast } from "@web/shared/lib/api-error";
 import {
+  useCreatePurchaseRequest,
   useInventoryItems,
   usePostPurchase,
   usePurchaseRequest,
   useSuppliers,
+  useUpdatePurchaseRequest,
 } from "@web/modules/inventory/queries";
 import { useSession } from "@web/shared/providers/session";
 import {
   canBackdatePurchase,
   canManageInventory,
   canPaySupplier,
+  canPostPurchase,
+  canRequestPurchase,
   canSeeCosts,
+  canSeeItemPrices,
+  canSendPurchaseRequest,
 } from "@web/shared/permissions/inventory";
+import { SendRequestModal } from "@web/modules/inventory/components/send-request-modal";
 import { ItemFormModal } from "@web/modules/inventory/components/item-form-modal";
 import {
   blankLine,
@@ -48,11 +57,15 @@ import {
   invoices,
   lineReady,
   linesFromLinks,
+  linesFromOrder,
   linesFromRequest,
+  orderReady,
   previewTotals,
   pricedTotals,
   purchaseCounts,
+  purchaseMode,
   returnTarget,
+  toOrderInput,
   toPostPurchase,
   type PurchaseDraft,
   type PurchaseLineDraft,
@@ -63,10 +76,15 @@ import { PurchaseReviewModal } from "@web/modules/inventory/components/purchase-
 import { PurchaseTotalBar } from "@web/modules/inventory/components/purchase-total-bar";
 import {
   EXPIRY_MIN_DAYS_AHEAD,
+  MODE_PARAM,
+  ORDER_PARAM,
   PURCHASE_LINE_GRID,
+  PURCHASE_MODES,
   PURCHASE_UNIT_COLUMN,
+  REQUESTS_TAB_PATH,
   RETURN_PARAM,
   type PurchaseLineLayout,
+  type PurchaseMode,
 } from "@web/modules/inventory/constants";
 
 const newKey = (): string => crypto.randomUUID();
@@ -76,7 +94,7 @@ export function PurchasePage(): JSX.Element {
   const toast = useToast();
   const navigate = useNavigate();
   const currency = useCurrency();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const methods = useLookupOptions(LOOKUP_LIST.PAYMENT_METHOD);
   const items = useInventoryItems({ limit: 100 });
   const suppliers = useSuppliers({ limit: 100 });
@@ -84,8 +102,22 @@ export function PurchasePage(): JSX.Element {
   const [reviewing, setReviewing] = useState(false);
   const [requestId] = useState(() => crypto.randomUUID());
   const request = usePurchaseRequest(params.get("request") ?? "");
+  const orderId = params.get(ORDER_PARAM) ?? "";
+  const order = usePurchaseRequest(orderId);
+  const createOrder = useCreatePurchaseRequest();
+  const updateOrder = useUpdatePurchaseRequest();
+  const [neededBy, setNeededBy] = useState("");
+  const [sending, setSending] = useState<PurchaseRequest | null>(null);
   const prefilled = useRef(false);
   const { can } = useSession();
+  const mayReceive = canPostPurchase(can);
+  const mayOrder = canRequestPurchase(can);
+  const mode = purchaseMode(
+    orderId === "" ? params.get(MODE_PARAM) : "order",
+    mayReceive && orderId === "",
+    mayOrder,
+  );
+  const ordering = mode === "order";
   const seesCosts = canSeeCosts(can);
   const mayPay = seesCosts && canPaySupplier(can);
   const mayAddItem = canManageInventory(can);
@@ -128,6 +160,33 @@ export function PurchasePage(): JSX.Element {
     }));
   }, [request.data]);
 
+  useEffect(() => {
+    if (!order.data || prefilled.current) {
+      return;
+    }
+
+    prefilled.current = true;
+    const lines = linesFromOrder(order.data);
+
+    setNeededBy(order.data.neededBy ?? "");
+    setDraft((current) => ({
+      ...current,
+      supplierId: order.data.supplierId ?? "",
+      note: order.data.note ?? "",
+      lines: lines.length > 0 ? lines : current.lines,
+    }));
+  }, [order.data]);
+
+  const switchMode = (next: PurchaseMode): void =>
+    setParams(
+      (current) => {
+        const updated = new URLSearchParams(current);
+        updated.set(MODE_PARAM, next);
+        return updated;
+      },
+      { replace: true },
+    );
+
   const change = (patch: Partial<PurchaseDraft>): void =>
     setDraft((current) => ({ ...current, ...patch }));
   const changeLine = (key: string, patch: Partial<PurchaseLineDraft>): void =>
@@ -136,36 +195,55 @@ export function PurchasePage(): JSX.Element {
       lines: current.lines.map((line) => (line.key === key ? { ...line, ...patch } : line)),
     }));
 
-  const withInvoice = invoices(draft);
+  const withInvoice = !ordering && invoices(draft);
   const totals = withInvoice ? previewTotals(draft) : null;
-  const costs = withInvoice ? totals : seesCosts ? pricedTotals(draft) : null;
+  const costs = withInvoice ? totals : seesCosts && !ordering ? pricedTotals(draft) : null;
   const method = draft.paymentMethod || (methods[0]?.value ?? "");
   const paid = draft.paidNow.trim() === "" ? 0 : toMinorUnits(draft.paidNow.trim());
   const overpaid = totals !== null && paid > toMinorUnits(totals.total);
   const today = localDate(new Date(), DEFAULT_TIME_ZONE);
   const minExpiry = addDays(today, EXPIRY_MIN_DAYS_AHEAD);
-  const ready =
-    draft.lines.every((line) => lineReady(line, withInvoice, minExpiry)) &&
-    (!withInvoice || totals !== null);
+  const ready = ordering
+    ? orderReady(draft.lines)
+    : draft.lines.every((line) => lineReady(line, withInvoice, minExpiry)) &&
+      (!withInvoice || totals !== null);
+  const savingOrder = createOrder.isPending || updateOrder.isPending;
   const counts = purchaseCounts(draft.lines);
 
   const layout: PurchaseLineLayout = withInvoice ? "invoice" : seesCosts ? "priced" : "plain";
+  const priced = layout === "invoice" || layout === "priced";
   const columns = [
     { label: "inventory.movement.item", end: false },
     { label: "inventory.purchase.unitShort", end: false, wide: true },
     { label: "inventory.movement.quantity", end: false },
-    { label: "inventory.purchase.freeShort", end: false, hint: "inventory.purchase.freeHint" },
-    ...(layout === "plain" ? [] : [{ label: "inventory.movement.unitPrice", end: false }]),
-    ...(layout === "plain"
+    {
+      label: "inventory.purchase.freeShort",
+      end: false,
+      hint: ordering ? "inventory.purchase.orderFieldHint" : "inventory.purchase.freeHint",
+    },
+    ...(priced
+      ? [
+          {
+            label: "inventory.movement.unitPrice",
+            end: false,
+            ...(ordering && { hint: "inventory.purchase.orderPriceHint" }),
+          },
+        ]
+      : []),
+    ...(!priced
       ? []
       : [
           {
             label: "inventory.purchase.lineDiscount",
             end: false,
-            ...(layout === "priced" && { hint: "inventory.purchase.discountNeedsInvoice" }),
+            ...(layout === "priced" && {
+              hint: ordering
+                ? "inventory.purchase.orderFieldHint"
+                : "inventory.purchase.discountNeedsInvoice",
+            }),
           },
         ]),
-    ...(layout === "plain" ? [] : [{ label: "inventory.purchase.lineTotal", end: true }]),
+    ...(priced ? [{ label: "inventory.purchase.lineTotal", end: true }] : []),
   ];
 
   const unitOf = (itemId: string): string =>
@@ -196,19 +274,66 @@ export function PurchasePage(): JSX.Element {
     }
   };
 
+  const saveOrder = async (): Promise<void> => {
+    if (!ready || savingOrder) {
+      return;
+    }
+
+    const body = toOrderInput(draft, neededBy);
+
+    try {
+      if (orderId !== "") {
+        await updateOrder.mutateAsync({ id: orderId, body });
+        toast.success("inventory.requests.updated");
+        void navigate(REQUESTS_TAB_PATH);
+        return;
+      }
+
+      const created = await createOrder.mutateAsync({ ...body, requestId });
+      toast.success("inventory.requests.created");
+
+      if (created.supplierId && canSendPurchaseRequest(can)) {
+        setSending(created);
+      } else {
+        void navigate(REQUESTS_TAB_PATH);
+      }
+    } catch (error) {
+      toast.error(...errorToast(error));
+    }
+  };
+
   return (
     <div data-testid="purchase-page" className="@container flex flex-col gap-5">
       <PageHeader
         data-testid="purchase-header"
-        title="inventory.purchase.title"
-        subtitle="inventory.purchase.subtitle"
+        title={
+          ordering
+            ? orderId === ""
+              ? "inventory.requests.newTitle"
+              : "inventory.requests.editTitle"
+            : "inventory.purchase.title"
+        }
+        subtitle={ordering ? "inventory.purchase.orderSubtitle" : "inventory.purchase.subtitle"}
       />
+
+      {mayReceive && mayOrder && orderId === "" && params.get("request") === null && (
+        <SegmentedControl<PurchaseMode>
+          data-testid="purchase-mode"
+          label={t("inventory.purchase.modeLabel")}
+          value={mode}
+          onChange={switchMode}
+          options={PURCHASE_MODES.map((value) => ({
+            value,
+            label: t(`inventory.purchase.mode.${value}`),
+          }))}
+        />
+      )}
 
       <Card data-testid="purchase-details">
         <div
           className={cn(
             "grid gap-4 @xl:grid-cols-2",
-            "@min-[44rem]:grid-cols-[minmax(12rem,360px)_11rem_13rem_max-content] @min-[44rem]:items-end",
+            "@min-[44rem]:grid-cols-[minmax(12rem,360px)_13rem_13rem_max-content] @min-[44rem]:items-end",
           )}
         >
           <div className="@xl:col-span-2 @min-[44rem]:col-span-1">
@@ -227,17 +352,30 @@ export function PurchasePage(): JSX.Element {
               />
             </FormField>
           </div>
-          <FormField label="inventory.purchase.date" htmlFor="purchase-date" required>
-            <DatePicker
-              id="purchase-date"
-              data-testid="purchase-field-date"
-              label={t("inventory.purchase.date")}
-              value={draft.date}
-              min={earliestPurchaseDate(today, canBackdatePurchase(can))}
-              max={today}
-              onChange={(date) => change({ date })}
-            />
-          </FormField>
+          {ordering ? (
+            <FormField label="inventory.requests.neededBy" htmlFor="purchase-needed-by" optional>
+              <DatePicker
+                id="purchase-needed-by"
+                data-testid="purchase-field-needed-by"
+                label={t("inventory.requests.neededBy")}
+                value={neededBy}
+                min={today}
+                onChange={setNeededBy}
+              />
+            </FormField>
+          ) : (
+            <FormField label="inventory.purchase.date" htmlFor="purchase-date" required>
+              <DatePicker
+                id="purchase-date"
+                data-testid="purchase-field-date"
+                label={t("inventory.purchase.date")}
+                value={draft.date}
+                min={earliestPurchaseDate(today, canBackdatePurchase(can))}
+                max={today}
+                onChange={(date) => change({ date })}
+              />
+            </FormField>
+          )}
           {withInvoice && (
             <FormField label="inventory.purchase.supplierRef" htmlFor="purchase-ref" optional>
               <Input
@@ -250,7 +388,7 @@ export function PurchasePage(): JSX.Element {
               />
             </FormField>
           )}
-          {seesCosts && draft.supplierId !== "" && (
+          {seesCosts && !ordering && draft.supplierId !== "" && (
             <div className="flex items-center @xl:col-span-2 @min-[44rem]:col-span-1 @min-[44rem]:col-start-4 @min-[44rem]:h-(--control-h)">
               <Switch
                 checked={draft.withInvoice}
@@ -319,6 +457,9 @@ export function PurchasePage(): JSX.Element {
               currency={currency}
               cost={costs?.lines[index]?.cost}
               removable={draft.lines.length > 1}
+              ordering={ordering}
+              supplierId={draft.supplierId}
+              mayPrice={canSeeItemPrices(can)}
               onChange={(patch) => changeLine(line.key, patch)}
               onRemove={() =>
                 setDraft((current) => ({
@@ -406,11 +547,17 @@ export function PurchasePage(): JSX.Element {
         total={totals?.total ?? null}
         currency={currency}
         reviewLabel={t(
-          withInvoice ? "inventory.purchase.review" : "inventory.purchase.reviewReceipt",
+          ordering
+            ? "inventory.purchase.saveOrder"
+            : withInvoice
+              ? "inventory.purchase.review"
+              : "inventory.purchase.reviewReceipt",
         )}
-        ready={ready}
+        ready={ready && !savingOrder}
         onReview={() => {
-          if (ready) {
+          if (ordering) {
+            void saveOrder();
+          } else if (ready) {
             setReviewing(true);
           }
         }}
@@ -437,6 +584,15 @@ export function PurchasePage(): JSX.Element {
         onPaidNowChange={(paidNow) => change({ paidNow })}
         onMethodChange={(paymentMethod) => change({ paymentMethod })}
         onPost={() => void submit()}
+      />
+
+      <SendRequestModal
+        request={sending}
+        mayShowPrices={seesCosts}
+        onClose={() => {
+          setSending(null);
+          void navigate(REQUESTS_TAB_PATH);
+        }}
       />
 
       <ItemFormModal

@@ -42,7 +42,7 @@ export const PAGE_CAPABILITIES = {
   appointments: ["appointments.list"],
   labs: ["labs.list"],
   inventory: ["inventory.list"],
-  purchase: ["purchases.post"],
+  purchase: ["purchases.post", "purchase-requests.create"],
   stockCount: ["stock-counts.findOne"],
   users: ["users.list"],
   doctor: ["doctors.updateSchedule"],

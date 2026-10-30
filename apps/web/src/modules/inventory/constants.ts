@@ -89,17 +89,17 @@ export const STOCK_DOT: Record<ProgressTone, string> = {
 export type PurchaseLineLayout = "invoice" | "priced" | "plain";
 
 const PRICED_LINE_GRID = [
-  "@min-[40rem]:grid-cols-[minmax(6rem,360px)_4rem_4rem_7.5rem_140px_6.5rem_minmax(4.75rem,auto)]",
-  "@min-[56rem]:grid-cols-[minmax(9rem,360px)_5.5rem_5.5rem_7.5rem_140px_6.5rem_minmax(4.75rem,auto)]",
-  "@min-[60rem]:grid-cols-[minmax(6rem,360px)_minmax(132px,160px)_5rem_5rem_7.5rem_140px_6.5rem_minmax(4.75rem,auto)]",
+  "@min-[40rem]:grid-cols-[minmax(6rem,360px)_4rem_4rem_7.5rem_140px_6.5rem_5.75rem]",
+  "@min-[56rem]:grid-cols-[minmax(9rem,360px)_5.5rem_5.5rem_7.5rem_140px_6.5rem_5.75rem]",
+  "@min-[60rem]:grid-cols-[minmax(6rem,360px)_minmax(132px,160px)_5rem_5rem_7.5rem_140px_6.5rem_5.75rem]",
 ].join(" ");
 
 export const PURCHASE_LINE_GRID: Record<PurchaseLineLayout, string> = {
   invoice: PRICED_LINE_GRID,
   priced: PRICED_LINE_GRID,
   plain: [
-    "@min-[40rem]:grid-cols-[minmax(8rem,360px)_minmax(132px,160px)_4rem_4rem_minmax(4.75rem,auto)]",
-    "@min-[56rem]:grid-cols-[minmax(9rem,360px)_minmax(132px,160px)_5.5rem_5.5rem_minmax(4.75rem,auto)]",
+    "@min-[40rem]:grid-cols-[minmax(8rem,360px)_minmax(132px,160px)_4rem_4rem_5.75rem]",
+    "@min-[56rem]:grid-cols-[minmax(9rem,360px)_minmax(132px,160px)_5.5rem_5.5rem_5.75rem]",
   ].join(" "),
 };
 
@@ -113,6 +113,16 @@ export const PURCHASE_UNIT_COLUMN: Record<
 };
 
 export const EXPIRY_MIN_DAYS_AHEAD = 2;
+
+export const PURCHASE_MODES = ["receive", "order"] as const;
+
+export type PurchaseMode = (typeof PURCHASE_MODES)[number];
+
+export const MODE_PARAM = "mode";
+
+export const ORDER_PARAM = "order";
+
+export const REQUESTS_TAB_PATH = "/inventory?tab=requests";
 
 export const PICK_PARAM = "pick";
 

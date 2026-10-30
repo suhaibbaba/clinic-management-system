@@ -1,14 +1,20 @@
-import { SHOPPING_LIST_PATH } from "@web/modules/inventory/constants";
+import { SHOPPING_LIST_PATH, type PurchaseMode } from "@web/modules/inventory/constants";
 import {
   DISCOUNT_KIND,
   PURCHASE_BACKDATE_DAYS,
   PURCHASE_MAX_BACKDATE_DAYS,
   addDays,
   computeInvoice,
+  formatMinorUnits,
+  toMinorUnits,
+  toThousandths,
   type DiscountKind,
   type InvoiceResult,
+  type ItemPrice,
+  type Money,
   type PostPurchaseInput,
   type PurchaseRequest,
+  type UpdatePurchaseRequestInput,
 } from "@clinic/shared";
 
 export interface PurchaseLineDraft {
@@ -147,6 +153,70 @@ export function linesFromRequest(request: PurchaseRequest): PurchaseLineDraft[] 
       quantity: line.open,
       unitPrice: line.lastPrice ?? "",
     }));
+}
+
+export function linesFromOrder(request: PurchaseRequest): PurchaseLineDraft[] {
+  return request.lines.map((line) => ({
+    ...blankLine(line.id, line.itemId),
+    quantity: line.quantity,
+  }));
+}
+
+const QUANTITY = /^\d+(\.\d{1,3})?$/;
+
+export function expectedPrice(prices: readonly ItemPrice[], supplierId: string): Money | null {
+  const priced = prices.filter((price) => price.unitPrice !== null);
+  const pick =
+    priced.find((price) => filled(supplierId) && price.supplierId === supplierId) ?? priced[0];
+
+  if (!pick?.unitPrice) {
+    return null;
+  }
+
+  return formatMinorUnits(
+    Math.round((toMinorUnits(pick.unitPrice) * 1000) / toThousandths(pick.unitsPer)),
+  );
+}
+
+export function lineCost(quantity: string, price: Money | null): Money | null {
+  const q = quantity.trim();
+
+  if (price === null || !QUANTITY.test(q)) {
+    return null;
+  }
+
+  return formatMinorUnits(Math.round((toThousandths(q) * toMinorUnits(price)) / 1000));
+}
+
+export function orderReady(lines: readonly PurchaseLineDraft[]): boolean {
+  const items = lines.map((line) => line.itemId);
+
+  return (
+    lines.length > 0 &&
+    lines.every((line) => filled(line.itemId) && Number(line.quantity || "0") > 0) &&
+    new Set(items).size === items.length
+  );
+}
+
+export function toOrderInput(draft: PurchaseDraft, neededBy: string): UpdatePurchaseRequestInput {
+  return {
+    supplierId: filled(draft.supplierId) ? draft.supplierId : null,
+    neededBy: filled(neededBy) ? neededBy : null,
+    note: filled(draft.note) ? draft.note.trim() : null,
+    lines: draft.lines.map((line) => ({ itemId: line.itemId, quantity: line.quantity.trim() })),
+  };
+}
+
+export function purchaseMode(
+  value: string | null,
+  mayReceive: boolean,
+  mayOrder: boolean,
+): PurchaseMode {
+  if (!mayReceive) {
+    return "order";
+  }
+
+  return value === "order" && mayOrder ? "order" : "receive";
 }
 
 export interface PurchaseCounts {

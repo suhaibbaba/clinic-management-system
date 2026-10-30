@@ -9,12 +9,14 @@ export function PackSizeSelect({
   id,
   itemId,
   baseUnit,
+  fixed = false,
   value,
   onChange,
 }: {
   readonly id: string;
   readonly itemId: string;
   readonly baseUnit: string;
+  readonly fixed?: boolean | undefined;
   readonly value: string;
   readonly onChange: (packSizeId: string) => void;
 }): JSX.Element {
@@ -22,7 +24,7 @@ export function PackSizeSelect({
   const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const packs = usePackSizes(itemId);
 
-  if (!packs.data || packs.data.length === 0) {
+  if (fixed || !packs.data || packs.data.length === 0) {
     return (
       <Select
         disabled

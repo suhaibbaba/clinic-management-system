@@ -3,9 +3,15 @@ import { describe, expect, it } from "vitest";
 import {
   blankLine,
   earliestPurchaseDate,
+  expectedPrice,
+  lineCost,
   itemPurchaseLink,
   lineReady,
   linesFromLinks,
+  linesFromOrder,
+  orderReady,
+  purchaseMode,
+  toOrderInput,
   linesFromRequest,
   previewTotals,
   purchaseCounts,
@@ -197,5 +203,82 @@ describe("earliestPurchaseDate", () => {
   it("reaches 7 days back without the backdate rule and 30 days with it", () => {
     expect(earliestPurchaseDate("2026-10-30", false)).toBe("2026-10-23");
     expect(earliestPurchaseDate("2026-10-30", true)).toBe("2026-09-30");
+  });
+});
+
+describe("purchaseMode", () => {
+  it("receives by default and orders only when asked and allowed", () => {
+    expect(purchaseMode(null, true, true)).toBe("receive");
+    expect(purchaseMode("order", true, true)).toBe("order");
+    expect(purchaseMode("order", true, false)).toBe("receive");
+  });
+
+  it("orders for whoever may not receive goods", () => {
+    expect(purchaseMode(null, false, true)).toBe("order");
+    expect(purchaseMode("receive", false, true)).toBe("order");
+  });
+});
+
+describe("orders", () => {
+  it("is ready with distinct items that each have a quantity", () => {
+    expect(orderReady([{ ...blankLine("a", "gloves"), quantity: "5" }])).toBe(true);
+    expect(orderReady([{ ...blankLine("a", "gloves"), quantity: "" }])).toBe(false);
+    expect(orderReady([blankLine("a")])).toBe(false);
+    expect(
+      orderReady([
+        { ...blankLine("a", "gloves"), quantity: "5" },
+        { ...blankLine("b", "gloves"), quantity: "2" },
+      ]),
+    ).toBe(false);
+  });
+
+  it("writes a request from the draft, empty fields as null", () => {
+    const body = toOrderInput(
+      draft({
+        supplierId: "",
+        note: "  ",
+        lines: [{ ...blankLine("a", "gloves"), quantity: " 5 " }],
+      }),
+      "",
+    );
+
+    expect(body).toEqual({
+      supplierId: null,
+      neededBy: null,
+      note: null,
+      lines: [{ itemId: "gloves", quantity: "5" }],
+    });
+  });
+
+  it("edits an order at its ordered quantities", () => {
+    const lines = linesFromOrder({
+      lines: [{ id: "l-1", itemId: "gloves", quantity: "10", received: "4", open: "6" }],
+    } as unknown as Parameters<typeof linesFromOrder>[0]);
+
+    expect(lines.map((line) => [line.itemId, line.quantity])).toEqual([["gloves", "10"]]);
+  });
+});
+
+describe("expected order price", () => {
+  const price = (supplierId: string | null, unitPrice: string | null, unitsPer = "1") =>
+    ({ supplierId, unitPrice, unitsPer }) as Parameters<typeof expectedPrice>[0][number];
+
+  it("prefers the supplier's last price, per base unit, else the newest", () => {
+    const prices = [price("s-2", "30"), price("s-1", "120", "10"), price("s-1", "9")];
+
+    expect(expectedPrice(prices, "s-1")).toBe("12.00");
+    expect(expectedPrice(prices, "s-9")).toBe("30.00");
+    expect(expectedPrice(prices, "")).toBe("30.00");
+  });
+
+  it("knows no price when nothing priced was bought", () => {
+    expect(expectedPrice([price("s-1", null)], "s-1")).toBeNull();
+    expect(expectedPrice([], "")).toBeNull();
+  });
+
+  it("costs a line as quantity times price", () => {
+    expect(lineCost("2.5", "12.00")).toBe("30.00");
+    expect(lineCost("", "12.00")).toBeNull();
+    expect(lineCost("3", null)).toBeNull();
   });
 });

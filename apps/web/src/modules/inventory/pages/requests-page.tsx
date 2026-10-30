@@ -34,11 +34,12 @@ import {
   useRequestBelowMinimum,
 } from "@web/modules/inventory/queries";
 import {
+  MODE_PARAM,
+  ORDER_PARAM,
   REQUEST_FILTERS,
   REQUEST_STATUS_TONES,
   type RequestFilter,
 } from "@web/modules/inventory/constants";
-import { RequestFormModal } from "@web/modules/inventory/components/request-form-modal";
 import { SendRequestModal } from "@web/modules/inventory/components/send-request-modal";
 import { CancelRequestModal } from "@web/modules/inventory/components/cancel-request-modal";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
@@ -64,8 +65,6 @@ export function RequestsPage(): JSX.Element {
   });
   const belowMinimum = useRequestBelowMinimum();
   const close = useCloseRequest();
-  const [editing, setEditing] = useState<PurchaseRequest | null>(null);
-  const [creating, setCreating] = useState(false);
   const [sending, setSending] = useState<PurchaseRequest | null>(null);
   const [cancelling, setCancelling] = useState<string | null>(null);
 
@@ -157,7 +156,11 @@ export function RequestsPage(): JSX.Element {
               </MenuItem>
             )}
             {mayRequest && row.status !== PURCHASE_REQUEST_STATUS.PARTLY_RECEIVED && (
-              <MenuItem icon="edit" data-testid="request-edit" onSelect={() => setEditing(row)}>
+              <MenuItem
+                icon="edit"
+                data-testid="request-edit"
+                onSelect={() => void navigate(`/inventory/purchases/new?${ORDER_PARAM}=${row.id}`)}
+              >
                 {t("common.edit")}
               </MenuItem>
             )}
@@ -208,7 +211,7 @@ export function RequestsPage(): JSX.Element {
               <Button
                 icon={<Icon name="plus" />}
                 data-testid="requests-new"
-                onClick={() => setCreating(true)}
+                onClick={() => void navigate(`/inventory/purchases/new?${MODE_PARAM}=order`)}
               >
                 {t("inventory.requests.new")}
               </Button>
@@ -257,14 +260,6 @@ export function RequestsPage(): JSX.Element {
         }
       />
 
-      <RequestFormModal
-        open={creating || editing !== null}
-        request={editing}
-        onClose={() => {
-          setCreating(false);
-          setEditing(null);
-        }}
-      />
       <SendRequestModal
         request={sending}
         mayShowPrices={canSeeCosts(can)}

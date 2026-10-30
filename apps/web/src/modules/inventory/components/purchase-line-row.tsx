@@ -21,7 +21,12 @@ import {
   PURCHASE_UNIT_COLUMN,
   type PurchaseLineLayout,
 } from "@web/modules/inventory/constants";
-import type { PurchaseLineDraft } from "@web/modules/inventory/lib/purchase-form";
+import {
+  expectedPrice,
+  lineCost,
+  type PurchaseLineDraft,
+} from "@web/modules/inventory/lib/purchase-form";
+import { useItemPrices } from "@web/modules/inventory/queries";
 
 function Cell({
   label,
@@ -42,14 +47,8 @@ function Cell({
 
   return (
     <div className={cn("flex min-w-0 flex-col gap-1.5", className)}>
-      <span className="flex items-center gap-1">
-        <label
-          htmlFor={htmlFor}
-          className={cn(
-            "text-label font-medium text-ink",
-            !persistentLabel && "@min-[40rem]:sr-only",
-          )}
-        >
+      <span className={cn("flex items-center gap-1", !persistentLabel && "@min-[40rem]:sr-only")}>
+        <label htmlFor={htmlFor} className="text-label font-medium text-ink">
           {label}
         </label>
         {hint !== undefined && (
@@ -75,6 +74,9 @@ export function PurchaseLineRow({
   currency,
   cost,
   removable,
+  ordering = false,
+  supplierId = "",
+  mayPrice = false,
   onChange,
   onRemove,
   onCreateItem,
@@ -87,6 +89,9 @@ export function PurchaseLineRow({
   readonly currency: string | undefined;
   readonly cost: string | undefined;
   readonly removable: boolean;
+  readonly ordering?: boolean | undefined;
+  readonly supplierId?: string | undefined;
+  readonly mayPrice?: boolean | undefined;
   readonly onChange: (patch: Partial<PurchaseLineDraft>) => void;
   readonly onRemove: () => void;
   readonly onCreateItem: ((name: string) => void) | undefined;
@@ -95,6 +100,11 @@ export function PurchaseLineRow({
   const detailsId = useId();
   const [open, setOpen] = useState(line.batchNo !== "" || line.expiryDate !== "" || line.gift);
   const id = (field: string): string => `line-${field}-${line.key}`;
+  const priced = layout === "invoice" || layout === "priced";
+  const prices = useItemPrices(line.itemId, ordering && priced && mayPrice);
+  const expected = ordering ? expectedPrice(prices.data ?? [], supplierId) : null;
+  const shownCost = ordering ? (lineCost(line.quantity, expected) ?? undefined) : cost;
+  const laterHint = ordering ? t("inventory.purchase.orderFieldHint") : undefined;
 
   return (
     <li data-testid="purchase-line" data-line={line.key} className="py-3">
@@ -127,6 +137,7 @@ export function PurchaseLineRow({
               id={id("pack")}
               itemId={line.itemId}
               baseUnit={baseUnit}
+              fixed={ordering}
               value={line.packSizeId ?? ""}
               onChange={(packSizeId) => onChange({ packSizeId })}
             />
@@ -146,20 +157,25 @@ export function PurchaseLineRow({
         <Cell
           label={t("inventory.purchase.free")}
           htmlFor={id("free")}
-          hint={t("inventory.purchase.freeHint")}
+          hint={laterHint ?? t("inventory.purchase.freeHint")}
         >
           <QuantityInput
             id={id("free")}
             data-testid="purchase-line-free"
             placeholder="0"
-            value={line.freeQuantity}
+            disabled={ordering}
+            value={ordering ? "" : line.freeQuantity}
             onChange={(event) => onChange({ freeQuantity: event.target.value })}
           />
         </Cell>
 
-        {layout !== "plain" && (
-          <Cell label={t("inventory.movement.unitPrice")} htmlFor={id("price")}>
-            {line.gift ? (
+        {priced && (
+          <Cell
+            label={t("inventory.movement.unitPrice")}
+            htmlFor={id("price")}
+            hint={ordering ? t("inventory.purchase.orderPriceHint") : undefined}
+          >
+            {line.gift && !ordering ? (
               <span className="flex h-(--control-h) items-center">
                 <Badge tone="info" data-testid="purchase-line-gift-badge">
                   {t("inventory.purchase.giftShort")}
@@ -171,19 +187,23 @@ export function PurchaseLineRow({
                 id={id("price")}
                 data-testid="purchase-line-price"
                 currency={currency}
-                placeholder="0"
-                value={line.unitPrice}
+                placeholder={ordering ? "—" : "0"}
+                disabled={ordering}
+                value={ordering ? (expected ?? "") : line.unitPrice}
                 onChange={(event) => onChange({ unitPrice: event.target.value })}
               />
             )}
           </Cell>
         )}
 
-        {layout !== "plain" && (
+        {priced && (
           <Cell
             label={t("inventory.purchase.lineDiscount")}
             htmlFor={id("discount")}
-            hint={layout === "priced" ? t("inventory.purchase.discountNeedsInvoice") : undefined}
+            hint={
+              laterHint ??
+              (layout === "priced" ? t("inventory.purchase.discountNeedsInvoice") : undefined)
+            }
           >
             {!line.gift && (
               <DiscountInput
@@ -200,7 +220,7 @@ export function PurchaseLineRow({
           </Cell>
         )}
 
-        {layout !== "plain" && (
+        {priced && (
           <div
             data-testid="purchase-line-cost"
             className={cn(
@@ -211,10 +231,11 @@ export function PurchaseLineRow({
             <span className="text-label font-medium text-ink-muted @min-[40rem]:sr-only">
               {t("inventory.purchase.lineTotal")}
             </span>
-            {cost === undefined || line.gift || line.unitPrice.trim() === "" ? (
+            {shownCost === undefined ||
+            (!ordering && (line.gift || line.unitPrice.trim() === "")) ? (
               <span className="text-ink-subtle">—</span>
             ) : (
-              <Money cents amount={cost} currency={currency} />
+              <Money cents amount={shownCost} currency={currency} />
             )}
           </div>
         )}
@@ -222,13 +243,15 @@ export function PurchaseLineRow({
         <div
           className={cn(
             "col-span-2 flex items-center justify-between gap-1 @min-[26rem]:justify-end @min-[40rem]:col-span-1",
-            layout !== "plain" && "@min-[26rem]:col-span-1",
+            priced && "@min-[26rem]:col-span-1",
           )}
         >
           <Button
             size="sm"
             variant="secondary"
+            aria-hidden={ordering || undefined}
             className={cn(
+              ordering && "invisible",
               "@min-[40rem]:border-transparent @min-[40rem]:bg-transparent @min-[40rem]:text-ink-muted",
               "@min-[40rem]:hover:border-transparent @min-[40rem]:hover:bg-inset @min-[40rem]:hover:text-ink",
             )}
@@ -257,7 +280,7 @@ export function PurchaseLineRow({
         </div>
       </div>
 
-      {open && (
+      {open && !ordering && (
         <div
           id={detailsId}
           data-testid="purchase-line-extra"
