@@ -404,7 +404,7 @@ export const SCENARIO_ITEMS: readonly ScenarioItem[] = [
 ];
 
 export const PURCHASE_ROUNDS = [
-  { daysAgo: 300, priceRise: 0 },
-  { daysAgo: 180, priceRise: 0.05 },
-  { daysAgo: 60, priceRise: 0.1 },
+  { daysAgo: 28, priceRise: 0 },
+  { daysAgo: 21, priceRise: 0.05 },
+  { daysAgo: 14, priceRise: 0.1 },
 ] as const;

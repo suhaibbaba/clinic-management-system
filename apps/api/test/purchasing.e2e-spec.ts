@@ -230,8 +230,8 @@ describe("Purchasing documents (e2e)", () => {
         (await send("POST", "/purchases", body(addDays(today, -30)), USER_ROLE.ADMIN)).statusCode,
       ).toBe(201);
 
-      const closedDay = addDays(today, -20);
-      const lastMonth = `${closedDay.slice(0, 7)}-01`;
+      const lastMonth = `${addDays(`${today.slice(0, 7)}-01`, -40).slice(0, 7)}-01`;
+      const closedDay = addDays(lastMonth, 3);
       await context.db
         .insert(payrollMonths)
         .values({ clinicId: clinic.id, month: lastMonth, lines: [] });

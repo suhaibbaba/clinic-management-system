@@ -39,6 +39,8 @@ export const seesPurchaseRequests = (can: Can): boolean => can("purchase-request
 
 export const canRequestPurchase = (can: Can): boolean => can("purchase-requests.create");
 
+export const canSeeOpenOrders = (can: Can): boolean => can("purchase-requests.openLines");
+
 export const canSendPurchaseRequest = (can: Can): boolean => can("purchase-requests.send");
 
 export const canManagePurchaseRequest = (can: Can): boolean => can("purchase-requests.cancel");

@@ -118,65 +118,60 @@ export function SendRequestModal({
         </>
       }
     >
-      {request && (
-        <dl data-testid="send-request-summary" className="flex flex-col gap-2 text-value">
-          <div className="flex items-baseline justify-between gap-3">
-            <dt className="text-ink-muted">{t("inventory.movement.supplier")}</dt>
-            <dd className="font-medium text-ink">
-              <bdi>{request.supplierName ?? t("inventory.purchase.noSupplier")}</bdi>
-            </dd>
-          </div>
-          <div className="flex items-baseline justify-between gap-3">
-            <dt className="text-ink-muted">{t("inventory.requests.columns.number")}</dt>
-            <dd className="font-medium text-ink">
-              <Ltr>{request.number}</Ltr>
-            </dd>
-          </div>
-          {request.neededBy && (
-            <div className="flex items-baseline justify-between gap-3">
-              <dt className="text-ink-muted">{t("inventory.requests.neededBy")}</dt>
-              <dd className="font-medium text-ink">{formatDate(request.neededBy)}</dd>
-            </div>
-          )}
-        </dl>
-      )}
-
-      <ul
-        data-testid="send-request-lines"
-        className="flex flex-col divide-y divide-line border-y border-line"
-      >
-        {(request?.lines ?? []).map((line) => (
-          <li
-            key={line.id}
-            data-testid="send-request-line"
-            className="flex items-baseline justify-between gap-3 py-2 text-value"
+      <div className="flex flex-col gap-5">
+        {request && (
+          <dl
+            data-testid="send-request-summary"
+            className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-card bg-inset p-4 text-value"
           >
-            <bdi className="min-w-0 truncate text-ink">{line.itemName}</bdi>
-            <span className="shrink-0 text-ink-muted">
-              <Ltr>{String(Number(line.quantity))}</Ltr> {unitLabel(line.unit)}
-            </span>
-          </li>
-        ))}
-      </ul>
+            <div className="min-w-0">
+              <dt className="text-meta text-ink-muted">{t("inventory.movement.supplier")}</dt>
+              <dd className="mt-0.5 font-medium text-ink">
+                <bdi>{request.supplierName ?? t("inventory.purchase.noSupplier")}</bdi>
+              </dd>
+            </div>
+            <div className="min-w-0">
+              <dt className="text-meta text-ink-muted">{t("inventory.requests.columns.number")}</dt>
+              <dd className="mt-0.5 font-medium text-ink">
+                <Ltr>{request.number}</Ltr>
+              </dd>
+            </div>
+            <div className="min-w-0">
+              <dt className="text-meta text-ink-muted">{t("inventory.requests.columns.items")}</dt>
+              <dd className="mt-0.5 font-medium text-ink">
+                {t("inventory.purchase.itemCount", { count: request.lines.length })}
+              </dd>
+            </div>
+            {request.neededBy && (
+              <div className="min-w-0">
+                <dt className="text-meta text-ink-muted">{t("inventory.requests.neededBy")}</dt>
+                <dd className="mt-0.5 font-medium text-ink">
+                  <Ltr>{formatDate(request.neededBy)}</Ltr>
+                </dd>
+              </div>
+            )}
+          </dl>
+        )}
 
-      <FormField label="inventory.requests.whatsapp" htmlFor="send-request-to" required>
-        <Input
-          id="send-request-to"
-          data-testid="send-request-to"
-          dir="ltr"
-          inputMode="tel"
-          value={to}
-          onChange={(event) => setTo(event.target.value)}
-        />
-      </FormField>
-      {mayShowPrices && (
-        <Switch
-          data-testid="send-request-prices"
-          checked={withPrices}
-          onCheckedChange={setWithPrices}
-          label={t("inventory.requests.withPrices")}
-        />
-      )}
+        <FormField label="inventory.requests.whatsapp" htmlFor="send-request-to" required>
+          <Input
+            id="send-request-to"
+            data-testid="send-request-to"
+            dir="ltr"
+            inputMode="tel"
+            value={to}
+            onChange={(event) => setTo(event.target.value)}
+          />
+        </FormField>
+        {mayShowPrices && (
+          <Switch
+            data-testid="send-request-prices"
+            checked={withPrices}
+            onCheckedChange={setWithPrices}
+            label={t("inventory.requests.withPrices")}
+          />
+        )}
+      </div>
     </Modal>
   );
 }

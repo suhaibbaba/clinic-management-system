@@ -360,10 +360,7 @@ export const supplierAllocations = pgTable(
     index("supplier_allocations_payment_idx").on(table.paymentId),
     index("supplier_allocations_invoice_idx").on(table.invoiceId),
     index("supplier_allocations_credit_idx").on(table.creditId),
-    check(
-      "supplier_allocations_one_source",
-      sql`(payment_id is null) <> (credit_id is null)`,
-    ),
+    check("supplier_allocations_one_source", sql`(payment_id is null) <> (credit_id is null)`),
   ],
 );
 
@@ -493,6 +490,8 @@ export const stockCountLines = pgTable(
       .references(() => inventoryItems.id),
     expected: quantity("expected").notNull(),
     counted: quantity("counted"),
+    unitPrice: money("unit_price"),
+    expiryDate: date("expiry_date"),
     movementId: uuid("movement_id").references(() => stockMovements.id),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     updatedBy: uuid("updated_by"),

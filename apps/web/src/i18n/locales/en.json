@@ -659,7 +659,7 @@
     "stockCount": {
       "alreadyOpen": "A count is already in progress",
       "notOpen": "This count is already posted or cancelled",
-      "incomplete": "Count every item before posting"
+      "incomplete": "Count at least one item before posting"
     }
   },
   "patients": {
@@ -1700,6 +1700,14 @@
         "receive": "Goods Received",
         "order": "Order from Supplier"
       },
+      "alreadyOrdered": "{{who}} already ordered {{quantity}} {{unit}} in {{number}} ({{status}}); {{open}} still to arrive.",
+      "receiveAgainst": "Receive against {{number}}",
+      "someone": "someone",
+      "openOrdersTitle": "This item is already on an order",
+      "openOrdersDescription": "Someone already ordered these items and they haven't all arrived. Check before you go on, so nothing is bought twice.",
+      "openOrdersBack": "Go Back",
+      "openOrdersContinue": "Continue Anyway",
+      "openOrdersWait": "Continue in {{seconds}}",
       "orderFieldHint": "Entered when the goods arrive.",
       "orderPriceHint": "Expected, from the last price paid for this item, from this supplier when there is one. The real price is entered when the goods arrive.",
       "orderSubtitle": "The order goes to the supplier. Stock doesn't change until the goods arrive.",
@@ -1767,9 +1775,6 @@
       "title": "Purchase Requests",
       "subtitle": "What the clinic needs, sent to suppliers and received against.",
       "new": "New Request",
-      "belowMinimum": "Request Items Below Minimum",
-      "fromMinimum_one": "{{count}} request created",
-      "fromMinimum_other": "{{count}} requests created",
       "filter": "Status",
       "all": "All",
       "menu": "Request Actions",
@@ -1800,7 +1805,7 @@
       },
       "whatsapp": "WhatsApp number",
       "withPrices": "Include last known prices",
-      "markOrdered": "I Sent It Myself",
+      "markOrdered": "Ordered Another Way",
       "markedOrdered": "Marked as ordered",
       "sent": "Sent to the supplier",
       "empty": "Nothing requested",
@@ -1818,7 +1823,14 @@
         "received": "Received",
         "closed": "Closed",
         "cancelled": "Cancelled"
-      }
+      },
+      "detailsDescription": "What was ordered, from whom, and what has arrived",
+      "createdBy": "Requested By",
+      "sentAt": "Sent",
+      "note": "Note",
+      "ordered": "Ordered",
+      "received": "Received",
+      "remaining": "To Arrive"
     },
     "counts": {
       "start": "Count Stock",
@@ -1828,17 +1840,17 @@
       "snapshot": "Started {{at}}",
       "missing_one": "{{count}} item not counted yet",
       "missing_other": "{{count}} items not counted yet",
-      "save": "Save Progress",
       "saved": "Counts saved",
-      "post": "Post the Count",
+      "post": "Finish and Adjust Stock",
       "posted": "Count posted",
-      "cancel": "Cancel the Count",
       "columns": {
         "item": "Item",
         "expected": "Expected",
         "counted": "Counted",
         "difference": "Difference",
-        "value": "Value"
+        "value": "Value",
+        "unitPrice": "Unit Price",
+        "expiry": "Expiry"
       },
       "status": {
         "open": "In progress",
@@ -1846,13 +1858,27 @@
         "cancelled": "Cancelled"
       },
       "confirmPost": {
-        "title": "Post count {{number}}?",
-        "adjustments": "Each difference becomes a stock adjustment at the current average cost."
+        "title": "Finish count {{number}}?",
+        "counted_one": "Stock becomes what you counted for {{count}} item.",
+        "counted_other": "Stock becomes what you counted for {{count}} items.",
+        "skipped_one": "{{count}} item wasn't counted and keeps its current stock.",
+        "skipped_other": "{{count}} items weren't counted and keep their current stock."
       },
-      "confirmCancel": {
-        "title": "Cancel count {{number}}?",
-        "nothing": "Nothing in stock changes; the typed counts are discarded."
-      }
+      "allCounted": "Every item is counted",
+      "shortages": "Short",
+      "surpluses": "Over",
+      "differenceCaption_one": "{{count}} item",
+      "differenceCaption_other": "{{count}} items",
+      "show": "Show",
+      "filters": {
+        "all": "All",
+        "remaining": "Not Counted",
+        "differences": "With a Difference"
+      },
+      "search": "Search items",
+      "noMatch": "No items match",
+      "noMatchHint": "Change the filter or the search",
+      "averageCost": "Average"
     },
     "rowMenu": "Item Actions",
     "review": {

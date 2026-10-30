@@ -1,7 +1,7 @@
 import { PURCHASE_REQUEST_STATUS, type PurchaseRequest } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Badge,
   Button,
@@ -18,6 +18,7 @@ import {
   useTabParam,
   useToast,
 } from "@clinic/ui";
+import type { IconName } from "@clinic/ui/components/icon";
 import { errorToast } from "@web/shared/lib/api-error";
 import { formatDate } from "@web/shared/lib/format";
 import { useSession } from "@web/shared/providers/session";
@@ -30,19 +31,30 @@ import {
 } from "@web/shared/permissions/inventory";
 import {
   useCloseRequest,
+  usePurchaseRequest,
   usePurchaseRequests,
-  useRequestBelowMinimum,
 } from "@web/modules/inventory/queries";
 import {
   MODE_PARAM,
   ORDER_PARAM,
   REQUEST_FILTERS,
+  REQUEST_PARAM,
   REQUEST_STATUS_TONES,
+  SHOPPING_LIST_PATH,
   type RequestFilter,
 } from "@web/modules/inventory/constants";
 import { SendRequestModal } from "@web/modules/inventory/components/send-request-modal";
 import { CancelRequestModal } from "@web/modules/inventory/components/cancel-request-modal";
+import { RequestDrawer } from "@web/modules/inventory/components/request-drawer";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
+
+interface RequestAction {
+  readonly key: string;
+  readonly icon: IconName;
+  readonly label: string;
+  readonly danger?: boolean;
+  readonly run: () => void;
+}
 
 const isOpen = (request: PurchaseRequest): boolean =>
   request.status === PURCHASE_REQUEST_STATUS.REQUESTED ||
@@ -54,6 +66,7 @@ export function RequestsPage(): JSX.Element {
   const toast = useToast();
   const navigate = useNavigate();
   const { can } = useSession();
+  const [params, setParams] = useSearchParams();
   const { page, perPage, setPage, setPerPage, resetPage } = usePageParams();
   const [filter, setFilter] = useTabParam<RequestFilter>("status", REQUEST_FILTERS, "all", [
     "page",
@@ -63,7 +76,6 @@ export function RequestsPage(): JSX.Element {
     limit: perPage,
     ...(filter !== "all" && { status: filter }),
   });
-  const belowMinimum = useRequestBelowMinimum();
   const close = useCloseRequest();
   const [sending, setSending] = useState<PurchaseRequest | null>(null);
   const [cancelling, setCancelling] = useState<string | null>(null);
@@ -73,15 +85,6 @@ export function RequestsPage(): JSX.Element {
   const mayManage = canManagePurchaseRequest(can);
   const mayReceive = canPostPurchase(can);
 
-  const requestBelowMinimum = async (): Promise<void> => {
-    try {
-      const created = await belowMinimum.mutateAsync();
-      toast.success("inventory.requests.fromMinimum", { count: created.length });
-    } catch (error) {
-      toast.error(...errorToast(error));
-    }
-  };
-
   const closeRemainder = async (id: string): Promise<void> => {
     try {
       await close.mutateAsync(id);
@@ -90,6 +93,86 @@ export function RequestsPage(): JSX.Element {
       toast.error(...errorToast(error));
     }
   };
+
+  const actionsFor = (row: PurchaseRequest): readonly RequestAction[] =>
+    isOpen(row)
+      ? [
+          ...(mayReceive
+            ? [
+                {
+                  key: "receive",
+                  icon: "package" as const,
+                  label: "inventory.requests.receive",
+                  run: () => void navigate(`/inventory/purchases/new?request=${row.id}`),
+                },
+              ]
+            : []),
+          ...(maySend && row.supplierId
+            ? [
+                {
+                  key: "send",
+                  icon: "whatsapp" as const,
+                  label: row.sentAt ? "inventory.requests.sendUpdate" : "inventory.requests.send",
+                  run: () => setSending(row),
+                },
+              ]
+            : []),
+          ...(mayRequest && row.status !== PURCHASE_REQUEST_STATUS.PARTLY_RECEIVED
+            ? [
+                {
+                  key: "edit",
+                  icon: "edit" as const,
+                  label: "common.edit",
+                  run: () => void navigate(`/inventory/purchases/new?${ORDER_PARAM}=${row.id}`),
+                },
+              ]
+            : []),
+          ...(mayManage && row.status === PURCHASE_REQUEST_STATUS.PARTLY_RECEIVED
+            ? [
+                {
+                  key: "close",
+                  icon: "check" as const,
+                  label: "inventory.requests.closeRemainder",
+                  run: () => void closeRemainder(row.id),
+                },
+              ]
+            : []),
+          ...(mayManage
+            ? [
+                {
+                  key: "cancel",
+                  icon: "x" as const,
+                  label: "inventory.requests.cancel",
+                  danger: true,
+                  run: () => setCancelling(row.id),
+                },
+              ]
+            : []),
+        ]
+      : [];
+
+  const openedId = params.get(REQUEST_PARAM) ?? "";
+  const fetched = usePurchaseRequest(openedId);
+  const opened =
+    openedId === ""
+      ? undefined
+      : (fetched.data ?? requests.data?.items.find((row) => row.id === openedId));
+  const setOpened = (id: string | null): void =>
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+
+        if (id === null) {
+          next.delete(REQUEST_PARAM);
+        } else {
+          next.set(REQUEST_PARAM, id);
+        }
+
+        return next;
+      },
+      { replace: id === null },
+    );
+  const openedActions = opened ? actionsFor(opened) : [];
 
   const columns: readonly Column<PurchaseRequest>[] = [
     {
@@ -138,53 +221,25 @@ export function RequestsPage(): JSX.Element {
       key: "actions",
       header: "common.actions",
       actions: true,
-      render: (row) =>
-        isOpen(row) && (maySend || mayReceive || mayManage || mayRequest) ? (
+      render: (row) => {
+        const actions = actionsFor(row);
+
+        return actions.length > 0 ? (
           <RowMenu label={t("inventory.requests.menu")} data-testid="request-actions">
-            {mayReceive && (
+            {actions.map((action) => (
               <MenuItem
-                icon="package"
-                data-testid="request-receive"
-                onSelect={() => void navigate(`/inventory/purchases/new?request=${row.id}`)}
+                key={action.key}
+                icon={action.icon}
+                {...(action.danger && { tone: "danger" as const })}
+                data-testid={`request-${action.key}`}
+                onSelect={action.run}
               >
-                {t("inventory.requests.receive")}
+                {t(action.label)}
               </MenuItem>
-            )}
-            {maySend && row.supplierId && (
-              <MenuItem icon="whatsapp" data-testid="request-send" onSelect={() => setSending(row)}>
-                {t(row.sentAt ? "inventory.requests.sendUpdate" : "inventory.requests.send")}
-              </MenuItem>
-            )}
-            {mayRequest && row.status !== PURCHASE_REQUEST_STATUS.PARTLY_RECEIVED && (
-              <MenuItem
-                icon="edit"
-                data-testid="request-edit"
-                onSelect={() => void navigate(`/inventory/purchases/new?${ORDER_PARAM}=${row.id}`)}
-              >
-                {t("common.edit")}
-              </MenuItem>
-            )}
-            {mayManage && row.status === PURCHASE_REQUEST_STATUS.PARTLY_RECEIVED && (
-              <MenuItem
-                icon="check"
-                data-testid="request-close"
-                onSelect={() => void closeRemainder(row.id)}
-              >
-                {t("inventory.requests.closeRemainder")}
-              </MenuItem>
-            )}
-            {mayManage && (
-              <MenuItem
-                icon="x"
-                tone="danger"
-                data-testid="request-cancel"
-                onSelect={() => setCancelling(row.id)}
-              >
-                {t("inventory.requests.cancel")}
-              </MenuItem>
-            )}
+            ))}
           </RowMenu>
-        ) : null,
+        ) : null;
+      },
     },
   ];
 
@@ -199,15 +254,16 @@ export function RequestsPage(): JSX.Element {
         primaryAction={
           mayRequest ? (
             <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="secondary"
-                icon={<Icon name="alert" />}
-                data-testid="requests-below-minimum"
-                isLoading={belowMinimum.isPending}
-                onClick={() => void requestBelowMinimum()}
-              >
-                {t("inventory.requests.belowMinimum")}
-              </Button>
+              {can("inventory.shoppingList") && (
+                <Button
+                  variant="secondary"
+                  icon={<Icon name="clipboard" />}
+                  data-testid="requests-shopping-list"
+                  onClick={() => void navigate(SHOPPING_LIST_PATH)}
+                >
+                  {t("inventory.shoppingList.action")}
+                </Button>
+              )}
               <Button
                 icon={<Icon name="plus" />}
                 data-testid="requests-new"
@@ -241,6 +297,7 @@ export function RequestsPage(): JSX.Element {
         columns={columns}
         rows={data?.items ?? []}
         rowKey={(row) => row.id}
+        onRowClick={(row) => setOpened(row.id)}
         isLoading={requests.isPending}
         isRefreshing={isRefetching(requests)}
         pagination={{
@@ -257,6 +314,46 @@ export function RequestsPage(): JSX.Element {
             title="inventory.requests.empty"
             hint="inventory.requests.emptyHint"
           />
+        }
+      />
+
+      <RequestDrawer
+        request={opened}
+        onClose={() => setOpened(null)}
+        footer={
+          openedActions.length > 0 ? (
+            <div className="flex items-center gap-2">
+              {openedActions.slice(0, 1).map((action) => (
+                <Button
+                  key={action.key}
+                  icon={<Icon name={action.icon} />}
+                  data-testid={`request-drawer-${action.key}`}
+                  onClick={action.run}
+                >
+                  {t(action.label)}
+                </Button>
+              ))}
+              {openedActions.length > 1 && (
+                <RowMenu
+                  size="target"
+                  label={t("inventory.requests.menu")}
+                  data-testid="request-drawer-more"
+                >
+                  {openedActions.slice(1).map((action) => (
+                    <MenuItem
+                      key={action.key}
+                      icon={action.icon}
+                      {...(action.danger && { tone: "danger" as const })}
+                      data-testid={`request-drawer-${action.key}`}
+                      onSelect={action.run}
+                    >
+                      {t(action.label)}
+                    </MenuItem>
+                  ))}
+                </RowMenu>
+              )}
+            </div>
+          ) : undefined
         }
       />
 

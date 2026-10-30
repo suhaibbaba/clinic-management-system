@@ -691,7 +691,7 @@
     "stockCount": {
       "alreadyOpen": "يوجد جرد قيد التنفيذ",
       "notOpen": "هذا الجرد مُرحّل أو ملغى",
-      "incomplete": "عُدّ كل المواد قبل الترحيل"
+      "incomplete": "عُدّ مادة واحدة على الأقل قبل الترحيل"
     }
   },
   "patients": {
@@ -1768,6 +1768,14 @@
         "receive": "استلمت البضاعة",
         "order": "أطلبها من المورّد"
       },
+      "alreadyOrdered": "طلبه {{who}} في {{number}} ({{status}}): {{quantity}} {{unit}}، لم يصل منها {{open}}.",
+      "receiveAgainst": "استلام مقابل {{number}}",
+      "someone": "أحد الموظفين",
+      "openOrdersTitle": "هذا الصنف مطلوب مسبقاً",
+      "openOrdersDescription": "طلب أحد الموظفين هذه الأصناف ولم يصل كلّها بعد. تأكّد قبل المتابعة حتى لا يُشترى مرتين.",
+      "openOrdersBack": "رجوع",
+      "openOrdersContinue": "متابعة على أي حال",
+      "openOrdersWait": "متابعة بعد {{seconds}}",
       "orderFieldHint": "يُدخل عند وصول البضاعة.",
       "orderPriceHint": "السعر المتوقع حسب آخر سعر شراء لهذا الصنف، من هذا المورّد إن وُجد. يُدخل السعر الفعلي عند وصول البضاعة.",
       "orderSubtitle": "يُرسل الطلب إلى المورّد، ولا يتغيّر المخزون حتى تصل البضاعة.",
@@ -1843,13 +1851,6 @@
       "title": "طلبات الشراء",
       "subtitle": "ما تحتاجه العيادة، يُرسل للمورّد ويُستلم مقابله.",
       "new": "طلب جديد",
-      "belowMinimum": "طلب المواد دون الحد الأدنى",
-      "fromMinimum_zero": "لم يُنشأ أي طلب",
-      "fromMinimum_one": "أُنشئ طلب واحد",
-      "fromMinimum_two": "أُنشئ طلبان",
-      "fromMinimum_few": "أُنشئت {{count}} طلبات",
-      "fromMinimum_many": "أُنشئ {{count}} طلباً",
-      "fromMinimum_other": "أُنشئ {{count}} طلب",
       "filter": "الحالة",
       "all": "الكل",
       "menu": "إجراءات الطلب",
@@ -1880,7 +1881,7 @@
       },
       "whatsapp": "رقم الواتساب",
       "withPrices": "إرفاق آخر الأسعار المعروفة",
-      "markOrdered": "أرسلته بنفسي",
+      "markOrdered": "تم الطلب بطريقة أخرى",
       "markedOrdered": "تم التعليم كمطلوب",
       "sent": "تم الإرسال للمورّد",
       "empty": "لا توجد طلبات",
@@ -1898,7 +1899,14 @@
         "received": "مستلم",
         "closed": "مغلق",
         "cancelled": "ملغى"
-      }
+      },
+      "detailsDescription": "ما طُلب ومن أي مورّد وما وصل منه",
+      "createdBy": "طلبه",
+      "sentAt": "أُرسل",
+      "note": "ملاحظة",
+      "ordered": "المطلوب",
+      "received": "المستلم",
+      "remaining": "المتبقي"
     },
     "counts": {
       "start": "جرد المخزون",
@@ -1912,17 +1920,17 @@
       "missing_few": "{{count}} مواد لم تُعدّ بعد",
       "missing_many": "{{count}} مادة لم تُعدّ بعد",
       "missing_other": "{{count}} مادة لم تُعدّ بعد",
-      "save": "حفظ التقدّم",
       "saved": "تم حفظ العدّ",
-      "post": "ترحيل الجرد",
+      "post": "إنهاء الجرد وتعديل المخزون",
       "posted": "تم ترحيل الجرد",
-      "cancel": "إلغاء الجرد",
       "columns": {
         "item": "المادة",
         "expected": "المتوقّع",
         "counted": "المعدود",
         "difference": "الفرق",
-        "value": "القيمة"
+        "value": "القيمة",
+        "unitPrice": "سعر الوحدة",
+        "expiry": "الانتهاء"
       },
       "status": {
         "open": "قيد التنفيذ",
@@ -1930,13 +1938,39 @@
         "cancelled": "ملغى"
       },
       "confirmPost": {
-        "title": "ترحيل الجرد {{number}}؟",
-        "adjustments": "يصبح كل فرق تعديلاً على المخزون بمتوسط التكلفة الحالي."
+        "title": "إنهاء الجرد {{number}}؟",
+        "counted_zero": "لم تُعدّ أي مادة.",
+        "counted_one": "يصبح المخزون مطابقاً لما عددته في مادة واحدة.",
+        "counted_two": "يصبح المخزون مطابقاً لما عددته في مادتين.",
+        "counted_few": "يصبح المخزون مطابقاً لما عددته في {{count}} مواد.",
+        "counted_many": "يصبح المخزون مطابقاً لما عددته في {{count}} مادة.",
+        "counted_other": "يصبح المخزون مطابقاً لما عددته في {{count}} مادة.",
+        "skipped_zero": "لم تبقَ مواد دون عدّ.",
+        "skipped_one": "مادة واحدة لم تُعدّ وتبقى كميتها كما هي.",
+        "skipped_two": "مادتان لم تُعدّا وتبقى كميتهما كما هي.",
+        "skipped_few": "{{count}} مواد لم تُعدّ وتبقى كمياتها كما هي.",
+        "skipped_many": "{{count}} مادة لم تُعدّ وتبقى كمياتها كما هي.",
+        "skipped_other": "{{count}} مادة لم تُعدّ وتبقى كمياتها كما هي."
       },
-      "confirmCancel": {
-        "title": "إلغاء الجرد {{number}}؟",
-        "nothing": "لا يتغيّر شيء في المخزون وتُهمل الأرقام المدخلة."
-      }
+      "allCounted": "تم عدّ كل المواد",
+      "shortages": "نقص",
+      "surpluses": "زيادة",
+      "differenceCaption_zero": "لا مواد",
+      "differenceCaption_one": "مادة واحدة",
+      "differenceCaption_two": "مادتان",
+      "differenceCaption_few": "{{count}} مواد",
+      "differenceCaption_many": "{{count}} مادة",
+      "differenceCaption_other": "{{count}} مادة",
+      "show": "عرض",
+      "filters": {
+        "all": "الكل",
+        "remaining": "لم تُعدّ",
+        "differences": "فيها فرق"
+      },
+      "search": "ابحث عن مادة",
+      "noMatch": "لا مواد مطابقة",
+      "noMatchHint": "غيّر التصفية أو البحث",
+      "averageCost": "المتوسط"
     },
     "rowMenu": "إجراءات المادة",
     "review": {

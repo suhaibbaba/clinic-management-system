@@ -23,7 +23,11 @@ import {
   type SupplierGroup,
 } from "@web/modules/inventory/lib/shopping-list";
 import { DocumentActions } from "@web/shared/components/document-actions";
-import { canPostPurchase, canSeeCosts } from "@web/shared/permissions/inventory";
+import {
+  canPostPurchase,
+  canRequestPurchase,
+  canSeeCosts,
+} from "@web/shared/permissions/inventory";
 import { useSession } from "@web/shared/providers/session";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { useLookupLabels } from "@web/shared/queries/lookups";
@@ -41,7 +45,7 @@ export function ShoppingListPage(): JSX.Element {
   const categoryLabel = useLookupLabels(LOOKUP_LIST.ITEM_CATEGORY);
   const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const list = useShoppingList();
-  const mayBuy = canPostPurchase(can);
+  const mayBuy = canPostPurchase(can) || canRequestPurchase(can);
   const seesCosts = canSeeCosts(can);
   const [params, setParams] = useSearchParams();
   const [splitting, setSplitting] = useState<readonly SupplierGroup[] | null>(null);

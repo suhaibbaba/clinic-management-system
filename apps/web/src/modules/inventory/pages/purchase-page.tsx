@@ -33,6 +33,7 @@ import { errorToast } from "@web/shared/lib/api-error";
 import {
   useCreatePurchaseRequest,
   useInventoryItems,
+  useOpenOrderLines,
   usePostPurchase,
   usePurchaseRequest,
   useSuppliers,
@@ -47,9 +48,14 @@ import {
   canRequestPurchase,
   canSeeCosts,
   canSeeItemPrices,
+  canSeeOpenOrders,
   canSendPurchaseRequest,
 } from "@web/shared/permissions/inventory";
 import { SendRequestModal } from "@web/modules/inventory/components/send-request-modal";
+import {
+  OpenOrdersModal,
+  type FlaggedLine,
+} from "@web/modules/inventory/components/open-orders-modal";
 import { ItemFormModal } from "@web/modules/inventory/components/item-form-modal";
 import {
   blankLine,
@@ -108,6 +114,7 @@ export function PurchasePage(): JSX.Element {
   const updateOrder = useUpdatePurchaseRequest();
   const [neededBy, setNeededBy] = useState("");
   const [sending, setSending] = useState<PurchaseRequest | null>(null);
+  const [flagged, setFlagged] = useState<readonly FlaggedLine[] | null>(null);
   const prefilled = useRef(false);
   const { can } = useSession();
   const mayReceive = canPostPurchase(can);
@@ -246,6 +253,45 @@ export function PurchasePage(): JSX.Element {
     ...(priced ? [{ label: "inventory.purchase.lineTotal", end: true }] : []),
   ];
 
+  const receivingFor = params.get("request") ?? "";
+  const openOrders = useOpenOrderLines(
+    draft.lines.map((line) => line.itemId).filter((itemId) => itemId !== ""),
+    ordering ? orderId : receivingFor,
+    canSeeOpenOrders(can),
+  );
+  const ordersFor = (line: PurchaseLineDraft) =>
+    line.requestLineId
+      ? []
+      : (openOrders.data ?? []).filter((order) => order.itemId === line.itemId);
+
+  const proceed = (): void => {
+    if (ordering) {
+      void saveOrder();
+    } else if (ready) {
+      setReviewing(true);
+    }
+  };
+
+  const review = (): void => {
+    if (!ready) {
+      return;
+    }
+
+    const lines = draft.lines
+      .map((line) => ({
+        key: line.key,
+        itemName: itemOptions.find((option) => option.value === line.itemId)?.label ?? "",
+        orders: ordersFor(line),
+      }))
+      .filter((line) => line.orders.length > 0);
+
+    if (lines.length > 0) {
+      setFlagged(lines);
+    } else {
+      proceed();
+    }
+  };
+
   const unitOf = (itemId: string): string =>
     items.data?.items.find((item) => item.id === itemId)?.unit ?? "";
 
@@ -274,6 +320,8 @@ export function PurchasePage(): JSX.Element {
     }
   };
 
+  const afterOrder = returnTarget(params.get(RETURN_PARAM)) ?? REQUESTS_TAB_PATH;
+
   const saveOrder = async (): Promise<void> => {
     if (!ready || savingOrder) {
       return;
@@ -285,7 +333,7 @@ export function PurchasePage(): JSX.Element {
       if (orderId !== "") {
         await updateOrder.mutateAsync({ id: orderId, body });
         toast.success("inventory.requests.updated");
-        void navigate(REQUESTS_TAB_PATH);
+        void navigate(afterOrder);
         return;
       }
 
@@ -295,7 +343,7 @@ export function PurchasePage(): JSX.Element {
       if (created.supplierId && canSendPurchaseRequest(can)) {
         setSending(created);
       } else {
-        void navigate(REQUESTS_TAB_PATH);
+        void navigate(afterOrder);
       }
     } catch (error) {
       toast.error(...errorToast(error));
@@ -460,6 +508,12 @@ export function PurchasePage(): JSX.Element {
               ordering={ordering}
               supplierId={draft.supplierId}
               mayPrice={canSeeItemPrices(can)}
+              openOrders={ordersFor(line)}
+              onReceiveOrder={
+                !ordering && mayReceive
+                  ? (id) => void navigate(`/inventory/purchases/new?request=${id}`)
+                  : undefined
+              }
               onChange={(patch) => changeLine(line.key, patch)}
               onRemove={() =>
                 setDraft((current) => ({
@@ -554,13 +608,7 @@ export function PurchasePage(): JSX.Element {
               : "inventory.purchase.reviewReceipt",
         )}
         ready={ready && !savingOrder}
-        onReview={() => {
-          if (ordering) {
-            void saveOrder();
-          } else if (ready) {
-            setReviewing(true);
-          }
-        }}
+        onReview={review}
         onCancel={() => void navigate(-1)}
       />
 
@@ -586,12 +634,21 @@ export function PurchasePage(): JSX.Element {
         onPost={() => void submit()}
       />
 
+      <OpenOrdersModal
+        lines={flagged}
+        onCancel={() => setFlagged(null)}
+        onContinue={() => {
+          setFlagged(null);
+          proceed();
+        }}
+      />
+
       <SendRequestModal
         request={sending}
         mayShowPrices={seesCosts}
         onClose={() => {
           setSending(null);
-          void navigate(REQUESTS_TAB_PATH);
+          void navigate(afterOrder);
         }}
       />
 

@@ -16,13 +16,15 @@ import {
   toThousandths,
   type CreatePurchaseRequestInput,
   type ListPurchaseRequestsQuery,
+  type OpenOrderLine,
+  type OpenOrderLinesQuery,
   type Paginated,
   type PurchaseRequest,
   type PurchaseRequestStatus,
   type SendPurchaseRequestInput,
   type UpdatePurchaseRequestInput,
 } from "@clinic/shared";
-import { and, desc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, ne, sql, type SQL } from "drizzle-orm";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { toOptionalPersonName } from "@api/common/person-name";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
@@ -116,6 +118,47 @@ export class PurchaseRequestsService {
         : loaded;
 
     return toPaginated(items, count?.value ?? 0, query);
+  }
+
+  async openLines(actor: AuthenticatedUser, query: OpenOrderLinesQuery): Promise<OpenOrderLine[]> {
+    const rows = await this.db
+      .selectDistinct({ id: purchaseRequests.id, createdAt: purchaseRequests.createdAt })
+      .from(purchaseRequests)
+      .innerJoin(purchaseRequestLines, eq(purchaseRequestLines.requestId, purchaseRequests.id))
+      .where(
+        and(
+          eq(purchaseRequests.clinicId, actor.clinicId),
+          inArray(purchaseRequests.status, [...OPEN_STATUSES]),
+          inArray(purchaseRequestLines.itemId, query.itemIds),
+          isNull(purchaseRequestLines.removedAt),
+          query.excludeRequestId ? ne(purchaseRequests.id, query.excludeRequestId) : undefined,
+        ),
+      )
+      .orderBy(desc(purchaseRequests.createdAt));
+    const wanted = new Set(query.itemIds);
+    const loaded = await this.load(
+      actor,
+      rows.map((row) => row.id),
+    );
+
+    return loaded
+      .filter((request) => request.status !== PURCHASE_REQUEST_STATUS.RECEIVED)
+      .flatMap((request) =>
+        request.lines
+          .filter((line) => wanted.has(line.itemId) && toThousandths(line.open) > 0)
+          .map((line) => ({
+            itemId: line.itemId,
+            requestId: request.id,
+            number: request.number,
+            status: request.status,
+            supplierName: request.supplierName,
+            createdByName: request.createdByName,
+            createdAt: request.createdAt,
+            unit: line.unit,
+            quantity: line.quantity,
+            open: line.open,
+          })),
+      );
   }
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<PurchaseRequest> {

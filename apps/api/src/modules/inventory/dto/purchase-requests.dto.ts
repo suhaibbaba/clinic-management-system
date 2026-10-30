@@ -4,6 +4,7 @@ import {
   createPurchaseRequestSchema,
   idParamSchema,
   listPurchaseRequestsQuerySchema,
+  openOrderLinesQuerySchema,
   requestBelowMinimumSchema,
   sendPurchaseRequestSchema,
   updatePurchaseRequestSchema,
@@ -22,3 +23,5 @@ export class CancelPurchaseRequestDto extends createZodDto(cancelPurchaseRequest
 export class ListPurchaseRequestsQueryDto extends createZodDto(listPurchaseRequestsQuerySchema) {}
 
 export class IdParamDto extends createZodDto(idParamSchema) {}
+
+export class OpenOrderLinesQueryDto extends createZodDto(openOrderLinesQuerySchema) {}

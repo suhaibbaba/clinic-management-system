@@ -1,3 +1,4 @@
+import type { OpenOrderLine } from "@clinic/shared";
 import { useId, useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -27,6 +28,7 @@ import {
   type PurchaseLineDraft,
 } from "@web/modules/inventory/lib/purchase-form";
 import { useItemPrices } from "@web/modules/inventory/queries";
+import { OpenOrderNotice } from "@web/modules/inventory/components/open-order-notice";
 
 function Cell({
   label,
@@ -77,6 +79,8 @@ export function PurchaseLineRow({
   ordering = false,
   supplierId = "",
   mayPrice = false,
+  openOrders = [],
+  onReceiveOrder,
   onChange,
   onRemove,
   onCreateItem,
@@ -92,6 +96,8 @@ export function PurchaseLineRow({
   readonly ordering?: boolean | undefined;
   readonly supplierId?: string | undefined;
   readonly mayPrice?: boolean | undefined;
+  readonly openOrders?: readonly OpenOrderLine[] | undefined;
+  readonly onReceiveOrder?: ((requestId: string) => void) | undefined;
   readonly onChange: (patch: Partial<PurchaseLineDraft>) => void;
   readonly onRemove: () => void;
   readonly onCreateItem: ((name: string) => void) | undefined;
@@ -279,6 +285,8 @@ export function PurchaseLineRow({
           />
         </div>
       </div>
+
+      <OpenOrderNotice orders={openOrders} onReceive={onReceiveOrder} />
 
       {open && !ordering && (
         <div

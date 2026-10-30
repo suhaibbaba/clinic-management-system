@@ -178,6 +178,9 @@ export function InventoryPage(): JSX.Element {
   const openCount = counts.data?.find((count) => count.status === STOCK_COUNT_STATUS.OPEN);
 
   const countStock = async (): Promise<void> => {
+    if (startCount.isPending) {
+      return;
+    }
     if (openCount) {
       void navigate(`${STOCK_COUNT_PATH}/${openCount.id}`);
       return;
@@ -199,17 +202,6 @@ export function InventoryPage(): JSX.Element {
         subtitle="inventory.subtitle"
         primaryAction={
           <div className="flex flex-wrap items-center gap-2">
-            {mayCount && (
-              <Button
-                variant="secondary"
-                icon={<Icon name="list" />}
-                data-testid="inventory-count-stock"
-                isLoading={startCount.isPending}
-                onClick={() => void countStock()}
-              >
-                {t(openCount ? "inventory.counts.resume" : "inventory.counts.start")}
-              </Button>
-            )}
             {mayManage && (
               <Button
                 variant="secondary"
@@ -237,6 +229,15 @@ export function InventoryPage(): JSX.Element {
               >
                 {t("inventory.shoppingList.action")}
               </MenuItem>
+              {mayCount && (
+                <MenuItem
+                  icon="list"
+                  data-testid="inventory-count-stock"
+                  onSelect={() => void countStock()}
+                >
+                  {t(openCount ? "inventory.counts.resume" : "inventory.counts.start")}
+                </MenuItem>
+              )}
             </RowMenu>
           </div>
         }

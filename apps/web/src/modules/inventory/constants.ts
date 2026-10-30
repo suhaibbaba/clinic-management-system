@@ -79,6 +79,12 @@ export type RequestFilter = (typeof REQUEST_FILTERS)[number];
 
 export const STOCK_COUNT_PATH = "/inventory/counts";
 
+export const REQUEST_PARAM = "request";
+
+export const COUNT_FILTERS = ["all", "remaining", "differences"] as const;
+
+export type CountFilter = (typeof COUNT_FILTERS)[number];
+
 export const STOCK_DOT: Record<ProgressTone, string> = {
   primary: "bg-primary-600",
   success: "bg-success-600",
@@ -113,6 +119,8 @@ export const PURCHASE_UNIT_COLUMN: Record<
 };
 
 export const EXPIRY_MIN_DAYS_AHEAD = 2;
+
+export const OPEN_ORDER_WAIT_SECONDS = 10;
 
 export const PURCHASE_MODES = ["receive", "order"] as const;
 

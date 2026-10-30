@@ -8,6 +8,7 @@ import {
   STOCK_COUNT_ERROR,
   STOCK_COUNT_STATUS,
   USER_ROLE,
+  addDays,
   localDate,
   type PurchaseRequest,
   type StockCount,
@@ -192,6 +193,78 @@ describe("Purchase requests and stock counts (e2e)", () => {
       expect(late.statusCode).toBe(400);
     });
 
+    it("lists an item's unfinished orders, without prices, until the last unit arrives", async () => {
+      const supplierId = await newSupplier();
+      const itemId = await newItem();
+      const openLines = (query: string, role: UserRole = USER_ROLE.DOCTOR) =>
+        send("GET", `/purchase-requests/open-lines?${query}`, undefined, role);
+
+      const first = (
+        await send(
+          "POST",
+          "/purchase-requests",
+          { supplierId, lines: [{ itemId, quantity: "10" }], requestId: randomUUID() },
+          USER_ROLE.DOCTOR,
+        )
+      ).json() as PurchaseRequest;
+      const cancelled = (
+        await send("POST", "/purchase-requests", {
+          lines: [{ itemId, quantity: "3" }],
+          requestId: randomUUID(),
+        })
+      ).json() as PurchaseRequest;
+      expect(
+        (
+          await send("PATCH", `/purchase-requests/${cancelled.id}/cancel`, {
+            reason: "ordered twice",
+          })
+        ).statusCode,
+      ).toBe(200);
+
+      expect((await openLines(`itemIds=${itemId}`, USER_ROLE.RECEPTIONIST)).statusCode).toBe(403);
+      expect((await openLines("itemIds=")).statusCode).toBe(400);
+
+      const listed = await openLines(`itemIds=${itemId},${randomUUID()}`);
+      expect(listed.statusCode).toBe(200);
+      expect(listed.json()).toEqual([
+        expect.objectContaining({
+          itemId,
+          requestId: first.id,
+          number: first.number,
+          status: PURCHASE_REQUEST_STATUS.REQUESTED,
+          quantity: "10",
+          open: "10",
+        }),
+      ]);
+      expect(listed.json()[0]).not.toHaveProperty("lastPrice");
+      expect(listed.json()[0].createdByName).not.toBeNull();
+
+      expect((await openLines(`itemIds=${itemId}&excludeRequestId=${first.id}`)).json()).toEqual(
+        [],
+      );
+
+      const lineId = first.lines[0]?.id ?? "";
+      await send("POST", "/purchases", {
+        supplierId,
+        date: today,
+        lines: [{ itemId, quantity: "4", requestLineId: lineId }],
+      });
+      expect((await openLines(`itemIds=${itemId}`)).json()).toEqual([
+        expect.objectContaining({
+          status: PURCHASE_REQUEST_STATUS.PARTLY_RECEIVED,
+          quantity: "10",
+          open: "6",
+        }),
+      ]);
+
+      await send("POST", "/purchases", {
+        supplierId,
+        date: today,
+        lines: [{ itemId, quantity: "6", requestLineId: lineId }],
+      });
+      expect((await openLines(`itemIds=${itemId}`)).json()).toEqual([]);
+    });
+
     it("turns items below their minimum into one request per default supplier", async () => {
       const [laith, sami] = [await newSupplier(), await newSupplier()];
       const gloves = await newItem({ minQuantity: "5", defaultSupplierId: laith });
@@ -210,7 +283,7 @@ describe("Purchase requests and stock counts (e2e)", () => {
   });
 
   describe("stock counts", () => {
-    it("posts each difference against what is on the shelf when the count is posted", async () => {
+    it("posts each counted difference against the shelf, and leaves uncounted items as they are", async () => {
       const itemId = await newItem();
       const spareId = await newItem();
       await send("POST", "/purchases", {
@@ -231,21 +304,17 @@ describe("Purchase requests and stock counts (e2e)", () => {
       expect(second.statusCode).toBe(409);
       expect(second.json()).toMatchObject({ message: STOCK_COUNT_ERROR.ALREADY_OPEN });
 
-      await send("PUT", `/stock-counts/${count.id}/lines`, {
-        lines: [{ itemId, counted: "7" }],
-      });
-
-      const incomplete = await send(
+      const empty = await send(
         "POST",
         `/stock-counts/${count.id}/post`,
         undefined,
         USER_ROLE.ADMIN,
       );
-      expect(incomplete.statusCode).toBe(409);
-      expect(incomplete.json()).toMatchObject({ message: STOCK_COUNT_ERROR.INCOMPLETE });
+      expect(empty.statusCode).toBe(409);
+      expect(empty.json()).toMatchObject({ message: STOCK_COUNT_ERROR.INCOMPLETE });
 
       await send("PUT", `/stock-counts/${count.id}/lines`, {
-        lines: [{ itemId: spareId, counted: "3" }],
+        lines: [{ itemId, counted: "7" }],
       });
       await send("POST", "/inventory/movements/consume", { itemId, quantity: "1" });
 
@@ -263,10 +332,74 @@ describe("Purchase requests and stock counts (e2e)", () => {
       expect(await onHand(itemId)).toBe("7.000");
       expect(await onHand(spareId)).toBe("3.000");
       expect(result.lines.find((line) => line.itemId === itemId)?.value).toBe("-8.00");
+      expect(result.lines.find((line) => line.itemId === spareId)).toMatchObject({
+        counted: null,
+        difference: null,
+      });
 
       const after = await send("POST", "/stock-counts", { itemIds: [itemId] });
       expect(after.statusCode).toBe(201);
       await send("PATCH", `/stock-counts/${(after.json() as StockCount).id}/cancel`);
+    });
+
+    it("brings a surplus in at the price and expiry typed beside it", async () => {
+      const fresh = await newItem();
+      const expiryDate = addDays(today, 200);
+      const count = (
+        await send("POST", "/stock-counts", { itemIds: [fresh] })
+      ).json() as StockCount;
+
+      const saved = await send("PUT", `/stock-counts/${count.id}/lines`, {
+        lines: [{ itemId: fresh, counted: "4", unitPrice: "2.50", expiryDate }],
+      });
+      expect(saved.statusCode).toBe(200);
+      expect((saved.json() as StockCount).lines[0]).toMatchObject({
+        counted: "4",
+        unitPrice: "2.50",
+        expiryDate,
+      });
+
+      await send("PUT", `/stock-counts/${count.id}/lines`, {
+        lines: [{ itemId: fresh, counted: "5" }],
+      });
+
+      const posted = await send(
+        "POST",
+        `/stock-counts/${count.id}/post`,
+        undefined,
+        USER_ROLE.ADMIN,
+      );
+      expect(posted.statusCode).toBe(201);
+      expect((posted.json() as StockCount).lines[0]?.value).toBe("12.50");
+      expect(await onHand(fresh)).toBe("5.000");
+
+      const [movement] = await context.db
+        .select({ expiryDate: stockMovements.expiryDate, unitPrice: stockMovements.unitPrice })
+        .from(stockMovements)
+        .where(eq(stockMovements.itemId, fresh));
+      expect(movement).toEqual({ expiryDate, unitPrice: "2.50" });
+    });
+
+    it("keeps a surplus without a price at the average cost", async () => {
+      const itemId = await newItem();
+      await send("POST", "/purchases", {
+        date: today,
+        lines: [{ itemId, quantity: "2", unitPrice: "3" }],
+      });
+      const count = (
+        await send("POST", "/stock-counts", { itemIds: [itemId] })
+      ).json() as StockCount;
+      await send("PUT", `/stock-counts/${count.id}/lines`, {
+        lines: [{ itemId, counted: "4" }],
+      });
+
+      const posted = await send(
+        "POST",
+        `/stock-counts/${count.id}/post`,
+        undefined,
+        USER_ROLE.ADMIN,
+      );
+      expect((posted.json() as StockCount).lines[0]?.value).toBe("6.00");
     });
   });
 

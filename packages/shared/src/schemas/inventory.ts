@@ -655,6 +655,15 @@ export const listPurchaseRequestsQuerySchema = paginationQuerySchema.extend({
 });
 export type ListPurchaseRequestsQuery = z.infer<typeof listPurchaseRequestsQuerySchema>;
 
+export const openOrderLinesQuerySchema = z.object({
+  itemIds: z.preprocess(
+    (value) => (typeof value === "string" ? value.split(",").filter(Boolean) : value),
+    z.array(uuidSchema).min(1).max(200),
+  ),
+  excludeRequestId: uuidSchema.optional(),
+});
+export type OpenOrderLinesQuery = z.infer<typeof openOrderLinesQuerySchema>;
+
 export const purchaseRequestLineSchema = z.object({
   id: uuidSchema,
   itemId: uuidSchema,
@@ -686,6 +695,20 @@ export const purchaseRequestSchema = z.object({
 });
 export type PurchaseRequest = z.infer<typeof purchaseRequestSchema>;
 
+export const openOrderLineSchema = z.object({
+  itemId: uuidSchema,
+  requestId: uuidSchema,
+  number: z.string(),
+  status: z.enum(PURCHASE_REQUEST_STATUSES),
+  supplierName: z.string().nullable(),
+  createdByName: personNameSchema.nullable(),
+  createdAt: z.iso.datetime(),
+  unit: lookupCodeSchema,
+  quantity: quantitySchema,
+  open: quantitySchema,
+});
+export type OpenOrderLine = z.infer<typeof openOrderLineSchema>;
+
 export const createStockCountSchema = z.object({
   itemIds: z.array(uuidSchema).max(1000).optional(),
   note: z.string().trim().max(500).nullish(),
@@ -694,7 +717,14 @@ export type CreateStockCountInput = z.infer<typeof createStockCountSchema>;
 
 export const recordCountsSchema = z.object({
   lines: z
-    .array(z.object({ itemId: uuidSchema, counted: quantitySchema.nullable() }))
+    .array(
+      z.object({
+        itemId: uuidSchema,
+        counted: quantitySchema.nullable(),
+        unitPrice: moneySchema.nullable().optional(),
+        expiryDate: isoDateSchema.nullable().optional(),
+      }),
+    )
     .min(1)
     .max(1000),
 });
@@ -708,6 +738,8 @@ export const stockCountLineSchema = z.object({
   current: signedQuantitySchema,
   counted: quantitySchema.nullable(),
   difference: signedQuantitySchema.nullable(),
+  unitPrice: moneySchema.nullable().optional(),
+  expiryDate: isoDateSchema.nullable(),
   value: signedMoneySchema.nullable().optional(),
 });
 export type StockCountLine = z.infer<typeof stockCountLineSchema>;

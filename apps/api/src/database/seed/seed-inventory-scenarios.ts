@@ -220,7 +220,7 @@ export async function seedInventoryScenarios(
     await step("expired lot", () =>
       purchasing.post(manager, {
         supplierId: supplierOf(expired.item),
-        date: daysAgo(150),
+        date: daysAgo(25),
         lines: [
           {
             itemId: expired.id,
@@ -288,7 +288,7 @@ export async function seedInventoryScenarios(
     receive(wax.id, 3);
     await step("cash purchase without a supplier", () =>
       purchasing.post(manager, {
-        date: daysAgo(40),
+        date: daysAgo(26),
         lines: [{ itemId: wax.id, quantity: "3" }],
         note: "Bought from a pharmacy nearby",
       }),
@@ -390,13 +390,13 @@ export async function seedInventoryScenarios(
 
   const paymentPlan: readonly { supplier: number; days: number; amount: string; method: string }[] =
     [
-      { supplier: 0, days: 280, amount: "600.00", method: PAYMENT_METHOD.TRANSFER },
-      { supplier: 0, days: 150, amount: "400.00", method: PAYMENT_METHOD.CASH },
-      { supplier: 1, days: 170, amount: "250.00", method: PAYMENT_METHOD.CASH },
-      { supplier: 2, days: 120, amount: "300.00", method: PAYMENT_METHOD.TRANSFER },
-      { supplier: 3, days: 90, amount: "900.00", method: PAYMENT_METHOD.TRANSFER },
-      { supplier: 3, days: 30, amount: "350.00", method: PAYMENT_METHOD.CASH },
-      { supplier: 4, days: 45, amount: "2000.00", method: PAYMENT_METHOD.TRANSFER },
+      { supplier: 0, days: 27, amount: "600.00", method: PAYMENT_METHOD.TRANSFER },
+      { supplier: 0, days: 18, amount: "400.00", method: PAYMENT_METHOD.CASH },
+      { supplier: 1, days: 19, amount: "250.00", method: PAYMENT_METHOD.CASH },
+      { supplier: 2, days: 16, amount: "300.00", method: PAYMENT_METHOD.TRANSFER },
+      { supplier: 3, days: 13, amount: "900.00", method: PAYMENT_METHOD.TRANSFER },
+      { supplier: 3, days: 4, amount: "350.00", method: PAYMENT_METHOD.CASH },
+      { supplier: 4, days: 11, amount: "2000.00", method: PAYMENT_METHOD.TRANSFER },
     ];
 
   for (const plan of paymentPlan) {
@@ -422,7 +422,7 @@ export async function seedInventoryScenarios(
         supplierId: overpaid,
         amount: "150.00",
         method: PAYMENT_METHOD.TRANSFER,
-        paidOn: daysAgo(20),
+        paidOn: daysAgo(6),
         note: "Paid twice for one invoice",
       }),
     );
