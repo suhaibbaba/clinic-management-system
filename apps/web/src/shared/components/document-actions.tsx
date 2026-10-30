@@ -46,7 +46,7 @@ export function DocumentActions({
             data-testid={testId}
           >
             {label}
-            <Icon name="chevron-down" className="text-ink-subtle" />
+            <Icon name="chevron-down" className="opacity-70" />
           </Button>
         </MenuTrigger>
         <MenuContent data-testid={`${testId}-menu`}>
