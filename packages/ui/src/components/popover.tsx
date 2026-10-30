@@ -57,7 +57,7 @@ export function Popover({
 
             if (start) {
               event.preventDefault();
-              start.focus();
+              start.focus({ preventScroll: true });
             }
           }}
           className={cn(

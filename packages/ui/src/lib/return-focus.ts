@@ -13,7 +13,7 @@ export function useReturnFocus(open: boolean): void {
         const lost = document.activeElement === null || document.activeElement === document.body;
 
         if (lost && origin?.isConnected) {
-          origin.focus();
+          origin.focus({ preventScroll: true });
         }
       }, 0);
     };
