@@ -126,3 +126,49 @@ export function HeroWave({ className }: { readonly className?: string }): JSX.El
     </svg>
   );
 }
+
+export function GlassLobe({ className }: { readonly className?: string }): JSX.Element {
+  const glass = useId();
+
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      fill="none"
+      className={cx("pointer-events-none ltr:-scale-x-100", className)}
+    >
+      <defs>
+        <linearGradient id={glass} x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0" style={{ stopColor: "var(--color-primary-50)", stopOpacity: 0.95 }} />
+          <stop offset="0.45" style={{ stopColor: "var(--color-primary-100)", stopOpacity: 0.9 }} />
+          <stop offset="1" style={{ stopColor: "var(--color-primary-200)", stopOpacity: 0.9 }} />
+        </linearGradient>
+      </defs>
+      <path
+        d="M76 -2C89 -3 102 4 104 18C106 38 102 68 82 104"
+        stroke="var(--color-primary-200)"
+        strokeWidth="1.5"
+        opacity="0.8"
+        vectorEffect="non-scaling-stroke"
+      />
+      <path
+        d="M70 0C80 -1 92 2 98 8C102 14 101 30 100 44C99 64 92 84 72 102L66 100C86 84 94 62 93 42C92 24 84 8 74 0Z"
+        fill={`url(#${glass})`}
+      />
+      <path
+        d="M70 0C80 -1 92 2 98 8C102 14 101 30 100 44C99 64 92 84 72 102"
+        stroke="var(--color-surface)"
+        strokeWidth="2"
+        vectorEffect="non-scaling-stroke"
+      />
+      <path
+        d="M74 0C84 8 92 24 93 42C94 62 86 84 66 100"
+        stroke="var(--color-primary-300)"
+        strokeWidth="1.5"
+        opacity="0.7"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
