@@ -2,9 +2,10 @@ import { randomInt, randomUUID } from "node:crypto";
 import { hash } from "@node-rs/argon2";
 import { and, eq, isNull } from "drizzle-orm";
 import { CHART_TYPE, CLINIC_MODULE, LOOKUP_LIST, SPECIALTY_CODE, USER_ROLE } from "@clinic/shared";
-import { clinics, lookupOptions, specialties, users } from "@api/database/schema";
+import { clinics, lookupOptions, procedureCatalog, specialties, users } from "@api/database/schema";
 import { bootstrapClinic } from "@api/database/bootstrap/bootstrap-clinic";
 import { bootstrapEnvSchema, type BootstrapEnv } from "@api/database/bootstrap/bootstrap-env";
+import { applySpecialtyPack } from "@api/database/specialty-packs/specialty-pack";
 import { auth, createTestContext, TEST_PASSWORD, type TestContext } from "@test/helpers/test-app";
 
 describe("Clinic bootstrap (e2e)", () => {
@@ -125,6 +126,101 @@ describe("Clinic bootstrap (e2e)", () => {
 
     const token = await context.login(env.BOOTSTRAP_ADMIN_PHONE);
     expect(token).toEqual(expect.any(String));
+  });
+
+  describe("orthopedic starter pack", () => {
+    const listCodes = async (clinicId: string, listKey: string) =>
+      (
+        await context.db
+          .select({ code: lookupOptions.code })
+          .from(lookupOptions)
+          .where(and(eq(lookupOptions.clinicId, clinicId), eq(lookupOptions.listKey, listKey)))
+      ).map((row) => row.code);
+
+    it("gives a new orthopedic clinic its procedures, drugs and lists", async () => {
+      const result = await bootstrapClinic(context.db, environment(), null);
+
+      const procedures = await context.db
+        .select({
+          code: procedureCatalog.code,
+          price: procedureCatalog.defaultPrice,
+          isActive: procedureCatalog.isActive,
+        })
+        .from(procedureCatalog)
+        .where(eq(procedureCatalog.clinicId, result.clinicId));
+      expect(procedures.map((row) => row.code)).toEqual(
+        expect.arrayContaining(["ORTHO-CONSULT", "CAST-OFF", "INJ-STEROID", "TKR"]),
+      );
+      expect(procedures.every((row) => row.price === "0.00" && !row.isActive)).toBe(true);
+
+      const [drug] = await context.db
+        .select({ meta: lookupOptions.meta })
+        .from(lookupOptions)
+        .where(
+          and(
+            eq(lookupOptions.clinicId, result.clinicId),
+            eq(lookupOptions.listKey, LOOKUP_LIST.FREQUENT_DRUG),
+            eq(lookupOptions.code, "ibuprofen_400_mg"),
+          ),
+        );
+      expect(drug?.meta).toMatchObject({ perDose: 1, timesPerDay: 3, days: 5 });
+
+      expect(await listCodes(result.clinicId, LOOKUP_LIST.ATTACHMENT_TYPE)).toEqual(
+        expect.arrayContaining(["xray", "mri", "ct", "xray_panoramic"]),
+      );
+      expect(await listCodes(result.clinicId, LOOKUP_LIST.APPOINTMENT_TYPE)).toEqual(
+        expect.arrayContaining(["checkup", "cast_removal", "post_op"]),
+      );
+      expect(result.notes.join(" ")).toContain("orthopedic starter pack");
+    });
+
+    it("adds nothing twice, and leaves what the clinic changed or deleted alone", async () => {
+      const { clinicId } = await bootstrapClinic(context.db, environment(), null);
+
+      await context.db
+        .update(procedureCatalog)
+        .set({ defaultPrice: "150.00", isActive: true })
+        .where(and(eq(procedureCatalog.clinicId, clinicId), eq(procedureCatalog.code, "CAST-OFF")));
+      await context.db
+        .update(lookupOptions)
+        .set({ deletedAt: new Date() })
+        .where(and(eq(lookupOptions.clinicId, clinicId), eq(lookupOptions.code, "mri")));
+
+      const again = await applySpecialtyPack(context.db, clinicId, SPECIALTY_CODE.ORTHOPEDIC);
+      expect(again).toEqual({ procedures: 0, lookups: 0 });
+
+      const [castOff] = await context.db
+        .select({ price: procedureCatalog.defaultPrice, isActive: procedureCatalog.isActive })
+        .from(procedureCatalog)
+        .where(and(eq(procedureCatalog.clinicId, clinicId), eq(procedureCatalog.code, "CAST-OFF")));
+      expect(castOff).toEqual({ price: "150.00", isActive: true });
+    });
+
+    it("fills a clinic that was created before the pack existed", async () => {
+      const env = environment();
+      const { clinicId } = await bootstrapClinic(context.db, env, null);
+      await context.db.delete(procedureCatalog).where(eq(procedureCatalog.clinicId, clinicId));
+
+      const result = await applySpecialtyPack(context.db, clinicId, SPECIALTY_CODE.ORTHOPEDIC);
+
+      expect(result.procedures).toBeGreaterThan(20);
+      expect(result.lookups).toBe(0);
+    });
+
+    it("gives a dental clinic none of it", async () => {
+      const { clinicId } = await bootstrapClinic(
+        context.db,
+        environment({ BOOTSTRAP_SPECIALTIES: "dental" }),
+        null,
+      );
+
+      const procedures = await context.db
+        .select({ id: procedureCatalog.id })
+        .from(procedureCatalog)
+        .where(eq(procedureCatalog.clinicId, clinicId));
+      expect(procedures).toEqual([]);
+      expect(await listCodes(clinicId, LOOKUP_LIST.ATTACHMENT_TYPE)).not.toContain("mri");
+    });
   });
 
   it("leaves the password empty when none is given", async () => {
