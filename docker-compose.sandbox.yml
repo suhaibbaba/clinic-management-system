@@ -17,9 +17,9 @@
 #
 # Port map, fixed per environment because the machine is shared:
 #                  sandbox            kossai-jarrar
-#   api   :3000    127.0.0.1:15000    127.0.0.1:16000   (API_PORT)
-#   web   :80      127.0.0.1:15080    127.0.0.1:16080   (WEB_PORT)
-#   minio :9000    127.0.0.1:15900    127.0.0.1:16900   (S3_PORT; the console is not published)
+#   api   :3000    127.0.0.1:15000    127.0.0.1:16000   (STACK_API_PORT)
+#   web   :80      127.0.0.1:15080    127.0.0.1:16080   (STACK_WEB_PORT)
+#   minio :9000    127.0.0.1:15900    127.0.0.1:16900   (STACK_S3_PORT; the console is not published)
 #   postgres       no host port at all, internal network only
 #
 # The api and web images are built on the server from this checkout — the VPS
@@ -63,7 +63,7 @@ services:
       # the host nginx passes Host through unchanged, presigned URLs for the
       # public hostname verify here without MinIO being told about it.
     ports:
-      - "127.0.0.1:${S3_PORT:-15900}:9000"
+      - "127.0.0.1:${STACK_S3_PORT:-15900}:9000"
     volumes:
       - clinic_minio_data:/data
     healthcheck:
@@ -109,7 +109,7 @@ services:
       # hand-run `docker compose up`, which is why the API has a fallback.
       APP_VERSION: ${APP_VERSION:-}
     ports:
-      - "127.0.0.1:${API_PORT:-15000}:3000"
+      - "127.0.0.1:${STACK_API_PORT:-15000}:3000"
     # Migrations run to completion before the server listens, so the stack
     # never serves traffic against an un-migrated database. SEED_ON_BOOT=true
     # additionally runs the demo seed (the sandbox); BOOTSTRAP_ON_BOOT=true
@@ -154,7 +154,7 @@ services:
     image: ${STACK_NAME:-clinic-sandbox}-web
     restart: unless-stopped
     ports:
-      - "127.0.0.1:${WEB_PORT:-15080}:80"
+      - "127.0.0.1:${STACK_WEB_PORT:-15080}:80"
     # The image's own nginx serves the built SPA and proxies /api/ to the api
     # service, so the host nginx has a single upstream to point at.
     depends_on:

@@ -48,8 +48,8 @@ fast-forward of that checkout followed by a rebuild.
 
 Fixed per environment, because the machine is shared and these numbers are what
 the host nginx is configured against. The sandbox uses the defaults in
-`docker-compose.sandbox.yml`; another environment sets `API_PORT`, `WEB_PORT` and
-`S3_PORT` in its own `.env` (see [Another clinic in its own environment](#another-clinic-in-its-own-environment)).
+`docker-compose.sandbox.yml`; another environment sets `STACK_API_PORT`,
+`STACK_WEB_PORT` and `STACK_S3_PORT` in its own `.env` (see [Another clinic in its own environment](#another-clinic-in-its-own-environment)).
 
 | Service       | Host binding      | Container | Public?             |
 | ------------- | ----------------- | --------- | ------------------- |
