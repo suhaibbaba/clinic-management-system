@@ -149,7 +149,14 @@ describe("Clinic bootstrap (e2e)", () => {
         .from(procedureCatalog)
         .where(eq(procedureCatalog.clinicId, result.clinicId));
       expect(procedures.map((row) => row.code)).toEqual(
-        expect.arrayContaining(["ORTHO-CONSULT", "CAST-OFF", "INJ-STEROID", "TKR"]),
+        expect.arrayContaining([
+          "ORTHO-CONSULT",
+          "CAST-OFF",
+          "INJ-STEROID",
+          "TKR",
+          "ACL",
+          "IM-NAIL",
+        ]),
       );
       expect(procedures.every((row) => row.price === "0.00" && !row.isActive)).toBe(true);
 
