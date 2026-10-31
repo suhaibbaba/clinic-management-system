@@ -172,3 +172,16 @@ export function GlassLobe({ className }: { readonly className?: string }): JSX.E
     </svg>
   );
 }
+
+export function BandWave({ className }: { readonly className?: string }): JSX.Element {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 1440 120"
+      preserveAspectRatio="none"
+      className={cx("block", className)}
+    >
+      <path d="M0 70C260 10 520 20 780 64S1220 118 1440 40V120H0Z" fill="currentColor" />
+    </svg>
+  );
+}

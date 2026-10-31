@@ -201,19 +201,14 @@ html {
     linear-gradient(180deg, var(--color-primary-50), var(--color-surface));
 }
 
-@utility site-band-wash {
-  background-image:
-    radial-gradient(
-      520px 260px at 0% 100%,
-      color-mix(in oklab, var(--color-primary-500) 45%, transparent),
-      transparent 70%
-    ),
-    linear-gradient(
-      110deg,
-      var(--color-primary-900),
-      var(--color-primary-800) 55%,
-      var(--color-primary-700)
-    );
+@utility site-wave-bottom {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V82C84 94 66 100 46 93C30 87 14 84 0 90Z'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+}
+
+@utility site-fade-down {
+  mask-image: linear-gradient(to bottom, black 70%, transparent);
 }
 
 @keyframes site-marquee {
