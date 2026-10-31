@@ -7,9 +7,13 @@ import {
   type OnModuleInit,
 } from "@nestjs/common";
 import {
+  BODY_SIDE,
   LOOKUP_LIST,
   LOOKUP_LIST_KEYS,
+  PAIRED_SIDES,
+  isPairedRegion,
   lookupLabel,
+  type BodyRegionLocation,
   type CreateLookupOptionInput,
   type ListLookupOptionsQuery,
   type LookupBundle,
@@ -235,6 +239,43 @@ export class LookupsService implements OnModuleInit {
 
     if (chartBehaviour(row?.meta)?.stateOnly === true) {
       throw new BadRequestException(`${code} is a tooth state, not a procedure outcome`);
+    }
+  }
+
+  async assertBodyRegions(
+    clinicId: string,
+    locations: readonly BodyRegionLocation[],
+  ): Promise<void> {
+    if (locations.length === 0) {
+      return;
+    }
+
+    const codes = [...new Set(locations.map((location) => location.region))];
+    const rows = await this.db
+      .select({ code: lookupOptions.code, meta: lookupOptions.meta })
+      .from(lookupOptions)
+      .where(
+        this.scope.where(
+          lookupOptions,
+          clinicId,
+          eq(lookupOptions.listKey, LOOKUP_LIST.BODY_REGION),
+          eq(lookupOptions.isActive, true),
+          inArray(lookupOptions.code, codes),
+        ),
+      );
+    const paired = new Map(rows.map((row) => [row.code, isPairedRegion(row.meta)]));
+
+    for (const location of locations) {
+      const isPaired = paired.get(location.region);
+
+      if (isPaired === undefined) {
+        throw new BadRequestException(`Unknown ${LOOKUP_LIST.BODY_REGION}: ${location.region}`);
+      }
+
+      const side = location.side ?? BODY_SIDE.MIDLINE;
+      if (isPaired !== PAIRED_SIDES.includes(side)) {
+        throw new BadRequestException(`${location.region} cannot be marked on side ${side}`);
+      }
     }
   }
 

@@ -31,6 +31,7 @@ import {
   specialties,
   visits,
 } from "@api/database/schema";
+import { LookupsService } from "@api/modules/lookups/services/lookups.service";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { ProcedureCatalogService } from "@api/modules/patients/services/procedure-catalog.service";
 import { PERFORMED_PROCEDURES_ENTITY } from "@api/common/constants/audit-entities";
@@ -45,6 +46,7 @@ export class ProceduresService implements OnModuleInit {
     private readonly catalog: ProcedureCatalogService,
     private readonly charges: ChargesService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly lookups: LookupsService,
   ) {}
 
   onModuleInit(): void {
@@ -431,6 +433,11 @@ export class ProceduresService implements OnModuleInit {
         `Chart marks must be of type ${specialty.chartType} for this specialty`,
       );
     }
+
+    await this.lookups.assertBodyRegions(
+      clinicId,
+      marks.flatMap((mark) => (mark.chartType === CHART_TYPE.BODY_REGION ? [mark.location] : [])),
+    );
   }
 
   private async requireVisitOf(

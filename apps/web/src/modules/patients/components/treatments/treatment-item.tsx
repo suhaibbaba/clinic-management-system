@@ -14,6 +14,8 @@ import {
   treatmentSurfaces,
   treatmentTeeth,
 } from "@web/modules/patients/lib/treatments/treatments";
+import { useRegionLabel } from "@web/modules/patients/hooks/use-region-label";
+import { treatmentRegions } from "@web/modules/patients/lib/chart/body-regions";
 import { SETTLEMENT_STATUS_TONES } from "@web/shared/constants/settlement";
 import { formatDate, formatList } from "@web/shared/lib/format";
 
@@ -56,6 +58,8 @@ export function TreatmentItem({
   const { t } = useTranslation();
   const teeth = treatmentTeeth(treatment);
   const surfaces = treatmentSurfaces(treatment);
+  const regionLabel = useRegionLabel();
+  const regions = treatmentRegions(treatment).map(regionLabel);
   const cancelled = treatment.status === "cancelled";
   const hasMenu = mayChange || mayDelete || onSendToLab !== undefined;
 
@@ -131,6 +135,12 @@ export function TreatmentItem({
               {surfaces.length > 0 &&
                 ` (${formatList(surfaces.map((surface) => t(`chart.surfaces.${surface}`)))})`}
             </dd>
+          </div>
+        )}
+        {regions.length > 0 && (
+          <div className="flex gap-1">
+            <dt>{t("chart.body.region")}:</dt>
+            <dd data-testid="treatment-regions">{formatList(regions)}</dd>
           </div>
         )}
         <div className="flex gap-1">

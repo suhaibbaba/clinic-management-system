@@ -798,6 +798,39 @@
       "openFile": "Open File",
       "procedureCount_one": "1 Treatment",
       "procedureCount_other": "{{count}} treatments"
+    },
+    "kind": "Chart",
+    "kinds": {
+      "tooth_fdi": "Teeth",
+      "body_region": "Body"
+    },
+    "body": {
+      "keyboardHint": "Arrow keys move between regions, Enter opens the details.",
+      "emptyHint": "Pick a region to record the first procedure.",
+      "region": "Region",
+      "pickRegion": "Choose a Region",
+      "sideLabel": "Side",
+      "pickSide": "Choose a Side",
+      "side": {
+        "right": "Right",
+        "left": "Left",
+        "midline": "Midline"
+      },
+      "regionOnSide": "{{region}} ({{side}})",
+      "legend": {
+        "none": "Nothing Recorded",
+        "planned": "Planned",
+        "treated": "Treated"
+      },
+      "panel": {
+        "description": "Details and procedures for the selected region.",
+        "history": "Treatments on This Region",
+        "noProcedures": "Nothing recorded on this region"
+      },
+      "views": {
+        "front": "Front",
+        "back": "Back"
+      }
     }
   },
   "prescriptions": {
@@ -2008,7 +2041,8 @@
       "frequent_drug": "Frequent Drugs",
       "drug_instruction": "Drug Instructions",
       "expense_category": "Expense Categories",
-      "write_off_reason": "Write-off Reasons"
+      "write_off_reason": "Write-off Reasons",
+      "body_region": "Body Regions"
     },
     "hints": {
       "tooth_state": "What the tooth chart paints, and what a finished procedure leaves behind",
@@ -2023,7 +2057,8 @@
       "frequent_drug": "The drugs offered first when writing a prescription, with their usual dose",
       "drug_instruction": "Ready phrases added with a tap to a drug's instructions in a prescription",
       "expense_category": "What the clinic spends on: rent, utilities and the rest",
-      "write_off_reason": "Why stock was taken off without a patient: expired, damaged, wasted"
+      "write_off_reason": "Why stock was taken off without a patient: expired, damaged, wasted",
+      "body_region": "The regions the body chart offers for orthopedic procedures"
     },
     "rowMenu": "More Options",
     "moveUp": "Move Up",
@@ -3552,5 +3587,23 @@
     "available": "On WhatsApp",
     "unavailable": "Not on WhatsApp",
     "error": "Couldn't check"
+  },
+  "specialties": {
+    "title": "Specialties",
+    "manage": "Specialties",
+    "add": "Add Specialty",
+    "name": "Specialty Name",
+    "code": "Code",
+    "codeHint": "Lowercase letters, digits and underscores, such as orthopedic. It cannot be changed later.",
+    "chart": "Chart",
+    "chartHint": "What the patient file draws for this specialty's procedures. It cannot be changed later.",
+    "charts": {
+      "tooth_fdi": "Tooth chart",
+      "body_region": "Body chart",
+      "none": "No chart"
+    },
+    "activate": "Activate Specialty",
+    "deactivate": "Deactivate Specialty",
+    "created": "Specialty Added"
   }
 }

@@ -39,6 +39,7 @@ import { errorToast } from "@web/shared/lib/api-error";
 import { whatsAppNumber } from "@web/shared/lib/whatsapp";
 import { useDoctors } from "@web/shared/queries/doctors";
 import { PATIENT_TABS, PATIENT_TAB_PARAMS } from "@web/modules/patients/constants";
+import { patientCharts } from "@web/modules/patients/lib/chart/charts";
 
 const ChartTab = lazyPage(async () => ({
   default: (await import("@web/modules/patients/pages/chart-tab")).ChartTab,
@@ -59,8 +60,11 @@ export function PatientPage(): JSX.Element {
   const deletePatient = useDeletePatient();
 
   const role = user?.role;
-  const tabs = PATIENT_TABS.filter((tab) =>
-    tab.clinical ? role && canViewChart(can) && can(tab.reads) : role && canSeeBilling(can),
+  const charted = patientCharts(user?.clinic.chartTypes ?? []).length > 0;
+  const tabs = PATIENT_TABS.filter(
+    (tab) =>
+      (tab.id !== "chart" || charted) &&
+      (tab.clinical ? role && canViewChart(can) && can(tab.reads) : role && canSeeBilling(can)),
   );
 
   const [activeTab, setActiveTab] = useTabParam<TabId>(
