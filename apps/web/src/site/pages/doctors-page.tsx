@@ -3,7 +3,6 @@ import { cx } from "@web/booking/ui";
 import { Carousel } from "@web/site/components/carousel";
 import { DoctorCard } from "@web/site/components/doctor-card";
 import { PageHero } from "@web/site/components/page-hero";
-import { Promo } from "@web/site/components/promo";
 import { SiteIcon } from "@web/site/components/site-icon";
 import { SITE_PARAM } from "@web/site/constants";
 import { useBookable } from "@web/site/hooks/use-bookable";
@@ -84,15 +83,6 @@ export function DoctorsPage(): JSX.Element {
               <DoctorCard key={doctor.id} doctor={doctor} bookable={bookable} />
             ))}
           </Carousel>
-        )}
-
-        {bookable && (
-          <Promo
-            testId="site-doctors-promo"
-            title={orDefault(copy.promo.title, language, t("doctors.promo"))}
-            image={imageOf(site, copy.promo.image)}
-            cta={t("doctors.promoCta")}
-          />
         )}
       </div>
     </>

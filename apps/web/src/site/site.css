@@ -207,8 +207,17 @@ html {
   mask-repeat: no-repeat;
 }
 
-@utility site-fade-down {
-  mask-image: linear-gradient(to bottom, black 70%, transparent);
+@utility site-band-photo {
+  mask-image:
+    linear-gradient(to bottom, black 70%, transparent),
+    linear-gradient(to left, black 55%, transparent 90%);
+  mask-composite: intersect;
+
+  [dir="ltr"] & {
+    mask-image:
+      linear-gradient(to bottom, black 70%, transparent),
+      linear-gradient(to right, black 55%, transparent 90%);
+  }
 }
 
 @keyframes site-marquee {

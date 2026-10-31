@@ -75,10 +75,10 @@ export function BookingBand(): JSX.Element {
     <section
       data-testid="site-booking-band"
       aria-labelledby="booking-band-title"
-      className="relative isolate overflow-hidden bg-primary-50 pt-4 lg:pt-8"
+      className="relative isolate overflow-hidden bg-primary-50"
     >
       {image && (
-        <div className="site-fade-down absolute start-0 top-4 bottom-0 hidden w-[30%] lg:top-8 lg:block">
+        <div className="site-band-photo absolute inset-y-0 start-0 hidden w-[42%] lg:block">
           <SiteImage src={image} layer data-testid="site-booking-band-image" />
         </div>
       )}
@@ -122,10 +122,7 @@ export function BookingBand(): JSX.Element {
               </ContactChip>
             )}
           </div>
-          <div
-            data-reveal
-            className="relative order-first flex flex-col items-center gap-3 px-5 pt-12 text-center md:order-none md:py-12"
-          >
+          <div className="relative order-first flex flex-col items-center gap-3 px-5 pt-12 text-center md:order-none md:py-12">
             <h2 id="booking-band-title" className="text-title font-bold md:text-headline">
               {orDefault(cta.title, language, t("home.ctaTitle"))}
             </h2>

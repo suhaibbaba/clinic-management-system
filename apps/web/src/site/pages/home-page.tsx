@@ -1,6 +1,5 @@
 import type { JSX } from "react";
 import { AboutTeaser } from "@web/site/sections/about-teaser";
-import { BookingBand } from "@web/site/sections/booking-band";
 import { CasesSection } from "@web/site/sections/cases-section";
 import { DoctorsTeaser } from "@web/site/sections/doctors-teaser";
 import { HeroSection } from "@web/site/sections/hero-section";
@@ -16,7 +15,6 @@ export function HomePage(): JSX.Element {
       <CasesSection />
       <DoctorsTeaser />
       <TestimonialsSection />
-      <BookingBand />
     </>
   );
 }
