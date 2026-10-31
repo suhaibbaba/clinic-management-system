@@ -2,6 +2,7 @@ import {
   CHART_TYPE,
   createPerformedProcedureSchema,
   updatePerformedProcedureSchema,
+  type BodyRegionLocation,
   type CreatePerformedProcedureInput,
   type Doctor,
   type PerformedProcedure,
@@ -9,7 +10,7 @@ import {
   type ProcedureCatalogItem,
 } from "@clinic/shared";
 import { useEffect, useId, useState, type FormEvent, type JSX } from "react";
-import { schemaErrors, type FieldErrors } from "@web/shared/lib/form-errors";
+import { REQUIRED, schemaErrors, type FieldErrors } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { useTranslation } from "react-i18next";
 import {
@@ -23,6 +24,9 @@ import {
   usePersonName,
 } from "@clinic/ui";
 import { TeethField } from "@web/modules/labs/components/teeth-field";
+import { RegionField } from "@web/modules/patients/components/chart/region-field";
+import { treatmentRegions } from "@web/modules/patients/lib/chart/body-regions";
+import { procedureChartType } from "@web/modules/patients/lib/treatments/treatment-chart";
 import {
   SurfaceSelector,
   type SelectableSurface,
@@ -35,12 +39,15 @@ import {
 import { SELECTABLE_SURFACES } from "@web/modules/patients/constants";
 import { doctorOptionLabel } from "@web/shared/lib/doctor-label";
 import { useCurrency } from "@web/shared/queries/clinic";
+import { useSpecialties } from "@web/shared/queries/specialties";
+import { useSession } from "@web/shared/providers/session";
 import { ellipsis } from "@web/i18n/ellipsis";
 
 export type TreatmentFormValues = Omit<CreatePerformedProcedureInput, "patientId">;
 
 export interface TreatmentDefaults {
   readonly tooth?: number | undefined;
+  readonly region?: BodyRegionLocation | undefined;
   readonly visitId?: string | undefined;
   readonly status?: PerformedProcedureStatus | undefined;
   readonly doctorId?: string | undefined;
@@ -75,6 +82,8 @@ export function TreatmentForm({
   const doctorName = usePersonName();
   const fieldId = useId();
   const isEdit = treatment !== undefined;
+  const { user } = useSession();
+  const specialties = useSpecialties();
 
   const [procedureId, setProcedureId] = useState(treatment?.procedureId ?? "");
   const [doctorId, setDoctorId] = useState(
@@ -86,6 +95,9 @@ export function TreatmentForm({
   const [teeth, setTeeth] = useState<number[]>(
     treatment ? treatmentTeeth(treatment) : defaults.tooth !== undefined ? [defaults.tooth] : [],
   );
+  const [region, setRegion] = useState<BodyRegionLocation | null>(
+    (treatment ? treatmentRegions(treatment)[0] : defaults.region) ?? null,
+  );
   const [surfaces, setSurfaces] = useState<SelectableSurface[]>(
     treatment ? selectable(treatmentSurfaces(treatment)) : [],
   );
@@ -96,7 +108,23 @@ export function TreatmentForm({
   const [discountReason, setDiscountReason] = useState(treatment?.discountReason ?? "");
   const [notes, setNotes] = useState(treatment?.notes ?? "");
 
+  const context = {
+    specialties: specialties.data?.items ?? [],
+    clinicCharts: user?.clinic.chartTypes ?? [],
+    defaults,
+    treatment,
+  };
+  const choices = catalog.filter(
+    (item) =>
+      isEdit ||
+      (defaults.tooth === undefined && defaults.region === undefined) ||
+      procedureChartType(item, context) ===
+        (defaults.region ? CHART_TYPE.BODY_REGION : CHART_TYPE.TOOTH_FDI),
+  );
   const selected = catalog.find((item) => item.id === procedureId);
+  const chartType = procedureChartType(selected, context);
+  const sideMissing =
+    chartType === CHART_TYPE.BODY_REGION && region !== null && region.side === undefined;
   const hasDiscount = discount !== "" && discount !== "0" && discount !== "0.00";
 
   useEffect(() => {
@@ -121,17 +149,23 @@ export function TreatmentForm({
     ...(hasDiscount && { discountReason: discountReason.trim() }),
     ...(!isEdit && defaults.visitId !== undefined && { visitId: defaults.visitId }),
     ...(!isEdit && defaults.performedAt !== undefined && { performedAt: defaults.performedAt }),
-    chartMarks: teeth.map((at) => ({
-      chartType: CHART_TYPE.TOOTH_FDI,
-      location: { tooth: at, surfaces: teeth.length === 1 ? surfaces : [] },
-    })),
+    chartMarks:
+      chartType === CHART_TYPE.TOOTH_FDI
+        ? teeth.map((at) => ({
+            chartType: CHART_TYPE.TOOTH_FDI,
+            location: { tooth: at, surfaces: teeth.length === 1 ? surfaces : [] },
+          }))
+        : chartType === CHART_TYPE.BODY_REGION && region
+          ? [{ chartType: CHART_TYPE.BODY_REGION, location: region }]
+          : [],
   };
 
-  const form = useFormErrors<HTMLFormElement>(
-    isEdit
+  const form = useFormErrors<HTMLFormElement>({
+    ...(isEdit
       ? schemaErrors(updatePerformedProcedureSchema, values)
-      : schemaErrors(createPerformedProcedureSchema, { ...values, patientId }),
-  );
+      : schemaErrors(createPerformedProcedureSchema, { ...values, patientId })),
+    ...(sideMissing && { "chartMarks.0.location.side": REQUIRED }),
+  });
   const { errors } = form;
 
   useEffect(() => {
@@ -172,7 +206,7 @@ export function TreatmentForm({
                 value={procedureId}
                 onChange={(event) => setProcedureId(event.target.value)}
                 placeholder={t("chart.panel.selectProcedure")}
-                options={catalog.map((item) => ({ value: item.id, label: item.name }))}
+                options={choices.map((item) => ({ value: item.id, label: item.name }))}
               />
             </FormField>
           </div>
@@ -278,20 +312,33 @@ export function TreatmentForm({
           </div>
         )}
 
-        <div className="max-w-(--field-max)">
-          <div onBlur={form.leave("chartMarks")}>
-            <FormField
-              label="visits.teeth"
-              htmlFor={`${fieldId}-teeth`}
-              error={fieldError(errors, "chartMarks")}
-              optional
-            >
-              <TeethField id={`${fieldId}-teeth`} value={teeth} onChange={setTeeth} />
-            </FormField>
+        {chartType === CHART_TYPE.TOOTH_FDI && (
+          <div className="max-w-(--field-max)">
+            <div onBlur={form.leave("chartMarks")}>
+              <FormField
+                label="visits.teeth"
+                htmlFor={`${fieldId}-teeth`}
+                error={fieldError(errors, "chartMarks")}
+                optional
+              >
+                <TeethField id={`${fieldId}-teeth`} value={teeth} onChange={setTeeth} />
+              </FormField>
+            </div>
           </div>
-        </div>
+        )}
 
-        {teeth.length === 1 && (
+        {chartType === CHART_TYPE.BODY_REGION && (
+          <div onBlur={form.leave("chartMarks")}>
+            <RegionField
+              id={`${fieldId}-region`}
+              value={region}
+              error={fieldError(errors, "chartMarks")}
+              onChange={setRegion}
+            />
+          </div>
+        )}
+
+        {chartType === CHART_TYPE.TOOTH_FDI && teeth.length === 1 && (
           <div className="flex flex-col gap-1.5">
             <span className="text-value font-medium text-ink">{t("chart.panel.surfaces")}</span>
             <SurfaceSelector value={surfaces} onChange={setSurfaces} />

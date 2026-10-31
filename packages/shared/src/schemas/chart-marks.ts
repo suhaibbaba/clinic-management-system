@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { CHART_TYPE } from "@shared/enums";
+import { BODY_SIDES } from "@shared/constants/body";
 import { isFdiTooth, TOOTH_SURFACES } from "@shared/constants/dental";
+import { lookupCodeSchema } from "@shared/schemas/lookups";
 
 export const toothLocationSchema = z.object({
   tooth: z.number().int().refine(isFdiTooth, "Not a valid FDI tooth number"),
@@ -9,8 +11,8 @@ export const toothLocationSchema = z.object({
 export type ToothLocation = z.infer<typeof toothLocationSchema>;
 
 export const bodyRegionLocationSchema = z.object({
-  region: z.string().trim().min(1).max(64),
-  side: z.enum(["left", "right", "midline"]).optional(),
+  region: lookupCodeSchema,
+  side: z.enum(BODY_SIDES).optional(),
 });
 export type BodyRegionLocation = z.infer<typeof bodyRegionLocationSchema>;
 

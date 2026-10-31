@@ -33,7 +33,7 @@ export const PATIENT_TABS = [
   { id: "billing", label: "patients.tabs.billing", clinical: false },
 ] as const;
 
-export const PATIENT_TAB_PARAMS = ["page", "perPage", "type", "status"] as const;
+export const PATIENT_TAB_PARAMS = ["page", "perPage", "type", "status", "chart"] as const;
 
 export const PATIENTS_BALANCE_FILTER = "balance";
 
@@ -62,3 +62,5 @@ export const SURFACE_BOX = 120;
 export const SURFACE_INSET = 34;
 
 export const TREATMENT_FORM_ID = "treatment-form";
+
+export const SKELETON_URL = "/charts/skeleton.svg";

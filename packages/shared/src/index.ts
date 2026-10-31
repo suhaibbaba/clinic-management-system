@@ -1,4 +1,5 @@
 export * from "@shared/constants/booking";
+export * from "@shared/constants/body";
 export * from "@shared/constants/dental";
 export * from "@shared/enums";
 export * from "@shared/geo/coordinates";

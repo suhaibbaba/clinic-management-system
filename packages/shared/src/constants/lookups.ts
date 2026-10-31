@@ -12,6 +12,7 @@ export const LOOKUP_LIST = {
   DRUG_INSTRUCTION: "drug_instruction",
   EXPENSE_CATEGORY: "expense_category",
   WRITE_OFF_REASON: "write_off_reason",
+  BODY_REGION: "body_region",
 } as const;
 
 export type LookupListKey = (typeof LOOKUP_LIST)[keyof typeof LOOKUP_LIST];
@@ -30,6 +31,7 @@ export const LOOKUP_LIST_KEYS = [
   LOOKUP_LIST.DRUG_INSTRUCTION,
   LOOKUP_LIST.EXPENSE_CATEGORY,
   LOOKUP_LIST.WRITE_OFF_REASON,
+  LOOKUP_LIST.BODY_REGION,
 ] as const;
 
 export const COLOURED_LOOKUP_LISTS: readonly LookupListKey[] = [LOOKUP_LIST.TOOTH_STATE];
@@ -205,6 +207,47 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
     { code: "lost", nameAr: "مفقود", nameEn: "Lost" },
     { code: "recalled", nameAr: "مسحوب من المورّد", nameEn: "Recalled" },
     { code: "other", nameAr: "أخرى", nameEn: "Other" },
+  ],
+
+  [LOOKUP_LIST.BODY_REGION]: [
+    {
+      code: "cervical_spine",
+      nameAr: "الفقرات الرقبية",
+      nameEn: "Cervical spine",
+      meta: { paired: false },
+    },
+    { code: "clavicle", nameAr: "الترقوة", nameEn: "Clavicle", meta: { paired: true } },
+    { code: "shoulder", nameAr: "مفصل الكتف", nameEn: "Shoulder joint", meta: { paired: true } },
+    { code: "scapula", nameAr: "عظم اللوح", nameEn: "Scapula", meta: { paired: true } },
+    { code: "sternum", nameAr: "عظم القص", nameEn: "Sternum", meta: { paired: false } },
+    {
+      code: "thoracic_spine",
+      nameAr: "الفقرات الصدرية",
+      nameEn: "Thoracic spine",
+      meta: { paired: false },
+    },
+    { code: "ribs", nameAr: "الأضلاع", nameEn: "Ribs", meta: { paired: true } },
+    { code: "humerus", nameAr: "عظم العضد", nameEn: "Humerus", meta: { paired: true } },
+    { code: "elbow", nameAr: "مفصل الكوع", nameEn: "Elbow joint", meta: { paired: true } },
+    {
+      code: "lumbar_spine",
+      nameAr: "الفقرات القطنية",
+      nameEn: "Lumbar spine",
+      meta: { paired: false },
+    },
+    { code: "radius", nameAr: "عظم الكعبرة", nameEn: "Radius", meta: { paired: true } },
+    { code: "ulna", nameAr: "عظم الزند", nameEn: "Ulna", meta: { paired: true } },
+    { code: "wrist", nameAr: "مفصل الرسغ", nameEn: "Wrist joint", meta: { paired: true } },
+    { code: "hand", nameAr: "عظام اليد", nameEn: "Hand bones", meta: { paired: true } },
+    { code: "sacrum", nameAr: "عظم العجز", nameEn: "Sacrum", meta: { paired: false } },
+    { code: "pelvis", nameAr: "الحوض", nameEn: "Pelvis", meta: { paired: false } },
+    { code: "hip", nameAr: "مفصل الورك", nameEn: "Hip joint", meta: { paired: true } },
+    { code: "femur", nameAr: "عظم الفخذ", nameEn: "Femur", meta: { paired: true } },
+    { code: "knee", nameAr: "مفصل الركبة", nameEn: "Knee joint", meta: { paired: true } },
+    { code: "tibia", nameAr: "عظم القصبة", nameEn: "Tibia", meta: { paired: true } },
+    { code: "fibula", nameAr: "عظم الشظية", nameEn: "Fibula", meta: { paired: true } },
+    { code: "ankle", nameAr: "مفصل الكاحل", nameEn: "Ankle joint", meta: { paired: true } },
+    { code: "foot", nameAr: "عظام القدم", nameEn: "Foot bones", meta: { paired: true } },
   ],
 
   [LOOKUP_LIST.DRUG_INSTRUCTION]: [

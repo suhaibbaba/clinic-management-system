@@ -1,4 +1,15 @@
 import { createZodDto } from "nestjs-zod";
-import { listSpecialtiesQuerySchema } from "@clinic/shared";
+import {
+  createSpecialtySchema,
+  idParamSchema,
+  listSpecialtiesQuerySchema,
+  updateSpecialtySchema,
+} from "@clinic/shared";
 
 export class ListSpecialtiesQueryDto extends createZodDto(listSpecialtiesQuerySchema) {}
+
+export class CreateSpecialtyDto extends createZodDto(createSpecialtySchema) {}
+
+export class UpdateSpecialtyDto extends createZodDto(updateSpecialtySchema) {}
+
+export class IdParamDto extends createZodDto(idParamSchema) {}

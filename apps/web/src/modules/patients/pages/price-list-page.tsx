@@ -22,6 +22,7 @@ import {
 } from "@clinic/ui";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 import { ProcedurePriceModal } from "@web/modules/patients/components/price-list/procedure-price-modal";
+import { SpecialtiesModal } from "@web/modules/patients/components/price-list/specialties-modal";
 import { searchPriceList } from "@web/modules/patients/lib/price-list";
 import {
   usePriceList,
@@ -52,10 +53,13 @@ export function PriceListPage(): JSX.Element {
 
   const [editing, setEditing] = useState<ProcedureCatalogItem | null>(null);
   const [adding, setAdding] = useState(false);
+  const [managingSpecialties, setManagingSpecialties] = useState(false);
 
   const mayCreate = can("procedure-catalog.create");
   const mayUpdate = can("procedure-catalog.update");
   const mayRemove = can("procedure-catalog.remove");
+  const mayAddSpecialty = can("specialties.create");
+  const mayChangeSpecialty = can("specialties.update");
 
   const rows = useMemo(() => searchPriceList(query.data ?? [], search), [query.data, search]);
 
@@ -193,6 +197,18 @@ export function PriceListPage(): JSX.Element {
         title="priceList.title"
         subtitle="priceList.subtitle"
         primaryAction={mayCreate ? addButton("price-list-add") : undefined}
+        actions={
+          mayAddSpecialty || mayChangeSpecialty ? (
+            <Button
+              variant="secondary"
+              icon={<Icon name="stethoscope" />}
+              data-testid="price-list-specialties"
+              onClick={() => setManagingSpecialties(true)}
+            >
+              {t("specialties.manage")}
+            </Button>
+          ) : undefined
+        }
       />
 
       <div className="flex flex-wrap items-center gap-3">
@@ -229,6 +245,13 @@ export function PriceListPage(): JSX.Element {
             action={search === "" && mayCreate ? addButton("price-list-empty-add") : undefined}
           />
         }
+      />
+
+      <SpecialtiesModal
+        open={managingSpecialties}
+        mayCreate={mayAddSpecialty}
+        mayUpdate={mayChangeSpecialty}
+        onClose={() => setManagingSpecialties(false)}
       />
 
       <ProcedurePriceModal
