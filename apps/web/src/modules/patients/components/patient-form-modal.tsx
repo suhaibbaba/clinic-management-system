@@ -129,6 +129,7 @@ export function PatientFormModal({
       data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
+      size="lg"
       title={editing ? "patients.edit" : "patients.create"}
       footer={
         <>
@@ -156,7 +157,7 @@ export function PatientFormModal({
       <form
         id="patient-form"
         data-testid={`${testId}-form`}
-        className="flex flex-col gap-4"
+        className="grid gap-4 sm:grid-cols-2"
         onSubmit={onSubmit}
         noValidate
       >
@@ -164,7 +165,7 @@ export function PatientFormModal({
           <p
             data-testid={`${testId}-incomplete`}
             role="status"
-            className="flex items-start gap-2 rounded-panel bg-warning-50 px-3 py-2 text-label text-warning-800"
+            className="flex items-start gap-2 rounded-panel bg-warning-50 sm:col-span-2 px-3 py-2 text-label text-warning-800"
           >
             <Icon name="alert" className="mt-0.5 size-4 shrink-0" />
             {t("patients.incompleteMissing", {
@@ -173,47 +174,45 @@ export function PatientFormModal({
           </p>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField
-            label="patients.firstName"
-            htmlFor="patient-first-name"
-            error={errors.firstName}
-          >
-            <Input
-              placeholder={t("common.placeholders.firstName")}
-              adornment="user"
-              id="patient-first-name"
-              data-testid="patient-field-first-name"
-              hasError={Boolean(errors.firstName)}
-              {...register("firstName")}
-            />
-          </FormField>
-
-          <FormField label="patients.lastName" htmlFor="patient-last-name" error={errors.lastName}>
-            <Input
-              placeholder={t("common.placeholders.lastName")}
-              id="patient-last-name"
-              data-testid="patient-field-last-name"
-              hasError={Boolean(errors.lastName)}
-              {...register("lastName")}
-            />
-          </FormField>
-        </div>
-
-        <FormField
-          label="patients.middleName"
-          htmlFor="patient-middle-name"
-          optional
-          error={errors.middleName}
-        >
+        <FormField label="patients.firstName" htmlFor="patient-first-name" error={errors.firstName}>
           <Input
-            placeholder={t("common.placeholders.middleName")}
-            id="patient-middle-name"
-            data-testid="patient-field-middle-name"
-            hasError={Boolean(errors.middleName)}
-            {...register("middleName")}
+            placeholder={t("common.placeholders.firstName")}
+            adornment="user"
+            id="patient-first-name"
+            data-testid="patient-field-first-name"
+            hasError={Boolean(errors.firstName)}
+            {...register("firstName")}
           />
         </FormField>
+
+        <FormField label="patients.lastName" htmlFor="patient-last-name" error={errors.lastName}>
+          <Input
+            placeholder={t("common.placeholders.lastName")}
+            id="patient-last-name"
+            data-testid="patient-field-last-name"
+            hasError={Boolean(errors.lastName)}
+            {...register("lastName")}
+          />
+        </FormField>
+
+        {editing && (
+          <div className="sm:col-span-2">
+            <FormField
+              label="patients.middleName"
+              htmlFor="patient-middle-name"
+              optional
+              error={errors.middleName}
+            >
+              <Input
+                placeholder={t("common.placeholders.middleName")}
+                id="patient-middle-name"
+                data-testid="patient-field-middle-name"
+                hasError={Boolean(errors.middleName)}
+                {...register("middleName")}
+              />
+            </FormField>
+          </div>
+        )}
 
         <FormField
           label="patients.phone"
@@ -226,7 +225,7 @@ export function PatientFormModal({
             control={control}
             render={({ field }) => (
               <WhatsAppPhoneInput
-                check={!watch("whatsapp")}
+                checkWhatsApp={!watch("whatsapp")}
                 placeholder={t("common.placeholders.phone")}
                 id="patient-phone"
                 data-testid="patient-field-phone"
@@ -240,30 +239,59 @@ export function PatientFormModal({
         </FormField>
 
         <FormField
-          label="patients.whatsapp"
-          htmlFor="patient-whatsapp"
-          error={errors.whatsapp}
-          errorKey={errors.whatsapp ? "errors.validation.invalidPhone" : undefined}
-          hint="patients.whatsappHint"
+          label="patients.assignedDoctor"
+          htmlFor="patient-assigned-doctor"
+          error={errors.assignedDoctorId}
+          hint="patients.assignedDoctorHint"
           optional
         >
           <Controller
-            name="whatsapp"
+            name="assignedDoctorId"
             control={control}
             render={({ field }) => (
-              <WhatsAppPhoneInput
-                check
-                placeholder={t("common.placeholders.phone")}
-                id="patient-whatsapp"
-                data-testid="patient-field-whatsapp"
-                hasError={Boolean(errors.whatsapp)}
-                value={field.value}
-                onChange={field.onChange}
+              <Select
+                id="patient-assigned-doctor"
+                data-testid="patient-field-assigned-doctor"
+                placeholder={t("common.none")}
+                searchable={doctorChoices.length > 8}
+                options={doctorChoices}
+                value={field.value ?? ""}
                 onBlur={field.onBlur}
+                onChange={(event) => field.onChange(event.target.value || null)}
               />
             )}
           />
         </FormField>
+
+        {editing && (
+          <div className="sm:col-span-2">
+            <FormField
+              label="patients.whatsapp"
+              htmlFor="patient-whatsapp"
+              error={errors.whatsapp}
+              errorKey={errors.whatsapp ? "errors.validation.invalidPhone" : undefined}
+              hint="patients.whatsappHint"
+              optional
+            >
+              <Controller
+                name="whatsapp"
+                control={control}
+                render={({ field }) => (
+                  <WhatsAppPhoneInput
+                    checkWhatsApp
+                    placeholder={t("common.placeholders.phone")}
+                    id="patient-whatsapp"
+                    data-testid="patient-field-whatsapp"
+                    hasError={Boolean(errors.whatsapp)}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
+                )}
+              />
+            </FormField>
+          </div>
+        )}
 
         <FormField
           label="patients.dateOfBirth"
@@ -314,44 +342,21 @@ export function PatientFormModal({
           />
         </FormField>
 
-        <FormField
-          label="patients.assignedDoctor"
-          htmlFor="patient-assigned-doctor"
-          error={errors.assignedDoctorId}
-          hint="patients.assignedDoctorHint"
-          optional
-        >
-          <Controller
-            name="assignedDoctorId"
-            control={control}
-            render={({ field }) => (
-              <Select
-                id="patient-assigned-doctor"
-                data-testid="patient-field-assigned-doctor"
-                placeholder={t("common.none")}
-                searchable={doctorChoices.length > 8}
-                options={doctorChoices}
-                value={field.value ?? ""}
-                onBlur={field.onBlur}
-                onChange={(event) => field.onChange(event.target.value || null)}
-              />
-            )}
-          />
-        </FormField>
-
-        <FormField
-          label="patients.address"
-          htmlFor="patient-address"
-          error={errors.address}
-          optional
-        >
-          <Input
-            placeholder={t("common.placeholders.address")}
-            id="patient-address"
-            data-testid="patient-field-address"
-            {...register("address", { setValueAs: (value) => (value === "" ? null : value) })}
-          />
-        </FormField>
+        <div className="sm:col-span-2">
+          <FormField
+            label="patients.address"
+            htmlFor="patient-address"
+            error={errors.address}
+            optional
+          >
+            <Input
+              placeholder={t("common.placeholders.address")}
+              id="patient-address"
+              data-testid="patient-field-address"
+              {...register("address", { setValueAs: (value) => (value === "" ? null : value) })}
+            />
+          </FormField>
+        </div>
 
         <FormField
           label="patients.emergencyContactName"

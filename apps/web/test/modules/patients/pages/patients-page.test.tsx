@@ -293,9 +293,11 @@ describe("Patients list", () => {
       await userEvent.type(within(dialog).getByLabelText(ar.patients.firstName), "سامر");
       await userEvent.type(within(dialog).getByLabelText(ar.patients.lastName), "التلاوي");
       await userEvent.type(within(dialog).getByLabelText(ar.patients.phone), "0599 123 456");
-      await choose(within(dialog).getByTestId("patient-field-whatsapp-country"), /\+962/);
+      await choose(within(dialog).getByTestId("patient-field-emergency-phone-country"), /\+962/);
       await userEvent.type(
-        within(dialog).getByRole("textbox", { name: new RegExp(ar.patients.whatsapp) }),
+        within(dialog).getByRole("textbox", {
+          name: new RegExp(ar.patients.emergencyContactPhone),
+        }),
         "0791234567",
       );
       await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
@@ -304,7 +306,10 @@ describe("Patients list", () => {
         const call = api.calls.find(
           (entry) => entry.method === "POST" && entry.url.endsWith("/patients"),
         );
-        expect(call?.body).toMatchObject({ phone: "+970599123456", whatsapp: "+962791234567" });
+        expect(call?.body).toMatchObject({
+          phone: "+970599123456",
+          emergencyContactPhone: "+962791234567",
+        });
       });
     });
 

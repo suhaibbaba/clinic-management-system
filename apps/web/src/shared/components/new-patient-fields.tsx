@@ -108,7 +108,7 @@ export function NewPatientFields({
           required
         >
           <WhatsAppPhoneInput
-            check
+            checkWhatsApp
             id={`${id}-phone`}
             data-testid="new-patient-phone"
             value={draft.phone}

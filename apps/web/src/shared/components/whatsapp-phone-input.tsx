@@ -12,11 +12,11 @@ const NOTE: Readonly<Partial<Record<WhatsAppStatus, string>>> = {
 };
 
 export interface WhatsAppPhoneInputProps extends PhoneInputProps {
-  readonly check: boolean;
+  readonly checkWhatsApp?: boolean | undefined;
 }
 
 export function WhatsAppPhoneInput({
-  check,
+  checkWhatsApp = false,
   value,
   onBlur,
   "data-testid": testId,
@@ -28,13 +28,13 @@ export function WhatsAppPhoneInput({
   );
   const lastSent = useRef<string | null>(null);
   const start = useStartWhatsAppCheck();
-  const shown = check && subject !== null && subject === value ? subject : null;
+  const shown = checkWhatsApp && subject !== null && subject === value ? subject : null;
   const { data } = useWhatsAppCheck(shown);
 
   const onLeave = (event: FocusEvent<HTMLInputElement>): void => {
     onBlur?.(event);
 
-    if (!check || !isCheckablePhone(value)) {
+    if (!checkWhatsApp || !isCheckablePhone(value)) {
       return;
     }
 
