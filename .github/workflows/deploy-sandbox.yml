@@ -9,15 +9,15 @@ on:
       target:
         description: "Which environment to deploy. Each is its own checkout, .env, database and containers on the VPS."
         required: true
-        default: sandbox
+        default: abu-obaid
         type: choice
         options:
-          - sandbox
+          - abu-obaid
           - kossai-jarrar
       reset_data:
         # Typed, not a checkbox: a checkbox beside "Run workflow" is one
         # mis-click from deleting the database.
-        description: "Wipe the sandbox database and object store before deploying. Type RESET to confirm — anything else is ignored."
+        description: "Wipe the abu-obaid database and object store before deploying. Type RESET to confirm — anything else is ignored."
         required: false
         default: ""
         type: string
@@ -48,7 +48,7 @@ jobs:
           set -eu
 
           case "$TARGET" in
-            sandbox)
+            abu-obaid)
               echo "REMOTE_DIR=/opt/clinic/sandbox" >> "$GITHUB_ENV"
               echo "COMPOSE_PROJECT=clinic-sandbox" >> "$GITHUB_ENV"
               echo "SITE_URL=https://clinic-sandbox.organza-moda.com" >> "$GITHUB_ENV"
@@ -74,8 +74,8 @@ jobs:
           set -eu
 
           # A clinic's real environment holds real patients: no wipe and no sample text, ever.
-          if [ "$TARGET" != "sandbox" ] && { [ -n "${RESET}" ] || [ -n "${SAMPLE}" ]; }; then
-            echo "::error::reset_data and sample_website are for the sandbox only — leave them empty for ${TARGET}"
+          if [ "$TARGET" != "abu-obaid" ] && { [ -n "${RESET}" ] || [ -n "${SAMPLE}" ]; }; then
+            echo "::error::reset_data and sample_website are for abu-obaid only — leave them empty for ${TARGET}"
             exit 1
           fi
 
@@ -137,7 +137,7 @@ jobs:
       # one alone, so changing it cannot change the sandbox — only a wipe can.
       # Dumps first, and keeps the backups volume, which is why not `down -v`.
       - name: Wipe the sandbox data
-        if: ${{ inputs.target == 'sandbox' && inputs.reset_data == 'RESET' }}
+        if: ${{ inputs.target == 'abu-obaid' && inputs.reset_data == 'RESET' }}
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SANDBOX_HOST }}
@@ -265,7 +265,7 @@ jobs:
       # Overwrites the website's draft and published content on purpose; the logo is set only when
       # the clinic has none. Runs inside the api container, so it uses the stack's own .env.
       - name: Apply the sample website
-        if: ${{ inputs.target == 'sandbox' && inputs.sample_website == 'WEBSITE' }}
+        if: ${{ inputs.target == 'abu-obaid' && inputs.sample_website == 'WEBSITE' }}
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SANDBOX_HOST }}

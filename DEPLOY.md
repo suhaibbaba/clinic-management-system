@@ -433,7 +433,7 @@ sudo nginx -t && sudo systemctl reload nginx
 
 Actions → **Deploy** → `target: kossai-jarrar`. The same workflow, against this directory and
 project; the health check goes through `https://admin.kossai-jarrar.organza-moda.com/api/health`.
-`reset_data` and `sample_website` are refused for any target but the sandbox. By hand:
+`reset_data` and `sample_website` are refused for any target but `abu-obaid` (the sandbox). By hand:
 
 ```bash
 cd /opt/clinic/kossai-jarrar
@@ -485,8 +485,8 @@ docker compose -p clinic-sandbox -f docker-compose.sandbox.yml up -d api
 
 ### Starting the sandbox's data over
 
-**Actions → Deploy sandbox → Run workflow → type `RESET` in "Wipe the sandbox
-database and object store before deploying".** Anything other than that exact
+**Actions → Deploy sandbox → Run workflow → `target: abu-obaid` → type `RESET` in "Wipe the
+abu-obaid database and object store before deploying".** Anything other than that exact
 word is refused before the job touches the server, and a push to `main` can
 never reach it.
 
