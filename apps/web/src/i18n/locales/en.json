@@ -3551,6 +3551,8 @@
     "checking": "Checking",
     "available": "On WhatsApp",
     "unavailable": "Not on WhatsApp",
-    "error": "Couldn't check"
+    "error": "Couldn't check",
+    "unavailableNote": "This number has no WhatsApp account, so WhatsApp messages won't reach it.",
+    "errorNote": "We couldn't check whether this number is on WhatsApp. Try again later."
   }
 }
