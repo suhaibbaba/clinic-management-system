@@ -55,7 +55,7 @@ describe("the printed letterhead", () => {
 
     expect(calls[0]).toMatchObject({ otherName: "Al Nour Clinic", email: "info@alnour.test" });
     expect(calls[0]?.issued).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
-    expect(calls[0]?.printed).toMatch(/^طُبع في \u2066\d{2}\/\d{2}\/\d{4} · .+\u2069$/);
+    expect(calls[0]?.printed).toMatch(/^تاريخ الطباعة \u2066\d{2}\/\d{2}\/\d{4} · .+\u2069$/);
   });
 
   it("keeps the letterhead on every page of a long document", async () => {
