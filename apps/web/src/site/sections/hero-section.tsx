@@ -33,7 +33,7 @@ export function HeroSection(): JSX.Element {
     <section
       data-testid="site-page-hero-home"
       aria-labelledby="home-title"
-      className="site-hero-wash relative overflow-hidden"
+      className="site-hero-wash relative overflow-hidden lg:mb-24 lg:overflow-visible"
     >
       <div aria-hidden className="absolute inset-0 hidden overflow-hidden lg:block">
         {slides.map((url, slide) => (
@@ -53,7 +53,7 @@ export function HeroSection(): JSX.Element {
       </div>
       <HeroSwoosh className="absolute inset-y-0 start-0 hidden h-full w-1/2 opacity-80 lg:block" />
       <HeroWave className="absolute end-0 bottom-0 hidden h-40 w-[45%] lg:block" />
-      <div className="relative flex flex-col lg:block lg:min-h-[38rem]">
+      <div className="relative flex flex-col lg:block lg:min-h-[30rem]">
         <div
           data-testid="site-page-hero-home-image"
           className="relative aspect-[4/3] lg:absolute lg:inset-y-0 lg:end-0 lg:aspect-auto lg:w-[54%]"
@@ -91,7 +91,7 @@ export function HeroSection(): JSX.Element {
           {hero.stat.value && (
             <div
               data-testid="site-hero-stat"
-              className="absolute end-4 bottom-4 flex flex-col items-center gap-0.5 rounded-t-[999px] rounded-b-card border border-surface/80 bg-surface/70 px-7 pt-5 pb-3 shadow-float backdrop-blur-md lg:start-[13%] lg:end-auto lg:bottom-40"
+              className="absolute end-4 bottom-4 flex flex-col items-center gap-0.5 rounded-t-[999px] rounded-b-card border border-surface/80 bg-surface/70 px-7 pt-5 pb-3 shadow-float backdrop-blur-md lg:start-[13%] lg:end-auto lg:bottom-24"
             >
               <bdi className="text-title font-bold text-primary-700">{hero.stat.value}</bdi>
               {statLabel && <span className="text-label text-ink-muted">{statLabel}</span>}
@@ -114,7 +114,7 @@ export function HeroSection(): JSX.Element {
           )}
         </div>
 
-        <div className="relative mx-auto max-w-6xl px-4 pt-8 pb-14 lg:pt-16 lg:pb-40">
+        <div className="relative mx-auto max-w-6xl px-4 pt-8 pb-14 lg:pt-12 lg:pb-24">
           <div data-reveal className="flex flex-col items-start gap-5 lg:max-w-[26rem]">
             {eyebrow && (
               <p className="flex items-center gap-3 text-heading font-medium text-primary-600">
@@ -164,7 +164,7 @@ export function HeroSection(): JSX.Element {
       </div>
 
       {highlights.length > 0 && (
-        <div className="relative z-10 mx-auto max-w-6xl px-4 lg:-mt-36">
+        <div className="relative z-10 mx-auto max-w-6xl px-4 lg:absolute lg:inset-x-0 lg:bottom-0 lg:translate-y-1/2">
           <ul
             data-testid="site-highlights"
             data-reveal-group
