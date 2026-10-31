@@ -1,7 +1,8 @@
 import { GENDERS } from "@clinic/shared";
 import type { FocusEvent, JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, DatePicker, FormField, Icon, Input, PhoneInput, Select } from "@clinic/ui";
+import { Button, DatePicker, FormField, Icon, Input, Select } from "@clinic/ui";
+import { WhatsAppPhoneInput } from "@web/shared/components/whatsapp-phone-input";
 import { todayIso } from "@web/shared/lib/dates";
 import type { PatientDraft, PickedPatient } from "@web/shared/lib/patient-draft";
 import type { FieldErrors } from "@web/shared/lib/form-errors";
@@ -106,7 +107,8 @@ export function NewPatientFields({
           errorKey="errors.validation.invalidPhone"
           required
         >
-          <PhoneInput
+          <WhatsAppPhoneInput
+            check
             id={`${id}-phone`}
             data-testid="new-patient-phone"
             value={draft.phone}

@@ -39,6 +39,8 @@ export const MOVEMENT_ACTIONS: readonly RecordableMovementType[] = [
   MOVEMENT_TYPE.ADJUST,
 ];
 
+export type UsageMovementType = Exclude<RecordableMovementType, typeof MOVEMENT_TYPE.PURCHASE>;
+
 export const UNBATCHED_ROW_KEY = "unbatched";
 
 export type InventoryTab =
@@ -77,9 +79,61 @@ export type RequestFilter = (typeof REQUEST_FILTERS)[number];
 
 export const STOCK_COUNT_PATH = "/inventory/counts";
 
+export const REQUESTS_PATH = "/inventory/requests";
+
+export const COUNT_FILTERS = ["all", "remaining", "differences"] as const;
+
+export type CountFilter = (typeof COUNT_FILTERS)[number];
+
 export const STOCK_DOT: Record<ProgressTone, string> = {
   primary: "bg-primary-600",
   success: "bg-success-600",
   warning: "bg-warning-500",
   danger: "bg-danger-600",
 };
+
+export type PurchaseLineLayout = "invoice" | "priced" | "plain";
+
+const PRICED_LINE_GRID = [
+  "@min-[40rem]:grid-cols-[minmax(6rem,360px)_4rem_4rem_7.5rem_140px_6.5rem_5.75rem]",
+  "@min-[56rem]:grid-cols-[minmax(9rem,360px)_5.5rem_5.5rem_7.5rem_140px_6.5rem_5.75rem]",
+  "@min-[60rem]:grid-cols-[minmax(6rem,360px)_minmax(132px,160px)_5rem_5rem_7.5rem_140px_6.5rem_5.75rem]",
+].join(" ");
+
+export const PURCHASE_LINE_GRID: Record<PurchaseLineLayout, string> = {
+  invoice: PRICED_LINE_GRID,
+  priced: PRICED_LINE_GRID,
+  plain: [
+    "@min-[40rem]:grid-cols-[minmax(8rem,360px)_minmax(132px,160px)_4rem_4rem_5.75rem]",
+    "@min-[56rem]:grid-cols-[minmax(9rem,360px)_minmax(132px,160px)_5.5rem_5.5rem_5.75rem]",
+  ].join(" "),
+};
+
+export const PURCHASE_UNIT_COLUMN: Record<
+  PurchaseLineLayout,
+  { readonly cell: string; readonly column: string }
+> = {
+  invoice: { cell: "@min-[60rem]:contents", column: "hidden @min-[60rem]:block" },
+  priced: { cell: "@min-[60rem]:contents", column: "hidden @min-[60rem]:block" },
+  plain: { cell: "@min-[40rem]:contents", column: "hidden @min-[40rem]:block" },
+};
+
+export const EXPIRY_MIN_DAYS_AHEAD = 2;
+
+export const OPEN_ORDER_WAIT_SECONDS = 10;
+
+export const PURCHASE_MODES = ["receive", "order"] as const;
+
+export type PurchaseMode = (typeof PURCHASE_MODES)[number];
+
+export const MODE_PARAM = "mode";
+
+export const ORDER_PARAM = "order";
+
+export const REQUESTS_TAB_PATH = "/inventory?tab=requests";
+
+export const PICK_PARAM = "pick";
+
+export const RETURN_PARAM = "return";
+
+export const SHOPPING_LIST_PATH = "/inventory/shopping-list";

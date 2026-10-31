@@ -56,12 +56,14 @@ export class DocumentDeliveryService {
     const settings = await this.notifications.settingsFor(input.clinicId);
     const vars = { document: title, clinic: clinic.name };
     const custom = settings.templates[NOTIFICATION_TEMPLATE.DOCUMENT];
-    const caption = renderTemplate(
-      typeof custom === "string" && custom.trim() !== ""
-        ? custom
-        : DEFAULT_NOTIFICATION_TEMPLATES[NOTIFICATION_TEMPLATE.DOCUMENT],
-      vars,
-    );
+    const caption = input.message?.trim()
+      ? input.message.trim()
+      : renderTemplate(
+          typeof custom === "string" && custom.trim() !== ""
+            ? custom
+            : DEFAULT_NOTIFICATION_TEMPLATES[NOTIFICATION_TEMPLATE.DOCUMENT],
+          vars,
+        );
 
     const [row] = await this.db
       .insert(notificationsLog)

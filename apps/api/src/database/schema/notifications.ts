@@ -2,8 +2,20 @@ import {
   NOTIFICATION_CHANNELS,
   NOTIFICATION_STATUSES,
   NOTIFICATION_TEMPLATES,
+  WHATSAPP_STATUS_SOURCES,
+  WHATSAPP_STATUSES,
 } from "@clinic/shared";
-import { index, integer, jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  index,
+  integer,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { appointments } from "@api/database/schema/appointments";
 import { clinics } from "@api/database/schema/core";
 import { patients } from "@api/database/schema/patients";
@@ -55,4 +67,31 @@ export const bookingOtps = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("booking_otps_appointment_idx").on(table.appointmentId)],
+);
+
+export const whatsAppStatusEnum = pgEnum("whatsapp_status", WHATSAPP_STATUSES);
+export const whatsAppStatusSourceEnum = pgEnum("whatsapp_status_source", WHATSAPP_STATUS_SOURCES);
+
+export const whatsAppChecks = pgTable(
+  "whatsapp_checks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    phone: text("phone").notNull(),
+    status: whatsAppStatusEnum("status").notNull().default("unknown"),
+    source: whatsAppStatusSourceEnum("source").notNull().default("otp"),
+    providerMessageId: text("provider_message_id"),
+    codeHash: text("code_hash"),
+    codeExpiresAt: timestamp("code_expires_at", { withTimezone: true }),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    checkedAt: timestamp("checked_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("whatsapp_checks_clinic_phone_uniq").on(table.clinicId, table.phone),
+    uniqueIndex("whatsapp_checks_message_uniq").on(table.providerMessageId),
+  ],
 );

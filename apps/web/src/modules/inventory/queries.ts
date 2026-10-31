@@ -13,6 +13,7 @@ import type {
   CreatePurchaseRequestInput,
   CreateStockCountInput,
   ListPurchaseRequestsQuery,
+  OpenOrderLine,
   PurchaseRequest,
   RecordCountsInput,
   SendPurchaseRequestInput,
@@ -39,7 +40,6 @@ import type {
   ListMovementsQuery,
   ListSuppliersQuery,
   Paginated,
-  PurchaseStockInput,
   ShoppingList,
   StatementRangeQuery,
   StockMovementRow,
@@ -250,10 +250,6 @@ export function useDeleteItem() {
   return useStockMutation((id: string) => inventoryApi.removeItem(id));
 }
 
-export function usePurchaseStock() {
-  return useStockMutation((input: PurchaseStockInput) => inventoryApi.purchase(input));
-}
-
 export function useConsumeStock() {
   return useStockMutation((input: ConsumeStockInput) => inventoryApi.consume(input));
 }
@@ -315,12 +311,22 @@ export function usePurchaseRequest(id: string): UseQueryResult<PurchaseRequest> 
   });
 }
 
-export function useCreatePurchaseRequest() {
-  return useStockMutation((input: CreatePurchaseRequestInput) => purchaseRequestsApi.create(input));
+export function useOpenOrderLines(
+  itemIds: readonly string[],
+  excludeRequestId: string,
+  enabled: boolean,
+): UseQueryResult<OpenOrderLine[]> {
+  const ids = [...new Set(itemIds)].sort();
+
+  return useQuery({
+    queryKey: [PURCHASE_REQUESTS_KEY, "open-lines", ids, excludeRequestId],
+    queryFn: () => purchaseRequestsApi.openLines(ids, excludeRequestId),
+    enabled: enabled && ids.length > 0,
+  });
 }
 
-export function useRequestBelowMinimum() {
-  return useStockMutation(() => purchaseRequestsApi.belowMinimum());
+export function useCreatePurchaseRequest() {
+  return useStockMutation((input: CreatePurchaseRequestInput) => purchaseRequestsApi.create(input));
 }
 
 export function useUpdatePurchaseRequest() {
@@ -377,10 +383,6 @@ export function useRecordCounts() {
 
 export function usePostStockCount() {
   return useStockMutation((id: string) => stockCountsApi.post(id));
-}
-
-export function useCancelStockCount() {
-  return useStockMutation((id: string) => stockCountsApi.cancel(id));
 }
 
 export function usePurchaseReview(): UseQueryResult<PurchaseReviewEntry[]> {

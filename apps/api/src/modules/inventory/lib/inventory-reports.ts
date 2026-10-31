@@ -18,7 +18,10 @@ export function byExpiry(left: InventoryItemRow, right: InventoryItemRow): numbe
   return (left.nearestExpiry ?? "9999-12-31").localeCompare(right.nearestExpiry ?? "9999-12-31");
 }
 
-export function toShoppingLine(item: InventoryItemRow): ShoppingListLine {
+export function toShoppingLine(
+  item: InventoryItemRow,
+  lastPrice: string | null | undefined,
+): ShoppingListLine {
   const target = formatThousandths(toThousandths(item.minQuantity) * 2);
   const suggested = subtractQuantity(target, item.quantity);
 
@@ -30,6 +33,8 @@ export function toShoppingLine(item: InventoryItemRow): ShoppingListLine {
     quantity: item.quantity,
     minQuantity: item.minQuantity,
     suggested: compareQuantity(suggested, "0") > 0 ? suggested : "0",
+    supplierId: item.defaultSupplierId,
     supplierName: item.supplierName,
+    ...(lastPrice !== undefined && { lastPrice }),
   };
 }

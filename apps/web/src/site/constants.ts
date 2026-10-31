@@ -26,6 +26,8 @@ export const ENGLISH_FLAG_COUNTRY: PhoneCountry = "GB";
 
 export const HERO_SLIDE_MS = 6000;
 
+export const HERO_FACES_MAX = 4;
+
 export const SITE_PARAM = {
   LANGUAGE: "lang",
   SPECIALTY: "specialty",

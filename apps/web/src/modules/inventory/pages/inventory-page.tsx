@@ -36,6 +36,7 @@ import {
   seesInventory,
 } from "@web/shared/permissions/inventory";
 import { MovementModal } from "@web/modules/inventory/components/movement-modal";
+import { itemPurchaseLink } from "@web/modules/inventory/lib/purchase-form";
 import {
   WriteOffModal,
   type WriteOffTarget,
@@ -78,9 +79,7 @@ export function InventoryPage(): JSX.Element {
             besideTitleOnMobile: true,
             render: (row) => {
               const receive = (): void =>
-                void navigate(
-                  `/inventory/purchases/new?item=${row.id}${row.defaultSupplierId ? `&supplier=${row.defaultSupplierId}` : ""}`,
-                );
+                void navigate(itemPurchaseLink(row.id, row.defaultSupplierId));
               const writeOff = (): void =>
                 setWritingOff({ itemId: row.id, itemName: row.name, batchNo: null });
 
@@ -179,6 +178,9 @@ export function InventoryPage(): JSX.Element {
   const openCount = counts.data?.find((count) => count.status === STOCK_COUNT_STATUS.OPEN);
 
   const countStock = async (): Promise<void> => {
+    if (startCount.isPending) {
+      return;
+    }
     if (openCount) {
       void navigate(`${STOCK_COUNT_PATH}/${openCount.id}`);
       return;
@@ -200,17 +202,6 @@ export function InventoryPage(): JSX.Element {
         subtitle="inventory.subtitle"
         primaryAction={
           <div className="flex flex-wrap items-center gap-2">
-            {mayCount && (
-              <Button
-                variant="secondary"
-                icon={<Icon name="list" />}
-                data-testid="inventory-count-stock"
-                isLoading={startCount.isPending}
-                onClick={() => void countStock()}
-              >
-                {t(openCount ? "inventory.counts.resume" : "inventory.counts.start")}
-              </Button>
-            )}
             {mayManage && (
               <Button
                 variant="secondary"
@@ -238,6 +229,15 @@ export function InventoryPage(): JSX.Element {
               >
                 {t("inventory.shoppingList.action")}
               </MenuItem>
+              {mayCount && (
+                <MenuItem
+                  icon="list"
+                  data-testid="inventory-count-stock"
+                  onSelect={() => void countStock()}
+                >
+                  {t(openCount ? "inventory.counts.resume" : "inventory.counts.start")}
+                </MenuItem>
+              )}
             </RowMenu>
           </div>
         }

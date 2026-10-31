@@ -35,6 +35,7 @@ export interface SelectProps
   renderValue?: ((option: SelectOption) => ReactNode) | undefined;
   listClassName?: string | undefined;
   searchable?: boolean | undefined;
+  bare?: boolean | undefined;
   onCreate?: ((text: string) => void) | undefined;
 }
 
@@ -57,6 +58,7 @@ function PlainSelect({
   required,
   renderValue,
   listClassName,
+  bare = false,
   "aria-label": ariaLabel,
   "aria-describedby": describedBy,
   "data-testid": testId,
@@ -93,17 +95,19 @@ function PlainSelect({
         aria-required={required || undefined}
         aria-invalid={hasError || undefined}
         className={cn(
-          fieldShell({ hasError, disabled }),
+          bare
+            ? "flex shrink-0 items-center gap-1.5 self-stretch bg-transparent"
+            : fieldShell({ hasError, disabled }),
           "cursor-pointer text-start text-field",
           "focus-visible:outline-none",
-          disabled && "text-ink-faint",
+          disabled && "cursor-not-allowed text-ink-faint",
           className,
         )}
       >
         <span
           {...part("value")}
           className={cn(
-            "min-w-0 flex-1 truncate",
+            "min-w-0 flex-1 truncate [unicode-bidi:plaintext] page-rtl:text-right page-ltr:text-left",
             disabled ? "text-ink-faint" : empty ? "text-ink-subtle" : "text-ink",
           )}
         >
@@ -113,7 +117,7 @@ function PlainSelect({
         </span>
 
         {disabled ? (
-          <FieldLock {...testid(testId, "lock")} />
+          !bare && <FieldLock {...testid(testId, "lock")} />
         ) : (
           <SelectPrimitive.Icon asChild>
             <Icon
@@ -324,7 +328,11 @@ function SearchableSelect({
       >
         <span
           {...part("value")}
-          className={cn("min-w-0 flex-1 truncate", chosen ? "text-ink" : "text-ink-subtle")}
+          title={chosen?.label}
+          className={cn(
+            "min-w-0 flex-1 truncate [unicode-bidi:plaintext] page-rtl:text-right page-ltr:text-left",
+            chosen ? "text-ink" : "text-ink-subtle",
+          )}
         >
           {chosen?.label ?? placeholder}
         </span>
@@ -391,9 +399,9 @@ function SearchableSelect({
                   option.value === value && "font-medium",
                 )}
               >
-                <span className="inline-flex min-w-0 items-center gap-2 truncate">
+                <span className="inline-flex min-w-0 items-center gap-2">
                   {option.icon}
-                  {option.label}
+                  <span className="truncate [unicode-bidi:plaintext]">{option.label}</span>
                 </span>
                 {option.value === value && (
                   <Icon name="check" className="size-4 shrink-0 text-primary-600" />

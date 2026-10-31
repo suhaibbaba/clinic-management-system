@@ -1,5 +1,5 @@
-import { PURCHASE_REQUEST_STATUS, type PurchaseRequest } from "@clinic/shared";
-import { useState, type JSX } from "react";
+import { type PurchaseRequest } from "@clinic/shared";
+import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
@@ -16,41 +16,24 @@ import {
   Table,
   usePageParams,
   useTabParam,
-  useToast,
 } from "@clinic/ui";
-import { errorToast } from "@web/shared/lib/api-error";
 import { formatDate } from "@web/shared/lib/format";
 import { useSession } from "@web/shared/providers/session";
+import { canRequestPurchase } from "@web/shared/permissions/inventory";
+import { usePurchaseRequests } from "@web/modules/inventory/queries";
 import {
-  canManagePurchaseRequest,
-  canPostPurchase,
-  canRequestPurchase,
-  canSeeCosts,
-  canSendPurchaseRequest,
-} from "@web/shared/permissions/inventory";
-import {
-  useCloseRequest,
-  usePurchaseRequests,
-  useRequestBelowMinimum,
-} from "@web/modules/inventory/queries";
-import {
+  MODE_PARAM,
+  REQUESTS_PATH,
   REQUEST_FILTERS,
   REQUEST_STATUS_TONES,
+  SHOPPING_LIST_PATH,
   type RequestFilter,
 } from "@web/modules/inventory/constants";
-import { RequestFormModal } from "@web/modules/inventory/components/request-form-modal";
-import { SendRequestModal } from "@web/modules/inventory/components/send-request-modal";
-import { CancelRequestModal } from "@web/modules/inventory/components/cancel-request-modal";
+import { useRequestActions } from "@web/modules/inventory/hooks/use-request-actions";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
-
-const isOpen = (request: PurchaseRequest): boolean =>
-  request.status === PURCHASE_REQUEST_STATUS.REQUESTED ||
-  request.status === PURCHASE_REQUEST_STATUS.ORDERED ||
-  request.status === PURCHASE_REQUEST_STATUS.PARTLY_RECEIVED;
 
 export function RequestsPage(): JSX.Element {
   const { t } = useTranslation();
-  const toast = useToast();
   const navigate = useNavigate();
   const { can } = useSession();
   const { page, perPage, setPage, setPerPage, resetPage } = usePageParams();
@@ -62,35 +45,8 @@ export function RequestsPage(): JSX.Element {
     limit: perPage,
     ...(filter !== "all" && { status: filter }),
   });
-  const belowMinimum = useRequestBelowMinimum();
-  const close = useCloseRequest();
-  const [editing, setEditing] = useState<PurchaseRequest | null>(null);
-  const [creating, setCreating] = useState(false);
-  const [sending, setSending] = useState<PurchaseRequest | null>(null);
-  const [cancelling, setCancelling] = useState<string | null>(null);
-
+  const { actionsFor, dialogs } = useRequestActions();
   const mayRequest = canRequestPurchase(can);
-  const maySend = canSendPurchaseRequest(can);
-  const mayManage = canManagePurchaseRequest(can);
-  const mayReceive = canPostPurchase(can);
-
-  const requestBelowMinimum = async (): Promise<void> => {
-    try {
-      const created = await belowMinimum.mutateAsync();
-      toast.success("inventory.requests.fromMinimum", { count: created.length });
-    } catch (error) {
-      toast.error(...errorToast(error));
-    }
-  };
-
-  const closeRemainder = async (id: string): Promise<void> => {
-    try {
-      await close.mutateAsync(id);
-      toast.success("inventory.requests.closed");
-    } catch (error) {
-      toast.error(...errorToast(error));
-    }
-  };
 
   const columns: readonly Column<PurchaseRequest>[] = [
     {
@@ -139,49 +95,25 @@ export function RequestsPage(): JSX.Element {
       key: "actions",
       header: "common.actions",
       actions: true,
-      render: (row) =>
-        isOpen(row) && (maySend || mayReceive || mayManage || mayRequest) ? (
+      render: (row) => {
+        const actions = actionsFor(row);
+
+        return actions.length > 0 ? (
           <RowMenu label={t("inventory.requests.menu")} data-testid="request-actions">
-            {mayReceive && (
+            {actions.map((action) => (
               <MenuItem
-                icon="package"
-                data-testid="request-receive"
-                onSelect={() => void navigate(`/inventory/purchases/new?request=${row.id}`)}
+                key={action.key}
+                icon={action.icon}
+                {...(action.danger && { tone: "danger" as const })}
+                data-testid={`request-${action.key}`}
+                onSelect={action.run}
               >
-                {t("inventory.requests.receive")}
+                {t(action.label)}
               </MenuItem>
-            )}
-            {maySend && row.supplierId && (
-              <MenuItem icon="whatsapp" data-testid="request-send" onSelect={() => setSending(row)}>
-                {t(row.sentAt ? "inventory.requests.sendUpdate" : "inventory.requests.send")}
-              </MenuItem>
-            )}
-            {mayRequest && row.status !== PURCHASE_REQUEST_STATUS.PARTLY_RECEIVED && (
-              <MenuItem icon="edit" data-testid="request-edit" onSelect={() => setEditing(row)}>
-                {t("common.edit")}
-              </MenuItem>
-            )}
-            {mayManage && row.status === PURCHASE_REQUEST_STATUS.PARTLY_RECEIVED && (
-              <MenuItem
-                icon="check"
-                data-testid="request-close"
-                onSelect={() => void closeRemainder(row.id)}
-              >
-                {t("inventory.requests.closeRemainder")}
-              </MenuItem>
-            )}
-            {mayManage && (
-              <MenuItem
-                icon="x"
-                tone="danger"
-                data-testid="request-cancel"
-                onSelect={() => setCancelling(row.id)}
-              >
-                {t("inventory.requests.cancel")}
-              </MenuItem>
-            )}
+            ))}
           </RowMenu>
-        ) : null,
+        ) : null;
+      },
     },
   ];
 
@@ -196,19 +128,20 @@ export function RequestsPage(): JSX.Element {
         primaryAction={
           mayRequest ? (
             <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="secondary"
-                icon={<Icon name="alert" />}
-                data-testid="requests-below-minimum"
-                isLoading={belowMinimum.isPending}
-                onClick={() => void requestBelowMinimum()}
-              >
-                {t("inventory.requests.belowMinimum")}
-              </Button>
+              {can("inventory.shoppingList") && (
+                <Button
+                  variant="secondary"
+                  icon={<Icon name="clipboard" />}
+                  data-testid="requests-shopping-list"
+                  onClick={() => void navigate(SHOPPING_LIST_PATH)}
+                >
+                  {t("inventory.shoppingList.action")}
+                </Button>
+              )}
               <Button
                 icon={<Icon name="plus" />}
                 data-testid="requests-new"
-                onClick={() => setCreating(true)}
+                onClick={() => void navigate(`/inventory/purchases/new?${MODE_PARAM}=order`)}
               >
                 {t("inventory.requests.new")}
               </Button>
@@ -238,6 +171,7 @@ export function RequestsPage(): JSX.Element {
         columns={columns}
         rows={data?.items ?? []}
         rowKey={(row) => row.id}
+        onRowClick={(row) => void navigate(`${REQUESTS_PATH}/${row.id}`)}
         isLoading={requests.isPending}
         isRefreshing={isRefetching(requests)}
         pagination={{
@@ -257,20 +191,7 @@ export function RequestsPage(): JSX.Element {
         }
       />
 
-      <RequestFormModal
-        open={creating || editing !== null}
-        request={editing}
-        onClose={() => {
-          setCreating(false);
-          setEditing(null);
-        }}
-      />
-      <SendRequestModal
-        request={sending}
-        mayShowPrices={canSeeCosts(can)}
-        onClose={() => setSending(null)}
-      />
-      <CancelRequestModal requestId={cancelling} onClose={() => setCancelling(null)} />
+      {dialogs}
     </div>
   );
 }

@@ -13,7 +13,7 @@ import { NotificationsService } from "@api/modules/notifications/services/notifi
 import { RemindersScheduler } from "@api/modules/notifications/services/reminders.scheduler";
 import type { SendNotification } from "@api/modules/notifications/lib/notifications";
 import { and, eq, sql } from "drizzle-orm";
-import { hashCode } from "@api/modules/booking/lib/booking";
+import { hashCode } from "@api/common/lib/codes";
 import {
   appointments,
   bookingOtps,

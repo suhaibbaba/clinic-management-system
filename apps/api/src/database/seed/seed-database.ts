@@ -890,10 +890,10 @@ async function writeLabs(
   return { labs: labRows.length, labOrders: orders.length, labPayments: paymentValues.length };
 }
 
-async function writeInventory(
+export async function writeInventory(
   db: Database,
-  ctx: WriteContext,
-  procedures: readonly ProcedureRecord[],
+  ctx: Pick<WriteContext, "clinicId" | "actorId" | "audit" | "rng" | "now" | "today">,
+  procedures: readonly Pick<ProcedureRecord, "id" | "patientId" | "performedAt">[],
 ): Promise<SeedCounts> {
   const supplierRows = await db
     .insert(suppliers)

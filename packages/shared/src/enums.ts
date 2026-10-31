@@ -1069,7 +1069,11 @@ export const RECEIPT_KIND = {
   RETURN: "return",
 } as const satisfies Record<string, string>;
 export type ReceiptKind = EnumValue<typeof RECEIPT_KIND>;
-export const RECEIPT_KINDS = [RECEIPT_KIND.RECEIPT, RECEIPT_KIND.OPENING, RECEIPT_KIND.RETURN] as const;
+export const RECEIPT_KINDS = [
+  RECEIPT_KIND.RECEIPT,
+  RECEIPT_KIND.OPENING,
+  RECEIPT_KIND.RETURN,
+] as const;
 
 export const SUPPLIER_DOCUMENT_KIND = {
   INVOICE: "invoice",
@@ -1137,6 +1141,7 @@ export const PAYMENT_DIRECTIONS = [PAYMENT_DIRECTION.PAID, PAYMENT_DIRECTION.REF
 export const PURCHASE_ERROR = {
   CLOSED_MONTH: "purchase_closed_month",
   FUTURE_DATE: "purchase_future_date",
+  TOO_OLD: "purchase_too_old",
   BACKDATE_NOT_ALLOWED: "purchase_backdate_not_allowed",
   DUPLICATE_REFERENCE: "purchase_duplicate_reference",
   ALREADY_INVOICED: "purchase_already_invoiced",
@@ -1149,6 +1154,8 @@ export const PURCHASE_ERROR = {
 } as const satisfies Record<string, string>;
 
 export const PURCHASE_BACKDATE_DAYS = 7;
+
+export const PURCHASE_MAX_BACKDATE_DAYS = 30;
 
 export const STOCK_ERROR = {
   INSUFFICIENT: "insufficient_stock",
@@ -1251,3 +1258,39 @@ export const PAYROLL_ERROR = {
   NOT_ON_PERCENTAGE: "payroll_not_on_percentage",
   PAST_MONTH: "payroll_past_month",
 } as const;
+
+export const WHATSAPP_STATUS = {
+  UNKNOWN: "unknown",
+  AVAILABLE: "available",
+  UNAVAILABLE: "unavailable",
+  ERROR: "error",
+} as const satisfies Record<string, string>;
+
+export type WhatsAppStatus = EnumValue<typeof WHATSAPP_STATUS>;
+
+export const WHATSAPP_STATUSES = [
+  WHATSAPP_STATUS.UNKNOWN,
+  WHATSAPP_STATUS.AVAILABLE,
+  WHATSAPP_STATUS.UNAVAILABLE,
+  WHATSAPP_STATUS.ERROR,
+] as const;
+
+export const WHATSAPP_STATUS_SOURCE = {
+  OTP: "otp",
+  NOTIFICATION: "notification",
+  INBOUND: "inbound",
+  MANUAL: "manual",
+} as const satisfies Record<string, string>;
+export type WhatsAppStatusSource = EnumValue<typeof WHATSAPP_STATUS_SOURCE>;
+
+export const WHATSAPP_STATUS_SOURCES = [
+  WHATSAPP_STATUS_SOURCE.OTP,
+  WHATSAPP_STATUS_SOURCE.NOTIFICATION,
+  WHATSAPP_STATUS_SOURCE.INBOUND,
+  WHATSAPP_STATUS_SOURCE.MANUAL,
+] as const;
+
+export const WHATSAPP_CHECK_ERROR = {
+  NOT_MOBILE: "whatsapp_not_mobile",
+  UNAVAILABLE: "whatsapp_unavailable",
+} as const satisfies Record<string, string>;

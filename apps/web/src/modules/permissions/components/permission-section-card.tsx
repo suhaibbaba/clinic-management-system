@@ -45,7 +45,6 @@ export function PermissionSectionCard({
         className={cn(
           "flex w-full cursor-pointer items-start gap-3 px-5 py-4 text-start",
           "transition-colors hover:bg-inset",
-          "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-600",
         )}
       >
         <Icon

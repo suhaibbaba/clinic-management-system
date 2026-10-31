@@ -23,7 +23,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { clinics, users } from "@api/database/schema/core";
+import { clinics, doctors, users } from "@api/database/schema/core";
 import { normalizedName } from "@api/database/schema/normalized-name";
 import { patients, performedProcedures } from "@api/database/schema/patients";
 
@@ -127,6 +127,7 @@ export const stockMovements = pgTable(
     batchNo: text("batch_no"),
     supplierId: uuid("supplier_id").references(() => suppliers.id),
     patientId: uuid("patient_id").references(() => patients.id),
+    doctorId: uuid("doctor_id").references(() => doctors.id),
     performedProcedureId: uuid("performed_procedure_id").references(() => performedProcedures.id),
     reason: text("reason"),
     reversesId: uuid("reverses_id"),
@@ -359,10 +360,7 @@ export const supplierAllocations = pgTable(
     index("supplier_allocations_payment_idx").on(table.paymentId),
     index("supplier_allocations_invoice_idx").on(table.invoiceId),
     index("supplier_allocations_credit_idx").on(table.creditId),
-    check(
-      "supplier_allocations_one_source",
-      sql`(payment_id is null) <> (credit_id is null)`,
-    ),
+    check("supplier_allocations_one_source", sql`(payment_id is null) <> (credit_id is null)`),
   ],
 );
 
@@ -454,6 +452,25 @@ export const purchaseRequestLines = pgTable(
   (table) => [index("purchase_request_lines_request_idx").on(table.requestId)],
 );
 
+export const purchaseRequestSends = pgTable(
+  "purchase_request_sends",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => purchaseRequests.id),
+    sentTo: text("sent_to"),
+    withPrices: boolean("with_prices").notNull().default(false),
+    message: text("message"),
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+    sentBy: uuid("sent_by"),
+  },
+  (table) => [index("purchase_request_sends_request_idx").on(table.requestId, table.sentAt)],
+);
+
 export const stockCounts = pgTable(
   "stock_counts",
   {
@@ -492,6 +509,8 @@ export const stockCountLines = pgTable(
       .references(() => inventoryItems.id),
     expected: quantity("expected").notNull(),
     counted: quantity("counted"),
+    unitPrice: money("unit_price"),
+    expiryDate: date("expiry_date"),
     movementId: uuid("movement_id").references(() => stockMovements.id),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     updatedBy: uuid("updated_by"),

@@ -205,7 +205,7 @@ describe("Purchasing documents (e2e)", () => {
       expect(await owed(supplierId)).toBe("20.00");
     });
 
-    it("guards the date: never future, backdating needs the manager, closed months never", async () => {
+    it("guards the date: never future, never past 30 days, backdating needs the manager, closed months never", async () => {
       const supplierId = await newSupplier();
       const itemId = await newItem();
       const body = (date: string) => ({
@@ -223,11 +223,19 @@ describe("Purchasing documents (e2e)", () => {
         (await send("POST", "/purchases", body(addDays(today, -10)), USER_ROLE.ADMIN)).statusCode,
       ).toBe(201);
 
-      const lastMonth = `${addDays(`${today.slice(0, 7)}-01`, -1).slice(0, 7)}-01`;
+      const tooOld = await send("POST", "/purchases", body(addDays(today, -31)), USER_ROLE.ADMIN);
+      expect(tooOld.statusCode).toBe(400);
+      expect(tooOld.json().message).toBe(PURCHASE_ERROR.TOO_OLD);
+      expect(
+        (await send("POST", "/purchases", body(addDays(today, -30)), USER_ROLE.ADMIN)).statusCode,
+      ).toBe(201);
+
+      const lastMonth = `${addDays(`${today.slice(0, 7)}-01`, -40).slice(0, 7)}-01`;
+      const closedDay = addDays(lastMonth, 3);
       await context.db
         .insert(payrollMonths)
         .values({ clinicId: clinic.id, month: lastMonth, lines: [] });
-      const closed = await send("POST", "/purchases", body(addDays(lastMonth, 3)), USER_ROLE.ADMIN);
+      const closed = await send("POST", "/purchases", body(closedDay), USER_ROLE.ADMIN);
       expect(closed.statusCode).toBe(409);
       expect(closed.json().message).toBe(PURCHASE_ERROR.CLOSED_MONTH);
       await context.db

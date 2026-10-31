@@ -20,8 +20,10 @@
 }
 
 html {
+  --site-sticky-top: 5rem;
+
   scroll-behavior: smooth;
-  scroll-padding-top: 5rem;
+  scroll-padding-top: var(--site-sticky-top);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -175,25 +177,49 @@ html {
   border-end-start-radius: 34% 50%;
 }
 
+@utility site-hero-arc {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H85C96 22 100 46 96 66C93 82 87 93 81 100H0Z'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+
+  [dir="ltr"] & {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M100 0H15C4 22 0 46 4 66C7 82 13 93 19 100H100Z'/%3E%3C/svg%3E");
+  }
+}
+
+@utility site-lobe-arc {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H74C84 8 92 24 93 42C94 62 86 84 66 100H0Z'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+
+  [dir="ltr"] & {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M100 0H26C16 8 8 24 7 42C6 62 14 84 34 100H100Z'/%3E%3C/svg%3E");
+  }
+}
+
 @utility site-hero-wash {
   background-image:
     radial-gradient(700px 380px at 0% 0%, var(--color-primary-100), transparent 70%),
     linear-gradient(180deg, var(--color-primary-50), var(--color-surface));
 }
 
-@utility site-band-wash {
-  background-image:
-    radial-gradient(
-      520px 260px at 0% 100%,
-      color-mix(in oklab, var(--color-primary-500) 45%, transparent),
-      transparent 70%
-    ),
-    linear-gradient(
-      110deg,
-      var(--color-primary-900),
-      var(--color-primary-800) 55%,
-      var(--color-primary-700)
-    );
+@utility site-wave-bottom {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V82C84 94 66 100 46 93C30 87 14 84 0 90Z'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+}
+
+@utility site-band-photo {
+  mask-image:
+    linear-gradient(to bottom, black 70%, transparent),
+    linear-gradient(to left, black 55%, transparent 90%);
+  mask-composite: intersect;
+
+  [dir="ltr"] & {
+    mask-image:
+      linear-gradient(to bottom, black 70%, transparent),
+      linear-gradient(to right, black 55%, transparent 90%);
+  }
 }
 
 @keyframes site-marquee {

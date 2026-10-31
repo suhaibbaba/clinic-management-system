@@ -1,9 +1,7 @@
 import type { JSX } from "react";
 import { Carousel } from "@web/site/components/carousel";
 import { PageHero } from "@web/site/components/page-hero";
-import { Promo } from "@web/site/components/promo";
 import { ServiceCard } from "@web/site/components/service-card";
-import { useBookable } from "@web/site/hooks/use-bookable";
 import { useSite } from "@web/site/hooks/use-site";
 import { imageOf } from "@web/site/lib/images";
 import { orDefault, pick } from "@web/site/lib/text";
@@ -11,7 +9,6 @@ import { orDefault, pick } from "@web/site/lib/text";
 export function ServicesPage(): JSX.Element {
   const { site, language, t } = useSite();
   const { services } = site.content;
-  const bookable = useBookable();
 
   return (
     <>
@@ -32,14 +29,6 @@ export function ServicesPage(): JSX.Element {
             <ServiceCard key={service.id} service={service} />
           ))}
         </Carousel>
-        {bookable && (
-          <Promo
-            testId="site-services-promo"
-            title={orDefault(services.promo.title, language, t("services.promo"))}
-            image={imageOf(site, services.promo.image)}
-            cta={t("services.promoCta")}
-          />
-        )}
       </div>
     </>
   );

@@ -140,6 +140,7 @@ export const stockMovementSchema = z.object({
   batchNo: z.string().nullable(),
   supplierId: uuidSchema.nullable(),
   patientId: uuidSchema.nullable(),
+  doctorId: uuidSchema.nullable(),
   performedProcedureId: uuidSchema.nullable(),
   reason: z.string().nullable(),
   reversesId: uuidSchema.nullable(),
@@ -152,6 +153,7 @@ export type StockMovement = z.infer<typeof stockMovementSchema>;
 export const stockMovementRowSchema = stockMovementSchema.extend({
   supplierName: z.string().nullable(),
   patientName: z.string().nullable(),
+  doctorName: personNameSchema.nullable(),
   procedureName: z.string().nullable(),
   createdByName: personNameSchema.nullable(),
   runningQuantity: signedQuantitySchema,
@@ -187,6 +189,7 @@ export const consumeStockSchema = z.object({
   itemId: uuidSchema,
   quantity: quantitySchema.refine((value) => Number(value) > 0, "A consumption must be positive"),
   patientId: uuidSchema.nullish(),
+  doctorId: uuidSchema.nullish(),
   performedProcedureId: uuidSchema.nullish(),
   batchNo: z.string().trim().max(64).nullish(),
   reason: z.string().trim().max(500).nullish(),
@@ -262,7 +265,9 @@ export const shoppingListLineSchema = z.object({
   quantity: signedQuantitySchema,
   minQuantity: quantitySchema,
   suggested: quantitySchema,
+  supplierId: uuidSchema.nullable(),
   supplierName: z.string().nullable(),
+  lastPrice: moneySchema.nullable().optional(),
 });
 export type ShoppingListLine = z.infer<typeof shoppingListLineSchema>;
 
@@ -636,6 +641,7 @@ export type RequestBelowMinimumInput = z.infer<typeof requestBelowMinimumSchema>
 export const sendPurchaseRequestSchema = z.object({
   to: phoneSchema.optional(),
   withPrices: z.boolean().optional(),
+  message: z.string().trim().max(1000).optional(),
 });
 export type SendPurchaseRequestInput = z.infer<typeof sendPurchaseRequestSchema>;
 
@@ -650,6 +656,15 @@ export const listPurchaseRequestsQuerySchema = paginationQuerySchema.extend({
 });
 export type ListPurchaseRequestsQuery = z.infer<typeof listPurchaseRequestsQuerySchema>;
 
+export const openOrderLinesQuerySchema = z.object({
+  itemIds: z.preprocess(
+    (value) => (typeof value === "string" ? value.split(",").filter(Boolean) : value),
+    z.array(uuidSchema).min(1).max(200),
+  ),
+  excludeRequestId: uuidSchema.optional(),
+});
+export type OpenOrderLinesQuery = z.infer<typeof openOrderLinesQuerySchema>;
+
 export const purchaseRequestLineSchema = z.object({
   id: uuidSchema,
   itemId: uuidSchema,
@@ -662,6 +677,14 @@ export const purchaseRequestLineSchema = z.object({
   lastPrice: moneySchema.nullable().optional(),
 });
 export type PurchaseRequestLine = z.infer<typeof purchaseRequestLineSchema>;
+
+export const purchaseRequestSendSchema = z.object({
+  id: uuidSchema,
+  sentAt: z.iso.datetime(),
+  sentTo: z.string().nullable(),
+  sentByName: personNameSchema.nullable(),
+});
+export type PurchaseRequestSend = z.infer<typeof purchaseRequestSendSchema>;
 
 export const purchaseRequestSchema = z.object({
   id: uuidSchema,
@@ -678,8 +701,23 @@ export const purchaseRequestSchema = z.object({
   createdByName: personNameSchema.nullable(),
   createdAt: z.iso.datetime(),
   lines: z.array(purchaseRequestLineSchema),
+  sends: z.array(purchaseRequestSendSchema),
 });
 export type PurchaseRequest = z.infer<typeof purchaseRequestSchema>;
+
+export const openOrderLineSchema = z.object({
+  itemId: uuidSchema,
+  requestId: uuidSchema,
+  number: z.string(),
+  status: z.enum(PURCHASE_REQUEST_STATUSES),
+  supplierName: z.string().nullable(),
+  createdByName: personNameSchema.nullable(),
+  createdAt: z.iso.datetime(),
+  unit: lookupCodeSchema,
+  quantity: quantitySchema,
+  open: quantitySchema,
+});
+export type OpenOrderLine = z.infer<typeof openOrderLineSchema>;
 
 export const createStockCountSchema = z.object({
   itemIds: z.array(uuidSchema).max(1000).optional(),
@@ -689,7 +727,14 @@ export type CreateStockCountInput = z.infer<typeof createStockCountSchema>;
 
 export const recordCountsSchema = z.object({
   lines: z
-    .array(z.object({ itemId: uuidSchema, counted: quantitySchema.nullable() }))
+    .array(
+      z.object({
+        itemId: uuidSchema,
+        counted: quantitySchema.nullable(),
+        unitPrice: moneySchema.nullable().optional(),
+        expiryDate: isoDateSchema.nullable().optional(),
+      }),
+    )
     .min(1)
     .max(1000),
 });
@@ -703,6 +748,8 @@ export const stockCountLineSchema = z.object({
   current: signedQuantitySchema,
   counted: quantitySchema.nullable(),
   difference: signedQuantitySchema.nullable(),
+  unitPrice: moneySchema.nullable().optional(),
+  expiryDate: isoDateSchema.nullable(),
   value: signedMoneySchema.nullable().optional(),
 });
 export type StockCountLine = z.infer<typeof stockCountLineSchema>;

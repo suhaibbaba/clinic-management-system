@@ -3,6 +3,7 @@ import type { JSX, ReactNode } from "react";
 import type { FieldError } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@ui/components/icon";
+import { InfoTip } from "@ui/components/info-tip";
 import { cn } from "@ui/lib/cn";
 import { validationMessageKey } from "@ui/lib/validation-message";
 import { parts, type TestIdProps } from "@ui/lib/testid";
@@ -14,6 +15,8 @@ export interface FormFieldProps extends TestIdProps {
   errorKey?: string | undefined;
   hint?: string | undefined;
   hintValues?: Record<string, string | number> | undefined;
+  note?: string | undefined;
+  noteValues?: Record<string, string | number> | undefined;
   optional?: boolean | undefined;
   required?: boolean | undefined;
   children: ReactNode;
@@ -26,6 +29,8 @@ export function FormField({
   errorKey,
   hint,
   hintValues,
+  note,
+  noteValues,
   optional = false,
   required = false,
   children,
@@ -40,29 +45,36 @@ export function FormField({
 
   return (
     <div {...part()} className="flex flex-col gap-1.5">
-      <Label
-        htmlFor={htmlFor}
-        {...part("label")}
-        className="cursor-pointer text-label font-medium text-ink"
-      >
-        {t(label)}
-        {required && (
-          <span {...part("required")} aria-hidden="true" className="ms-1 text-danger-600">
-            *
-          </span>
+      <div className="flex items-center gap-1">
+        <Label
+          htmlFor={htmlFor}
+          {...part("label")}
+          className="cursor-pointer text-label font-medium text-ink"
+        >
+          {t(label)}
+          {required && (
+            <span {...part("required")} aria-hidden="true" className="ms-1 text-danger-600">
+              *
+            </span>
+          )}
+          {optional && (
+            <span {...part("optional")} className="ms-1 text-label text-ink-subtle">
+              ({t("common.optional")})
+            </span>
+          )}
+        </Label>
+        {hint !== undefined && (
+          <InfoTip {...part("hint")} label={t("common.moreInfo")}>
+            {t(hint, hintValues ?? {})}
+          </InfoTip>
         )}
-        {optional && (
-          <span {...part("optional")} className="ms-1 text-label text-ink-subtle">
-            ({t("common.optional")})
-          </span>
-        )}
-      </Label>
+      </div>
 
       {children}
 
-      {hint !== undefined && !messageKey && (
-        <p {...part("hint")} className="text-label text-ink-muted">
-          {t(hint, hintValues ?? {})}
+      {note !== undefined && !messageKey && (
+        <p {...part("note")} className="text-label text-ink-muted">
+          {t(note, noteValues ?? {})}
         </p>
       )}
 

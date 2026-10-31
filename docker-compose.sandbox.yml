@@ -46,7 +46,7 @@ services:
   # S3-compatible storage for X-rays and documents. Only the S3 API port is
   # published; the MinIO console has no host port and is not exposed publicly.
   minio:
-    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
     restart: unless-stopped
     command: ["server", "/data", "--console-address", ":9001"]
     environment:
@@ -72,7 +72,7 @@ services:
   # MinIO over the internal network rather than the public hostname, so a
   # deploy works before DNS or the nginx block is in place.
   createbuckets:
-    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
+    image: pgsty/mc:RELEASE.2026-08-04T00-00-00Z
     env_file: .env
     depends_on:
       minio:

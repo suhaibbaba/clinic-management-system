@@ -4,6 +4,7 @@ import {
   FIELD_TEXT,
   FIELD_TEXT_OVERLAID,
   FieldClear,
+  FieldDivider,
   FieldIcon,
   FieldLock,
   FieldText,
@@ -18,6 +19,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement>, TestI
   adornment?: IconName | undefined;
   onClear?: (() => void) | undefined;
   clearLabel?: string | undefined;
+  leading?: ReactNode | undefined;
   suffix?: ReactNode | undefined;
   "data-part"?: string | undefined;
 }
@@ -29,6 +31,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     adornment,
     onClear,
     clearLabel,
+    leading,
     suffix,
     "data-part": part = "input",
     "data-testid": testId,
@@ -54,6 +57,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           {...testid(testId, "icon")}
         />
       )}
+      {adornment !== undefined && <FieldDivider />}
+
+      {leading}
+      {leading !== undefined && <FieldDivider />}
 
       <FieldText placeholder={props.placeholder} dir={props.dir}>
         <input
@@ -88,6 +95,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         <FieldClear label={clearLabel} onClear={onClear} {...testid(testId, "clear")} />
       )}
 
+      {suffix !== undefined && <FieldDivider />}
       {suffix !== undefined && (
         <span
           data-part="input-suffix"

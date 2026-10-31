@@ -23,6 +23,7 @@
     "all": "الكل",
     "none": "لا يوجد",
     "optional": "اختياري",
+    "moreInfo": "مزيد من المعلومات",
     "delete": "حذف",
     "placeholders": {
       "identifier": "05XXXXXXXX",
@@ -669,6 +670,7 @@
     "purchase": {
       "closedMonth": "هذا الشهر مُغلق؛ اختر تاريخاً في شهر مفتوح",
       "futureDate": "لا يمكن أن يكون التاريخ في المستقبل",
+      "tooOld": "لا يمكن أن يكون التاريخ أقدم من 30 يوماً",
       "backdateNotAllowed": "التأريخ لأكثر من 7 أيام للمدير فقط",
       "duplicateReference": "رقم فاتورة المورّد هذا مسجّل مسبقاً",
       "alreadyInvoiced": "هذه الأصناف مُدرجة في فاتورة مسبقاً",
@@ -689,7 +691,7 @@
     "stockCount": {
       "alreadyOpen": "يوجد جرد قيد التنفيذ",
       "notOpen": "هذا الجرد مُرحّل أو ملغى",
-      "incomplete": "عُدّ كل المواد قبل الترحيل"
+      "incomplete": "عُدّ مادة واحدة على الأقل قبل الترحيل"
     }
   },
   "patients": {
@@ -1527,6 +1529,7 @@
       "reverseTitle": "إلغاء الحركة بقيد عكسي",
       "reverseDescription": "تبقى الحركة الأصلية كما هي ويُسجَّل قيد معاكس لها.",
       "batch": "التشغيلة {{batch}}",
+      "doctor": "د. {{name}}",
       "unitPrice": "{{price}} للوحدة",
       "after": "الرصيد بعدها",
       "menu": "خيارات الحركة",
@@ -1581,6 +1584,8 @@
       "batchNo": "رقم التشغيلة",
       "expiry": "تاريخ الانتهاء",
       "patient": "المريض",
+      "doctor": "الطبيب",
+      "selectDoctor": "اختر الطبيب",
       "note": "ملاحظة",
       "reason": "السبب",
       "reasonHint": "يبقى السبب في السجل — وهو التفسير الوحيد لهذا التصحيح",
@@ -1601,45 +1606,49 @@
         "adjust": "تصحيح الكمية"
       },
       "title": {
-        "purchase": "شراء — {{item}}",
         "consume": "استهلاك — {{item}}",
         "adjust": "تصحيح الكمية — {{item}}"
       },
       "description": {
-        "purchase": "تُضاف الكمية إلى المتوفر، ويظهر السعر في كشف حساب المورّد.",
         "consume": "تُخصم الكمية من المتوفر. ربط المريض يضعها في ملفه.",
         "adjust": "عندما لا تطابق الكمية المتوفرة ما في الرف: فرق في الجرد أو كسر أو إتلاف مادة منتهية الصلاحية. السبب إلزامي ويُحفظ في السجل."
       },
       "submit": {
-        "purchase": "تسجيل الشراء",
         "consume": "تسجيل الاستهلاك",
         "adjust": "تسجيل التصحيح"
       },
       "recorded": {
-        "purchase": "تم تسجيل الشراء",
         "consume": "تم تسجيل الاستهلاك",
         "adjust": "تم تسجيل التصحيح"
       },
-      "restock": "إضافة كمية للمخزون (شراء)",
-      "backToUse": "رجوع إلى الاستهلاك",
       "overStock": "الكمية أكبر من المتوفّر في المخزون",
       "atLeastOne": "لا تقل الكمية المخصومة عن 1",
-      "purchaseTotal": "إجمالي الشراء",
       "paidNow": "المدفوع الآن",
       "paymentMethod": "طريقة الدفع",
-      "leftToPay": "يبقى للمورّد",
       "paidTooMuch": "المدفوع أكبر من إجمالي الشراء"
     },
     "shoppingList": {
       "title": "قائمة المشتريات",
       "subtitle": "ما نزل تحت حده الأدنى، والكمية المقترحة",
       "action": "قائمة المشتريات",
-      "print": "طباعة القائمة",
+      "print": "طباعة",
       "current": "المتوفر",
       "suggested": "المقترح",
       "empty": "لا شيء تحت الحد الأدنى",
       "emptyHint": "كل المواد ضمن حدودها — لا حاجة للشراء الآن",
-      "note": "الكمية المقترحة = ضعف الحد الأدنى ناقص المتوفر؛ للاسترشاد فقط"
+      "note": "الكمية المقترحة = ضعف الحد الأدنى ناقص المتوفر؛ للاسترشاد فقط",
+      "lastPrice": "آخر سعر",
+      "pickAll": "تحديد الكل",
+      "buy": "شراء المحدد",
+      "picked_zero": "لم يُحدد شيء",
+      "picked_one": "صنف واحد محدد",
+      "picked_two": "صنفان محددان",
+      "picked_few": "{{count}} أصناف محددة",
+      "picked_many": "{{count}} صنفاً محدداً",
+      "picked_other": "{{count}} صنف محدد",
+      "splitTitle": "الأصناف من أكثر من مورّد",
+      "splitDescription": "كل شراء لمورّد واحد. اشترِ من كل مورّد على حدة؛ تبقى بقية الأصناف محددة حين تعود.",
+      "buyGroup": "شراء"
     },
     "suppliers": {
       "title": "المورّدون",
@@ -1730,16 +1739,13 @@
       "amount": "مبلغ",
       "discountKind": "نوع الخصم",
       "charges": "التوصيل ومصاريف أخرى",
-      "confirmInvoice": "ترحيل فاتورة الشراء بقيمة {{total}}؟",
-      "confirmReceipt": "استلام {{lines}} أصناف إلى المخزون؟",
       "consequenceOwed": "يُضاف مجموع الفاتورة إلى ما على العيادة للمورّد.",
       "consequenceStock": "تُضاف الكميات إلى المخزون.",
       "date": "تاريخ الشراء",
       "free": "كمية مجانية",
       "gift": "هدية — بدون مقابل",
       "invoiceDiscount": "خصم الفاتورة",
-      "lineCost": "تكلفة الوحدة",
-      "lineDiscount": "خصم السطر",
+      "lineDiscount": "خصم",
       "noSupplier": "بدون مورّد",
       "postInvoice": "ترحيل الفاتورة",
       "postReceipt": "استلام إلى المخزون",
@@ -1749,7 +1755,46 @@
       "taxAmount": "مبلغ الضريبة",
       "taxRate": "نسبة الضريبة %",
       "total": "الإجمالي",
-      "withInvoice": "أعطى المورّد فاتورة"
+      "withInvoice": "أعطى المورّد فاتورة",
+      "giftShort": "هدية",
+      "lineTotal": "التكلفة",
+      "lineDetails": "التشغيلة والانتهاء",
+      "lines": "الأصناف",
+      "remaining": "يبقى للمورّد",
+      "batchPlaceholder": "مثال: L-2231",
+      "refPlaceholder": "مثال: INV-1024",
+      "modeLabel": "ماذا تريد",
+      "mode": {
+        "receive": "استلمت البضاعة",
+        "order": "أطلبها من المورّد"
+      },
+      "alreadyOrdered": "طلبه {{who}} في {{number}} ({{status}}): {{quantity}} {{unit}}، لم يصل منها {{open}}.",
+      "receiveAgainst": "استلام مقابل {{number}}",
+      "someone": "أحد الموظفين",
+      "openOrdersTitle": "هذا الصنف مطلوب مسبقاً",
+      "openOrdersDescription": "طلب أحد الموظفين هذه الأصناف ولم يصل كلّها بعد. تأكّد قبل المتابعة حتى لا يُشترى مرتين.",
+      "openOrdersBack": "رجوع",
+      "openOrdersContinue": "متابعة على أي حال",
+      "openOrdersWait": "متابعة بعد {{seconds}}",
+      "orderFieldHint": "يُدخل عند وصول البضاعة.",
+      "orderPriceHint": "السعر المتوقع حسب آخر سعر شراء لهذا الصنف، من هذا المورّد إن وُجد. يُدخل السعر الفعلي عند وصول البضاعة.",
+      "orderSubtitle": "يُرسل الطلب إلى المورّد، ولا يتغيّر المخزون حتى تصل البضاعة.",
+      "saveOrder": "ارسال الطلب",
+      "freeShort": "مجانية",
+      "discountNeedsInvoice": "الخصم يكون على فاتورة المورّد. اختر المورّد وفعّل الفاتورة لإدخاله.",
+      "freeHint": "وحدات إضافية يعطيها المورّد مجاناً. تُضاف إلى المخزون فوق الكمية وتدفع ثمن الكمية فقط، فتقلّ تكلفة الوحدة.",
+      "unitShort": "الوحدة",
+      "reviewTitle": "ملخص الشراء",
+      "review": "مراجعة وترحيل",
+      "reviewReceipt": "مراجعة واستلام",
+      "totalQuantity": "إجمالي الكمية",
+      "gifts": "هدايا",
+      "itemCount_zero": "لا أصناف بعد",
+      "itemCount_one": "صنف واحد",
+      "itemCount_two": "صنفان",
+      "itemCount_few": "{{count}} أصناف",
+      "itemCount_many": "{{count}} صنفاً",
+      "itemCount_other": "{{count}} صنف"
     },
     "uninvoiced": {
       "title": "مستلم بانتظار الفاتورة",
@@ -1806,13 +1851,6 @@
       "title": "طلبات الشراء",
       "subtitle": "ما تحتاجه العيادة، يُرسل للمورّد ويُستلم مقابله.",
       "new": "طلب جديد",
-      "belowMinimum": "طلب المواد دون الحد الأدنى",
-      "fromMinimum_zero": "لم يُنشأ أي طلب",
-      "fromMinimum_one": "أُنشئ طلب واحد",
-      "fromMinimum_two": "أُنشئ طلبان",
-      "fromMinimum_few": "أُنشئت {{count}} طلبات",
-      "fromMinimum_many": "أُنشئ {{count}} طلباً",
-      "fromMinimum_other": "أُنشئ {{count}} طلب",
       "filter": "الحالة",
       "all": "الكل",
       "menu": "إجراءات الطلب",
@@ -1831,11 +1869,24 @@
       "newTitle": "طلب شراء جديد",
       "editTitle": "تعديل الطلب",
       "neededBy": "مطلوب قبل",
-      "sendTitle": "إرسال للمورّد عبر واتساب",
-      "sendDescription": "يُرسل الطلب {{number}} إلى {{supplier}} كملف PDF ويُعلَّم كمطلوب.",
+      "sendTitle": "إرسال الطلب للمورّد",
+      "sendDescription": "يصل الطلب كملف PDF من واتساب العيادة، ومعه رسالتك.",
+      "sendSubmit": "إرسال",
+      "attachment": "طلب شراء {{number}}.pdf",
+      "messageLabel": "الرسالة",
+      "messageHint": "تظهر مع الملف في سطر واحد، والمواد والكميات داخل الملف.",
+      "message": {
+        "greeting": "مرحباً،",
+        "greetingNamed": "مرحباً {{supplier}}،",
+        "from": "معك {{name}} من {{clinic}}.",
+        "fromClinic": "معك {{clinic}}.",
+        "body": "مرفق طلب الشراء {{number}}.",
+        "neededBy": "نحتاجه قبل {{date}}.",
+        "closing": "نرجو تأكيد التوفّر وموعد التسليم."
+      },
       "whatsapp": "رقم الواتساب",
-      "withPrices": "إرفاق آخر الأسعار المعروفة",
-      "markOrdered": "أرسلته بنفسي",
+      "withPrices": "إظهار آخر الأسعار في الملف",
+      "markOrdered": "تم الطلب بطريقة أخرى",
       "markedOrdered": "تم التعليم كمطلوب",
       "sent": "تم الإرسال للمورّد",
       "empty": "لا توجد طلبات",
@@ -1853,7 +1904,24 @@
         "received": "مستلم",
         "closed": "مغلق",
         "cancelled": "ملغى"
-      }
+      },
+      "createdBy": "طلبه",
+      "sentAt": "أُرسل",
+      "sentBy": "بواسطة",
+      "sendsTitle": "سجل الإرسال",
+      "sendNumber": "الإرسال {{number}}",
+      "sendCount_zero": "لم يُرسل",
+      "sendCount_one": "مرة واحدة",
+      "sendCount_two": "مرتان",
+      "sendCount_few": "{{count}} مرات",
+      "sendCount_many": "{{count}} مرة",
+      "sendCount_other": "{{count}} مرة",
+      "note": "ملاحظة",
+      "ordered": "المطلوب",
+      "received": "المستلم",
+      "remaining": "المتبقي",
+      "detailsTitle": "طلب شراء",
+      "detailsSubtitle": "ما طُلب ومن أي مورّد وما وصل منه"
     },
     "counts": {
       "start": "جرد المخزون",
@@ -1867,17 +1935,17 @@
       "missing_few": "{{count}} مواد لم تُعدّ بعد",
       "missing_many": "{{count}} مادة لم تُعدّ بعد",
       "missing_other": "{{count}} مادة لم تُعدّ بعد",
-      "save": "حفظ التقدّم",
       "saved": "تم حفظ العدّ",
-      "post": "ترحيل الجرد",
+      "post": "إنهاء الجرد وتعديل المخزون",
       "posted": "تم ترحيل الجرد",
-      "cancel": "إلغاء الجرد",
       "columns": {
         "item": "المادة",
         "expected": "المتوقّع",
         "counted": "المعدود",
         "difference": "الفرق",
-        "value": "القيمة"
+        "value": "القيمة",
+        "unitPrice": "سعر الوحدة",
+        "expiry": "الانتهاء"
       },
       "status": {
         "open": "قيد التنفيذ",
@@ -1885,13 +1953,39 @@
         "cancelled": "ملغى"
       },
       "confirmPost": {
-        "title": "ترحيل الجرد {{number}}؟",
-        "adjustments": "يصبح كل فرق تعديلاً على المخزون بمتوسط التكلفة الحالي."
+        "title": "إنهاء الجرد {{number}}؟",
+        "counted_zero": "لم تُعدّ أي مادة.",
+        "counted_one": "يصبح المخزون مطابقاً لما عددته في مادة واحدة.",
+        "counted_two": "يصبح المخزون مطابقاً لما عددته في مادتين.",
+        "counted_few": "يصبح المخزون مطابقاً لما عددته في {{count}} مواد.",
+        "counted_many": "يصبح المخزون مطابقاً لما عددته في {{count}} مادة.",
+        "counted_other": "يصبح المخزون مطابقاً لما عددته في {{count}} مادة.",
+        "skipped_zero": "لم تبقَ مواد دون عدّ.",
+        "skipped_one": "مادة واحدة لم تُعدّ وتبقى كميتها كما هي.",
+        "skipped_two": "مادتان لم تُعدّا وتبقى كميتهما كما هي.",
+        "skipped_few": "{{count}} مواد لم تُعدّ وتبقى كمياتها كما هي.",
+        "skipped_many": "{{count}} مادة لم تُعدّ وتبقى كمياتها كما هي.",
+        "skipped_other": "{{count}} مادة لم تُعدّ وتبقى كمياتها كما هي."
       },
-      "confirmCancel": {
-        "title": "إلغاء الجرد {{number}}؟",
-        "nothing": "لا يتغيّر شيء في المخزون وتُهمل الأرقام المدخلة."
-      }
+      "allCounted": "تم عدّ كل المواد",
+      "shortages": "نقص",
+      "surpluses": "زيادة",
+      "differenceCaption_zero": "لا مواد",
+      "differenceCaption_one": "مادة واحدة",
+      "differenceCaption_two": "مادتان",
+      "differenceCaption_few": "{{count}} مواد",
+      "differenceCaption_many": "{{count}} مادة",
+      "differenceCaption_other": "{{count}} مادة",
+      "show": "عرض",
+      "filters": {
+        "all": "الكل",
+        "remaining": "لم تُعدّ",
+        "differences": "فيها فرق"
+      },
+      "search": "ابحث عن مادة",
+      "noMatch": "لا مواد مطابقة",
+      "noMatchHint": "غيّر التصفية أو البحث",
+      "averageCost": "المتوسط"
     },
     "rowMenu": "إجراءات المادة",
     "review": {
@@ -1923,6 +2017,7 @@
       "title": "أحجام العبوات",
       "hint": "كيف يُشترى هذا الصنف. يبقى المخزون دائماً بوحدته الأساسية.",
       "holds": "{{pack}} فيها {{count}} {{unit}}",
+      "holdsShort": "{{pack}} = {{count}} {{unit}}",
       "pack": "العبوة",
       "unitsPer": "عدد الوحدات في العبوة",
       "add": "إضافة حجم عبوة",
@@ -3605,5 +3700,11 @@
     "monthTotal": "مصاريف هذا الشهر",
     "empty": "لا مصاريف هذا الشهر",
     "reverseTitle": "عكس هذا المصروف؟"
+  },
+  "whatsappCheck": {
+    "checking": "جارٍ التحقق",
+    "available": "على واتساب",
+    "unavailable": "ليس على واتساب",
+    "error": "تعذّر التحقق"
   }
 }

@@ -13,6 +13,7 @@ import type {
   CreatePurchaseRequestInput,
   CreateStockCountInput,
   ListPurchaseRequestsQuery,
+  OpenOrderLine,
   PurchaseRequest,
   RecordCountsInput,
   SendPurchaseRequestInput,
@@ -43,7 +44,6 @@ import type {
   ListMovementsQuery,
   ListSuppliersQuery,
   Paginated,
-  PurchaseStockInput,
   ReverseMovementInput,
   ShoppingList,
   StatementRangeQuery,
@@ -81,9 +81,6 @@ export const inventoryApi = {
     apiRequest<Paginated<StockMovementRow>>(
       `/inventory/items/${id}/movements${toQueryString(params)}`,
     ),
-
-  purchase: (body: PurchaseStockInput) =>
-    apiRequest<StockMovement>("/inventory/movements/purchase", { method: "POST", body }),
 
   consume: (body: ConsumeStockInput) =>
     apiRequest<StockMovement>("/inventory/movements/consume", { method: "POST", body }),
@@ -197,14 +194,16 @@ export const purchaseRequestsApi = {
 
   get: (id: string) => apiRequest<PurchaseRequest>(`/purchase-requests/${id}`),
 
+  openLines: (itemIds: readonly string[], excludeRequestId: string) =>
+    apiRequest<OpenOrderLine[]>(
+      `/purchase-requests/open-lines${toQueryString({
+        itemIds: itemIds.join(","),
+        ...(excludeRequestId !== "" && { excludeRequestId }),
+      })}`,
+    ),
+
   create: (body: CreatePurchaseRequestInput) =>
     apiRequest<PurchaseRequest>("/purchase-requests", { method: "POST", body }),
-
-  belowMinimum: () =>
-    apiRequest<PurchaseRequest[]>("/purchase-requests/below-minimum", {
-      method: "POST",
-      body: {},
-    }),
 
   update: (id: string, body: UpdatePurchaseRequestInput) =>
     apiRequest<PurchaseRequest>(`/purchase-requests/${id}`, { method: "PUT", body }),
@@ -237,6 +236,4 @@ export const stockCountsApi = {
     apiRequest<StockCount>(`/stock-counts/${id}/lines`, { method: "PUT", body }),
 
   post: (id: string) => apiRequest<StockCount>(`/stock-counts/${id}/post`, { method: "POST" }),
-
-  cancel: (id: string) => apiRequest<StockCount>(`/stock-counts/${id}/cancel`, { method: "PATCH" }),
 };

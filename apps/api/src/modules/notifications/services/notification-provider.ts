@@ -149,6 +149,39 @@ export class WhatsAppNotificationProvider implements NotificationProvider {
     this.logger.debug(`Delivered a document to ${document.to} over WhatsApp`);
   }
 
+  async sendCodeWith(credentials: WhatsAppCredentials, to: string, code: string): Promise<string> {
+    const base = `https://graph.facebook.com/${this.config.get("WHATSAPP_API_VERSION", { infer: true })}/${encodeURIComponent(credentials.phoneNumberId)}`;
+    const sent = await this.call(
+      `${base}/messages`,
+      { authorization: `Bearer ${credentials.accessToken}`, "content-type": "application/json" },
+      JSON.stringify({
+        messaging_product: "whatsapp",
+        to: to.replace(/\D/g, ""),
+        type: "template",
+        template: {
+          name: this.config.get("WHATSAPP_CODE_TEMPLATE_NAME", { infer: true }),
+          language: { code: this.config.get("WHATSAPP_TEMPLATE_LANGUAGE", { infer: true }) },
+          components: [
+            { type: "body", parameters: [{ type: "text", text: code }] },
+            {
+              type: "button",
+              sub_type: "url",
+              index: "0",
+              parameters: [{ type: "text", text: code }],
+            },
+          ],
+        },
+      }),
+    );
+    const messageId = (sent as { messages?: { id?: unknown }[] }).messages?.[0]?.id;
+
+    if (typeof messageId !== "string") {
+      throw new Error("WhatsApp returned no message id");
+    }
+
+    return messageId;
+  }
+
   private async call(
     url: string,
     headers: Record<string, string>,

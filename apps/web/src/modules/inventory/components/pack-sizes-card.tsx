@@ -115,7 +115,7 @@ export function PackSizesCard({
             <QuantityInput
               id="pack-size-units"
               data-testid="pack-size-units"
-              placeholder="10"
+              placeholder="-"
               value={unitsPer}
               onChange={(event) => setUnitsPer(event.target.value)}
             />

@@ -2,9 +2,10 @@ import {
   DEFAULT_TIME_ZONE,
   DISCOUNT_KIND,
   LOOKUP_LIST,
+  addDays,
   localDate,
   toMinorUnits,
-  type DiscountKind,
+  type PurchaseRequest,
 } from "@clinic/shared";
 import { useEffect, useRef, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
@@ -15,40 +16,82 @@ import {
   DatePicker,
   FormField,
   Icon,
+  InfoTip,
   Input,
-  Money,
   MoneyInput,
   PageHeader,
-  QuantityInput,
   SegmentedControl,
   Select,
   Switch,
   Textarea,
-  useConfirm,
   useToast,
 } from "@clinic/ui";
-import { useLookupLabels, useLookupOptions } from "@web/shared/queries/lookups";
+import { cn } from "@clinic/ui/lib/cn";
+import { useLookupOptions } from "@web/shared/queries/lookups";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { errorToast } from "@web/shared/lib/api-error";
 import {
+  useCreatePurchaseRequest,
   useInventoryItems,
+  useOpenOrderLines,
   usePostPurchase,
   usePurchaseRequest,
   useSuppliers,
+  useUpdatePurchaseRequest,
 } from "@web/modules/inventory/queries";
 import { useSession } from "@web/shared/providers/session";
-import { canManageInventory, canPaySupplier, canSeeCosts } from "@web/shared/permissions/inventory";
+import {
+  canBackdatePurchase,
+  canManageInventory,
+  canPaySupplier,
+  canPostPurchase,
+  canRequestPurchase,
+  canSeeCosts,
+  canSeeItemPrices,
+  canSeeOpenOrders,
+  canSendPurchaseRequest,
+} from "@web/shared/permissions/inventory";
+import { SendRequestModal } from "@web/modules/inventory/components/send-request-modal";
+import {
+  OpenOrdersModal,
+  type FlaggedLine,
+} from "@web/modules/inventory/components/open-orders-modal";
 import { ItemFormModal } from "@web/modules/inventory/components/item-form-modal";
 import {
   blankLine,
+  earliestPurchaseDate,
   invoices,
+  lineReady,
+  linesFromLinks,
+  linesFromOrder,
   linesFromRequest,
+  orderReady,
   previewTotals,
+  pricedTotals,
+  purchaseCounts,
+  purchaseMode,
+  returnTarget,
+  toOrderInput,
   toPostPurchase,
   type PurchaseDraft,
   type PurchaseLineDraft,
 } from "@web/modules/inventory/lib/purchase-form";
-import { PackSizeSelect } from "@web/modules/inventory/components/pack-size-select";
+import { DiscountInput } from "@web/modules/inventory/components/discount-input";
+import { PurchaseLineRow } from "@web/modules/inventory/components/purchase-line-row";
+import { PurchaseReviewModal } from "@web/modules/inventory/components/purchase-review-modal";
+import { PurchaseTotalBar } from "@web/modules/inventory/components/purchase-total-bar";
+import {
+  EXPIRY_MIN_DAYS_AHEAD,
+  MODE_PARAM,
+  ORDER_PARAM,
+  PURCHASE_LINE_GRID,
+  PURCHASE_MODES,
+  PURCHASE_UNIT_COLUMN,
+  REQUESTS_TAB_PATH,
+  RETURN_PARAM,
+  type PurchaseLineLayout,
+  type PurchaseMode,
+} from "@web/modules/inventory/constants";
 
 const newKey = (): string => crypto.randomUUID();
 
@@ -57,17 +100,31 @@ export function PurchasePage(): JSX.Element {
   const toast = useToast();
   const navigate = useNavigate();
   const currency = useCurrency();
-  const [params] = useSearchParams();
-  const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
+  const [params, setParams] = useSearchParams();
   const methods = useLookupOptions(LOOKUP_LIST.PAYMENT_METHOD);
   const items = useInventoryItems({ limit: 100 });
   const suppliers = useSuppliers({ limit: 100 });
   const post = usePostPurchase();
-  const { confirm, dialog } = useConfirm("purchase-confirm");
+  const [reviewing, setReviewing] = useState(false);
   const [requestId] = useState(() => crypto.randomUUID());
   const request = usePurchaseRequest(params.get("request") ?? "");
+  const orderId = params.get(ORDER_PARAM) ?? "";
+  const order = usePurchaseRequest(orderId);
+  const createOrder = useCreatePurchaseRequest();
+  const updateOrder = useUpdatePurchaseRequest();
+  const [neededBy, setNeededBy] = useState("");
+  const [sending, setSending] = useState<PurchaseRequest | null>(null);
+  const [flagged, setFlagged] = useState<readonly FlaggedLine[] | null>(null);
   const prefilled = useRef(false);
   const { can } = useSession();
+  const mayReceive = canPostPurchase(can);
+  const mayOrder = canRequestPurchase(can);
+  const mode = purchaseMode(
+    orderId === "" ? params.get(MODE_PARAM) : "order",
+    mayReceive && orderId === "",
+    mayOrder,
+  );
+  const ordering = mode === "order";
   const seesCosts = canSeeCosts(can);
   const mayPay = seesCosts && canPaySupplier(can);
   const mayAddItem = canManageInventory(can);
@@ -75,21 +132,25 @@ export function PurchasePage(): JSX.Element {
     null,
   );
 
-  const [draft, setDraft] = useState<PurchaseDraft>(() => ({
-    supplierId: params.get("supplier") ?? "",
-    date: localDate(new Date(), DEFAULT_TIME_ZONE),
-    withInvoice: seesCosts,
-    supplierRef: "",
-    discountKind: DISCOUNT_KIND.PERCENT,
-    discountValue: "",
-    charges: "",
-    taxRate: "",
-    taxAmount: "",
-    paidNow: "",
-    paymentMethod: "",
-    note: "",
-    lines: [blankLine(newKey(), params.get("item") ?? "")],
-  }));
+  const [draft, setDraft] = useState<PurchaseDraft>(() => {
+    const linked = linesFromLinks(params.getAll("item"), newKey);
+
+    return {
+      supplierId: params.get("supplier") ?? "",
+      date: localDate(new Date(), DEFAULT_TIME_ZONE),
+      withInvoice: seesCosts,
+      supplierRef: "",
+      discountKind: DISCOUNT_KIND.PERCENT,
+      discountValue: "",
+      charges: "",
+      taxRate: "",
+      taxAmount: "",
+      paidNow: "",
+      paymentMethod: "",
+      note: "",
+      lines: linked.length > 0 ? linked : [blankLine(newKey())],
+    };
+  });
 
   useEffect(() => {
     if (!request.data || prefilled.current) {
@@ -106,6 +167,33 @@ export function PurchasePage(): JSX.Element {
     }));
   }, [request.data]);
 
+  useEffect(() => {
+    if (!order.data || prefilled.current) {
+      return;
+    }
+
+    prefilled.current = true;
+    const lines = linesFromOrder(order.data);
+
+    setNeededBy(order.data.neededBy ?? "");
+    setDraft((current) => ({
+      ...current,
+      supplierId: order.data.supplierId ?? "",
+      note: order.data.note ?? "",
+      lines: lines.length > 0 ? lines : current.lines,
+    }));
+  }, [order.data]);
+
+  const switchMode = (next: PurchaseMode): void =>
+    setParams(
+      (current) => {
+        const updated = new URLSearchParams(current);
+        updated.set(MODE_PARAM, next);
+        return updated;
+      },
+      { replace: true },
+    );
+
   const change = (patch: Partial<PurchaseDraft>): void =>
     setDraft((current) => ({ ...current, ...patch }));
   const changeLine = (key: string, patch: Partial<PurchaseLineDraft>): void =>
@@ -114,328 +202,348 @@ export function PurchasePage(): JSX.Element {
       lines: current.lines.map((line) => (line.key === key ? { ...line, ...patch } : line)),
     }));
 
-  const withInvoice = invoices(draft);
+  const withInvoice = !ordering && invoices(draft);
   const totals = withInvoice ? previewTotals(draft) : null;
+  const costs = withInvoice ? totals : seesCosts && !ordering ? pricedTotals(draft) : null;
   const method = draft.paymentMethod || (methods[0]?.value ?? "");
   const paid = draft.paidNow.trim() === "" ? 0 : toMinorUnits(draft.paidNow.trim());
   const overpaid = totals !== null && paid > toMinorUnits(totals.total);
-  const linesReady = draft.lines.every(
-    (line) =>
-      line.itemId !== "" &&
-      Number(line.quantity || "0") + Number(line.freeQuantity || "0") > 0 &&
-      (!withInvoice || line.gift || line.unitPrice.trim() !== ""),
+  const today = localDate(new Date(), DEFAULT_TIME_ZONE);
+  const minExpiry = addDays(today, EXPIRY_MIN_DAYS_AHEAD);
+  const ready = ordering
+    ? orderReady(draft.lines)
+    : draft.lines.every((line) => lineReady(line, withInvoice, minExpiry)) &&
+      (!withInvoice || totals !== null);
+  const savingOrder = createOrder.isPending || updateOrder.isPending;
+  const counts = purchaseCounts(draft.lines);
+
+  const layout: PurchaseLineLayout = withInvoice ? "invoice" : seesCosts ? "priced" : "plain";
+  const priced = layout === "invoice" || layout === "priced";
+  const columns = [
+    { label: "inventory.movement.item", end: false },
+    { label: "inventory.purchase.unitShort", end: false, wide: true },
+    { label: "inventory.movement.quantity", end: false },
+    {
+      label: "inventory.purchase.freeShort",
+      end: false,
+      hint: ordering ? "inventory.purchase.orderFieldHint" : "inventory.purchase.freeHint",
+    },
+    ...(priced
+      ? [
+          {
+            label: "inventory.movement.unitPrice",
+            end: false,
+            ...(ordering && { hint: "inventory.purchase.orderPriceHint" }),
+          },
+        ]
+      : []),
+    ...(!priced
+      ? []
+      : [
+          {
+            label: "inventory.purchase.lineDiscount",
+            end: false,
+            ...(layout === "priced" && {
+              hint: ordering
+                ? "inventory.purchase.orderFieldHint"
+                : "inventory.purchase.discountNeedsInvoice",
+            }),
+          },
+        ]),
+    ...(priced ? [{ label: "inventory.purchase.lineTotal", end: true }] : []),
+  ];
+
+  const receivingFor = params.get("request") ?? "";
+  const openOrders = useOpenOrderLines(
+    draft.lines.map((line) => line.itemId).filter((itemId) => itemId !== ""),
+    ordering ? orderId : receivingFor,
+    canSeeOpenOrders(can),
   );
-  const ready = linesReady && (!withInvoice || totals !== null) && !overpaid && !post.isPending;
+  const ordersFor = (line: PurchaseLineDraft) =>
+    line.requestLineId
+      ? []
+      : (openOrders.data ?? []).filter((order) => order.itemId === line.itemId);
 
-  const unitOf = (itemId: string): string =>
-    items.data?.items.find((item) => item.id === itemId)?.unit ?? "";
-  const itemOptions = (items.data?.items ?? []).map((item) => ({
-    value: item.id,
-    label: `${item.name} — ${unitLabel(item.unit)}`,
-  }));
+  const proceed = (): void => {
+    if (ordering) {
+      void saveOrder();
+    } else if (ready) {
+      setReviewing(true);
+    }
+  };
 
-  const submit = (): void => {
+  const review = (): void => {
     if (!ready) {
       return;
     }
 
-    confirm({
-      title: withInvoice
-        ? "inventory.purchase.confirmInvoice"
-        : "inventory.purchase.confirmReceipt",
-      titleValues: {
-        total: totals?.total ?? "0",
-        lines: draft.lines.length,
-      },
-      consequences: [
-        t("inventory.purchase.consequenceStock"),
-        ...(withInvoice ? [t("inventory.purchase.consequenceOwed")] : []),
-      ],
-      onConfirm: async () => {
-        try {
-          const result = await post.mutateAsync(
-            toPostPurchase({ ...draft, paymentMethod: method }, requestId),
-          );
-          toast.success("inventory.purchase.posted");
-          void navigate(
-            draft.supplierId ? `/inventory/suppliers/${draft.supplierId}` : "/inventory",
-            { state: { posted: result.receiptNumber } },
-          );
-        } catch (error) {
-          toast.error(...errorToast(error));
-          throw error;
-        }
-      },
-    });
+    const lines = draft.lines
+      .map((line) => ({
+        key: line.key,
+        itemName: itemOptions.find((option) => option.value === line.itemId)?.label ?? "",
+        orders: ordersFor(line),
+      }))
+      .filter((line) => line.orders.length > 0);
+
+    if (lines.length > 0) {
+      setFlagged(lines);
+    } else {
+      proceed();
+    }
+  };
+
+  const unitOf = (itemId: string): string =>
+    items.data?.items.find((item) => item.id === itemId)?.unit ?? "";
+
+  const itemOptions = (items.data?.items ?? []).map((item) => ({
+    value: item.id,
+    label: item.name,
+  }));
+
+  const submit = async (): Promise<void> => {
+    if (!ready || overpaid || post.isPending) {
+      return;
+    }
+
+    try {
+      const result = await post.mutateAsync(
+        toPostPurchase({ ...draft, paymentMethod: method }, requestId),
+      );
+      toast.success("inventory.purchase.posted");
+      const back =
+        returnTarget(params.get(RETURN_PARAM)) ??
+        (draft.supplierId ? `/inventory/suppliers/${draft.supplierId}` : "/inventory");
+
+      void navigate(back, { state: { posted: result.receiptNumber } });
+    } catch (error) {
+      toast.error(...errorToast(error));
+    }
+  };
+
+  const afterOrder = returnTarget(params.get(RETURN_PARAM)) ?? REQUESTS_TAB_PATH;
+
+  const saveOrder = async (): Promise<void> => {
+    if (!ready || savingOrder) {
+      return;
+    }
+
+    const body = toOrderInput(draft, neededBy);
+
+    try {
+      if (orderId !== "") {
+        await updateOrder.mutateAsync({ id: orderId, body });
+        toast.success("inventory.requests.updated");
+        void navigate(afterOrder);
+        return;
+      }
+
+      const created = await createOrder.mutateAsync({ ...body, requestId });
+      toast.success("inventory.requests.created");
+
+      if (created.supplierId && canSendPurchaseRequest(can)) {
+        setSending(created);
+      } else {
+        void navigate(afterOrder);
+      }
+    } catch (error) {
+      toast.error(...errorToast(error));
+    }
   };
 
   return (
-    <div data-testid="purchase-page" className="flex flex-col gap-5">
+    <div data-testid="purchase-page" className="@container flex flex-col gap-5">
       <PageHeader
         data-testid="purchase-header"
-        title="inventory.purchase.title"
-        subtitle="inventory.purchase.subtitle"
+        title={
+          ordering
+            ? orderId === ""
+              ? "inventory.requests.newTitle"
+              : "inventory.requests.editTitle"
+            : "inventory.purchase.title"
+        }
+        subtitle={ordering ? "inventory.purchase.orderSubtitle" : "inventory.purchase.subtitle"}
       />
 
-      {dialog}
+      {mayReceive && mayOrder && orderId === "" && params.get("request") === null && (
+        <SegmentedControl<PurchaseMode>
+          data-testid="purchase-mode"
+          label={t("inventory.purchase.modeLabel")}
+          value={mode}
+          onChange={switchMode}
+          options={PURCHASE_MODES.map((value) => ({
+            value,
+            label: t(`inventory.purchase.mode.${value}`),
+          }))}
+        />
+      )}
 
       <Card data-testid="purchase-details">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="inventory.movement.supplier" htmlFor="purchase-supplier" optional>
-            <Select
-              searchable
-              id="purchase-supplier"
-              data-testid="purchase-field-supplier"
-              value={draft.supplierId}
-              placeholder={t("inventory.purchase.noSupplier")}
-              onChange={(event) => change({ supplierId: event.target.value })}
-              options={(suppliers.data?.items ?? []).map((supplier) => ({
-                value: supplier.id,
-                label: supplier.name,
-              }))}
-            />
-          </FormField>
-          <FormField label="inventory.purchase.date" htmlFor="purchase-date" required>
-            <DatePicker
-              id="purchase-date"
-              data-testid="purchase-field-date"
-              label={t("inventory.purchase.date")}
-              value={draft.date}
-              max={localDate(new Date(), DEFAULT_TIME_ZONE)}
-              onChange={(date) => change({ date })}
-            />
-          </FormField>
-          {seesCosts && draft.supplierId !== "" && (
-            <>
+        <div
+          className={cn(
+            "grid gap-4 @xl:grid-cols-2",
+            "@min-[44rem]:grid-cols-[minmax(12rem,360px)_13rem_13rem_max-content] @min-[44rem]:items-end",
+          )}
+        >
+          <div className="@xl:col-span-2 @min-[44rem]:col-span-1">
+            <FormField label="inventory.movement.supplier" htmlFor="purchase-supplier" optional>
+              <Select
+                searchable
+                id="purchase-supplier"
+                data-testid="purchase-field-supplier"
+                value={draft.supplierId}
+                placeholder={t("inventory.purchase.noSupplier")}
+                onChange={(event) => change({ supplierId: event.target.value })}
+                options={(suppliers.data?.items ?? []).map((supplier) => ({
+                  value: supplier.id,
+                  label: supplier.name,
+                }))}
+              />
+            </FormField>
+          </div>
+          {ordering ? (
+            <FormField label="inventory.requests.neededBy" htmlFor="purchase-needed-by" optional>
+              <DatePicker
+                id="purchase-needed-by"
+                data-testid="purchase-field-needed-by"
+                label={t("inventory.requests.neededBy")}
+                value={neededBy}
+                min={today}
+                onChange={setNeededBy}
+              />
+            </FormField>
+          ) : (
+            <FormField label="inventory.purchase.date" htmlFor="purchase-date" required>
+              <DatePicker
+                id="purchase-date"
+                data-testid="purchase-field-date"
+                label={t("inventory.purchase.date")}
+                value={draft.date}
+                min={earliestPurchaseDate(today, canBackdatePurchase(can))}
+                max={today}
+                onChange={(date) => change({ date })}
+              />
+            </FormField>
+          )}
+          {withInvoice && (
+            <FormField label="inventory.purchase.supplierRef" htmlFor="purchase-ref" optional>
+              <Input
+                id="purchase-ref"
+                data-testid="purchase-field-ref"
+                dir="ltr"
+                placeholder={t("inventory.purchase.refPlaceholder")}
+                value={draft.supplierRef}
+                onChange={(event) => change({ supplierRef: event.target.value })}
+              />
+            </FormField>
+          )}
+          {seesCosts && !ordering && draft.supplierId !== "" && (
+            <div className="flex items-center @xl:col-span-2 @min-[44rem]:col-span-1 @min-[44rem]:col-start-4 @min-[44rem]:h-(--control-h)">
               <Switch
                 checked={draft.withInvoice}
                 onCheckedChange={(withInvoiceNow) => change({ withInvoice: withInvoiceNow })}
                 label={t("inventory.purchase.withInvoice")}
               />
-              {draft.withInvoice && (
-                <FormField label="inventory.purchase.supplierRef" htmlFor="purchase-ref" optional>
-                  <Input
-                    id="purchase-ref"
-                    data-testid="purchase-field-ref"
-                    dir="ltr"
-                    value={draft.supplierRef}
-                    onChange={(event) => change({ supplierRef: event.target.value })}
-                  />
-                </FormField>
-              )}
-            </>
+            </div>
           )}
         </div>
       </Card>
 
-      <section data-testid="purchase-lines" className="flex flex-col gap-3">
-        {draft.lines.map((line, index) => (
-          <Card key={line.key} data-testid="purchase-line">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="sm:col-span-2">
-                <FormField
-                  label="inventory.movement.item"
-                  htmlFor={`line-item-${line.key}`}
-                  required
-                >
-                  <Select
-                    searchable
-                    id={`line-item-${line.key}`}
-                    data-testid="purchase-line-item"
-                    value={line.itemId}
-                    placeholder={t("inventory.movement.selectItem")}
-                    onChange={(event) =>
-                      changeLine(line.key, { itemId: event.target.value, packSizeId: "" })
-                    }
-                    onCreate={
-                      mayAddItem ? (name) => setNewItem({ key: line.key, name }) : undefined
-                    }
-                    options={itemOptions}
-                  />
-                </FormField>
-              </div>
-              <FormField
-                label="inventory.movement.quantity"
-                htmlFor={`line-qty-${line.key}`}
-                required
-              >
-                <QuantityInput
-                  id={`line-qty-${line.key}`}
-                  data-testid="purchase-line-quantity"
-                  placeholder="0"
-                  value={line.quantity}
-                  onChange={(event) => changeLine(line.key, { quantity: event.target.value })}
-                />
-              </FormField>
-              {line.itemId !== "" && (
-                <PackSizeSelect
-                  id={`line-pack-${line.key}`}
-                  itemId={line.itemId}
-                  baseUnit={unitOf(line.itemId)}
-                  value={line.packSizeId ?? ""}
-                  onChange={(packSizeId) => changeLine(line.key, { packSizeId })}
-                />
-              )}
-              <FormField label="inventory.purchase.free" htmlFor={`line-free-${line.key}`} optional>
-                <QuantityInput
-                  id={`line-free-${line.key}`}
-                  data-testid="purchase-line-free"
-                  placeholder="0"
-                  value={line.freeQuantity}
-                  onChange={(event) => changeLine(line.key, { freeQuantity: event.target.value })}
-                />
-              </FormField>
-              {seesCosts && !line.gift && (
-                <FormField
-                  label="inventory.movement.unitPrice"
-                  htmlFor={`line-price-${line.key}`}
-                  {...(withInvoice ? { required: true } : { optional: true })}
-                >
-                  <MoneyInput
-                    cents
-                    id={`line-price-${line.key}`}
-                    data-testid="purchase-line-price"
-                    currency={currency}
-                    placeholder="0"
-                    value={line.unitPrice}
-                    onChange={(event) => changeLine(line.key, { unitPrice: event.target.value })}
-                  />
-                </FormField>
-              )}
-              {withInvoice && !line.gift && (
-                <FormField
-                  label="inventory.purchase.lineDiscount"
-                  htmlFor={`line-discount-${line.key}`}
-                  optional
-                >
-                  <div className="flex gap-2">
-                    <SegmentedControl<DiscountKind>
-                      label={t("inventory.purchase.discountKind")}
-                      value={line.discountKind}
-                      onChange={(discountKind) => changeLine(line.key, { discountKind })}
-                      options={[
-                        { value: DISCOUNT_KIND.PERCENT, label: "%" },
-                        { value: DISCOUNT_KIND.AMOUNT, label: t("inventory.purchase.amount") },
-                      ]}
-                    />
-                    <MoneyInput
-                      cents
-                      id={`line-discount-${line.key}`}
-                      data-testid="purchase-line-discount"
-                      placeholder="0"
-                      value={line.discountValue}
-                      onChange={(event) =>
-                        changeLine(line.key, { discountValue: event.target.value })
-                      }
-                    />
-                  </div>
-                </FormField>
-              )}
-              <FormField
-                label="inventory.movement.batchNo"
-                htmlFor={`line-batch-${line.key}`}
-                optional
-              >
-                <Input
-                  id={`line-batch-${line.key}`}
-                  data-testid="purchase-line-batch"
-                  dir="ltr"
-                  value={line.batchNo}
-                  onChange={(event) => changeLine(line.key, { batchNo: event.target.value })}
-                />
-              </FormField>
-              <FormField
-                label="inventory.movement.expiry"
-                htmlFor={`line-expiry-${line.key}`}
-                optional
-              >
-                <DatePicker
-                  id={`line-expiry-${line.key}`}
-                  data-testid="purchase-line-expiry"
-                  label={t("inventory.movement.expiry")}
-                  value={line.expiryDate}
-                  onChange={(expiryDate) => changeLine(line.key, { expiryDate })}
-                />
-              </FormField>
-            </div>
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-              {withInvoice ? (
-                <Switch
-                  checked={line.gift}
-                  onCheckedChange={(gift) => changeLine(line.key, { gift })}
-                  label={t("inventory.purchase.gift")}
-                />
-              ) : (
-                <span />
-              )}
-              <div className="flex items-center gap-3">
-                {totals?.lines[index] && (
-                  <span className="text-label text-ink-muted">
-                    {t("inventory.purchase.lineCost")}{" "}
-                    <Money cents amount={totals.lines[index].cost} currency={currency} />
-                  </span>
-                )}
-                {draft.lines.length > 1 && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    icon={<Icon name="trash" />}
-                    data-testid="purchase-line-remove"
-                    onClick={() =>
-                      setDraft((current) => ({
-                        ...current,
-                        lines: current.lines.filter((other) => other.key !== line.key),
-                      }))
-                    }
-                  >
-                    {t("inventory.purchase.removeLine")}
-                  </Button>
-                )}
-              </div>
-            </div>
-          </Card>
-        ))}
+      <Card data-testid="purchase-lines" className="@container">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-section font-semibold text-ink">
+            {t("inventory.purchase.lines")}{" "}
+            <span className="font-medium text-ink-muted">({draft.lines.length})</span>
+          </h2>
+          <Button
+            variant="secondary"
+            icon={<Icon name="plus" />}
+            data-testid="purchase-add-line"
+            onClick={() =>
+              setDraft((current) => ({
+                ...current,
+                lines: [...current.lines, blankLine(newKey())],
+              }))
+            }
+          >
+            {t("inventory.purchase.addLine")}
+          </Button>
+        </div>
 
-        <Button
-          variant="secondary"
-          icon={<Icon name="plus" />}
-          className="self-start"
-          data-testid="purchase-add-line"
-          onClick={() =>
-            setDraft((current) => ({ ...current, lines: [...current.lines, blankLine(newKey())] }))
-          }
+        <div
+          className={cn(
+            "mt-3 hidden border-b border-line pb-2 text-label font-medium text-ink-muted",
+            "@min-[40rem]:grid @min-[40rem]:gap-2 @min-[56rem]:gap-3",
+            PURCHASE_LINE_GRID[layout],
+          )}
         >
-          {t("inventory.purchase.addLine")}
-        </Button>
-      </section>
+          {columns.map((column) => (
+            <span
+              key={column.label}
+              className={cn(
+                "flex min-w-0 items-center gap-1",
+                column.end && "justify-end",
+                "wide" in column && PURCHASE_UNIT_COLUMN[layout].column,
+              )}
+            >
+              <span aria-hidden="true" className="truncate">
+                {t(column.label)}
+              </span>
+              {"hint" in column && <InfoTip label={t("common.moreInfo")}>{t(column.hint)}</InfoTip>}
+            </span>
+          ))}
+        </div>
+
+        <ol className="flex flex-col divide-y divide-line">
+          {draft.lines.map((line, index) => (
+            <PurchaseLineRow
+              key={line.key}
+              line={line}
+              layout={layout}
+              itemOptions={itemOptions}
+              baseUnit={unitOf(line.itemId)}
+              minExpiry={minExpiry}
+              currency={currency}
+              cost={costs?.lines[index]?.cost}
+              removable={draft.lines.length > 1}
+              ordering={ordering}
+              supplierId={draft.supplierId}
+              mayPrice={canSeeItemPrices(can)}
+              openOrders={ordersFor(line)}
+              onReceiveOrder={
+                !ordering && mayReceive
+                  ? (id) => void navigate(`/inventory/purchases/new?request=${id}`)
+                  : undefined
+              }
+              onChange={(patch) => changeLine(line.key, patch)}
+              onRemove={() =>
+                setDraft((current) => ({
+                  ...current,
+                  lines: current.lines.filter((other) => other.key !== line.key),
+                }))
+              }
+              onCreateItem={mayAddItem ? (name) => setNewItem({ key: line.key, name }) : undefined}
+            />
+          ))}
+        </ol>
+      </Card>
 
       {withInvoice && (
-        <Card data-testid="purchase-totals">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <Card data-testid="purchase-adjustments">
+          <div className="grid items-end gap-4 @xl:grid-cols-2 @min-[56rem]:grid-cols-4">
             <FormField
               label="inventory.purchase.invoiceDiscount"
               htmlFor="purchase-discount"
               optional
             >
-              <div className="flex gap-2">
-                <SegmentedControl<DiscountKind>
-                  label={t("inventory.purchase.discountKind")}
-                  value={draft.discountKind}
-                  onChange={(discountKind) => change({ discountKind })}
-                  options={[
-                    { value: DISCOUNT_KIND.PERCENT, label: "%" },
-                    { value: DISCOUNT_KIND.AMOUNT, label: t("inventory.purchase.amount") },
-                  ]}
-                />
-                <MoneyInput
-                  cents
-                  id="purchase-discount"
-                  data-testid="purchase-field-discount"
-                  placeholder="0"
-                  value={draft.discountValue}
-                  onChange={(event) => change({ discountValue: event.target.value })}
-                />
-              </div>
+              <DiscountInput
+                id="purchase-discount"
+                data-testid="purchase-field-discount"
+                kind={draft.discountKind}
+                value={draft.discountValue}
+                currency={currency}
+                onKindChange={(discountKind) => change({ discountKind })}
+                onValueChange={(discountValue) => change({ discountValue })}
+              />
             </FormField>
             <FormField label="inventory.purchase.charges" htmlFor="purchase-charges" optional>
               <MoneyInput
@@ -454,6 +562,8 @@ export function PurchasePage(): JSX.Element {
                 data-testid="purchase-field-tax-rate"
                 dir="ltr"
                 inputMode="decimal"
+                autoComplete="off"
+                placeholder="0"
                 value={draft.taxRate}
                 onChange={(event) => change({ taxRate: event.target.value })}
               />
@@ -464,74 +574,83 @@ export function PurchasePage(): JSX.Element {
                 id="purchase-tax-amount"
                 data-testid="purchase-field-tax-amount"
                 currency={currency}
+                placeholder="0"
                 value={draft.taxAmount}
                 onChange={(event) => change({ taxAmount: event.target.value })}
               />
             </FormField>
           </div>
-
-          {totals && (
-            <dl
-              data-testid="purchase-summary"
-              className="mt-4 flex flex-col gap-1 border-t border-line pt-3"
-            >
-              {(
-                [
-                  ["inventory.purchase.subtotal", totals.subtotal],
-                  ["inventory.purchase.invoiceDiscount", `-${totals.invoiceDiscount}`],
-                  ["inventory.purchase.charges", totals.charges],
-                ] as const
-              ).map(([label, amount]) => (
-                <div key={label} className="flex items-baseline justify-between text-value">
-                  <dt className="text-ink-muted">{t(label)}</dt>
-                  <dd>
-                    <Money cents amount={amount} currency={currency} />
-                  </dd>
-                </div>
-              ))}
-              <div className="flex items-baseline justify-between text-value font-semibold">
-                <dt>{t("inventory.purchase.total")}</dt>
-                <dd>
-                  <Money cents amount={totals.total} currency={currency} />
-                </dd>
-              </div>
-            </dl>
-          )}
-
-          {mayPay && (
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <FormField
-                label="inventory.movement.paidNow"
-                htmlFor="purchase-paid"
-                optional
-                error={overpaid ? { type: "too_big" } : undefined}
-                {...(overpaid && { errorKey: "inventory.movement.paidTooMuch" })}
-              >
-                <MoneyInput
-                  cents
-                  id="purchase-paid"
-                  data-testid="purchase-field-paid"
-                  currency={currency}
-                  placeholder="0"
-                  value={draft.paidNow}
-                  onChange={(event) => change({ paidNow: event.target.value })}
-                />
-              </FormField>
-              {paid > 0 && (
-                <FormField label="inventory.movement.paymentMethod" htmlFor="purchase-method">
-                  <Select
-                    id="purchase-method"
-                    data-testid="purchase-field-method"
-                    value={method}
-                    onChange={(event) => change({ paymentMethod: event.target.value })}
-                    options={methods}
-                  />
-                </FormField>
-              )}
-            </div>
-          )}
         </Card>
       )}
+
+      <div className="max-w-(--form-max)">
+        <FormField label="inventory.notes" htmlFor="purchase-note" optional>
+          <Textarea
+            id="purchase-note"
+            data-testid="purchase-field-note"
+            rows={2}
+            placeholder={t("common.placeholders.note")}
+            value={draft.note}
+            onChange={(event) => change({ note: event.target.value })}
+          />
+        </FormField>
+      </div>
+
+      <PurchaseTotalBar
+        lines={counts.lines}
+        total={totals?.total ?? null}
+        currency={currency}
+        reviewLabel={t(
+          ordering
+            ? "inventory.purchase.saveOrder"
+            : withInvoice
+              ? "inventory.purchase.review"
+              : "inventory.purchase.reviewReceipt",
+        )}
+        ready={ready && !savingOrder}
+        onReview={review}
+        onCancel={() => void navigate(-1)}
+      />
+
+      <PurchaseReviewModal
+        open={reviewing}
+        onOpenChange={setReviewing}
+        withInvoice={withInvoice}
+        counts={counts}
+        totals={totals}
+        currency={currency}
+        mayPay={mayPay}
+        paidNow={draft.paidNow}
+        paidMinor={paid}
+        overpaid={overpaid}
+        method={method}
+        methods={methods}
+        postLabel={t(
+          withInvoice ? "inventory.purchase.postInvoice" : "inventory.purchase.postReceipt",
+        )}
+        posting={post.isPending}
+        onPaidNowChange={(paidNow) => change({ paidNow })}
+        onMethodChange={(paymentMethod) => change({ paymentMethod })}
+        onPost={() => void submit()}
+      />
+
+      <OpenOrdersModal
+        lines={flagged}
+        onCancel={() => setFlagged(null)}
+        onContinue={() => {
+          setFlagged(null);
+          proceed();
+        }}
+      />
+
+      <SendRequestModal
+        request={sending}
+        mayShowPrices={seesCosts}
+        onClose={() => {
+          setSending(null);
+          void navigate(afterOrder);
+        }}
+      />
 
       <ItemFormModal
         data-testid="purchase-new-item"
@@ -542,30 +661,6 @@ export function PurchasePage(): JSX.Element {
           newItem && changeLine(newItem.key, { itemId: item.id, packSizeId: "" })
         }
       />
-
-      <FormField label="inventory.notes" htmlFor="purchase-note" optional>
-        <Textarea
-          id="purchase-note"
-          data-testid="purchase-field-note"
-          rows={2}
-          value={draft.note}
-          onChange={(event) => change({ note: event.target.value })}
-        />
-      </FormField>
-
-      <div className="flex flex-wrap justify-end gap-2">
-        <Button variant="secondary" data-testid="purchase-cancel" onClick={() => void navigate(-1)}>
-          {t("common.cancel")}
-        </Button>
-        <Button
-          data-testid="purchase-post"
-          aria-disabled={!ready || undefined}
-          isLoading={post.isPending}
-          onClick={submit}
-        >
-          {t(withInvoice ? "inventory.purchase.postInvoice" : "inventory.purchase.postReceipt")}
-        </Button>
-      </div>
     </div>
   );
 }

@@ -1,4 +1,10 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  ConflictException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   DEFAULT_TIME_ZONE,
@@ -10,6 +16,7 @@ import {
   formatMinorUnits,
   formatThousandths,
   localDate,
+  roundDiv,
   toMinorUnits,
   toThousandths,
   type CreateStockCountInput,
@@ -120,7 +127,8 @@ export class StockCountsService {
           counted: counted === null ? null : formatThousandths(counted),
           difference:
             counted === null ? null : formatThousandths(counted - (open ? now : expected)),
-          ...(seesCosts && { value: moved ?? null }),
+          expiryDate: line.expiryDate,
+          ...(seesCosts && { unitPrice: line.unitPrice, value: moved ?? null }),
         };
       }),
     };
@@ -213,13 +221,26 @@ export class StockCountsService {
     id: string,
     input: RecordCountsInput,
   ): Promise<StockCount> {
+    if (
+      input.lines.some((line) => line.unitPrice !== undefined) &&
+      !(await this.permissions.can(actor, RULE.INVENTORY_COSTS))
+    ) {
+      throw new ForbiddenException("Forbidden resource");
+    }
+
     await this.db.transaction(async (tx) => {
       await this.lockOpen(tx, actor.clinicId, id);
 
       for (const line of input.lines) {
         const [updated] = await tx
           .update(stockCountLines)
-          .set({ counted: line.counted, updatedAt: new Date(), updatedBy: actor.id })
+          .set({
+            counted: line.counted,
+            ...(line.expiryDate !== undefined && { expiryDate: line.expiryDate }),
+            ...(line.unitPrice !== undefined && { unitPrice: line.unitPrice }),
+            updatedAt: new Date(),
+            updatedBy: actor.id,
+          })
           .where(and(eq(stockCountLines.countId, id), eq(stockCountLines.itemId, line.itemId)))
           .returning({ id: stockCountLines.id });
 
@@ -235,9 +256,11 @@ export class StockCountsService {
   async post(actor: AuthenticatedUser, id: string): Promise<StockCount> {
     await this.db.transaction(async (tx) => {
       const count = await this.lockOpen(tx, actor.clinicId, id);
-      const lines = await tx.select().from(stockCountLines).where(eq(stockCountLines.countId, id));
+      const lines = (
+        await tx.select().from(stockCountLines).where(eq(stockCountLines.countId, id))
+      ).filter((line) => line.counted !== null);
 
-      if (lines.some((line) => line.counted === null)) {
+      if (lines.length === 0) {
         throw new ConflictException(STOCK_COUNT_ERROR.INCOMPLETE);
       }
 
@@ -258,13 +281,23 @@ export class StockCountsService {
           throw new ConflictException(STOCK_ERROR.INSUFFICIENT);
         }
 
-        const cost = difference < 0 ? costOut(layers, -difference) : costIn(layers, difference);
+        const priced = difference > 0 && line.unitPrice !== null;
+        const cost = priced
+          ? {
+              value: roundDiv(difference * toMinorUnits(line.unitPrice ?? "0"), 1000),
+              unknown: 0,
+            }
+          : difference < 0
+            ? costOut(layers, -difference)
+            : costIn(layers, difference);
         const movement = await this.ledger.insert(tx, actor, {
           itemId: line.itemId,
           type: MOVEMENT_TYPE.ADJUST,
           quantity: difference,
           value: cost.value,
           unknown: cost.unknown,
+          unitPrice: priced ? line.unitPrice : null,
+          expiryDate: difference > 0 ? line.expiryDate : null,
           reason: count.number,
           reasonCode: "count",
         });

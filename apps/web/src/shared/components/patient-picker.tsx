@@ -2,7 +2,7 @@ import { type PickedPatient, type PatientChoice } from "@web/shared/lib/patient-
 import { type PatientView } from "@clinic/shared";
 import { useState, type JSX, type FocusEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Avatar, Badge, Icon, Ltr, Popover, SearchField } from "@clinic/ui";
+import { Avatar, Icon, Ltr, Popover, SearchField } from "@clinic/ui";
 import { Skeleton } from "@clinic/ui/components/skeleton";
 import { NewPatientFields } from "@web/shared/components/new-patient-fields";
 import type { FieldErrors } from "@web/shared/lib/form-errors";
@@ -61,9 +61,6 @@ export function PatientPicker({
             {value.patient.phone}
           </Ltr>
         </span>
-        {value.patient.profileIncomplete && (
-          <Badge tone="warning">{t("patients.incomplete")}</Badge>
-        )}
         <button
           type="button"
           data-testid="patient-picker-clear"
@@ -219,11 +216,6 @@ export function PatientPicker({
                   {patient.fileNumber} · {patient.phone}
                 </Ltr>
               </span>
-              {patient.profileIncomplete && (
-                <Badge tone="warning" className="ms-auto">
-                  {t("patients.incomplete")}
-                </Badge>
-              )}
             </div>
           ))}
         </div>
@@ -258,5 +250,5 @@ const toPicked = (patient: PatientView): PickedPatient => ({
   fullName: patient.fullName,
   phone: patient.phone,
   fileNumber: patient.fileNumber,
-  profileIncomplete: patient.profileIncomplete,
+  assignedDoctorId: patient.assignedDoctorId,
 });

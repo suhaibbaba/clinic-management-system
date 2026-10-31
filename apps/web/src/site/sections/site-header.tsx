@@ -1,11 +1,12 @@
 import { SITE_SECTION, type SiteSection } from "@clinic/shared";
-import { useEffect, useState, type JSX } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
 import { cx } from "@web/booking/ui";
 import { PortalUserMenu } from "@web/site/components/portal/portal-user-menu";
 import { SiteIcon } from "@web/site/components/site-icon";
 import { SiteLink } from "@web/site/components/site-link";
 import { SiteLogo } from "@web/site/components/site-logo";
 import { useBookable } from "@web/site/hooks/use-bookable";
+import { useMeasuredHeight } from "@web/site/hooks/use-measured-height";
 import { usePortal } from "@web/site/hooks/use-portal";
 import { useSite } from "@web/site/hooks/use-site";
 import { nameIn } from "@web/site/lib/text";
@@ -50,6 +51,22 @@ export function SiteHeader(): JSX.Element {
   );
   const bookable = useBookable();
   const portal = site.content.sections.includes(SITE_SECTION.PORTAL);
+  const header = useRef<HTMLElement>(null);
+  const height = useMeasuredHeight(header);
+
+  useEffect(() => {
+    if (height === undefined) {
+      return;
+    }
+
+    const root = document.documentElement;
+
+    root.style.setProperty("--site-sticky-top", `${height}px`);
+
+    return () => {
+      root.style.removeProperty("--site-sticky-top");
+    };
+  }, [height]);
 
   useEffect(() => {
     if (!open) {
@@ -74,6 +91,7 @@ export function SiteHeader(): JSX.Element {
 
   return (
     <header
+      ref={header}
       data-testid="site-header"
       className="sticky top-0 z-30 border-b border-line/50 bg-surface/90 backdrop-blur-md"
     >

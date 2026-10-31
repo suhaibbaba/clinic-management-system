@@ -3,6 +3,7 @@ import {
   FIELD_TEXT,
   FIELD_TEXT_OVERLAID,
   FieldClear,
+  FieldDivider,
   FieldIcon,
   FieldText,
   fieldShell,
@@ -27,6 +28,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
   return (
     <div {...part()} className={cn(fieldShell({}), className)}>
       <FieldIcon name="search" {...testid(testId, "icon")} />
+      <FieldDivider />
 
       <FieldText placeholder={props.placeholder} dir={props.dir}>
         <input

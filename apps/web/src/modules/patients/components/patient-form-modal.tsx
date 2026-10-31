@@ -10,6 +10,7 @@ import {
 import { useEffect, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { revealFirstError } from "@web/shared/lib/form-errors";
+import { WhatsAppPhoneInput } from "@web/shared/components/whatsapp-phone-input";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -224,7 +225,8 @@ export function PatientFormModal({
             name="phone"
             control={control}
             render={({ field }) => (
-              <PhoneInput
+              <WhatsAppPhoneInput
+                check={!watch("whatsapp")}
                 placeholder={t("common.placeholders.phone")}
                 id="patient-phone"
                 data-testid="patient-field-phone"
@@ -249,7 +251,8 @@ export function PatientFormModal({
             name="whatsapp"
             control={control}
             render={({ field }) => (
-              <PhoneInput
+              <WhatsAppPhoneInput
+                check
                 placeholder={t("common.placeholders.phone")}
                 id="patient-whatsapp"
                 data-testid="patient-field-whatsapp"
@@ -266,7 +269,7 @@ export function PatientFormModal({
           label="patients.dateOfBirth"
           htmlFor="patient-dob"
           error={errors.dateOfBirth}
-          {...(needed("dateOfBirth") ? { hint: "patients.neededToComplete" } : { optional: true })}
+          {...(needed("dateOfBirth") ? { note: "patients.neededToComplete" } : { optional: true })}
         >
           <Controller
             control={control}
@@ -289,7 +292,7 @@ export function PatientFormModal({
           label="patients.gender"
           htmlFor="patient-gender"
           error={errors.gender}
-          {...(needed("gender") ? { hint: "patients.neededToComplete" } : { optional: true })}
+          {...(needed("gender") ? { note: "patients.neededToComplete" } : { optional: true })}
         >
           <Controller
             name="gender"

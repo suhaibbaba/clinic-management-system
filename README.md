@@ -123,7 +123,16 @@ the password are documented in `.env.example`.
 
 It is **deterministic** — the same clinic every run — and takes a few seconds. It only
 ever populates an empty clinic, so re-running it is safe and changes nothing that has been
-edited since. To rebuild from scratch, dropping what is there:
+edited since. To add the purchasing scenarios to a clinic that already exists — six suppliers, about thirty
+items with pack sizes, a year of priced invoices, payments, a refund, a return with a credit
+note, purchase requests in every state, lots that are expired, expiring and blocked,
+write-offs and stock counts — run them through the real inventory services:
+
+```bash
+docker compose exec api pnpm seed:inventory   # once per clinic; a second run adds nothing
+```
+
+To rebuild from scratch, dropping what is there:
 
 ```bash
 docker compose exec api pnpm db:reset   # drop the schema, migrate, seed — one command

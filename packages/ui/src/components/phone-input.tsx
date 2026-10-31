@@ -71,19 +71,20 @@ export function PhoneInput({
   };
 
   return (
-    <div data-part="phone-input" dir="ltr" className={cn("flex gap-2", className)}>
-      <PhoneCountrySelect
-        {...(testId !== undefined && { "data-testid": `${testId}-country` })}
-        label={t("common.diallingCode")}
-        language={i18n.language}
-        country={country}
-        disabled={disabled}
-        hasError={hasError}
-        onChange={(next) => emit(next, local)}
-      />
-
+    <div data-part="phone-input" dir="ltr" className={cn("flex", className)}>
       <Input
         {...props}
+        leading={
+          <PhoneCountrySelect
+            {...(testId !== undefined && { "data-testid": `${testId}-country` })}
+            label={t("common.diallingCode")}
+            language={i18n.language}
+            country={country}
+            disabled={disabled}
+            hasError={hasError}
+            onChange={(next) => emit(next, local)}
+          />
+        }
         id={id}
         {...(testId !== undefined && { "data-testid": testId })}
         aria-label={ariaLabel}

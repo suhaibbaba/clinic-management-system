@@ -1,6 +1,11 @@
 import { Body, Controller, Get, Header, Param, Patch, Post, Put, Query } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
-import { USER_ROLE, type Paginated, type PurchaseRequest } from "@clinic/shared";
+import {
+  USER_ROLE,
+  type OpenOrderLine,
+  type Paginated,
+  type PurchaseRequest,
+} from "@clinic/shared";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
@@ -11,6 +16,7 @@ import {
   CreatePurchaseRequestDto,
   IdParamDto,
   ListPurchaseRequestsQueryDto,
+  OpenOrderLinesQueryDto,
   RequestBelowMinimumDto,
   SendPurchaseRequestDto,
   UpdatePurchaseRequestDto,
@@ -48,6 +54,15 @@ export class PurchaseRequestsController {
     @Body() body: RequestBelowMinimumDto,
   ): Promise<PurchaseRequest[]> {
     return this.requests.fromBelowMinimum(actor, body.supplierId);
+  }
+
+  @Get("open-lines")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
+  openLines(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Query() query: OpenOrderLinesQueryDto,
+  ): Promise<OpenOrderLine[]> {
+    return this.requests.openLines(actor, query);
   }
 
   @Get(":id")

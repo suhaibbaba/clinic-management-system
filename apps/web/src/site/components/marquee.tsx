@@ -77,7 +77,7 @@ export function Marquee({
       data-testid={testId}
       data-moving={moving}
       className={cx(
-        "-mx-4 px-4 pt-1 pb-3 sm:mx-0 sm:px-0",
+        "-mx-4 -mb-9 px-4 pt-1 pb-12 sm:mx-0 sm:px-0",
         moving
           ? "site-marquee-mask overflow-hidden"
           : "overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",

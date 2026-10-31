@@ -2,8 +2,20 @@ import { DISCOUNT_KIND, PURCHASE_REQUEST_STATUS } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
 import {
   blankLine,
+  earliestPurchaseDate,
+  expectedPrice,
+  lineCost,
+  itemPurchaseLink,
+  lineReady,
+  linesFromLinks,
+  linesFromOrder,
+  orderReady,
+  purchaseMode,
+  toOrderInput,
   linesFromRequest,
   previewTotals,
+  purchaseCounts,
+  returnTarget,
   toPostPurchase,
   type PurchaseDraft,
 } from "@web/modules/inventory/lib/purchase-form";
@@ -77,6 +89,7 @@ describe("the purchase form", () => {
       cancelReason: null,
       createdByName: null,
       createdAt: "2026-10-28T08:00:00.000Z",
+      sends: [],
       lines: [
         {
           id: "line-1",
@@ -127,5 +140,146 @@ describe("the purchase form", () => {
 
     expect(body.lines[0]).toMatchObject({ packSizeId: "box", quantity: "2" });
     expect(body.lines[1]).not.toHaveProperty("packSizeId");
+  });
+
+  it("counts the lines with an item, their units, the free units and the gifts", () => {
+    expect(purchaseCounts([...draft().lines, blankLine("e")])).toEqual({
+      lines: 4,
+      quantity: 25,
+      free: 2,
+      gifts: 1,
+    });
+  });
+
+  it("takes a line once it has an item, units, a price on an invoice and a far enough expiry", () => {
+    const line = { ...blankLine("a", "composite"), quantity: "2", unitPrice: "45" };
+
+    expect(lineReady(line, true, "2026-11-01")).toBe(true);
+    expect(lineReady({ ...line, unitPrice: "" }, true, "2026-11-01")).toBe(false);
+    expect(lineReady({ ...line, unitPrice: "", gift: true }, true, "2026-11-01")).toBe(true);
+    expect(lineReady({ ...line, unitPrice: "" }, false, "2026-11-01")).toBe(true);
+    expect(lineReady({ ...line, quantity: "", freeQuantity: "1" }, true, "2026-11-01")).toBe(true);
+    expect(lineReady({ ...line, quantity: "" }, true, "2026-11-01")).toBe(false);
+    expect(lineReady({ ...line, itemId: "" }, true, "2026-11-01")).toBe(false);
+  });
+
+  it("refuses an expiry earlier than the first allowed day", () => {
+    const line = { ...blankLine("a", "composite"), quantity: "2", unitPrice: "45" };
+
+    expect(lineReady({ ...line, expiryDate: "2026-10-31" }, true, "2026-11-01")).toBe(false);
+    expect(lineReady({ ...line, expiryDate: "2026-11-01" }, true, "2026-11-01")).toBe(true);
+  });
+
+  it("starts a line for each linked item, with its quantity when the link gives one", () => {
+    let next = 0;
+    const key = (): string => `k${++next}`;
+
+    expect(linesFromLinks(["gloves:12", "composite", "", "needles:0"], key)).toEqual([
+      { ...blankLine("k1", "gloves"), quantity: "12" },
+      { ...blankLine("k2", "composite"), quantity: "" },
+      { ...blankLine("k3", "needles"), quantity: "" },
+    ]);
+  });
+
+  it("returns only to the shopping list, never to an address a link made up", () => {
+    expect(returnTarget("/inventory/shopping-list")).toBe("/inventory/shopping-list");
+    expect(returnTarget("/inventory/shopping-list?pick=a")).toBe("/inventory/shopping-list?pick=a");
+    expect(returnTarget("https://example.com")).toBeNull();
+    expect(returnTarget("//example.com/inventory/shopping-list")).toBeNull();
+    expect(returnTarget("/inventory/shopping-listing")).toBeNull();
+    expect(returnTarget(null)).toBeNull();
+  });
+});
+
+describe("itemPurchaseLink", () => {
+  it("opens the purchase page on the item, with its default supplier when it has one", () => {
+    expect(itemPurchaseLink("gloves", "s-1")).toBe(
+      "/inventory/purchases/new?item=gloves&supplier=s-1",
+    );
+    expect(itemPurchaseLink("gloves", null)).toBe("/inventory/purchases/new?item=gloves");
+  });
+});
+
+describe("earliestPurchaseDate", () => {
+  it("reaches 7 days back without the backdate rule and 30 days with it", () => {
+    expect(earliestPurchaseDate("2026-10-30", false)).toBe("2026-10-23");
+    expect(earliestPurchaseDate("2026-10-30", true)).toBe("2026-09-30");
+  });
+});
+
+describe("purchaseMode", () => {
+  it("receives by default and orders only when asked and allowed", () => {
+    expect(purchaseMode(null, true, true)).toBe("receive");
+    expect(purchaseMode("order", true, true)).toBe("order");
+    expect(purchaseMode("order", true, false)).toBe("receive");
+  });
+
+  it("orders for whoever may not receive goods", () => {
+    expect(purchaseMode(null, false, true)).toBe("order");
+    expect(purchaseMode("receive", false, true)).toBe("order");
+  });
+});
+
+describe("orders", () => {
+  it("is ready with distinct items that each have a quantity", () => {
+    expect(orderReady([{ ...blankLine("a", "gloves"), quantity: "5" }])).toBe(true);
+    expect(orderReady([{ ...blankLine("a", "gloves"), quantity: "" }])).toBe(false);
+    expect(orderReady([blankLine("a")])).toBe(false);
+    expect(
+      orderReady([
+        { ...blankLine("a", "gloves"), quantity: "5" },
+        { ...blankLine("b", "gloves"), quantity: "2" },
+      ]),
+    ).toBe(false);
+  });
+
+  it("writes a request from the draft, empty fields as null", () => {
+    const body = toOrderInput(
+      draft({
+        supplierId: "",
+        note: "  ",
+        lines: [{ ...blankLine("a", "gloves"), quantity: " 5 " }],
+      }),
+      "",
+    );
+
+    expect(body).toEqual({
+      supplierId: null,
+      neededBy: null,
+      note: null,
+      lines: [{ itemId: "gloves", quantity: "5" }],
+    });
+  });
+
+  it("edits an order at its ordered quantities", () => {
+    const lines = linesFromOrder({
+      lines: [{ id: "l-1", itemId: "gloves", quantity: "10", received: "4", open: "6" }],
+    } as unknown as Parameters<typeof linesFromOrder>[0]);
+
+    expect(lines.map((line) => [line.itemId, line.quantity])).toEqual([["gloves", "10"]]);
+  });
+});
+
+describe("expected order price", () => {
+  const price = (supplierId: string | null, unitPrice: string | null, unitsPer = "1") =>
+    ({ supplierId, unitPrice, unitsPer }) as Parameters<typeof expectedPrice>[0][number];
+
+  it("prefers the supplier's last price, per base unit, else the newest", () => {
+    const prices = [price("s-2", "30"), price("s-1", "120", "10"), price("s-1", "9")];
+
+    expect(expectedPrice(prices, "s-1")).toBe("12.00");
+    expect(expectedPrice(prices, "s-9")).toBe("30.00");
+    expect(expectedPrice(prices, "")).toBe("30.00");
+  });
+
+  it("knows no price when nothing priced was bought", () => {
+    expect(expectedPrice([price("s-1", null)], "s-1")).toBeNull();
+    expect(expectedPrice([], "")).toBeNull();
+  });
+
+  it("costs a line as quantity times price", () => {
+    expect(lineCost("2.5", "12.00")).toBe("30.00");
+    expect(lineCost("", "12.00")).toBeNull();
+    expect(lineCost("3", null)).toBeNull();
   });
 });

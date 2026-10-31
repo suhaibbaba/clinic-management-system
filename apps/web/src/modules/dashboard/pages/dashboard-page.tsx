@@ -166,7 +166,7 @@ function KpiLink({
       data-testid={testId}
       className={cn(
         "block rounded-card",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success-500",
+        "focus-visible:outline-none",
       )}
     >
       {children}

@@ -48,7 +48,7 @@ export function Drawer({
           {...part()}
           onOpenAutoFocus={(event) => {
             event.preventDefault();
-            (event.currentTarget as HTMLElement | null)?.focus();
+            (event.currentTarget as HTMLElement | null)?.focus({ preventScroll: true });
           }}
           tabIndex={-1}
           dir={documentDirection()}

@@ -38,6 +38,7 @@ import {
 } from "@clinic/shared";
 import { and, asc, count, eq, gt, gte, inArray, isNull, lt, ne, sql } from "drizzle-orm";
 import { randomInt } from "node:crypto";
+import { hashCode } from "@api/common/lib/codes";
 import { AvailabilityService } from "@api/modules/appointments/services/availability.service";
 import { WaitingListService } from "@api/modules/appointments/services/waiting-list.service";
 import { BookingTokenService } from "@api/modules/booking/services/booking-token.service";
@@ -56,12 +57,7 @@ import {
 } from "@api/database/schema";
 import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
 import { StorageService } from "@api/modules/storage/services/storage.service";
-import {
-  phoneDigits,
-  isOverlapConflict,
-  hashCode,
-  ClinicContext,
-} from "@api/modules/booking/lib/booking";
+import { phoneDigits, isOverlapConflict, ClinicContext } from "@api/modules/booking/lib/booking";
 import { timeIn } from "@api/common/lib/time";
 import {
   MESSAGES_PER_PHONE_PER_HOUR,

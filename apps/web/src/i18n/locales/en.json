@@ -23,6 +23,7 @@
     "all": "All",
     "none": "None",
     "optional": "Optional",
+    "moreInfo": "More information",
     "delete": "Delete",
     "placeholders": {
       "identifier": "05XXXXXXXX",
@@ -637,6 +638,7 @@
     "purchase": {
       "closedMonth": "That month is closed; date it in an open month",
       "futureDate": "The date cannot be in the future",
+      "tooOld": "The date cannot be more than 30 days back",
       "backdateNotAllowed": "Only a manager can date this more than 7 days back",
       "duplicateReference": "This supplier invoice number is already recorded",
       "alreadyInvoiced": "These goods are already on an invoice",
@@ -657,7 +659,7 @@
     "stockCount": {
       "alreadyOpen": "A count is already in progress",
       "notOpen": "This count is already posted or cancelled",
-      "incomplete": "Count every item before posting"
+      "incomplete": "Count at least one item before posting"
     }
   },
   "patients": {
@@ -1463,6 +1465,7 @@
       "reverseTitle": "Reverse This Movement",
       "reverseDescription": "The original stays exactly as it is; the opposite entry is written beside it.",
       "batch": "Batch {{batch}}",
+      "doctor": "Dr. {{name}}",
       "unitPrice": "{{price}} per unit",
       "after": "Stock After",
       "menu": "Movement Options",
@@ -1517,6 +1520,8 @@
       "batchNo": "Lot Number",
       "expiry": "Expiry",
       "patient": "Patient",
+      "doctor": "Doctor",
+      "selectDoctor": "Choose a Doctor",
       "note": "Note",
       "reason": "Reason",
       "reasonHint": "It stays on the record — a correction has no other explanation",
@@ -1537,33 +1542,25 @@
         "adjust": "Correct Quantity"
       },
       "title": {
-        "purchase": "Purchase — {{item}}",
         "consume": "Use — {{item}}",
         "adjust": "Correct Quantity — {{item}}"
       },
       "description": {
-        "purchase": "Adds to stock, and the price appears on the supplier's statement.",
         "consume": "Comes off stock. Naming a patient puts it on their file.",
         "adjust": "When what is recorded does not match the shelf: a count that differs, a breakage, or expired stock thrown away. The reason is required and stays on the record."
       },
       "submit": {
-        "purchase": "Record Purchase",
         "consume": "Record Use",
         "adjust": "Record Correction"
       },
       "recorded": {
-        "purchase": "Purchase recorded",
         "consume": "Use recorded",
         "adjust": "Correction recorded"
       },
-      "restock": "Add Stock (a Purchase)",
-      "backToUse": "Back to Using It",
       "overStock": "More Than Is in Stock",
       "atLeastOne": "Take Off at Least 1",
-      "purchaseTotal": "Purchase Total",
       "paidNow": "Paid Now",
       "paymentMethod": "Payment Method",
-      "leftToPay": "Left to Pay",
       "paidTooMuch": "More than the purchase total"
     },
     "shoppingList": {
@@ -1575,7 +1572,15 @@
       "suggested": "Suggested",
       "empty": "Nothing below its minimum",
       "emptyHint": "Everything is within its levels — nothing to order",
-      "note": "Suggested = twice the minimum less what is in stock; a starting figure only"
+      "note": "Suggested = twice the minimum less what is in stock; a starting figure only",
+      "lastPrice": "Last price",
+      "pickAll": "Select all",
+      "buy": "Buy selected",
+      "picked_one": "{{count}} item selected",
+      "picked_other": "{{count}} items selected",
+      "splitTitle": "These items come from more than one supplier",
+      "splitDescription": "Each purchase is for one supplier. Buy from each in turn; the rest stay selected when you come back.",
+      "buyGroup": "Buy"
     },
     "suppliers": {
       "title": "Suppliers",
@@ -1666,15 +1671,12 @@
       "amount": "Amount",
       "discountKind": "Discount type",
       "charges": "Delivery and other charges",
-      "confirmInvoice": "Post the purchase invoice for {{total}}?",
-      "confirmReceipt": "Receive {{lines}} items into stock?",
       "consequenceOwed": "The invoice total is added to what the clinic owes the supplier.",
       "consequenceStock": "The quantities are added to stock.",
       "date": "Purchase date",
       "free": "Free quantity",
       "gift": "Gift — no charge",
       "invoiceDiscount": "Invoice discount",
-      "lineCost": "Cost per unit",
       "lineDiscount": "Line discount",
       "noSupplier": "No supplier",
       "postInvoice": "Post Invoice",
@@ -1685,7 +1687,42 @@
       "taxAmount": "Tax amount",
       "taxRate": "Tax rate %",
       "total": "Total",
-      "withInvoice": "The supplier gave an invoice"
+      "withInvoice": "The supplier gave an invoice",
+      "giftShort": "Gift",
+      "lineTotal": "Cost",
+      "lineDetails": "Batch and expiry",
+      "lines": "Items",
+      "remaining": "Left to pay",
+      "batchPlaceholder": "e.g. L-2231",
+      "refPlaceholder": "e.g. INV-1024",
+      "modeLabel": "What are you doing",
+      "mode": {
+        "receive": "Goods Received",
+        "order": "Order from Supplier"
+      },
+      "alreadyOrdered": "{{who}} already ordered {{quantity}} {{unit}} in {{number}} ({{status}}); {{open}} still to arrive.",
+      "receiveAgainst": "Receive against {{number}}",
+      "someone": "someone",
+      "openOrdersTitle": "This item is already on an order",
+      "openOrdersDescription": "Someone already ordered these items and they haven't all arrived. Check before you go on, so nothing is bought twice.",
+      "openOrdersBack": "Go Back",
+      "openOrdersContinue": "Continue Anyway",
+      "openOrdersWait": "Continue in {{seconds}}",
+      "orderFieldHint": "Entered when the goods arrive.",
+      "orderPriceHint": "Expected, from the last price paid for this item, from this supplier when there is one. The real price is entered when the goods arrive.",
+      "orderSubtitle": "The order goes to the supplier. Stock doesn't change until the goods arrive.",
+      "saveOrder": "Send Order",
+      "freeShort": "Free",
+      "discountNeedsInvoice": "A discount comes on a supplier's invoice. Choose a supplier and turn on the invoice to enter one.",
+      "freeHint": "Extra units the supplier adds at no charge. They go into stock on top of the quantity; you pay only for the quantity, so each unit costs less.",
+      "unitShort": "Unit",
+      "reviewTitle": "Purchase summary",
+      "review": "Review and post",
+      "reviewReceipt": "Review and receive",
+      "totalQuantity": "Total quantity",
+      "gifts": "Gifts",
+      "itemCount_one": "{{count}} item",
+      "itemCount_other": "{{count}} items"
     },
     "uninvoiced": {
       "title": "Received, Awaiting the Invoice",
@@ -1738,9 +1775,6 @@
       "title": "Purchase Requests",
       "subtitle": "What the clinic needs, sent to suppliers and received against.",
       "new": "New Request",
-      "belowMinimum": "Request Items Below Minimum",
-      "fromMinimum_one": "{{count}} request created",
-      "fromMinimum_other": "{{count}} requests created",
       "filter": "Status",
       "all": "All",
       "menu": "Request Actions",
@@ -1759,11 +1793,24 @@
       "newTitle": "New Purchase Request",
       "editTitle": "Edit the Request",
       "neededBy": "Needed by",
-      "sendTitle": "Send to the Supplier by WhatsApp",
-      "sendDescription": "Request {{number}} goes to {{supplier}} as a PDF and is marked ordered.",
+      "sendTitle": "Send the Order to the Supplier",
+      "sendDescription": "The request arrives as a PDF from the clinic's WhatsApp, with your message.",
+      "sendSubmit": "Send",
+      "attachment": "Purchase request {{number}}.pdf",
+      "messageLabel": "Message",
+      "messageHint": "Shown with the file on one line. The items and quantities are in the file.",
+      "message": {
+        "greeting": "Hello,",
+        "greetingNamed": "Hello {{supplier}},",
+        "from": "This is {{name}} from {{clinic}}.",
+        "fromClinic": "This is {{clinic}}.",
+        "body": "Please find purchase request {{number}} attached.",
+        "neededBy": "We need it by {{date}}.",
+        "closing": "Kindly confirm availability and delivery date."
+      },
       "whatsapp": "WhatsApp number",
-      "withPrices": "Include last known prices",
-      "markOrdered": "I Sent It Myself",
+      "withPrices": "Show last prices in the file",
+      "markOrdered": "Ordered Another Way",
       "markedOrdered": "Marked as ordered",
       "sent": "Sent to the supplier",
       "empty": "Nothing requested",
@@ -1781,7 +1828,20 @@
         "received": "Received",
         "closed": "Closed",
         "cancelled": "Cancelled"
-      }
+      },
+      "createdBy": "Requested By",
+      "sentAt": "Sent",
+      "sentBy": "by",
+      "sendsTitle": "Send History",
+      "sendNumber": "Send {{number}}",
+      "sendCount_one": "Once",
+      "sendCount_other": "{{count}} times",
+      "note": "Note",
+      "ordered": "Ordered",
+      "received": "Received",
+      "remaining": "To Arrive",
+      "detailsTitle": "Purchase Request",
+      "detailsSubtitle": "What was ordered, from whom, and what has arrived"
     },
     "counts": {
       "start": "Count Stock",
@@ -1791,17 +1851,17 @@
       "snapshot": "Started {{at}}",
       "missing_one": "{{count}} item not counted yet",
       "missing_other": "{{count}} items not counted yet",
-      "save": "Save Progress",
       "saved": "Counts saved",
-      "post": "Post the Count",
+      "post": "Finish and Adjust Stock",
       "posted": "Count posted",
-      "cancel": "Cancel the Count",
       "columns": {
         "item": "Item",
         "expected": "Expected",
         "counted": "Counted",
         "difference": "Difference",
-        "value": "Value"
+        "value": "Value",
+        "unitPrice": "Unit Price",
+        "expiry": "Expiry"
       },
       "status": {
         "open": "In progress",
@@ -1809,13 +1869,27 @@
         "cancelled": "Cancelled"
       },
       "confirmPost": {
-        "title": "Post count {{number}}?",
-        "adjustments": "Each difference becomes a stock adjustment at the current average cost."
+        "title": "Finish count {{number}}?",
+        "counted_one": "Stock becomes what you counted for {{count}} item.",
+        "counted_other": "Stock becomes what you counted for {{count}} items.",
+        "skipped_one": "{{count}} item wasn't counted and keeps its current stock.",
+        "skipped_other": "{{count}} items weren't counted and keep their current stock."
       },
-      "confirmCancel": {
-        "title": "Cancel count {{number}}?",
-        "nothing": "Nothing in stock changes; the typed counts are discarded."
-      }
+      "allCounted": "Every item is counted",
+      "shortages": "Short",
+      "surpluses": "Over",
+      "differenceCaption_one": "{{count}} item",
+      "differenceCaption_other": "{{count}} items",
+      "show": "Show",
+      "filters": {
+        "all": "All",
+        "remaining": "Not Counted",
+        "differences": "With a Difference"
+      },
+      "search": "Search items",
+      "noMatch": "No items match",
+      "noMatchHint": "Change the filter or the search",
+      "averageCost": "Average"
     },
     "rowMenu": "Item Actions",
     "review": {
@@ -1843,6 +1917,7 @@
       "title": "Pack Sizes",
       "hint": "How this item is bought. Stock is always kept in its own unit.",
       "holds": "{{pack}} of {{count}} {{unit}}",
+      "holdsShort": "{{pack}} = {{count}} {{unit}}",
       "pack": "Pack",
       "unitsPer": "Units in a pack",
       "add": "Add Pack Size",
@@ -3471,5 +3546,11 @@
     "monthTotal": "This month's expenses",
     "empty": "No expenses this month",
     "reverseTitle": "Reverse this expense?"
+  },
+  "whatsappCheck": {
+    "checking": "Checking",
+    "available": "On WhatsApp",
+    "unavailable": "Not on WhatsApp",
+    "error": "Couldn't check"
   }
 }

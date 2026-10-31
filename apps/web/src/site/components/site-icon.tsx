@@ -29,6 +29,7 @@ import {
   Phone,
   Pill,
   Play,
+  Plus,
   Quote,
   Send,
   Shield,
@@ -72,6 +73,7 @@ type UiIcon =
   | "menu"
   | "phone"
   | "play"
+  | "plus"
   | "quote"
   | "x";
 
@@ -106,6 +108,7 @@ const ICONS: Record<SiteIconName | UiIcon, LucideIcon> = {
   menu: Menu,
   phone: Phone,
   play: Play,
+  plus: Plus,
   quote: Quote,
   x: X,
   alert: CircleAlert,

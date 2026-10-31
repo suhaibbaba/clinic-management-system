@@ -16,13 +16,15 @@ import {
   toThousandths,
   type CreatePurchaseRequestInput,
   type ListPurchaseRequestsQuery,
+  type OpenOrderLine,
+  type OpenOrderLinesQuery,
   type Paginated,
   type PurchaseRequest,
   type PurchaseRequestStatus,
   type SendPurchaseRequestInput,
   type UpdatePurchaseRequestInput,
 } from "@clinic/shared";
-import { and, desc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, ne, sql, type SQL } from "drizzle-orm";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { toOptionalPersonName } from "@api/common/person-name";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
@@ -30,6 +32,7 @@ import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/da
 import {
   inventoryItems,
   purchaseRequestLines,
+  purchaseRequestSends,
   purchaseRequests,
   stockReceiptLines,
   stockReceipts,
@@ -116,6 +119,47 @@ export class PurchaseRequestsService {
         : loaded;
 
     return toPaginated(items, count?.value ?? 0, query);
+  }
+
+  async openLines(actor: AuthenticatedUser, query: OpenOrderLinesQuery): Promise<OpenOrderLine[]> {
+    const rows = await this.db
+      .selectDistinct({ id: purchaseRequests.id, createdAt: purchaseRequests.createdAt })
+      .from(purchaseRequests)
+      .innerJoin(purchaseRequestLines, eq(purchaseRequestLines.requestId, purchaseRequests.id))
+      .where(
+        and(
+          eq(purchaseRequests.clinicId, actor.clinicId),
+          inArray(purchaseRequests.status, [...OPEN_STATUSES]),
+          inArray(purchaseRequestLines.itemId, query.itemIds),
+          isNull(purchaseRequestLines.removedAt),
+          query.excludeRequestId ? ne(purchaseRequests.id, query.excludeRequestId) : undefined,
+        ),
+      )
+      .orderBy(desc(purchaseRequests.createdAt));
+    const wanted = new Set(query.itemIds);
+    const loaded = await this.load(
+      actor,
+      rows.map((row) => row.id),
+    );
+
+    return loaded
+      .filter((request) => request.status !== PURCHASE_REQUEST_STATUS.RECEIVED)
+      .flatMap((request) =>
+        request.lines
+          .filter((line) => wanted.has(line.itemId) && toThousandths(line.open) > 0)
+          .map((line) => ({
+            itemId: line.itemId,
+            requestId: request.id,
+            number: request.number,
+            status: request.status,
+            supplierName: request.supplierName,
+            createdByName: request.createdByName,
+            createdAt: request.createdAt,
+            unit: line.unit,
+            quantity: line.quantity,
+            open: line.open,
+          })),
+      );
   }
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<PurchaseRequest> {
@@ -289,18 +333,35 @@ export class PurchaseRequestsService {
       input.withPrices === true && (await this.permissions.can(actor, RULE.INVENTORY_COSTS));
     const pdf = await this.documents.purchaseRequest(actor, request, withPrices);
 
-    await this.delivery.send({ clinicId: actor.clinicId, to, kind: "purchaseRequest", pdf });
+    await this.delivery.send({
+      clinicId: actor.clinicId,
+      to,
+      kind: "purchaseRequest",
+      pdf,
+      message: input.message,
+    });
 
-    return this.markOrdered(actor, id, to);
+    return this.markOrdered(actor, id, { to, withPrices, message: input.message ?? null });
   }
 
   async markOrdered(
     actor: AuthenticatedUser,
     id: string,
-    sentTo: string | null = null,
+    sent: { to: string; withPrices: boolean; message: string | null } | null = null,
   ): Promise<PurchaseRequest> {
+    const sentTo = sent?.to ?? null;
+
     await this.db.transaction(async (tx) => {
       const request = await this.lockOpen(tx, actor.clinicId, id);
+
+      await tx.insert(purchaseRequestSends).values({
+        clinicId: actor.clinicId,
+        requestId: id,
+        sentTo,
+        withPrices: sent?.withPrices ?? false,
+        message: sent?.message ?? null,
+        sentBy: actor.id,
+      });
 
       await tx
         .update(purchaseRequests)
@@ -473,7 +534,7 @@ export class PurchaseRequestsService {
       return [];
     }
 
-    const [rows, lines, received, seesCosts] = await Promise.all([
+    const [rows, lines, received, seesCosts, sends] = await Promise.all([
       this.db
         .select({
           request: purchaseRequests,
@@ -508,6 +569,21 @@ export class PurchaseRequestsService {
         .orderBy(purchaseRequestLines.createdAt, inventoryItems.name),
       this.receivedByLine(this.db, ids),
       this.permissions.can(actor, RULE.INVENTORY_COSTS),
+      this.db
+        .select({
+          send: purchaseRequestSends,
+          sentByNameAr: users.nameAr,
+          sentByNameEn: users.nameEn,
+        })
+        .from(purchaseRequestSends)
+        .leftJoin(users, eq(users.id, purchaseRequestSends.sentBy))
+        .where(
+          and(
+            eq(purchaseRequestSends.clinicId, actor.clinicId),
+            inArray(purchaseRequestSends.requestId, [...ids]),
+          ),
+        )
+        .orderBy(desc(purchaseRequestSends.sentAt)),
     ]);
 
     const prices = seesCosts
@@ -552,6 +628,14 @@ export class PurchaseRequestsService {
           createdByName: toOptionalPersonName(row.createdByNameAr, row.createdByNameEn),
           createdAt: row.request.createdAt.toISOString(),
           lines: own,
+          sends: sends
+            .filter(({ send }) => send.requestId === id)
+            .map(({ send, sentByNameAr, sentByNameEn }) => ({
+              id: send.id,
+              sentAt: send.sentAt.toISOString(),
+              sentTo: send.sentTo,
+              sentByName: toOptionalPersonName(sentByNameAr, sentByNameEn),
+            })),
         },
       ];
     });

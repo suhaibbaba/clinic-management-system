@@ -56,7 +56,7 @@ export function Modal({
           {...part()}
           onOpenAutoFocus={(event) => {
             event.preventDefault();
-            (event.currentTarget as HTMLElement | null)?.focus();
+            (event.currentTarget as HTMLElement | null)?.focus({ preventScroll: true });
           }}
           tabIndex={-1}
           role={role}

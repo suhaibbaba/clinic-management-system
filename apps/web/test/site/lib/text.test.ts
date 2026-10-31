@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   groupHours,
+  heroLines,
   mapEmbed,
   mapsSearchLink,
   orDefault,
@@ -68,5 +69,19 @@ describe("clinic map", () => {
       "https://www.google.com/maps/search/?api=1&query=Rafidia%20%26%20Co",
     );
     expect(mapEmbed(null, null, 0.01)).toBeNull();
+  });
+});
+
+describe("heroLines", () => {
+  it("keeps the line break the editor wrote", () => {
+    expect(heroLines("A B C D\nE")).toEqual(["A B C D", "E"]);
+  });
+
+  it("splits a long single line in two", () => {
+    expect(heroLines("ابتسامة صحية تبدأ من هنا")).toEqual(["ابتسامة صحية", "تبدأ من هنا"]);
+  });
+
+  it("leaves a short title on one line", () => {
+    expect(heroLines("Abu Obaid Clinic")).toEqual(["Abu Obaid Clinic", ""]);
   });
 });
