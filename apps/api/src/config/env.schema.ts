@@ -84,7 +84,7 @@ export const envSchema = z.object({
 
   APP_VERSION: z.string().min(1).default("0.0.0-dev"),
 
-  NOTIFICATIONS_PROVIDER: z.enum(["log", "http", "whatsapp"]).default("log"),
+  NOTIFICATIONS_PROVIDER: z.enum(["log", "http", "whatsapp", "twilio"]).default("log"),
   NOTIFICATIONS_HTTP_URL: z.string().url().optional(),
   NOTIFICATIONS_HTTP_TOKEN: z.string().optional(),
   NOTIFICATIONS_HTTP_TIMEOUT_MS: z.coerce.number().int().min(500).max(30_000).default(5_000),
@@ -100,6 +100,16 @@ export const envSchema = z.object({
     .string()
     .regex(/^v\d+\.\d+$/)
     .default("v21.0"),
+  TWILIO_ACCOUNT_SID: z.string().optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_WHATSAPP_FROM: z
+    .string()
+    .regex(/^\+\d{6,15}$/, "TWILIO_WHATSAPP_FROM must be an international number")
+    .optional(),
+  TWILIO_TEMPLATE_SID: z.string().optional(),
+  TWILIO_DOCUMENT_TEMPLATE_SID: z.string().optional(),
+  TWILIO_CODE_TEMPLATE_SID: z.string().optional(),
+  TWILIO_STATUS_CALLBACK_URL: z.string().url().optional(),
 
   BOOKING_TOKEN_SECRET: z.string().min(32).optional(),
 

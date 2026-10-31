@@ -9,6 +9,13 @@ import {
   toWhatsAppParameter,
 } from "@api/modules/notifications/lib/notification-provider";
 import { WhatsAppCredentials } from "@api/common/types/whatsapp";
+import { TWILIO_API } from "@api/modules/notifications/constants";
+import {
+  mediaPathOf,
+  twilioAddress,
+  twilioCredentials,
+  type TwilioCredentials,
+} from "@api/modules/notifications/lib/twilio";
 
 @Injectable()
 export class LogNotificationProvider implements NotificationProvider {
@@ -259,6 +266,129 @@ export class WhatsAppNotificationProvider implements NotificationProvider {
     } finally {
       clearTimeout(timeout);
       this.logger.debug(`Delivered to ${message.to} over WhatsApp`);
+    }
+  }
+}
+
+@Injectable()
+export class TwilioNotificationProvider implements NotificationProvider {
+  readonly name = "twilio";
+
+  private readonly logger = new Logger("Notifications");
+
+  constructor(private readonly config: ConfigService<Env, true>) {}
+
+  credentials(): TwilioCredentials | null {
+    return twilioCredentials(this.config);
+  }
+
+  async send(message: OutboundMessage): Promise<void> {
+    const credentials = this.required();
+    const text = toWhatsAppParameter(message.body);
+
+    await this.create(
+      credentials,
+      message.to,
+      credentials.templateSid
+        ? { ContentSid: credentials.templateSid, ContentVariables: JSON.stringify({ 1: text }) }
+        : { Body: text },
+    );
+
+    this.logger.debug(`Delivered to ${message.to} over Twilio WhatsApp`);
+  }
+
+  sendCode(to: string, code: string): Promise<string> {
+    const credentials = this.required();
+
+    return this.create(
+      credentials,
+      to,
+      credentials.codeTemplateSid
+        ? { ContentSid: credentials.codeTemplateSid, ContentVariables: JSON.stringify({ 1: code }) }
+        : { Body: code },
+    );
+  }
+
+  async sendDocument(to: string, mediaUrl: string, caption: string): Promise<void> {
+    const credentials = this.required();
+    const text = toWhatsAppParameter(caption);
+
+    await this.create(
+      credentials,
+      to,
+      credentials.documentTemplateSid
+        ? {
+            ContentSid: credentials.documentTemplateSid,
+            ContentVariables: JSON.stringify({ 1: text, 2: mediaPathOf(mediaUrl) }),
+          }
+        : { Body: text, MediaUrl: mediaUrl },
+    );
+
+    this.logger.debug(`Delivered a document to ${to} over Twilio WhatsApp`);
+  }
+
+  private required(): TwilioCredentials {
+    const credentials = this.credentials();
+
+    if (!credentials) {
+      throw new Error("Twilio is not configured");
+    }
+
+    return credentials;
+  }
+
+  private async create(
+    credentials: TwilioCredentials,
+    to: string,
+    content: Record<string, string>,
+  ): Promise<string> {
+    if (!to.trim().startsWith("+")) {
+      throw new Error("The number is not in international form");
+    }
+
+    const form = new URLSearchParams({
+      From: twilioAddress(credentials.from),
+      To: twilioAddress(to),
+      ...content,
+      ...(credentials.statusCallbackUrl ? { StatusCallback: credentials.statusCallbackUrl } : {}),
+    });
+    const basic = Buffer.from(`${credentials.accountSid}:${credentials.authToken}`).toString(
+      "base64",
+    );
+    const controller = new AbortController();
+    const timeout = setTimeout(
+      () => controller.abort(),
+      this.config.get("NOTIFICATIONS_HTTP_TIMEOUT_MS", { infer: true }),
+    );
+
+    try {
+      const response = await fetch(
+        `${TWILIO_API}/Accounts/${encodeURIComponent(credentials.accountSid)}/Messages.json`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/x-www-form-urlencoded",
+            authorization: `Basic ${basic}`,
+          },
+          body: form.toString(),
+          signal: controller.signal,
+        },
+      );
+
+      if (!response.ok) {
+        const detail = await response.text().catch(() => "");
+        throw new Error(`Twilio responded ${response.status}: ${detail.slice(0, 200)}`);
+      }
+
+      const sid = ((await response.json()) as { sid?: unknown }).sid;
+
+      if (typeof sid !== "string") {
+        throw new Error("Twilio returned no message sid");
+      }
+
+      return sid;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 }

@@ -27,3 +27,11 @@ export const WHATSAPP_CODE_TTL_MS = 5 * MINUTE;
 export const WHATSAPP_UNDELIVERABLE = 131026;
 
 export const WHATSAPP_SIGNATURE_HEADER = "x-hub-signature-256";
+
+export const TWILIO_API = "https://api.twilio.com/2010-04-01";
+
+export const TWILIO_UNDELIVERABLE: readonly number[] = [63003, 63024];
+
+export const TWILIO_SIGNATURE_HEADER = "x-twilio-signature";
+
+export const OUTBOUND_DOCUMENT_CATEGORY = "outbound";

@@ -6,6 +6,7 @@ import { DatabaseModule } from "@api/database/database.module";
 import {
   HttpNotificationProvider,
   LogNotificationProvider,
+  TwilioNotificationProvider,
   WhatsAppNotificationProvider,
 } from "@api/modules/notifications/services/notification-provider";
 import { NOTIFICATION_PROVIDER } from "@api/modules/notifications/constants";
@@ -20,15 +21,23 @@ import { RemindersScheduler } from "@api/modules/notifications/services/reminder
 import { SecretsModule } from "@api/modules/secrets/secrets.module";
 import { WhatsAppChecksController } from "@api/modules/notifications/controllers/whatsapp-checks.controller";
 import { WhatsAppWebhookController } from "@api/modules/notifications/controllers/whatsapp-webhook.controller";
+import { TwilioWebhookController } from "@api/modules/notifications/controllers/twilio-webhook.controller";
+import { twilioCredentials } from "@api/modules/notifications/lib/twilio";
 import { WhatsAppChecksService } from "@api/modules/notifications/services/whatsapp-checks.service";
 
 @Module({
   imports: [DatabaseModule, AppConfigModule, SecretsModule],
-  controllers: [DocumentDeliveryController, WhatsAppChecksController, WhatsAppWebhookController],
+  controllers: [
+    DocumentDeliveryController,
+    WhatsAppChecksController,
+    WhatsAppWebhookController,
+    TwilioWebhookController,
+  ],
   providers: [
     LogNotificationProvider,
     HttpNotificationProvider,
     WhatsAppNotificationProvider,
+    TwilioNotificationProvider,
     {
       provide: NOTIFICATION_PROVIDER,
       inject: [
@@ -36,12 +45,14 @@ import { WhatsAppChecksService } from "@api/modules/notifications/services/whats
         LogNotificationProvider,
         HttpNotificationProvider,
         WhatsAppNotificationProvider,
+        TwilioNotificationProvider,
       ],
       useFactory: (
         config: ConfigService<Env, true>,
         log: LogNotificationProvider,
         http: HttpNotificationProvider,
         whatsapp: WhatsAppNotificationProvider,
+        twilio: TwilioNotificationProvider,
       ): NotificationProvider => {
         const chosen = config.get("NOTIFICATIONS_PROVIDER", { infer: true });
         const logger = new Logger("Notifications");
@@ -59,6 +70,20 @@ import { WhatsAppChecksService } from "@api/modules/notifications/services/whats
 
           logger.warn(
             "NOTIFICATIONS_PROVIDER=whatsapp but a WHATSAPP_* credential is missing — using log; nothing is sent.",
+          );
+
+          return log;
+        }
+
+        if (chosen === "twilio") {
+          if (twilioCredentials(config)) {
+            logger.log("Notification provider: twilio.");
+
+            return twilio;
+          }
+
+          logger.warn(
+            "NOTIFICATIONS_PROVIDER=twilio but a TWILIO_* credential is missing — using log; nothing is sent.",
           );
 
           return log;

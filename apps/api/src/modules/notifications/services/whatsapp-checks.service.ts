@@ -8,6 +8,7 @@ import {
   WHATSAPP_STATUS,
   WHATSAPP_STATUS_SOURCE,
   type WhatsAppCheck,
+  type WhatsAppStatus,
 } from "@clinic/shared";
 import { and, eq, ne, type SQL } from "drizzle-orm";
 import { hashCode } from "@api/common/lib/codes";
@@ -27,7 +28,11 @@ import {
   toWhatsAppCheck,
   whatsAppStatusOf,
 } from "@api/modules/notifications/lib/whatsapp-checks";
-import { WhatsAppNotificationProvider } from "@api/modules/notifications/services/notification-provider";
+import { whatsAppStatusOfTwilio, type TwilioStatus } from "@api/modules/notifications/lib/twilio";
+import {
+  TwilioNotificationProvider,
+  WhatsAppNotificationProvider,
+} from "@api/modules/notifications/services/notification-provider";
 import { SecretsService } from "@api/modules/secrets/services/secrets.service";
 
 @Injectable()
@@ -38,6 +43,7 @@ export class WhatsAppChecksService {
     @Inject(DATABASE) private readonly db: Database,
     @Inject(NOTIFICATION_PROVIDER) private readonly provider: NotificationProvider,
     private readonly whatsapp: WhatsAppNotificationProvider,
+    private readonly twilio: TwilioNotificationProvider,
     private readonly secrets: SecretsService,
     private readonly config: ConfigService<Env, true>,
   ) {}
@@ -116,7 +122,10 @@ export class WhatsAppChecksService {
         return toWhatsAppCheck(claim.row, phone, now);
       }
 
-      const providerMessageId = await this.whatsapp.sendCodeWith(route, phone, code);
+      const providerMessageId =
+        route === "twilio"
+          ? await this.twilio.sendCode(phone, code)
+          : await this.whatsapp.sendCodeWith(route, phone, code);
       const [row] = await this.db
         .update(whatsAppChecks)
         .set({ providerMessageId, updatedAt: new Date() })
@@ -141,34 +150,44 @@ export class WhatsAppChecksService {
 
   async applyDeliveries(payload: unknown): Promise<void> {
     for (const delivery of deliveryStatuses(payload)) {
-      const status = whatsAppStatusOf(delivery);
-
-      if (status === null) {
-        continue;
-      }
-
-      const conditions: SQL[] = [eq(whatsAppChecks.providerMessageId, delivery.id)];
-
-      if (status !== WHATSAPP_STATUS.AVAILABLE) {
-        conditions.push(ne(whatsAppChecks.status, WHATSAPP_STATUS.AVAILABLE));
-      }
-
-      const now = new Date();
-
-      await this.db
-        .update(whatsAppChecks)
-        .set({ status, checkedAt: now, updatedAt: now })
-        .where(and(...conditions));
+      await this.apply(delivery.id, whatsAppStatusOf(delivery));
     }
   }
 
-  private async route(clinicId: string): Promise<WhatsAppCredentials | "log" | null> {
+  async applyTwilioDelivery(delivery: TwilioStatus): Promise<void> {
+    await this.apply(delivery.sid, whatsAppStatusOfTwilio(delivery));
+  }
+
+  private async apply(providerMessageId: string, status: WhatsAppStatus | null): Promise<void> {
+    if (status === null) {
+      return;
+    }
+
+    const conditions: SQL[] = [eq(whatsAppChecks.providerMessageId, providerMessageId)];
+
+    if (status !== WHATSAPP_STATUS.AVAILABLE) {
+      conditions.push(ne(whatsAppChecks.status, WHATSAPP_STATUS.AVAILABLE));
+    }
+
+    const now = new Date();
+
+    await this.db
+      .update(whatsAppChecks)
+      .set({ status, checkedAt: now, updatedAt: now })
+      .where(and(...conditions));
+  }
+
+  private async route(clinicId: string): Promise<WhatsAppCredentials | "twilio" | "log" | null> {
     if (this.config.get("NODE_ENV", { infer: true }) !== "test") {
       const credentials =
         (await this.secrets.whatsApp(clinicId)) ?? whatsAppCredentials(this.config);
 
       if (credentials) {
         return credentials;
+      }
+
+      if (this.provider.name === "twilio") {
+        return "twilio";
       }
     }
 

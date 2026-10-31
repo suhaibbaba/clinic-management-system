@@ -15,15 +15,22 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import { notificationsLog } from "@api/database/schema";
 import { documentStrings } from "@api/modules/billing/pdf/document-strings";
 import { LetterheadService } from "@api/modules/billing/pdf/letterhead.service";
-import { NOTIFICATION_PROVIDER } from "@api/modules/notifications/constants";
+import {
+  NOTIFICATION_PROVIDER,
+  OUTBOUND_DOCUMENT_CATEGORY,
+} from "@api/modules/notifications/constants";
 import {
   whatsAppCredentials,
   type NotificationProvider,
 } from "@api/modules/notifications/lib/notification-provider";
 import { type SendDocument } from "@api/modules/notifications/lib/notifications";
 import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
-import { WhatsAppNotificationProvider } from "@api/modules/notifications/services/notification-provider";
+import {
+  TwilioNotificationProvider,
+  WhatsAppNotificationProvider,
+} from "@api/modules/notifications/services/notification-provider";
 import { SecretsService } from "@api/modules/secrets/services/secrets.service";
+import { StorageService } from "@api/modules/storage/services/storage.service";
 import { type WhatsAppCredentials } from "@api/common/types/whatsapp";
 
 @Injectable()
@@ -34,7 +41,9 @@ export class DocumentDeliveryService {
     @Inject(DATABASE) private readonly db: Database,
     @Inject(NOTIFICATION_PROVIDER) private readonly provider: NotificationProvider,
     private readonly whatsapp: WhatsAppNotificationProvider,
+    private readonly twilio: TwilioNotificationProvider,
     private readonly secrets: SecretsService,
+    private readonly storage: StorageService,
     private readonly notifications: NotificationsService,
     private readonly letterheads: LetterheadService,
     private readonly config: ConfigService<Env, true>,
@@ -88,6 +97,8 @@ export class DocumentDeliveryService {
           channel: NOTIFICATION_CHANNEL.WHATSAPP,
           body: `${caption} [${title}.pdf, ${input.pdf.length} bytes]`,
         });
+      } else if (route === "twilio") {
+        await this.sendThroughTwilio(input, `${title}.pdf`, caption);
       } else {
         await this.whatsapp.sendDocumentWith(route, {
           to: input.to,
@@ -115,7 +126,25 @@ export class DocumentDeliveryService {
     }
   }
 
-  private async route(clinicId: string): Promise<WhatsAppCredentials | "log" | null> {
+  private async sendThroughTwilio(
+    input: SendDocument,
+    filename: string,
+    caption: string,
+  ): Promise<void> {
+    const key = this.storage.buildClinicObjectKey({
+      clinicId: input.clinicId,
+      category: OUTBOUND_DOCUMENT_CATEGORY,
+      filename,
+    });
+
+    await this.storage.putObject(key, input.pdf, "application/pdf");
+
+    const { url } = await this.storage.createDownloadUrl(key, filename);
+
+    await this.twilio.sendDocument(input.to, url, caption);
+  }
+
+  private async route(clinicId: string): Promise<WhatsAppCredentials | "twilio" | "log" | null> {
     if (this.config.get("NODE_ENV", { infer: true }) !== "test") {
       const own = await this.secrets.whatsApp(clinicId);
 
@@ -127,6 +156,10 @@ export class DocumentDeliveryService {
 
       if (shared?.documentTemplateName) {
         return shared;
+      }
+
+      if (this.provider.name === "twilio") {
+        return "twilio";
       }
     }
 
