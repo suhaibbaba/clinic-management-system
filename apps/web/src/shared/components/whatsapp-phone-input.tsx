@@ -65,7 +65,11 @@ export function WhatsAppPhoneInput({
         data-part="whatsapp-status"
         className={cn(
           "flex items-center justify-center",
-          checking || status === WHATSAPP_STATUS.AVAILABLE ? "text-success-700" : "text-ink-faint",
+          checking
+            ? "text-success-700"
+            : status === WHATSAPP_STATUS.AVAILABLE
+              ? "text-social-whatsapp"
+              : "text-ink-faint",
         )}
       >
         <Icon name="whatsapp" className={cn("size-4", checking && "animate-spin")} />
