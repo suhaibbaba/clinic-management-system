@@ -46,8 +46,10 @@ fast-forward of that checkout followed by a rebuild.
 
 ## Port map
 
-Fixed in `docker-compose.sandbox.yml`, because the machine is shared and these
-numbers are what the host nginx is configured against.
+Fixed per environment, because the machine is shared and these numbers are what
+the host nginx is configured against. The sandbox uses the defaults in
+`docker-compose.sandbox.yml`; another environment sets `API_PORT`, `WEB_PORT` and
+`S3_PORT` in its own `.env` (see [Another clinic in its own environment](#another-clinic-in-its-own-environment)).
 
 | Service       | Host binding      | Container | Public?             |
 | ------------- | ----------------- | --------- | ------------------- |
@@ -318,6 +320,129 @@ Two consequences:
   whose containers have outbound DNS and internet access, which is the normal
   case. If the host firewall blocks the hairpin, add a `hosts:` mapping on the
   api service pointing the S3 hostname at the host's own address.
+
+## Another clinic in its own environment
+
+A clinic that must not share a database with the sandbox gets its own environment: its own
+checkout, `.env`, Postgres, MinIO, containers, images and backups, from the same
+`docker-compose.sandbox.yml`. Nothing is shared but the host nginx and the code on `main`.
+
+| Environment     | Directory                   | Compose project        | Ports (api / web / s3) | Dashboard                              | Website                          | S3                                   |
+| --------------- | --------------------------- | ---------------------- | ---------------------- | -------------------------------------- | -------------------------------- | ------------------------------------ |
+| `sandbox`       | `/opt/clinic/sandbox`       | `clinic-sandbox`       | 15000 / 15080 / 15900  | `clinic-sandbox.organza-moda.com`      | `/site/abu-obeid`                | `clinic-sandbox-s3.organza-moda.com` |
+| `kossai-jarrar` | `/opt/clinic/kossai-jarrar` | `clinic-kossai-jarrar` | 16000 / 16080 / 16900  | `admin.kossai-jarrar.organza-moda.com` | `kossai-jarrar.organza-moda.com` | `kossai-jarrar-s3.organza-moda.com`  |
+
+A second stack is a second Postgres, MinIO, API and web on the same box: check `free -h` before
+adding one.
+
+### 1. DNS
+
+Three `A` records to the VPS, **DNS only** like every other record here, so certbot on the server
+issues the certificate: the website, `admin.` of it, and the S3 host.
+
+### 2. The checkout and its `.env`
+
+```bash
+git clone https://github.com/suhaibbaba/clinic-management-system.git /opt/clinic/kossai-jarrar
+cd /opt/clinic/kossai-jarrar
+cp .env.kossai-jarrar.example .env
+chmod 600 .env
+$EDITOR .env
+```
+
+Fill every `CHANGE_ME` with values of its own — never the sandbox's secrets. `STACK_NAME` and the
+three ports must match the table above. The `BOOTSTRAP_*` block describes the clinic:
+
+- `SEED_ON_BOOT=false` — a real clinic never gets the demo seed.
+- `BOOTSTRAP_ON_BOOT=true` — after migrations, `dist/database/bootstrap.js` creates the clinic, its
+  specialties, its default lists and its first admin. Later boots find them and change nothing, so
+  the block can stay; a clinic renamed on the dashboard keeps its new name.
+- `BOOTSTRAP_ADMIN_PASSWORD` is read only when the admin is created. With
+  `NOTIFICATIONS_PROVIDER=log` a sign-in code reaches only the API log, so the first sign-in is by
+  password; the admin changes it from the profile page.
+
+### 3. TLS and nginx
+
+```bash
+sudo certbot certonly --nginx -d kossai-jarrar.organza-moda.com \
+  -d admin.kossai-jarrar.organza-moda.com -d kossai-jarrar-s3.organza-moda.com
+```
+
+Three blocks, the same as the sandbox's with this environment's ports: the dashboard on `admin.`,
+the website with `X-Clinic-Entry: site`, and the S3 host.
+
+```nginx
+server {
+    server_name admin.kossai-jarrar.organza-moda.com;
+
+    # TLS from the certificate above.
+
+    location / {
+        proxy_pass http://127.0.0.1:16080;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+server {
+    server_name kossai-jarrar.organza-moda.com;
+
+    # TLS from the certificate above.
+
+    location / {
+        proxy_pass http://127.0.0.1:16080;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Clinic-Entry    site;
+    }
+}
+
+server {
+    server_name kossai-jarrar-s3.organza-moda.com;
+
+    # TLS from the certificate above.
+
+    client_max_body_size 512m;
+    proxy_request_buffering off;
+
+    location / {
+        proxy_pass http://127.0.0.1:16900;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 300;
+        proxy_send_timeout    300;
+        proxy_read_timeout    300;
+    }
+}
+```
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+### 4. Deploy
+
+Actions → **Deploy** → `target: kossai-jarrar`. The same workflow, against this directory and
+project; the health check goes through `https://admin.kossai-jarrar.organza-moda.com/api/health`.
+`reset_data` and `sample_website` are refused for any target but the sandbox. By hand:
+
+```bash
+cd /opt/clinic/kossai-jarrar
+docker compose -p clinic-kossai-jarrar -f docker-compose.sandbox.yml up -d --build
+docker compose -p clinic-kossai-jarrar -f docker-compose.sandbox.yml logs api | grep -A4 '^Clinic:'
+```
+
+A new environment is a row in the workflow's **Resolve the environment** step, a checkout, an
+`.env` from its own example, and the steps above.
 
 ## 3. Deploying
 
