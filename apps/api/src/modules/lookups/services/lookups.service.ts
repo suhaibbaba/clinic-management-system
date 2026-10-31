@@ -13,6 +13,7 @@ import {
   PAIRED_SIDES,
   isPairedRegion,
   lookupLabel,
+  offersLookup,
   type BodyRegionLocation,
   type CreateLookupOptionInput,
   type ListLookupOptionsQuery,
@@ -25,6 +26,7 @@ import {
 import { and, asc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { clinicChartTypes } from "@api/common/lib/clinic-charts";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { lookupOptions } from "@api/database/schema";
@@ -67,11 +69,14 @@ export class LookupsService implements OnModuleInit {
       filters.push(eq(lookupOptions.isActive, true));
     }
 
-    const rows = await this.db
-      .select()
-      .from(lookupOptions)
-      .where(this.scope.where(lookupOptions, actor.clinicId, ...filters))
-      .orderBy(asc(lookupOptions.listKey), asc(lookupOptions.sortOrder), asc(lookupOptions.code));
+    const [rows, charts] = await Promise.all([
+      this.db
+        .select()
+        .from(lookupOptions)
+        .where(this.scope.where(lookupOptions, actor.clinicId, ...filters))
+        .orderBy(asc(lookupOptions.listKey), asc(lookupOptions.sortOrder), asc(lookupOptions.code)),
+      clinicChartTypes(this.db, actor.clinicId),
+    ]);
 
     const bundle: Record<string, LookupOption[]> = {};
 
@@ -80,7 +85,11 @@ export class LookupsService implements OnModuleInit {
     }
 
     for (const row of rows) {
-      (bundle[row.listKey] ??= []).push(toLookupOption(row));
+      const option = toLookupOption(row);
+
+      if (offersLookup(charts, option)) {
+        (bundle[row.listKey] ??= []).push(option);
+      }
     }
 
     return bundle;
@@ -88,6 +97,11 @@ export class LookupsService implements OnModuleInit {
 
   async create(actor: AuthenticatedUser, input: CreateLookupOptionInput): Promise<LookupOption> {
     const code = input.code ?? deriveCode(input.nameEn || input.nameAr);
+    const charts = await clinicChartTypes(this.db, actor.clinicId);
+
+    if (!offersLookup(charts, { listKey: input.listKey, code, isSystem: false })) {
+      throw new NotFoundException("Resource not found");
+    }
 
     await this.assertCodeIsFree(actor.clinicId, input.listKey, code);
 
@@ -199,7 +213,7 @@ export class LookupsService implements OnModuleInit {
 
   async assertCode(clinicId: string, listKey: LookupListKey, code: string): Promise<void> {
     const [row] = await this.db
-      .select({ id: lookupOptions.id })
+      .select({ isSystem: lookupOptions.isSystem })
       .from(lookupOptions)
       .where(
         this.scope.where(
@@ -212,7 +226,14 @@ export class LookupsService implements OnModuleInit {
       )
       .limit(1);
 
-    if (!row) {
+    if (
+      !row ||
+      !offersLookup(await clinicChartTypes(this.db, clinicId), {
+        listKey,
+        code,
+        isSystem: row.isSystem,
+      })
+    ) {
       throw new BadRequestException(`Unknown ${listKey}: ${code}`);
     }
   }

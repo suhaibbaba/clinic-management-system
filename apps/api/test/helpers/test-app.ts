@@ -114,8 +114,6 @@ export async function createTestContext(): Promise<TestContext> {
         throw new Error("Failed to create the test clinic");
       }
 
-      await ensureSystemLookups(db, clinic.id);
-
       const [specialty] = await db
         .insert(specialties)
         .values({
@@ -129,6 +127,8 @@ export async function createTestContext(): Promise<TestContext> {
       if (!specialty) {
         throw new Error("Failed to create the test specialty");
       }
+
+      await ensureSystemLookups(db, clinic.id);
 
       const userIds = {} as Record<UserRole, string>;
       const phones = {} as Record<UserRole, string>;

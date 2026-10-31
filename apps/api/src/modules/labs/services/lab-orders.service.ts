@@ -9,8 +9,10 @@ import {
 import { countsTowardLabBalance, LAB_ORDER_ERROR, localDate } from "@clinic/shared";
 import { type StatusChange } from "@api/modules/labs/lib/lab-orders";
 import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
+import { clinicChartTypes } from "@api/common/lib/clinic-charts";
 import {
   canTransitionLabOrder,
+  CHART_TYPE,
   LAB_ORDER_DONE_STATUSES,
   LAB_ORDER_STAGE_STATUSES,
   LAB_ORDER_STAGES,
@@ -203,6 +205,7 @@ export class LabOrdersService implements OnModuleInit {
   async create(actor: AuthenticatedUser, input: CreateLabOrderInput): Promise<LabOrderRow> {
     await this.lookups.assertOptionalCode(actor.clinicId, LOOKUP_LIST.LAB_MATERIAL, input.material);
     await this.lookups.assertOptionalCode(actor.clinicId, LOOKUP_LIST.LAB_SHADE, input.shade);
+    await this.requireTeethCharted(actor.clinicId, input.teeth);
 
     await this.labsService.requireRow(actor.clinicId, input.labId);
     await this.access.requireOwnCalendar(actor, input.doctorId);
@@ -278,6 +281,7 @@ export class LabOrdersService implements OnModuleInit {
   ): Promise<LabOrderRow> {
     await this.lookups.assertOptionalCode(actor.clinicId, LOOKUP_LIST.LAB_MATERIAL, input.material);
     await this.lookups.assertOptionalCode(actor.clinicId, LOOKUP_LIST.LAB_SHADE, input.shade);
+    await this.requireTeethCharted(actor.clinicId, input.teeth);
 
     const existing = await this.requireRow(actor.clinicId, id);
     await this.requireOwnOrder(actor, existing);
@@ -403,6 +407,19 @@ export class LabOrdersService implements OnModuleInit {
   private async requireNotPast(clinicId: string, date: string): Promise<void> {
     if (date < localDate(new Date(), await clinicTimeZone(this.db, clinicId))) {
       throw new BadRequestException(LAB_ORDER_ERROR.EXPECTED_IN_PAST);
+    }
+  }
+
+  private async requireTeethCharted(
+    clinicId: string,
+    teeth: readonly number[] | undefined,
+  ): Promise<void> {
+    if (
+      teeth !== undefined &&
+      teeth.length > 0 &&
+      !(await clinicChartTypes(this.db, clinicId)).includes(CHART_TYPE.TOOTH_FDI)
+    ) {
+      throw new BadRequestException(LAB_ORDER_ERROR.TEETH_NOT_CHARTED);
     }
   }
 

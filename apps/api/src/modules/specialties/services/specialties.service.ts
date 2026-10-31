@@ -14,6 +14,7 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { specialties } from "@api/database/schema";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
+import { LookupsService } from "@api/modules/lookups/services/lookups.service";
 import { toSpecialty } from "@api/modules/specialties/lib/specialties";
 
 type SpecialtyRow = typeof specialties.$inferSelect;
@@ -24,6 +25,7 @@ export class SpecialtiesService implements OnModuleInit {
     @Inject(DATABASE) private readonly db: Database,
     private readonly scope: ClinicScopeService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly lookups: LookupsService,
   ) {}
 
   onModuleInit(): void {
@@ -82,6 +84,8 @@ export class SpecialtiesService implements OnModuleInit {
       throw new Error("Failed to create specialty");
     }
 
+    await this.lookups.seedClinic(actor.clinicId);
+
     return toSpecialty(row);
   }
 
@@ -105,6 +109,10 @@ export class SpecialtiesService implements OnModuleInit {
 
     if (!row) {
       throw new Error("Failed to update specialty");
+    }
+
+    if (input.isActive === true) {
+      await this.lookups.seedClinic(actor.clinicId);
     }
 
     return toSpecialty(row);

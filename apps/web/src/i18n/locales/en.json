@@ -599,7 +599,8 @@
       "hint": "The app may have been updated, or the connection dropped while loading. Reload the page."
     },
     "labOrder": {
-      "expectedInPast": "The expected date cannot be in the past"
+      "expectedInPast": "The expected date cannot be in the past",
+      "teethNotCharted": "The clinic charts no teeth, so a lab order names no tooth"
     },
     "tooMany": "Too many requests in a short time; wait a moment and try again",
     "auth": {

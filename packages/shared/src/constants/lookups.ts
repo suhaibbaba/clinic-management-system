@@ -74,7 +74,13 @@ export interface SystemLookupRow {
   readonly nameEn: string;
   readonly color?: string;
   readonly meta?: Record<string, unknown>;
+  readonly chart?: ChartType;
 }
+
+const onToothChart = (row: SystemLookupRow): SystemLookupRow => ({
+  ...row,
+  chart: CHART_TYPE.TOOTH_FDI,
+});
 
 export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLookupRow[]>> = {
   [LOOKUP_LIST.TOOTH_STATE]: [
@@ -146,7 +152,7 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
       nameAr: "Removable orthodontic appliance",
       nameEn: "Removable orthodontic appliance",
     },
-  ],
+  ].map(onToothChart),
 
   [LOOKUP_LIST.LAB_MATERIAL]: [
     { code: "zirconia", nameAr: "Zirconia", nameEn: "Zirconia" },
@@ -154,7 +160,7 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
     { code: "pfm", nameAr: "Porcelain-fused-to-metal", nameEn: "Porcelain-fused-to-metal" },
     { code: "acrylic", nameAr: "Acrylic", nameEn: "Acrylic" },
     { code: "chrome_cobalt", nameAr: "Chrome cobalt", nameEn: "Chrome cobalt" },
-  ],
+  ].map(onToothChart),
 
   [LOOKUP_LIST.LAB_SHADE]: [
     { code: "A1", nameAr: "A1", nameEn: "A1" },
@@ -168,10 +174,14 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
   ],
 
   [LOOKUP_LIST.ATTACHMENT_TYPE]: [
-    { code: "xray_panoramic", nameAr: "Panoramic X-ray", nameEn: "Panoramic X-ray" },
-    { code: "xray_periapical", nameAr: "Periapical X-ray", nameEn: "Periapical X-ray" },
-    { code: "xray_bitewing", nameAr: "Bitewing X-ray", nameEn: "Bitewing X-ray" },
-    { code: "cbct", nameAr: "CBCT", nameEn: "CBCT" },
+    onToothChart({ code: "xray_panoramic", nameAr: "Panoramic X-ray", nameEn: "Panoramic X-ray" }),
+    onToothChart({
+      code: "xray_periapical",
+      nameAr: "Periapical X-ray",
+      nameEn: "Periapical X-ray",
+    }),
+    onToothChart({ code: "xray_bitewing", nameAr: "Bitewing X-ray", nameEn: "Bitewing X-ray" }),
+    onToothChart({ code: "cbct", nameAr: "CBCT", nameEn: "CBCT" }),
     { code: "clinical_photo", nameAr: "Clinical photo", nameEn: "Clinical photo" },
     { code: "document", nameAr: "مستند", nameEn: "Document" },
   ],
@@ -274,11 +284,11 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
     { code: "at_bedtime", nameAr: "قبل النوم", nameEn: "At bedtime" },
     { code: "when_needed", nameAr: "عند اللزوم", nameEn: "When needed" },
     { code: "finish_course", nameAr: "أكمل العلاج حتى آخره", nameEn: "Finish the whole course" },
-    {
+    onToothChart({
       code: "rinse_spit",
       nameAr: "مضمضة ثم بصق دون بلع",
       nameEn: "Rinse and spit, do not swallow",
-    },
+    }),
     {
       code: "nothing_after",
       nameAr: "لا أكل ولا شرب نصف ساعة بعده",
@@ -292,4 +302,27 @@ export function systemChartBehaviour(code: string): ToothChartBehaviour | undefi
   const behaviour = row?.meta?.["chartBehavior"];
 
   return behaviour as ToothChartBehaviour | undefined;
+}
+
+export function lookupChart(
+  listKey: LookupListKey,
+  code: string,
+  isSystem: boolean,
+): ChartType | undefined {
+  const listChart = CHART_LOOKUP_LISTS[listKey];
+
+  if (listChart !== undefined || !isSystem) {
+    return listChart;
+  }
+
+  return SYSTEM_LOOKUPS[listKey].find((row) => row.code === code)?.chart;
+}
+
+export function offersLookup(
+  chartTypes: readonly ChartType[],
+  option: { readonly listKey: LookupListKey; readonly code: string; readonly isSystem: boolean },
+): boolean {
+  const chart = lookupChart(option.listKey, option.code, option.isSystem);
+
+  return chart === undefined || chartTypes.includes(chart);
 }

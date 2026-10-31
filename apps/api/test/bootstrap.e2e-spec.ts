@@ -166,8 +166,12 @@ describe("Clinic bootstrap (e2e)", () => {
       expect(drug?.meta).toMatchObject({ perDose: 1, timesPerDay: 3, days: 5 });
 
       expect(await listCodes(result.clinicId, LOOKUP_LIST.ATTACHMENT_TYPE)).toEqual(
-        expect.arrayContaining(["xray", "mri", "ct", "xray_panoramic"]),
+        expect.arrayContaining(["xray", "mri", "ct", "clinical_photo"]),
       );
+      expect(await listCodes(result.clinicId, LOOKUP_LIST.ATTACHMENT_TYPE)).not.toContain(
+        "xray_panoramic",
+      );
+      expect(await listCodes(result.clinicId, LOOKUP_LIST.TOOTH_STATE)).toEqual([]);
       expect(await listCodes(result.clinicId, LOOKUP_LIST.APPOINTMENT_TYPE)).toEqual(
         expect.arrayContaining(["checkup", "cast_removal", "post_op"]),
       );
