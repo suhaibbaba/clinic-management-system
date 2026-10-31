@@ -23,10 +23,6 @@ const PACKS: Partial<Record<SpecialtyCode, SpecialtyPack>> = {
   [SPECIALTY_CODE.ORTHOPEDIC]: ORTHOPEDIC_PACK,
 };
 
-export function hasSpecialtyPack(code: SpecialtyCode): boolean {
-  return PACKS[code] !== undefined;
-}
-
 export async function applySpecialtyPack(
   db: DatabaseExecutor,
   clinicId: string,

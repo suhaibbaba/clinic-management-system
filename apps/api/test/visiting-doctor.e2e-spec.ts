@@ -17,6 +17,7 @@ import {
   type PatientFixtures,
 } from "@test/helpers/patient-fixtures";
 import { staffName } from "@test/helpers/staff-name";
+import { clinicToday } from "@test/helpers/clinic-time";
 import {
   auth,
   createTestContext,
@@ -277,7 +278,7 @@ describe("Visiting doctor (e2e)", () => {
   });
 
   describe("settling with a visiting doctor", () => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = clinicToday();
     const around = `from=2000-01-01&to=2099-12-31`;
     let first: string;
     let second: string;

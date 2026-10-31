@@ -26,6 +26,9 @@
     "module:list": "node --env-file-if-exists=../../.env scripts/clinic-module.mjs list",
     "module:enable": "node --env-file-if-exists=../../.env scripts/clinic-module.mjs enable",
     "module:disable": "node --env-file-if-exists=../../.env scripts/clinic-module.mjs disable",
+    "specialty:list": "node --env-file-if-exists=../../.env dist/database/clinic-specialty.js list",
+    "specialty:enable": "node --env-file-if-exists=../../.env dist/database/clinic-specialty.js enable",
+    "specialty:disable": "node --env-file-if-exists=../../.env dist/database/clinic-specialty.js disable",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "clean": "rm -rf dist"

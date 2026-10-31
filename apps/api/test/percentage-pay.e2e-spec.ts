@@ -21,8 +21,9 @@ import {
   type PatientFixtures,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
+import { clinicMonth } from "@test/helpers/clinic-time";
 
-const THIS_MONTH = new Date().toISOString().slice(0, 7);
+const THIS_MONTH = clinicMonth();
 const AROUND = "from=2000-01-01&to=2099-12-31";
 
 describe("Percentage pay (e2e)", () => {

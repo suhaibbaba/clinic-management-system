@@ -6,6 +6,7 @@ import { clinics, lookupOptions, procedureCatalog, specialties, users } from "@a
 import { bootstrapClinic } from "@api/database/bootstrap/bootstrap-clinic";
 import { bootstrapEnvSchema, type BootstrapEnv } from "@api/database/bootstrap/bootstrap-env";
 import { applySpecialtyPack } from "@api/database/specialty-packs/specialty-pack";
+import { grantSpecialty, revokeSpecialty } from "@api/database/clinic-specialties";
 import { auth, createTestContext, TEST_PASSWORD, type TestContext } from "@test/helpers/test-app";
 
 describe("Clinic bootstrap (e2e)", () => {
@@ -149,7 +150,14 @@ describe("Clinic bootstrap (e2e)", () => {
         .from(procedureCatalog)
         .where(eq(procedureCatalog.clinicId, result.clinicId));
       expect(procedures.map((row) => row.code)).toEqual(
-        expect.arrayContaining(["ORTHO-CONSULT", "CAST-OFF", "INJ-STEROID", "TKR"]),
+        expect.arrayContaining([
+          "ORTHO-CONSULT",
+          "CAST-OFF",
+          "INJ-STEROID",
+          "TKR",
+          "ACL",
+          "IM-NAIL",
+        ]),
       );
       expect(procedures.every((row) => row.price === "0.00" && !row.isActive)).toBe(true);
 
@@ -224,6 +232,68 @@ describe("Clinic bootstrap (e2e)", () => {
         .where(eq(procedureCatalog.clinicId, clinicId));
       expect(procedures).toEqual([]);
       expect(await listCodes(clinicId, LOOKUP_LIST.ATTACHMENT_TYPE)).not.toContain("mri");
+    });
+  });
+
+  describe("specialties the vendor grants", () => {
+    const toothStates = async (clinicId: string) =>
+      (
+        await context.db
+          .select({ code: lookupOptions.code })
+          .from(lookupOptions)
+          .where(
+            and(
+              eq(lookupOptions.clinicId, clinicId),
+              eq(lookupOptions.listKey, LOOKUP_LIST.TOOTH_STATE),
+            ),
+          )
+      ).map((row) => row.code);
+
+    const active = async (clinicId: string) =>
+      (
+        await context.db
+          .select({ code: specialties.code })
+          .from(specialties)
+          .where(and(eq(specialties.clinicId, clinicId), eq(specialties.isActive, true)))
+      )
+        .map((row) => row.code)
+        .sort();
+
+    it("grants a specialty added to the environment on a later boot", async () => {
+      const env = environment();
+      const { clinicId } = await bootstrapClinic(context.db, env, null);
+      expect(await active(clinicId)).toEqual([SPECIALTY_CODE.ORTHOPEDIC]);
+
+      const later = await bootstrapClinic(
+        context.db,
+        { ...env, BOOTSTRAP_SPECIALTIES: [SPECIALTY_CODE.ORTHOPEDIC, SPECIALTY_CODE.DENTAL] },
+        null,
+      );
+
+      expect(await active(clinicId)).toEqual([SPECIALTY_CODE.DENTAL, SPECIALTY_CODE.ORTHOPEDIC]);
+      expect(later.notes.join(" ")).toContain("Enabled the dental specialty");
+      expect(await toothStates(clinicId)).toContain("crown");
+    });
+
+    it("switches one off and on again without losing what the clinic did", async () => {
+      const { clinicId } = await bootstrapClinic(context.db, environment(), null);
+      await context.db
+        .update(procedureCatalog)
+        .set({ defaultPrice: "90.00", isActive: true })
+        .where(and(eq(procedureCatalog.clinicId, clinicId), eq(procedureCatalog.code, "CAST-OFF")));
+
+      expect(await revokeSpecialty(context.db, clinicId, SPECIALTY_CODE.ORTHOPEDIC)).toBe(true);
+      expect(await active(clinicId)).toEqual([]);
+      expect(await revokeSpecialty(context.db, clinicId, SPECIALTY_CODE.ORTHOPEDIC)).toBe(false);
+
+      const again = await grantSpecialty(context.db, clinicId, SPECIALTY_CODE.ORTHOPEDIC);
+      expect(again).toEqual({ granted: true, procedures: 0, lookups: 0 });
+
+      const [castOff] = await context.db
+        .select({ price: procedureCatalog.defaultPrice, isActive: procedureCatalog.isActive })
+        .from(procedureCatalog)
+        .where(and(eq(procedureCatalog.clinicId, clinicId), eq(procedureCatalog.code, "CAST-OFF")));
+      expect(castOff).toEqual({ price: "90.00", isActive: true });
     });
   });
 

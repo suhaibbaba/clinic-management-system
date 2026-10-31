@@ -12,6 +12,9 @@ ENV PNPM_HOME=/pnpm \
 ENV CHOKIDAR_USEPOLLING=true \
     WATCHPACK_POLLING=true
 
+# The app-version test counts commits in the bind-mounted repo, which the host user owns.
+RUN apk add --no-cache git && git config --system --add safe.directory /repo
+
 RUN corepack enable
 
 WORKDIR /repo

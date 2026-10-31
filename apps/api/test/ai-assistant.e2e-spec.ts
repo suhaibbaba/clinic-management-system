@@ -8,6 +8,8 @@ import {
   type UserRole,
 } from "@clinic/shared";
 import { AgentService } from "@api/modules/ai/services/agent.service";
+import { CHAT_PROVIDER } from "@api/modules/ai/constants";
+import type { ChatProvider } from "@api/modules/ai/lib/chat-provider";
 import { AiConversationsService } from "@api/modules/ai/services/ai-conversations.service";
 import { AiToolsService } from "@api/modules/ai/tools/ai-tools.service";
 import { ToolRunnerService } from "@api/modules/ai/tools/tool-runner.service";
@@ -512,12 +514,40 @@ describe("Clinic assistant (e2e)", () => {
 
   describe("a conversation", () => {
     it("streams an answer, records it, and lists it afterwards", async () => {
-      const response = await context.app.inject({
-        method: "POST",
-        url: "/ai/chat",
-        headers: auth(tokens[USER_ROLE.DOCTOR]),
-        payload: { message: "كم موعد اليوم؟" },
+      const provider = context.app.get<ChatProvider>(CHAT_PROVIDER, { strict: false });
+      const usage = { inputTokens: 0, outputTokens: 0 };
+      let turn = 0;
+      const scripted = jest.spyOn(provider, "stream").mockImplementation(async function* () {
+        turn += 1;
+
+        if (turn === 1) {
+          yield await Promise.resolve({
+            type: "completed" as const,
+            text: "",
+            toolCalls: [
+              {
+                id: "call_1",
+                name: AI_TOOL.GET_APPOINTMENTS,
+                arguments: JSON.stringify({ date_from: "2026-09-22", date_to: "2026-09-22" }),
+              },
+            ],
+            usage,
+          });
+          return;
+        }
+
+        yield { type: "delta" as const, text: "لا مواعيد اليوم." };
+        yield { type: "completed" as const, text: "لا مواعيد اليوم.", toolCalls: [], usage };
       });
+
+      const response = await context.app
+        .inject({
+          method: "POST",
+          url: "/ai/chat",
+          headers: auth(tokens[USER_ROLE.DOCTOR]),
+          payload: { message: "كم موعد اليوم؟" },
+        })
+        .finally(() => scripted.mockRestore());
 
       expect(response.statusCode).toBe(200);
       expect(response.headers["content-type"]).toContain("text/event-stream");

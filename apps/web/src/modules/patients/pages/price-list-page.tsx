@@ -58,8 +58,7 @@ export function PriceListPage(): JSX.Element {
   const mayCreate = can("procedure-catalog.create");
   const mayUpdate = can("procedure-catalog.update");
   const mayRemove = can("procedure-catalog.remove");
-  const mayAddSpecialty = can("specialties.create");
-  const mayChangeSpecialty = can("specialties.update");
+  const maySeeSpecialties = can("specialties.list");
 
   const rows = useMemo(() => searchPriceList(query.data ?? [], search), [query.data, search]);
 
@@ -198,7 +197,7 @@ export function PriceListPage(): JSX.Element {
         subtitle="priceList.subtitle"
         primaryAction={mayCreate ? addButton("price-list-add") : undefined}
         actions={
-          mayAddSpecialty || mayChangeSpecialty ? (
+          maySeeSpecialties ? (
             <Button
               variant="secondary"
               icon={<Icon name="stethoscope" />}
@@ -247,12 +246,7 @@ export function PriceListPage(): JSX.Element {
         }
       />
 
-      <SpecialtiesModal
-        open={managingSpecialties}
-        mayCreate={mayAddSpecialty}
-        mayUpdate={mayChangeSpecialty}
-        onClose={() => setManagingSpecialties(false)}
-      />
+      <SpecialtiesModal open={managingSpecialties} onClose={() => setManagingSpecialties(false)} />
 
       <ProcedurePriceModal
         open={adding || editing !== null}

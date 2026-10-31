@@ -7,9 +7,11 @@ import {
   type OnModuleInit,
 } from "@nestjs/common";
 import {
+  DEFAULT_TIME_ZONE,
   LOOKUP_LIST,
   PAYMENT_DIRECTION,
   PURCHASE_ERROR,
+  localDate,
   toMinorUnits,
   type CreateSupplierPaymentInput,
   type PaymentDirection,
@@ -166,7 +168,7 @@ export class SupplierPaymentsService implements OnModuleInit {
         paidBy: actor.id,
         requestId: input.requestId ?? null,
         direction,
-        ...(input.paidOn !== undefined && { paidOn: input.paidOn }),
+        paidOn: input.paidOn ?? localDate(new Date(), DEFAULT_TIME_ZONE),
         createdBy: actor.id,
         updatedBy: actor.id,
       })

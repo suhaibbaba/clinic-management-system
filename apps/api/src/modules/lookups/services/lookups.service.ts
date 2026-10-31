@@ -30,7 +30,6 @@ import { clinicChartTypes } from "@api/common/lib/clinic-charts";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { lookupOptions } from "@api/database/schema";
-import { ensureSystemLookups } from "@api/database/system-lookups";
 import { LOOKUP_OPTIONS_ENTITY } from "@api/common/constants/audit-entities";
 import {
   toLookupOption,
@@ -326,10 +325,6 @@ export class LookupsService implements OnModuleInit {
       .orderBy(asc(lookupOptions.sortOrder));
 
     return new Map(rows.map((row) => [row.code, lookupLabel(row, language)]));
-  }
-
-  async seedClinic(clinicId: string): Promise<void> {
-    await ensureSystemLookups(this.db, clinicId);
   }
 
   private async requireRow(clinicId: string, id: string): Promise<LookupRow> {

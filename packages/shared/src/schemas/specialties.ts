@@ -27,24 +27,7 @@ export const listSpecialtiesQuerySchema = paginationQuerySchema.extend({
 });
 export type ListSpecialtiesQuery = z.infer<typeof listSpecialtiesQuerySchema>;
 
-export const createSpecialtySchema = z.object({
-  code: z
-    .string()
-    .trim()
-    .min(1)
-    .max(32)
-    .regex(/^[a-z0-9_]+$/),
+export const updateSpecialtySchema = z.object({
   name: z.string().trim().min(1).max(80),
-  chartType: z.enum(CHART_TYPES),
-  isActive: z.boolean().default(true),
 });
-export type CreateSpecialtyInput = z.infer<typeof createSpecialtySchema>;
-
-export const updateSpecialtySchema = z
-  .object({
-    name: createSpecialtySchema.shape.name,
-    isActive: z.boolean(),
-  })
-  .partial()
-  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateSpecialtyInput = z.infer<typeof updateSpecialtySchema>;

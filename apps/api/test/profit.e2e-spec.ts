@@ -16,8 +16,9 @@ import {
   uniquePhone,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
+import { clinicToday } from "@test/helpers/clinic-time";
 
-const TODAY = new Date().toISOString().slice(0, 10);
+const TODAY = clinicToday();
 const THIS_MONTH = TODAY.slice(0, 7);
 
 const percentOf = (amount: string, percent: number): string => {

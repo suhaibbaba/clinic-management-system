@@ -3597,19 +3597,11 @@
   "specialties": {
     "title": "Specialties",
     "manage": "Specialties",
-    "add": "Add Specialty",
-    "name": "Specialty Name",
-    "code": "Code",
-    "codeHint": "Lowercase letters, digits and underscores, such as orthopedic. It cannot be changed later.",
-    "chart": "Chart",
-    "chartHint": "What the patient file draws for this specialty's procedures. It cannot be changed later.",
+    "subscription": "Specialties come with the clinic's subscription. To add or stop one, contact your system provider.",
     "charts": {
       "tooth_fdi": "Tooth chart",
       "body_region": "Body chart",
       "none": "No chart"
-    },
-    "activate": "Activate Specialty",
-    "deactivate": "Deactivate Specialty",
-    "created": "Specialty Added"
+    }
   }
 }

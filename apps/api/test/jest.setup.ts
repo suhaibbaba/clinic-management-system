@@ -9,3 +9,5 @@ process.env["STORAGE_SECRET_ACCESS_KEY"] ??= "test_secret_key";
 process.env["STORAGE_FORCE_PATH_STYLE"] ??= "true";
 
 process.env["SECRETS_MASTER_KEY"] ??= Buffer.alloc(32, 7).toString("base64");
+
+process.env["AI_PROVIDER"] = "log";
