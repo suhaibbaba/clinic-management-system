@@ -66,4 +66,5 @@ export const SITE_ICON_GLYPHS: Record<SiteIcon, IconName> = {
   armchair: "armchair",
   target: "target",
   tooth: "tooth",
+  bone: "bone",
 };

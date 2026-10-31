@@ -6,6 +6,7 @@ import { SiteIcon } from "@web/site/components/site-icon";
 import { SiteImage } from "@web/site/components/site-image";
 import { useBookable } from "@web/site/hooks/use-bookable";
 import { useSite } from "@web/site/hooks/use-site";
+import { useSiteGlyph } from "@web/site/hooks/use-site-glyph";
 import { imageOf } from "@web/site/lib/images";
 import { mapsLink, orDefault, pick } from "@web/site/lib/text";
 import { SITE_PATH } from "@web/site/route";
@@ -66,6 +67,7 @@ function ContactChip({
 
 export function BookingBand(): JSX.Element {
   const { site, language, t } = useSite();
+  const glyph = useSiteGlyph();
   const { clinic } = site;
   const { cta } = site.content.about;
   const bookable = useBookable();
@@ -146,7 +148,7 @@ export function BookingBand(): JSX.Element {
             <span className="absolute size-44 rounded-pill border border-ink-inverse/30 bg-radial from-ink-inverse/5 via-ink-inverse/10 to-ink-inverse/25 shadow-glass lg:size-48" />
             <span className="absolute h-10 w-60 translate-y-14 -rotate-12 rounded-pill border-2 border-ink-inverse/40 blur-[1px]" />
             <SiteIcon
-              name="tooth"
+              name={glyph}
               className="relative size-32 -rotate-6 fill-ink-inverse stroke-primary-100 drop-shadow-2xl lg:size-36"
             />
           </div>

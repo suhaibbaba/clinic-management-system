@@ -1,8 +1,9 @@
-import { SITE_SERVICES_MAX, type SiteService } from "@clinic/shared";
+import { SITE_SERVICES_MAX, chartGlyph, type SiteService } from "@clinic/shared";
 import type { FocusEvent, JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Icon } from "@clinic/ui";
 import type { FieldErrors } from "@web/shared/lib/form-errors";
+import { useSession } from "@web/shared/providers/session";
 import { IconSelect } from "@web/modules/website/components/icon-select";
 import { RowTools } from "@web/modules/website/components/row-tools";
 import { SiteImageField } from "@web/modules/website/components/site-image-field";
@@ -32,6 +33,8 @@ export function ServicesField({
   readonly leave: (field: string) => (event: FocusEvent<HTMLElement>) => void;
 }): JSX.Element {
   const { t } = useTranslation();
+  const { user } = useSession();
+  const glyph = chartGlyph(user?.clinic.chartTypes ?? []) ?? "stethoscope";
 
   return (
     <div data-testid="services-field" className="flex flex-col gap-3">
@@ -119,7 +122,7 @@ export function ServicesField({
                 title: blankText(),
                 description: blankText(),
                 image: null,
-                icon: "tooth",
+                icon: glyph,
               },
             ])
           }

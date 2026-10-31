@@ -25,11 +25,15 @@ import { LAB_ORDER_STATUS_STYLES } from "@web/shared/lib/lab-order-status";
 import { usePatientTimeline } from "@web/modules/patients/queries";
 import { formatDate } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
-import { TIMELINE_ENTRY_ICONS, TIMELINE_TYPE_FILTERS } from "@web/modules/patients/constants";
+import { TIMELINE_TYPE_FILTERS } from "@web/modules/patients/constants";
+import { timelineEntryIcon } from "@web/modules/patients/lib/chart/charts";
+import { useSession } from "@web/shared/providers/session";
 type TypeFilter = (typeof TIMELINE_TYPE_FILTERS)[number];
 
 export function TimelineTab({ patientId }: { readonly patientId: string }): JSX.Element {
   const { t } = useTranslation();
+  const { user } = useSession();
+  const chartTypes = user?.clinic.chartTypes ?? [];
   const { page, perPage, setPage, setPerPage } = usePageParams();
   const [kind] = useTabParam<TypeFilter>("type", TIMELINE_TYPE_FILTERS, "all");
   const [, setParams] = useSearchParams();
@@ -74,7 +78,7 @@ export function TimelineTab({ patientId }: { readonly patientId: string }): JSX.
         render: (entry) => (
           <span className="flex min-w-0 items-center gap-3">
             <span className="flex size-8 shrink-0 items-center justify-center rounded-field bg-primary-100 text-primary-700">
-              <Icon name={TIMELINE_ENTRY_ICONS[entry.type]} className="size-4" />
+              <Icon name={timelineEntryIcon(entry.type, chartTypes)} className="size-4" />
             </span>
             <span data-testid="timeline-row-title" className="truncate font-medium text-ink">
               {entry.title}

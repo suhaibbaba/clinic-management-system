@@ -41,7 +41,7 @@ export const PATIENTS_VISITED_FILTER = "visited";
 
 export const TIMELINE_ENTRY_ICONS: Record<TimelineEntryType, IconName> = {
   [TIMELINE_ENTRY_TYPE.VISIT]: "stethoscope",
-  [TIMELINE_ENTRY_TYPE.PROCEDURE]: "tooth",
+  [TIMELINE_ENTRY_TYPE.PROCEDURE]: "activity",
   [TIMELINE_ENTRY_TYPE.ATTACHMENT]: "image",
   [TIMELINE_ENTRY_TYPE.PRESCRIPTION]: "file",
   [TIMELINE_ENTRY_TYPE.LAB_ORDER]: "coins",

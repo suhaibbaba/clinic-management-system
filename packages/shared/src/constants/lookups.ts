@@ -1,3 +1,5 @@
+import { CHART_TYPE, type ChartType } from "@shared/enums";
+
 export const LOOKUP_LIST = {
   TOOTH_STATE: "tooth_state",
   LAB_WORK_TYPE: "lab_work_type",
@@ -33,6 +35,20 @@ export const LOOKUP_LIST_KEYS = [
   LOOKUP_LIST.WRITE_OFF_REASON,
   LOOKUP_LIST.BODY_REGION,
 ] as const;
+
+export const CHART_LOOKUP_LISTS: Partial<Record<LookupListKey, ChartType>> = {
+  [LOOKUP_LIST.TOOTH_STATE]: CHART_TYPE.TOOTH_FDI,
+  [LOOKUP_LIST.LAB_SHADE]: CHART_TYPE.TOOTH_FDI,
+  [LOOKUP_LIST.BODY_REGION]: CHART_TYPE.BODY_REGION,
+};
+
+export function clinicLookupLists(chartTypes: readonly ChartType[]): LookupListKey[] {
+  return LOOKUP_LIST_KEYS.filter((key) => {
+    const chart = CHART_LOOKUP_LISTS[key];
+
+    return chart === undefined || chartTypes.includes(chart);
+  });
+}
 
 export const COLOURED_LOOKUP_LISTS: readonly LookupListKey[] = [LOOKUP_LIST.TOOTH_STATE];
 

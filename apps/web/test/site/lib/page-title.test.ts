@@ -22,6 +22,7 @@ const site = (): PublicSite => {
       longitude: null,
       workingHours: [],
       bookingEnabled: true,
+      chartTypes: [],
     },
     doctors: [{ id: DOCTOR, name: { ar: "باسل", en: "Basel" }, specialty: "", photoUrl: null }],
     content,

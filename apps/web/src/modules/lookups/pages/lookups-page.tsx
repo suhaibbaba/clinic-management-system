@@ -1,6 +1,6 @@
 import {
+  clinicLookupLists,
   COLOURED_LOOKUP_LISTS,
-  LOOKUP_LIST_KEYS,
   lookupLabel,
   readDrugRegimen,
   regimenShorthand,
@@ -33,15 +33,26 @@ import {
   useUpdateLookupOption,
 } from "@web/shared/queries/lookups";
 import { errorToast } from "@web/shared/lib/api-error";
+import { useSession } from "@web/shared/providers/session";
 import { cn } from "@clinic/ui/lib/cn";
 
 export function LookupsPage(): JSX.Element {
   const { t } = useTranslation();
+  const { user } = useSession();
   const [params, setParams] = useSearchParams();
+  const lists = useMemo(() => clinicLookupLists(user?.clinic.chartTypes ?? []), [user]);
   const requested = params.get("list");
-  const listKey =
-    LOOKUP_LIST_KEYS.find((key) => key === requested) ?? (LOOKUP_LIST_KEYS[0] as LookupListKey);
-  const setListKey = (key: LookupListKey): void => setParams({ list: key }, { replace: true });
+  const listKey = lists.find((key) => key === requested) ?? (lists[0] as LookupListKey);
+  const setListKey = (key: LookupListKey): void =>
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        next.set("list", key);
+
+        return next;
+      },
+      { replace: true },
+    );
 
   return (
     <div data-testid="lookups-page" className="flex flex-col gap-5">
@@ -57,7 +68,7 @@ export function LookupsPage(): JSX.Element {
             data-testid="lookups-picker"
             aria-label={t("lookups.pickList")}
             value={listKey}
-            options={LOOKUP_LIST_KEYS.map((key) => ({
+            options={lists.map((key) => ({
               value: key,
               label: t(`lookups.lists.${key}`),
             }))}
@@ -70,7 +81,7 @@ export function LookupsPage(): JSX.Element {
           aria-label={t("lookups.pickList")}
           className="hidden w-64 shrink-0 flex-col gap-1 rounded-card border border-line bg-surface p-2 shadow-card lg:flex"
         >
-          {LOOKUP_LIST_KEYS.map((key) => (
+          {lists.map((key) => (
             <button
               key={key}
               type="button"

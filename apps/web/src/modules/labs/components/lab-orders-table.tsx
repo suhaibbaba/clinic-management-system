@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Badge, EmptyState, Ltr, Table, type Column } from "@clinic/ui";
 import { Money } from "@web/shared/components/money";
 import { useClinic } from "@web/shared/queries/clinic";
+import { useToothChart } from "@web/shared/hooks/use-tooth-chart";
 import { LAB_ORDER_FIELDS } from "@web/modules/labs/constants";
 import { LAB_ORDER_STATUS_STYLES } from "@web/shared/lib/lab-order-status";
 import { formatDate } from "@web/shared/lib/format";
@@ -25,6 +26,7 @@ export function LabOrdersTable({
 }): JSX.Element {
   const { t } = useTranslation();
   const clinic = useClinic();
+  const toothChart = useToothChart();
 
   const columns: readonly Column<LabOrderRow>[] = [
     {
@@ -56,14 +58,20 @@ export function LabOrdersTable({
         </span>
       ),
     },
-    {
-      key: "teeth",
-      header: LAB_ORDER_FIELDS.teeth.label,
-      icon: LAB_ORDER_FIELDS.teeth.icon,
-      hideOnDesktop: true,
-      render: (row) =>
-        row.teeth.length > 0 ? <Ltr className="tabular-nums">{row.teeth.join(" · ")}</Ltr> : null,
-    },
+    ...(toothChart
+      ? [
+          {
+            key: "teeth",
+            header: LAB_ORDER_FIELDS.teeth.label,
+            icon: LAB_ORDER_FIELDS.teeth.icon,
+            hideOnDesktop: true,
+            render: (row: LabOrderRow) =>
+              row.teeth.length > 0 ? (
+                <Ltr className="tabular-nums">{row.teeth.join(" · ")}</Ltr>
+              ) : null,
+          } satisfies Column<LabOrderRow>,
+        ]
+      : []),
     ...(hideLab
       ? []
       : [

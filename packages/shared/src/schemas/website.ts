@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CHART_TYPES } from "@shared/enums";
 import {
   dayScheduleSchema,
   paginationQuerySchema,
@@ -38,6 +39,7 @@ export const SITE_ICONS = [
   "armchair",
   "target",
   "tooth",
+  "bone",
 ] as const;
 export type SiteIcon = (typeof SITE_ICONS)[number];
 
@@ -356,6 +358,7 @@ export const publicSiteClinicSchema = z.object({
   longitude: z.number().nullable(),
   workingHours: z.array(dayScheduleSchema),
   bookingEnabled: z.boolean(),
+  chartTypes: z.array(z.enum(CHART_TYPES)),
 });
 export type PublicSiteClinic = z.infer<typeof publicSiteClinicSchema>;
 

@@ -15,6 +15,7 @@ import {
   defaultSiteContent,
   siteContentSchema,
   siteImageKeys,
+  type ChartType,
   type PersonName,
   type PresignSiteImageInput,
   type PresignSiteImageResponse,
@@ -295,11 +296,27 @@ export class WebsiteService implements OnModuleInit {
         longitude: toNumber(clinic.longitude),
         workingHours: clinic.workingHours,
         bookingEnabled: bookingSettings(clinic.settings).enabled,
+        chartTypes: await this.chartTypes(clinic.id),
       },
       doctors: await this.doctors(clinic.id),
       content,
       images: Object.fromEntries(signed),
     };
+  }
+
+  private async chartTypes(clinicId: string): Promise<ChartType[]> {
+    const rows = await this.db
+      .selectDistinct({ chartType: specialties.chartType })
+      .from(specialties)
+      .where(
+        and(
+          eq(specialties.clinicId, clinicId),
+          eq(specialties.isActive, true),
+          isNull(specialties.deletedAt),
+        ),
+      );
+
+    return rows.map((row) => row.chartType);
   }
 
   private async doctors(clinicId: string): Promise<PublicSiteDoctor[]> {

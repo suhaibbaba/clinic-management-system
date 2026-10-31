@@ -697,13 +697,17 @@
     "subtitle": "Every patient file registered at the clinic",
     "tabs": {
       "label": "Tabs",
-      "chart": "Tooth Chart",
+      "chart": "Chart",
       "visits": "Visits",
       "attachments": "X-Rays & Files",
       "prescriptions": "Prescriptions",
       "timeline": "Timeline",
       "billing": "Billing",
-      "treatmentPlan": "Treatment Plan"
+      "treatmentPlan": "Treatment Plan",
+      "charts": {
+        "tooth_fdi": "Tooth Chart",
+        "body_region": "Body Chart"
+      }
     },
     "timeline": {
       "empty": "Nothing on the file yet",
@@ -907,7 +911,7 @@
       "title": "Delete the visit of {{date}}?",
       "procedures_one": "Its {{count}} treatment goes with it, and its charge is reversed",
       "procedures_other": "Its {{count}} treatments go with it, and their charges are reversed",
-      "attachments": "Its images, attachments and tooth chart marks go with it",
+      "attachments": "Its images, attachments and chart marks go with it",
       "audit": "All of it stays in the audit log"
     },
     "visit": "Visit",
@@ -951,7 +955,7 @@
     "confirmDelete": {
       "title": "Delete the treatment: {{name}}?",
       "charge": "Its charge is reversed with a correcting entry; no entry is erased",
-      "chart": "Its marks leave the tooth chart"
+      "chart": "Its marks leave the chart"
     },
     "fromPlanned": "From the Treatment Plan",
     "doctorPay": {
@@ -3464,7 +3468,8 @@
       "monitor": "Device",
       "armchair": "Comfort",
       "target": "Goal",
-      "tooth": "Tooth"
+      "tooth": "Tooth",
+      "bone": "Bone"
     },
     "services": {
       "empty": "No services yet. The section stays off the site until you add one.",
