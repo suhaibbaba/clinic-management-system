@@ -11,6 +11,7 @@ import type { Database, DatabaseExecutor } from "@api/database/database.module";
 import { clinics, specialties, users } from "@api/database/schema";
 import { ensureSystemLookups } from "@api/database/system-lookups";
 import type { BootstrapEnv } from "@api/database/bootstrap/bootstrap-env";
+import { applySpecialtyPack } from "@api/database/specialty-packs/specialty-pack";
 
 const SPECIALTIES: Readonly<Record<SpecialtyCode, { name: string; chartType: ChartType }>> = {
   [SPECIALTY_CODE.DENTAL]: { name: "طب الأسنان", chartType: CHART_TYPE.TOOTH_FDI },
@@ -49,6 +50,16 @@ export async function bootstrapClinic(
 
     for (const code of env.BOOTSTRAP_SPECIALTIES) {
       await ensureSpecialty(tx, clinicId, code);
+
+      if (!existing) {
+        const pack = await applySpecialtyPack(tx, clinicId, code);
+
+        if (pack.procedures + pack.lookups > 0) {
+          notes.push(
+            `Added the ${code} starter pack: ${pack.procedures} procedures (priced 0 and switched off until priced) and ${pack.lookups} list entries.`,
+          );
+        }
+      }
     }
 
     const createdAdmin = await ensureAdmin(tx, clinicId, env, passwordHash);
