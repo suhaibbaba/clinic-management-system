@@ -5,6 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import {
   Badge,
   Button,
+  Checkbox,
   EmptyState,
   Icon,
   Ltr,
@@ -27,6 +28,8 @@ import { searchPriceList } from "@web/modules/patients/lib/price-list";
 import {
   usePriceList,
   useRemoveCatalogItem,
+  useRemoveCatalogItems,
+  useSetCatalogItemsActive,
   useUpdateCatalogItem,
 } from "@web/modules/patients/queries";
 import { errorToast } from "@web/shared/lib/api-error";
@@ -49,18 +52,27 @@ export function PriceListPage(): JSX.Element {
   const query = usePriceList();
   const update = useUpdateCatalogItem();
   const remove = useRemoveCatalogItem();
+  const setActive = useSetCatalogItemsActive();
+  const removeMany = useRemoveCatalogItems();
   const { confirm, dialog } = useConfirm("price-list-confirm-delete");
 
   const [editing, setEditing] = useState<ProcedureCatalogItem | null>(null);
   const [adding, setAdding] = useState(false);
   const [managingSpecialties, setManagingSpecialties] = useState(false);
+  const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
 
   const mayCreate = can("procedure-catalog.create");
   const mayUpdate = can("procedure-catalog.update");
   const mayRemove = can("procedure-catalog.remove");
   const maySeeSpecialties = can("specialties.list");
+  const maySwitchMany = can("procedure-catalog.setActive");
+  const mayRemoveMany = can("procedure-catalog.removeMany");
+  const mayPick = maySwitchMany || mayRemoveMany;
 
   const rows = useMemo(() => searchPriceList(query.data ?? [], search), [query.data, search]);
+  const chosen = rows.filter((item) => picked.has(item.id));
+  const allPicked = rows.length > 0 && chosen.length === rows.length;
+  const busy = setActive.isPending || removeMany.isPending;
 
   const fail = (error: unknown): void => toast.error(...errorToast(error));
 
@@ -70,6 +82,59 @@ export function PriceListPage(): JSX.Element {
     } catch (error) {
       fail(error);
     }
+  };
+
+  const pick = (id: string, on: boolean): void =>
+    setPicked((current) => {
+      const next = new Set(current);
+
+      if (on) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+
+      return next;
+    });
+
+  const switchChosen = async (isActive: boolean): Promise<void> => {
+    if (chosen.length === 0 || busy) {
+      return;
+    }
+
+    try {
+      await setActive.mutateAsync({ ids: chosen.map((item) => item.id), isActive });
+      toast.success(isActive ? "priceList.enabledMany" : "priceList.disabledMany", {
+        count: chosen.length,
+      });
+      setPicked(new Set());
+    } catch (error) {
+      fail(error);
+    }
+  };
+
+  const destroyChosen = (): void => {
+    if (chosen.length === 0 || busy) {
+      return;
+    }
+
+    const ids = chosen.map((item) => item.id);
+
+    confirm({
+      title: "priceList.confirmDeleteMany.title",
+      titleValues: { count: ids.length },
+      consequences: [t("priceList.confirmDelete.consequence")],
+      onConfirm: async () => {
+        try {
+          await removeMany.mutateAsync({ ids });
+          toast.success("priceList.deletedMany", { count: ids.length });
+          setPicked(new Set());
+        } catch (error) {
+          fail(error);
+          throw error;
+        }
+      },
+    });
   };
 
   const destroy = (item: ProcedureCatalogItem): void => {
@@ -101,13 +166,24 @@ export function PriceListPage(): JSX.Element {
       header: "priceList.name",
       primary: true,
       render: (item) => (
-        <span className="flex min-w-0 flex-col leading-label">
-          <Ltr data-testid="price-row-name" className="break-words font-medium text-ink">
-            {item.name}
-          </Ltr>
-          <Ltr data-testid="price-row-code" className="text-label text-ink-subtle">
-            {item.code}
-          </Ltr>
+        <span className="flex min-w-0 items-center gap-3">
+          {mayPick && (
+            <Checkbox
+              data-testid="price-row-pick"
+              checked={picked.has(item.id)}
+              onCheckedChange={(on) => pick(item.id, on)}
+              label={t("priceList.selectOne", { name: item.name })}
+              hideLabel
+            />
+          )}
+          <span className="flex min-w-0 flex-col leading-label">
+            <Ltr data-testid="price-row-name" className="break-words font-medium text-ink">
+              {item.name}
+            </Ltr>
+            <Ltr data-testid="price-row-code" className="text-label text-ink-subtle">
+              {item.code}
+            </Ltr>
+          </span>
         </span>
       ),
     },
@@ -235,6 +311,64 @@ export function PriceListPage(): JSX.Element {
         rowKey={(item) => item.id}
         isLoading={query.isPending}
         isRefreshing={isRefetching(query)}
+        header={
+          mayPick && rows.length > 0 ? (
+            <div
+              data-testid="price-list-selection"
+              className="flex w-full flex-wrap items-center justify-between gap-3"
+            >
+              <Checkbox
+                data-testid="price-list-pick-all"
+                checked={allPicked}
+                indeterminate={chosen.length > 0 && !allPicked}
+                onCheckedChange={(on) => setPicked(new Set(on ? rows.map((item) => item.id) : []))}
+                label={
+                  chosen.length > 0
+                    ? t("priceList.selected", { count: chosen.length })
+                    : t("priceList.selectAll")
+                }
+              />
+              {chosen.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                  {maySwitchMany && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        data-testid="price-list-enable-selected"
+                        aria-disabled={busy || undefined}
+                        onClick={() => void switchChosen(true)}
+                      >
+                        {t("priceList.enableSelected")}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        data-testid="price-list-disable-selected"
+                        aria-disabled={busy || undefined}
+                        onClick={() => void switchChosen(false)}
+                      >
+                        {t("priceList.disableSelected")}
+                      </Button>
+                    </>
+                  )}
+                  {mayRemoveMany && (
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      icon={<Icon name="trash" />}
+                      data-testid="price-list-delete-selected"
+                      aria-disabled={busy || undefined}
+                      onClick={destroyChosen}
+                    >
+                      {t("priceList.deleteSelected")}
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : undefined
+        }
         empty={
           <EmptyState
             data-testid="price-list-empty"

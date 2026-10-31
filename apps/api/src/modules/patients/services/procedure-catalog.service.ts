@@ -1,13 +1,23 @@
-import { ConflictException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  type OnModuleInit,
+} from "@nestjs/common";
+import {
+  AUDIT_ACTION,
   RULE,
   type CreateProcedureCatalogItemInput,
   type ListProcedureCatalogQuery,
   type Paginated,
+  type RemoveProcedureCatalogItemsInput,
+  type SetProcedureCatalogItemsActiveInput,
   type UpdateProcedureCatalogItemInput,
 } from "@clinic/shared";
-import { and, eq, isNull, ne, or, sql, type SQL, desc } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne, or, sql, type SQL, desc } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
+import { AuditService } from "@api/modules/audit/services/audit.service";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
@@ -31,6 +41,7 @@ export class ProcedureCatalogService implements OnModuleInit {
     private readonly lookups: LookupsService,
     private readonly scope: ClinicScopeService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly audit: AuditService,
     private readonly permissions: PermissionsService,
   ) {}
 
@@ -174,6 +185,99 @@ export class ProcedureCatalogService implements OnModuleInit {
       .update(procedureCatalog)
       .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
       .where(this.scope.where(procedureCatalog, actor.clinicId, eq(procedureCatalog.id, id)));
+  }
+
+  async setActive(
+    actor: AuthenticatedUser,
+    input: SetProcedureCatalogItemsActiveInput,
+  ): Promise<CatalogView[]> {
+    const before = await this.requireRows(actor.clinicId, input.ids);
+    const access = await this.catalogAccess(actor);
+
+    return this.db.transaction(async (tx) => {
+      const rows = await tx
+        .update(procedureCatalog)
+        .set({ isActive: input.isActive, updatedAt: new Date(), updatedBy: actor.id })
+        .where(
+          this.scope.where(
+            procedureCatalog,
+            actor.clinicId,
+            inArray(procedureCatalog.id, [...before.keys()]),
+          ),
+        )
+        .returning();
+
+      for (const row of rows) {
+        const old = before.get(row.id);
+
+        await this.audit.record(
+          {
+            clinicId: actor.clinicId,
+            userId: actor.id,
+            action: AUDIT_ACTION.UPDATE,
+            entity: PROCEDURE_CATALOG_ENTITY,
+            entityId: row.id,
+            oldValue: old ? { ...toCatalogItem(old) } : null,
+            newValue: { ...toCatalogItem(row) },
+          },
+          tx,
+        );
+      }
+
+      return rows.map((row) => toRoleView(row, access));
+    });
+  }
+
+  async softDeleteMany(
+    actor: AuthenticatedUser,
+    input: RemoveProcedureCatalogItemsInput,
+  ): Promise<void> {
+    const before = await this.requireRows(actor.clinicId, input.ids);
+
+    await this.db.transaction(async (tx) => {
+      await tx
+        .update(procedureCatalog)
+        .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
+        .where(
+          this.scope.where(
+            procedureCatalog,
+            actor.clinicId,
+            inArray(procedureCatalog.id, [...before.keys()]),
+          ),
+        );
+
+      for (const row of before.values()) {
+        await this.audit.record(
+          {
+            clinicId: actor.clinicId,
+            userId: actor.id,
+            action: AUDIT_ACTION.DELETE,
+            entity: PROCEDURE_CATALOG_ENTITY,
+            entityId: row.id,
+            oldValue: { ...toCatalogItem(row) },
+            newValue: null,
+          },
+          tx,
+        );
+      }
+    });
+  }
+
+  private async requireRows(
+    clinicId: string,
+    ids: readonly string[],
+  ): Promise<Map<string, CatalogRow>> {
+    const unique = [...new Set(ids)];
+    const rows = await this.db
+      .select()
+      .from(procedureCatalog)
+      .where(this.scope.where(procedureCatalog, clinicId, inArray(procedureCatalog.id, unique)));
+
+    if (rows.length !== unique.length) {
+      throw new NotFoundException("Resource not found");
+    }
+
+    return new Map(rows.map((row) => [row.id, row]));
   }
 
   private async catalogAccess(actor: AuthenticatedUser): Promise<CatalogAccess> {

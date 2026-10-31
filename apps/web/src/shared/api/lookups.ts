@@ -3,6 +3,7 @@ import type {
   LookupBundle,
   LookupOption,
   ReorderLookupOptionsInput,
+  SetLookupOptionsActiveInput,
   UpdateLookupOptionInput,
 } from "@clinic/shared";
 import { apiRequest } from "@web/shared/lib/api-client";
@@ -16,5 +17,7 @@ export const lookupsApi = {
     apiRequest(`/lookups/${id}`, { method: "PATCH", body }),
   reorder: (body: ReorderLookupOptionsInput): Promise<LookupOption[]> =>
     apiRequest("/lookups/reorder", { method: "PATCH", body }),
+  setActive: (body: SetLookupOptionsActiveInput): Promise<LookupOption[]> =>
+    apiRequest("/lookups/active", { method: "PATCH", body }),
   remove: (id: string): Promise<void> => apiRequest(`/lookups/${id}`, { method: "DELETE" }),
 };

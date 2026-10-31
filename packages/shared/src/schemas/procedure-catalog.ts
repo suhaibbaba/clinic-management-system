@@ -51,6 +51,19 @@ export const updateProcedureCatalogItemSchema = z
   .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateProcedureCatalogItemInput = z.infer<typeof updateProcedureCatalogItemSchema>;
 
+const catalogIdsSchema = z.array(z.uuid()).min(1).max(1000);
+
+export const setProcedureCatalogItemsActiveSchema = z.object({
+  ids: catalogIdsSchema,
+  isActive: z.boolean(),
+});
+export type SetProcedureCatalogItemsActiveInput = z.infer<
+  typeof setProcedureCatalogItemsActiveSchema
+>;
+
+export const removeProcedureCatalogItemsSchema = z.object({ ids: catalogIdsSchema });
+export type RemoveProcedureCatalogItemsInput = z.infer<typeof removeProcedureCatalogItemsSchema>;
+
 export const listProcedureCatalogQuerySchema = paginationQuerySchema.extend({
   specialtyId: z.uuid().optional(),
   isActive: z.stringbool().optional(),

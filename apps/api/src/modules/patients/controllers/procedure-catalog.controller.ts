@@ -24,6 +24,8 @@ import {
   IdParamDto,
   CreateCatalogItemDto,
   UpdateCatalogItemDto,
+  SetCatalogItemsActiveDto,
+  RemoveCatalogItemsDto,
 } from "@api/modules/patients/dto/procedure-catalog.dto";
 
 @Controller("procedure-catalog")
@@ -41,6 +43,25 @@ export class ProcedureCatalogController {
     @Query() query: ListCatalogQueryDto,
   ): Promise<Paginated<CatalogView>> {
     return this.catalog.list(actor, query);
+  }
+
+  @Patch("active")
+  @Roles(USER_ROLE.ADMIN)
+  setActive(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Body() body: SetCatalogItemsActiveDto,
+  ): Promise<CatalogView[]> {
+    return this.catalog.setActive(actor, body);
+  }
+
+  @Post("remove")
+  @Roles(USER_ROLE.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeMany(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Body() body: RemoveCatalogItemsDto,
+  ): Promise<void> {
+    await this.catalog.softDeleteMany(actor, body);
   }
 
   @AiTool({

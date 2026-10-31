@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import {
   Button,
+  Checkbox,
   EmptyState,
   Icon,
   Ltr,
@@ -30,6 +31,7 @@ import {
   useDeleteLookupOption,
   useLookupList,
   useReorderLookupOptions,
+  useSetLookupOptionsActive,
   useUpdateLookupOption,
 } from "@web/shared/queries/lookups";
 import { errorToast } from "@web/shared/lib/api-error";
@@ -101,7 +103,7 @@ export function LookupsPage(): JSX.Element {
           ))}
         </nav>
 
-        <LookupList listKey={listKey} />
+        <LookupList key={listKey} listKey={listKey} />
       </div>
     </div>
   );
@@ -115,11 +117,16 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
   const reorder = useReorderLookupOptions();
   const update = useUpdateLookupOption();
   const remove = useDeleteLookupOption();
+  const setActive = useSetLookupOptionsActive();
   const { confirm, dialog } = useConfirm(`lookup-confirm-delete-${listKey}`);
 
   const [editing, setEditing] = useState<LookupOption | null>(null);
   const [adding, setAdding] = useState(false);
   const [dragging, setDragging] = useState<string | null>(null);
+  const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
+
+  const chosen = options.filter((option) => picked.has(option.id));
+  const allPicked = options.length > 0 && chosen.length === options.length;
 
   const coloured = useMemo(
     () => (COLOURED_LOOKUP_LISTS as readonly string[]).includes(listKey),
@@ -162,6 +169,35 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
   const toggle = async (option: LookupOption): Promise<void> => {
     try {
       await update.mutateAsync({ id: option.id, body: { isActive: !option.isActive } });
+    } catch (error) {
+      fail(error);
+    }
+  };
+
+  const pick = (id: string, on: boolean): void =>
+    setPicked((current) => {
+      const next = new Set(current);
+
+      if (on) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+
+      return next;
+    });
+
+  const switchChosen = async (isActive: boolean): Promise<void> => {
+    if (chosen.length === 0 || setActive.isPending) {
+      return;
+    }
+
+    try {
+      await setActive.mutateAsync({ listKey, ids: chosen.map((option) => option.id), isActive });
+      toast.success(isActive ? "lookups.enabledMany" : "lookups.disabledMany", {
+        count: chosen.length,
+      });
+      setPicked(new Set());
     } catch (error) {
       fail(error);
     }
@@ -215,106 +251,156 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
       {options.length === 0 ? (
         <EmptyState icon="list" data-testid="lookup-list-empty" title="lookups.empty" />
       ) : (
-        <ul data-testid="lookup-options" className="flex flex-col">
-          {options.map((option, index) => (
-            <li
-              key={option.id}
-              data-testid={`lookup-option-${option.code}`}
-              draggable
-              onDragStart={() => setDragging(option.id)}
-              onDragEnd={() => setDragging(null)}
-              onDragOver={(event: DragEvent) => event.preventDefault()}
-              onDrop={() => void drop(option.id)}
-              className={cn(
-                "flex items-center gap-3 border-b border-line py-2.5 last:border-b-0",
-                dragging === option.id && "opacity-40",
-              )}
-            >
-              <span className="hidden cursor-grab text-ink-subtle md:inline" aria-hidden="true">
-                <Icon name="grip" />
-              </span>
-
-              <button
-                type="button"
-                data-testid="lookup-option-open"
-                onClick={() => setEditing(option)}
+        <>
+          <div
+            data-testid="lookup-selection"
+            className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-2"
+          >
+            <Checkbox
+              data-testid="lookup-select-all"
+              checked={allPicked}
+              indeterminate={chosen.length > 0 && !allPicked}
+              onCheckedChange={(on) =>
+                setPicked(new Set(on ? options.map((option) => option.id) : []))
+              }
+              label={
+                chosen.length > 0
+                  ? t("lookups.selected", { count: chosen.length })
+                  : t("lookups.selectAll")
+              }
+            />
+            {chosen.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  data-testid="lookup-enable-selected"
+                  aria-disabled={setActive.isPending || undefined}
+                  onClick={() => void switchChosen(true)}
+                >
+                  {t("lookups.enableSelected")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  data-testid="lookup-disable-selected"
+                  aria-disabled={setActive.isPending || undefined}
+                  onClick={() => void switchChosen(false)}
+                >
+                  {t("lookups.disableSelected")}
+                </Button>
+              </div>
+            )}
+          </div>
+          <ul data-testid="lookup-options" className="flex flex-col">
+            {options.map((option, index) => (
+              <li
+                key={option.id}
+                data-testid={`lookup-option-${option.code}`}
+                draggable
+                onDragStart={() => setDragging(option.id)}
+                onDragEnd={() => setDragging(null)}
+                onDragOver={(event: DragEvent) => event.preventDefault()}
+                onDrop={() => void drop(option.id)}
                 className={cn(
-                  "flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-start",
-                  !option.isActive && "opacity-60",
+                  "flex items-center gap-3 border-b border-line py-2.5 last:border-b-0",
+                  dragging === option.id && "opacity-40",
                 )}
               >
-                {coloured && (
-                  <ToothSwatch
-                    style={states.info(option.code).style}
-                    className="inline-block size-4 shrink-0 rounded-sm border"
-                  />
-                )}
+                <Checkbox
+                  data-testid="lookup-option-pick"
+                  checked={picked.has(option.id)}
+                  onCheckedChange={(on) => pick(option.id, on)}
+                  label={t("lookups.selectOption", { name: lookupLabel(option, i18n.language) })}
+                  hideLabel
+                />
 
-                <span className="min-w-0 flex-1">
-                  <span className="block break-words text-value text-ink">
-                    {lookupLabel(option, i18n.language)}
-                  </span>
-                  <span className="block text-label text-ink-subtle">
-                    <Ltr>{option.code}</Ltr>
-                    {regimenShorthand(readDrugRegimen(option.meta)) && (
-                      <span data-testid="lookup-option-regimen">
-                        {" · "}
-                        <Ltr>{regimenShorthand(readDrugRegimen(option.meta))}</Ltr>
-                      </span>
-                    )}
-                    {option.isSystem && (
-                      <span data-testid="lookup-option-system"> · {t("lookups.system")}</span>
-                    )}
-                  </span>
+                <span className="hidden cursor-grab text-ink-subtle md:inline" aria-hidden="true">
+                  <Icon name="grip" />
                 </span>
-              </button>
 
-              <Switch
-                data-testid="lookup-option-active"
-                checked={option.isActive}
-                label={t("lookups.active")}
-                hideLabel
-                onCheckedChange={() => void toggle(option)}
-              />
+                <button
+                  type="button"
+                  data-testid="lookup-option-open"
+                  onClick={() => setEditing(option)}
+                  className={cn(
+                    "flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-start",
+                    !option.isActive && "opacity-60",
+                  )}
+                >
+                  {coloured && (
+                    <ToothSwatch
+                      style={states.info(option.code).style}
+                      className="inline-block size-4 shrink-0 rounded-sm border"
+                    />
+                  )}
 
-              <RowMenu label={t("lookups.rowMenu")} data-testid="lookup-option-menu">
-                <MenuItem
-                  icon="edit"
-                  data-testid="lookup-option-edit"
-                  onSelect={() => setEditing(option)}
-                >
-                  {t("common.edit")}
-                </MenuItem>
-                {index > 0 && (
+                  <span className="min-w-0 flex-1">
+                    <span className="block break-words text-value text-ink">
+                      {lookupLabel(option, i18n.language)}
+                    </span>
+                    <span className="block text-label text-ink-subtle">
+                      <Ltr>{option.code}</Ltr>
+                      {regimenShorthand(readDrugRegimen(option.meta)) && (
+                        <span data-testid="lookup-option-regimen">
+                          {" · "}
+                          <Ltr>{regimenShorthand(readDrugRegimen(option.meta))}</Ltr>
+                        </span>
+                      )}
+                      {option.isSystem && (
+                        <span data-testid="lookup-option-system"> · {t("lookups.system")}</span>
+                      )}
+                    </span>
+                  </span>
+                </button>
+
+                <Switch
+                  data-testid="lookup-option-active"
+                  checked={option.isActive}
+                  label={t("lookups.active")}
+                  hideLabel
+                  onCheckedChange={() => void toggle(option)}
+                />
+
+                <RowMenu label={t("lookups.rowMenu")} data-testid="lookup-option-menu">
                   <MenuItem
-                    icon="chevron-up"
-                    data-testid="lookup-option-up"
-                    onSelect={() => void move(index, -1)}
+                    icon="edit"
+                    data-testid="lookup-option-edit"
+                    onSelect={() => setEditing(option)}
                   >
-                    {t("lookups.moveUp")}
+                    {t("common.edit")}
                   </MenuItem>
-                )}
-                {index < options.length - 1 && (
+                  {index > 0 && (
+                    <MenuItem
+                      icon="chevron-up"
+                      data-testid="lookup-option-up"
+                      onSelect={() => void move(index, -1)}
+                    >
+                      {t("lookups.moveUp")}
+                    </MenuItem>
+                  )}
+                  {index < options.length - 1 && (
+                    <MenuItem
+                      icon="chevron-down"
+                      data-testid="lookup-option-down"
+                      onSelect={() => void move(index, 1)}
+                    >
+                      {t("lookups.moveDown")}
+                    </MenuItem>
+                  )}
                   <MenuItem
-                    icon="chevron-down"
-                    data-testid="lookup-option-down"
-                    onSelect={() => void move(index, 1)}
+                    icon="trash"
+                    tone="danger"
+                    data-testid="lookup-option-delete"
+                    onSelect={() => destroy(option)}
                   >
-                    {t("lookups.moveDown")}
+                    {t("common.delete")}
                   </MenuItem>
-                )}
-                <MenuItem
-                  icon="trash"
-                  tone="danger"
-                  data-testid="lookup-option-delete"
-                  onSelect={() => destroy(option)}
-                >
-                  {t("common.delete")}
-                </MenuItem>
-              </RowMenu>
-            </li>
-          ))}
-        </ul>
+                </RowMenu>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
       <LookupOptionModal

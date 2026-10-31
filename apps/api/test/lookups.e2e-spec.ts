@@ -325,6 +325,59 @@ describe("Lookups (e2e)", () => {
       expect((await list(LOOKUP_LIST.TOOTH_STATE)).map((option) => option.id)).toEqual(ids);
     });
 
+    it("switches several options of one list off and on at once", async () => {
+      const before = await list(LOOKUP_LIST.APPOINTMENT_TYPE);
+      const ids = before.slice(0, 2).map((option) => option.id);
+      const setActive = (isActive: boolean) =>
+        context.app.inject({
+          method: "PATCH",
+          url: "/lookups/active",
+          headers: auth(tokens[USER_ROLE.ADMIN]),
+          payload: { listKey: LOOKUP_LIST.APPOINTMENT_TYPE, ids, isActive },
+        });
+
+      const off = await setActive(false);
+
+      expect(off.statusCode).toBe(200);
+      expect(
+        (off.json() as LookupOption[])
+          .filter((option) => ids.includes(option.id))
+          .map((option) => option.isActive),
+      ).toEqual([false, false]);
+      expect((await list(LOOKUP_LIST.APPOINTMENT_TYPE)).map((option) => option.id)).not.toEqual(
+        expect.arrayContaining(ids),
+      );
+
+      const audit = await context.app.inject({
+        method: "GET",
+        url: `/audit-log?entityId=${ids[0]}&action=update&limit=100`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+      });
+
+      expect(audit.json().items[0]).toMatchObject({
+        oldValue: { isActive: true },
+        newValue: { isActive: false },
+      });
+
+      expect((await setActive(true)).statusCode).toBe(200);
+      expect((await list(LOOKUP_LIST.APPOINTMENT_TYPE)).map((option) => option.id)).toEqual(
+        before.map((option) => option.id),
+      );
+    });
+
+    it("refuses to switch an option that is not on the named list", async () => {
+      const [other] = await list(LOOKUP_LIST.PAYMENT_METHOD);
+
+      const response = await context.app.inject({
+        method: "PATCH",
+        url: "/lookups/active",
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+        payload: { listKey: LOOKUP_LIST.APPOINTMENT_TYPE, ids: [other?.id], isActive: false },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
     it("soft-deletes one the clinic added, and stops offering it", async () => {
       const response = await context.app.inject({
         method: "DELETE",
@@ -354,6 +407,22 @@ describe("Lookups (e2e)", () => {
           url: "/lookups",
           headers: auth(tokens[role]),
           payload: { listKey: LOOKUP_LIST.APPOINTMENT_TYPE, nameAr: "استشارة", nameEn: "Consult" },
+        });
+
+        expect(response.statusCode).toBe(403);
+      },
+    );
+
+    it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
+      "refuses %s switching options off in bulk",
+      async (role) => {
+        const [option] = await list(LOOKUP_LIST.APPOINTMENT_TYPE);
+
+        const response = await context.app.inject({
+          method: "PATCH",
+          url: "/lookups/active",
+          headers: auth(tokens[role]),
+          payload: { listKey: LOOKUP_LIST.APPOINTMENT_TYPE, ids: [option?.id], isActive: false },
         });
 
         expect(response.statusCode).toBe(403);

@@ -66,6 +66,13 @@ export const reorderLookupOptionsSchema = z.object({
 });
 export type ReorderLookupOptionsInput = z.infer<typeof reorderLookupOptionsSchema>;
 
+export const setLookupOptionsActiveSchema = z.object({
+  listKey: z.enum(LOOKUP_LIST_KEYS),
+  ids: z.array(uuidSchema).min(1).max(500),
+  isActive: z.boolean(),
+});
+export type SetLookupOptionsActiveInput = z.infer<typeof setLookupOptionsActiveSchema>;
+
 export const listLookupOptionsQuerySchema = z.object({
   listKey: z.enum(LOOKUP_LIST_KEYS).optional(),
   includeInactive: z.coerce.boolean().optional(),

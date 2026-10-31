@@ -7,6 +7,7 @@ import {
   type OnModuleInit,
 } from "@nestjs/common";
 import {
+  AUDIT_ACTION,
   BODY_SIDE,
   LOOKUP_LIST,
   LOOKUP_LIST_KEYS,
@@ -21,10 +22,12 @@ import {
   type LookupListKey,
   type LookupOption,
   type ReorderLookupOptionsInput,
+  type SetLookupOptionsActiveInput,
   type UpdateLookupOptionInput,
 } from "@clinic/shared";
 import { and, asc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
+import { AuditService } from "@api/modules/audit/services/audit.service";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { clinicChartTypes } from "@api/common/lib/clinic-charts";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
@@ -44,6 +47,7 @@ export class LookupsService implements OnModuleInit {
     @Inject(DATABASE) private readonly db: Database,
     private readonly scope: ClinicScopeService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly audit: AuditService,
   ) {}
 
   onModuleInit(): void {
@@ -193,6 +197,54 @@ export class LookupsService implements OnModuleInit {
           .update(lookupOptions)
           .set({ sortOrder: index, updatedAt: new Date(), updatedBy: actor.id })
           .where(eq(lookupOptions.id, id));
+      }
+    });
+
+    return (await this.bundle(actor, { listKey: input.listKey, includeInactive: true }))[
+      input.listKey
+    ] as LookupOption[];
+  }
+
+  async setActive(
+    actor: AuthenticatedUser,
+    input: SetLookupOptionsActiveInput,
+  ): Promise<LookupOption[]> {
+    const ids = [...new Set(input.ids)];
+    const owned = this.scope.where(
+      lookupOptions,
+      actor.clinicId,
+      eq(lookupOptions.listKey, input.listKey),
+      inArray(lookupOptions.id, ids),
+    );
+    const before = await this.db.select().from(lookupOptions).where(owned);
+
+    if (before.length !== ids.length) {
+      throw new NotFoundException("Resource not found");
+    }
+
+    await this.db.transaction(async (tx) => {
+      const rows = await tx
+        .update(lookupOptions)
+        .set({ isActive: input.isActive, updatedAt: new Date(), updatedBy: actor.id })
+        .where(owned)
+        .returning();
+      const old = new Map(before.map((row) => [row.id, row]));
+
+      for (const row of rows) {
+        const previous = old.get(row.id);
+
+        await this.audit.record(
+          {
+            clinicId: actor.clinicId,
+            userId: actor.id,
+            action: AUDIT_ACTION.UPDATE,
+            entity: LOOKUP_OPTIONS_ENTITY,
+            entityId: row.id,
+            oldValue: previous ? { ...toLookupOption(previous) } : null,
+            newValue: { ...toLookupOption(row) },
+          },
+          tx,
+        );
       }
     });
 

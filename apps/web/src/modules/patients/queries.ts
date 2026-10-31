@@ -23,6 +23,8 @@ import type {
   Prescription,
   PresignAttachmentUploadInput,
   ProcedureCatalogItem,
+  RemoveProcedureCatalogItemsInput,
+  SetProcedureCatalogItemsActiveInput,
   TimelineEntry,
   UpdatePatientInput,
   UpdatePerformedProcedureInput,
@@ -147,6 +149,25 @@ export function useRemoveCatalogItem() {
 
   return useMutation({
     mutationFn: (id: string) => patientsApi.removeCatalogItem(id),
+    onSuccess: invalidate,
+  });
+}
+
+export function useSetCatalogItemsActive() {
+  const invalidate = useInvalidateCatalog();
+
+  return useMutation({
+    mutationFn: (body: SetProcedureCatalogItemsActiveInput) =>
+      patientsApi.setCatalogItemsActive(body),
+    onSuccess: invalidate,
+  });
+}
+
+export function useRemoveCatalogItems() {
+  const invalidate = useInvalidateCatalog();
+
+  return useMutation({
+    mutationFn: (body: RemoveProcedureCatalogItemsInput) => patientsApi.removeCatalogItems(body),
     onSuccess: invalidate,
   });
 }

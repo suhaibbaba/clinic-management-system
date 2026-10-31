@@ -2025,6 +2025,16 @@
     "created": "Option Added",
     "updated": "Option Saved",
     "deleted": "Option Deleted",
+    "selectAll": "Select All",
+    "selected_one": "1 option selected",
+    "selected_other": "{{count}} options selected",
+    "selectOption": "Select {{name}}",
+    "enableSelected": "Switch On",
+    "disableSelected": "Switch Off",
+    "enabledMany_one": "1 option switched on",
+    "enabledMany_other": "{{count}} options switched on",
+    "disabledMany_one": "1 option switched off",
+    "disabledMany_other": "{{count}} options switched off",
     "confirmDelete": {
       "title": "Delete “{{name}}” from this list?",
       "consequence": "Records that refer to it will show its code instead of its name."
@@ -2103,6 +2113,23 @@
     "created": "Procedure Added",
     "updated": "Procedure Saved",
     "deleted": "Procedure Deleted",
+    "selectAll": "Select All",
+    "selected_one": "1 procedure selected",
+    "selected_other": "{{count}} procedures selected",
+    "selectOne": "Select {{name}}",
+    "enableSelected": "Activate",
+    "disableSelected": "Deactivate",
+    "deleteSelected": "Delete",
+    "enabledMany_one": "1 procedure activated",
+    "enabledMany_other": "{{count}} procedures activated",
+    "disabledMany_one": "1 procedure deactivated",
+    "disabledMany_other": "{{count}} procedures deactivated",
+    "deletedMany_one": "1 procedure deleted",
+    "deletedMany_other": "{{count}} procedures deleted",
+    "confirmDeleteMany": {
+      "title_one": "Delete 1 procedure from the price list?",
+      "title_other": "Delete {{count}} procedures from the price list?"
+    },
     "confirmDelete": {
       "title": "Delete “{{name}}” from the price list?",
       "consequence": "It will no longer be offered when recording a treatment. Treatments already recorded keep their prices."
@@ -2311,6 +2338,7 @@
         "create": "Add an Option to a List",
         "remove": "Delete an Option from a List",
         "reorder": "Reorder a List",
+        "setActive": "Switch Options On or Off in Bulk",
         "update": "Edit an Option in a List"
       },
       "medical-histories": {
@@ -2376,6 +2404,8 @@
       "procedure-catalog": {
         "create": "Add a procedure to the price list",
         "remove": "Delete a procedure from the price list",
+        "removeMany": "Delete several procedures from the price list at once",
+        "setActive": "Activate or deactivate several procedures at once",
         "update": "Edit a Procedure's Price",
         "details": "See the Full Treatment Catalog"
       },

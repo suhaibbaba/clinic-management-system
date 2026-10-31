@@ -18,6 +18,8 @@ import type {
   PresignAttachmentUploadInput,
   PresignAttachmentUploadResponse,
   ProcedureCatalogItem,
+  RemoveProcedureCatalogItemsInput,
+  SetProcedureCatalogItemsActiveInput,
   TimelineEntry,
   UpdatePatientInput,
   UpdatePerformedProcedureInput,
@@ -95,6 +97,14 @@ export const patientsApi = {
 
   removeCatalogItem: (id: string): Promise<void> =>
     apiRequest(`/procedure-catalog/${id}`, { method: "DELETE" }),
+
+  setCatalogItemsActive: (
+    body: SetProcedureCatalogItemsActiveInput,
+  ): Promise<ProcedureCatalogItem[]> =>
+    apiRequest("/procedure-catalog/active", { method: "PATCH", body }),
+
+  removeCatalogItems: (body: RemoveProcedureCatalogItemsInput): Promise<void> =>
+    apiRequest("/procedure-catalog/remove", { method: "POST", body }),
 
   treatmentPlanPdf: (patientId: string): Promise<Blob> =>
     apiDownload(`/patients/${patientId}/treatment-plan.pdf`),

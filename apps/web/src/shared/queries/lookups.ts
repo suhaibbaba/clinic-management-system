@@ -5,6 +5,7 @@ import {
   type LookupListKey,
   type LookupOption,
   type ReorderLookupOptionsInput,
+  type SetLookupOptionsActiveInput,
   type UpdateLookupOptionInput,
 } from "@clinic/shared";
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
@@ -97,6 +98,15 @@ export function useReorderLookupOptions() {
 
   return useMutation({
     mutationFn: (body: ReorderLookupOptionsInput) => lookupsApi.reorder(body),
+    onSuccess: invalidate,
+  });
+}
+
+export function useSetLookupOptionsActive() {
+  const invalidate = useInvalidateLookups();
+
+  return useMutation({
+    mutationFn: (body: SetLookupOptionsActiveInput) => lookupsApi.setActive(body),
     onSuccess: invalidate,
   });
 }

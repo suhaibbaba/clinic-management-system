@@ -21,6 +21,7 @@ import {
   ListLookupsQueryDto,
   CreateLookupDto,
   ReorderLookupsDto,
+  SetLookupsActiveDto,
   IdParamDto,
   UpdateLookupDto,
 } from "@api/modules/lookups/dto/lookups.dto";
@@ -56,6 +57,15 @@ export class LookupsController {
     @Body() body: ReorderLookupsDto,
   ): Promise<LookupOption[]> {
     return this.lookups.reorder(actor, body);
+  }
+
+  @Patch("active")
+  @Roles(USER_ROLE.ADMIN)
+  setActive(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Body() body: SetLookupsActiveDto,
+  ): Promise<LookupOption[]> {
+    return this.lookups.setActive(actor, body);
   }
 
   @Patch(":id")
