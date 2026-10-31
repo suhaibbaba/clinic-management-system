@@ -77,7 +77,6 @@ export function DetailsStep({
         dir="ltr"
         autoComplete="tel"
         placeholder={t("details.phonePlaceholder")}
-        hint={t("details.phoneHint")}
         value={details.phone}
         error={touched ? phoneError : undefined}
         onChange={(event) => onChange({ ...details, phone: event.target.value })}
@@ -91,8 +90,6 @@ export function DetailsStep({
         value={details.reason}
         onChange={(event) => onChange({ ...details, reason: event.target.value })}
       />
-
-      <p className="text-label text-ink-muted">{t("details.terms")}</p>
 
       <Button type="submit" full data-testid="details-submit" busy={busy} disabled={!ready}>
         {t("details.submit")}

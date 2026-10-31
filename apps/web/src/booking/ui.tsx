@@ -247,22 +247,25 @@ export function Field({
   const errorId = `${fieldId}-error`;
   const hintId = `${fieldId}-hint`;
   const describedBy = cx(error && errorId, hint && hintId) || undefined;
+  const shellTone = error
+    ? "border-danger-600 shadow-field-error"
+    : "border-line-strong hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus focus-within:border-primary-600 focus-within:shadow-field-focus";
 
   const input = (
     <input
       id={fieldId}
       data-testid={testId}
       className={cx(
-        "min-h-(--control-h) w-full min-w-0 rounded-control border-[1.5px] bg-surface px-3 text-field text-ink",
+        "min-h-(--control-h) w-full min-w-0 px-3 text-field text-ink",
         "placeholder:text-ink-subtle",
         prefix !== undefined || addon !== undefined
           ? "text-left"
           : rest.dir === "ltr"
             ? "page-rtl:text-right page-ltr:text-left"
             : "text-start",
-        error
-          ? "border-danger-600 shadow-field-error"
-          : "border-line-strong hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus",
+        addon !== undefined
+          ? "border-none bg-transparent"
+          : cx("rounded-control border-[1.5px] bg-surface", shellTone),
         className,
       )}
       {...(describedBy && { "aria-describedby": describedBy })}
@@ -287,8 +290,15 @@ export function Field({
       </label>
 
       {addon !== undefined ? (
-        <div dir="ltr" className="flex gap-2">
+        <div
+          dir="ltr"
+          className={cx(
+            "flex min-h-(--control-h) items-center rounded-control border-[1.5px] bg-surface ps-1",
+            shellTone,
+          )}
+        >
           {addon}
+          <span aria-hidden className="mx-1 h-5 w-px shrink-0 bg-line" />
           {input}
         </div>
       ) : prefix === undefined ? (

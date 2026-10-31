@@ -20,8 +20,10 @@
 }
 
 html {
+  --site-sticky-top: 5rem;
+
   scroll-behavior: smooth;
-  scroll-padding-top: 5rem;
+  scroll-padding-top: var(--site-sticky-top);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -97,7 +97,7 @@ export function BookingBoard({
         id="booking-panel"
         data-testid="booking-panel"
         aria-label={t("board.yourAppointment")}
-        className="w-full shrink-0 overflow-hidden rounded-card border border-line bg-surface shadow-float lg:sticky lg:top-6 lg:w-96"
+        className="w-full shrink-0 overflow-hidden rounded-card border border-line bg-surface shadow-float lg:sticky lg:top-[calc(var(--site-sticky-top,0rem)+1.5rem)] lg:w-96"
       >
         {panel}
       </aside>
