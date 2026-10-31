@@ -143,7 +143,9 @@ describe("Patient page", () => {
     it("opens the clinical file for a visiting doctor without the account", async () => {
       await renderPatientPage(USER_ROLE.VISITING_DOCTOR);
 
-      expect(await screen.findByRole("tab", { name: ar.patients.tabs.chart })).toBeVisible();
+      expect(
+        await screen.findByRole("tab", { name: ar.patients.tabs.charts.tooth_fdi }),
+      ).toBeVisible();
       expect(screen.getByRole("tab", { name: ar.patients.tabs.treatmentPlan })).toBeVisible();
       expect(screen.queryByRole("tab", { name: ar.patients.tabs.billing })).not.toBeInTheDocument();
       expect(screen.queryByRole("button", { name: ar.patients.rowMenu })).not.toBeInTheDocument();
@@ -153,7 +155,9 @@ describe("Patient page", () => {
       await renderPatientPage(USER_ROLE.RECEPTIONIST);
 
       expect(await screen.findByRole("tab", { name: ar.patients.tabs.billing })).toBeVisible();
-      expect(screen.queryByRole("tab", { name: ar.patients.tabs.chart })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("tab", { name: ar.patients.tabs.charts.tooth_fdi }),
+      ).not.toBeInTheDocument();
       expect(screen.queryByRole("tab", { name: ar.patients.tabs.visits })).not.toBeInTheDocument();
       expect(
         screen.queryByRole("tab", { name: ar.patients.tabs.attachments }),
@@ -177,10 +181,10 @@ describe("Patient page", () => {
         },
       });
 
-      await screen.findByRole("tab", { name: ar.patients.tabs.chart });
+      await screen.findByRole("tab", { name: ar.patients.tabs.charts.tooth_fdi });
 
       expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
-        ar.patients.tabs.chart,
+        ar.patients.tabs.charts.tooth_fdi,
         ar.patients.tabs.treatmentPlan,
         ar.patients.tabs.timeline,
         ar.patients.tabs.billing,

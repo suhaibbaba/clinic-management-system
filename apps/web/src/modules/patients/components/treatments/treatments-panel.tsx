@@ -47,6 +47,7 @@ import {
 } from "@web/shared/permissions/patients";
 import { errorToast } from "@web/shared/lib/api-error";
 import { useSession } from "@web/shared/providers/session";
+import { procedureIcon } from "@web/modules/patients/lib/chart/charts";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { useDoctors } from "@web/shared/queries/doctors";
 
@@ -215,7 +216,11 @@ export function TreatmentsPanel({
       </div>
 
       {ordered.length === 0 ? (
-        <EmptyState icon="tooth" data-testid={`${testId}-empty`} title={emptyTitle} />
+        <EmptyState
+          icon={procedureIcon(user?.clinic.chartTypes ?? [])}
+          data-testid={`${testId}-empty`}
+          title={emptyTitle}
+        />
       ) : (
         <ol
           data-testid={`${testId}-list`}

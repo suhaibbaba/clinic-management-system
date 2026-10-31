@@ -1,4 +1,5 @@
 import {
+  CHART_TYPE,
   CONTACT_MESSAGE_STATUS,
   USER_ROLE,
   defaultSiteContent,
@@ -149,6 +150,7 @@ describe("Website (e2e)", () => {
       expect(site.statusCode).toBe(200);
       expect(site.json<PublicSite>().content.hero.title.ar).toBe("ابتسامة أفضل");
       expect(site.json<PublicSite>().doctors.map((entry) => entry.id)).toEqual([doctorId]);
+      expect(site.json<PublicSite>().clinic.chartTypes).toEqual([CHART_TYPE.TOOTH_FDI]);
 
       const entries = await context.db
         .select()

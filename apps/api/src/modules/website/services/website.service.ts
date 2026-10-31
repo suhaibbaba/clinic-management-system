@@ -25,6 +25,7 @@ import {
 } from "@clinic/shared";
 import { and, asc, eq, isNull, ne, sql, type SQL } from "drizzle-orm";
 import { toPersonName } from "@api/common/person-name";
+import { clinicChartTypes } from "@api/common/lib/clinic-charts";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { SITE_CONTENT_ENTITY } from "@api/common/constants/audit-entities";
 import { DATABASE, type Database } from "@api/database/database.module";
@@ -295,6 +296,7 @@ export class WebsiteService implements OnModuleInit {
         longitude: toNumber(clinic.longitude),
         workingHours: clinic.workingHours,
         bookingEnabled: bookingSettings(clinic.settings).enabled,
+        chartTypes: await clinicChartTypes(this.db, clinic.id),
       },
       doctors: await this.doctors(clinic.id),
       content,

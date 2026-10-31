@@ -59,6 +59,7 @@ const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [AUTH_ERROR.PASSKEY_INVALID]: "errors.auth.passkeyInvalid",
   [CLINICAL_DELETE_ERROR.HAS_PAYMENTS]: "errors.clinicalDelete.hasPayments",
   [LAB_ORDER_ERROR.EXPECTED_IN_PAST]: "errors.labOrder.expectedInPast",
+  [LAB_ORDER_ERROR.TEETH_NOT_CHARTED]: "errors.labOrder.teethNotCharted",
   [STOCK_ERROR.INSUFFICIENT]: "errors.stock.insufficient",
   [STOCK_ERROR.BELOW_ONE]: "errors.stock.belowOne",
   [STOCK_ERROR.EXPIRED]: "errors.stock.expired",

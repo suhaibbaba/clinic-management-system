@@ -143,8 +143,8 @@ export async function seedDatabase(db: Database, options: SeedOptions): Promise<
   const clinic = await upsertSeedClinic(db, { slug, name, defaults: CLINIC_DEFAULTS });
   const notes = [...clinic.notes];
 
-  await ensureSystemLookups(db, clinic.id);
   const specialtyId = await upsertSpecialty(db, clinic.id);
+  await ensureSystemLookups(db, clinic.id);
 
   const accounts: { account: SeedAccount; id: string }[] = [];
   for (const account of ACCOUNTS) {

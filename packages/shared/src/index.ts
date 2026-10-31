@@ -26,6 +26,7 @@ export * from "@shared/schemas/health";
 export * from "@shared/schemas/inventory";
 export * from "@shared/schemas/inventory-batches";
 export * from "@shared/schemas/purchase-invoice";
+export * from "@shared/constants/charts";
 export * from "@shared/constants/lookups";
 export * from "@shared/constants/phone";
 export * from "@shared/constants/permissions";

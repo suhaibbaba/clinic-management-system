@@ -4,11 +4,13 @@ import { CardFill } from "@web/site/components/card-fill";
 import { SiteIcon } from "@web/site/components/site-icon";
 import { SiteImage } from "@web/site/components/site-image";
 import { useSite } from "@web/site/hooks/use-site";
+import { useSiteGlyph } from "@web/site/hooks/use-site-glyph";
 import { imageOf } from "@web/site/lib/images";
 import { pick } from "@web/site/lib/text";
 
 export function ServiceCard({ service }: { readonly service: SiteService }): JSX.Element {
   const { site, language } = useSite();
+  const glyph = useSiteGlyph();
   const description = pick(service.description, language);
 
   return (
@@ -26,7 +28,7 @@ export function ServiceCard({ service }: { readonly service: SiteService }): JSX
       <SiteImage
         src={imageOf(site, service.image)}
         className="w-2/5 shrink-0"
-        fallback={<SiteIcon name="tooth" className="size-9" />}
+        fallback={<SiteIcon name={glyph} className="size-9" />}
       />
     </article>
   );

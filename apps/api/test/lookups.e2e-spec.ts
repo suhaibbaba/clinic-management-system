@@ -1,11 +1,13 @@
 import {
   APPOINTMENT_TYPE,
+  CHART_TYPE,
   ATTACHMENT_TYPE,
   ITEM_CATEGORY,
   ITEM_UNIT,
   LOOKUP_LIST,
   PAYMENT_METHOD,
   SYSTEM_LOOKUPS,
+  offersLookup,
   TOOTH_STATE,
   USER_ROLE,
   type LookupBundle,
@@ -13,6 +15,8 @@ import {
   type UserRole,
 } from "@clinic/shared";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
+import { eq } from "drizzle-orm";
+import { specialties } from "@api/database/schema";
 import { ensureSystemLookups } from "@api/database/system-lookups";
 
 describe("Lookups (e2e)", () => {
@@ -61,7 +65,14 @@ describe("Lookups (e2e)", () => {
 
       for (const [listKey, rows] of Object.entries(SYSTEM_LOOKUPS)) {
         const codes = (bundle[listKey] ?? []).map((option) => option.code);
-        expect(codes).toEqual(expect.arrayContaining(rows.map((row) => row.code)));
+        const offered = rows.filter((row) =>
+          offersLookup([CHART_TYPE.TOOTH_FDI], {
+            listKey: listKey as keyof typeof SYSTEM_LOOKUPS,
+            code: row.code,
+            isSystem: true,
+          }),
+        );
+        expect(codes).toEqual(expect.arrayContaining(offered.map((row) => row.code)));
       }
     });
 
@@ -182,6 +193,52 @@ describe("Lookups (e2e)", () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.json()).toMatchObject({ code: "cash", nameAr: "خالص" });
+    });
+  });
+
+  describe("a clinic that charts no teeth", () => {
+    let ortho: TestClinic;
+    let token: string;
+
+    beforeAll(async () => {
+      ortho = await context.createClinic();
+      await context.db
+        .update(specialties)
+        .set({ chartType: CHART_TYPE.BODY_REGION })
+        .where(eq(specialties.id, ortho.specialtyId));
+      await ensureSystemLookups(context.db, ortho.id);
+      token = await context.login(ortho.phones[USER_ROLE.ADMIN]);
+    });
+
+    it("is offered the body regions and none of the dental rows it was seeded with", async () => {
+      const codes = async (listKey: string) =>
+        (await list(listKey, token)).map((option) => option.code);
+
+      expect(await codes(LOOKUP_LIST.TOOTH_STATE)).toEqual([]);
+      expect(await codes(LOOKUP_LIST.LAB_SHADE)).toEqual([]);
+      expect(await codes(LOOKUP_LIST.BODY_REGION)).toContain("knee");
+      expect(await codes(LOOKUP_LIST.LAB_WORK_TYPE)).not.toContain("zirconia_crown");
+      expect(await codes(LOOKUP_LIST.ATTACHMENT_TYPE)).toEqual(
+        expect.arrayContaining(["clinical_photo", "document"]),
+      );
+      expect(await codes(LOOKUP_LIST.ATTACHMENT_TYPE)).not.toContain("xray_panoramic");
+      expect(await codes(LOOKUP_LIST.DRUG_INSTRUCTION)).not.toContain("rinse_spit");
+    });
+
+    it("cannot add to a list its charts do not draw, but can add a lab work type", async () => {
+      const add = (listKey: string, name: string) =>
+        context.app.inject({
+          method: "POST",
+          url: "/lookups",
+          headers: auth(token),
+          payload: { listKey, nameAr: name, nameEn: name },
+        });
+
+      expect((await add(LOOKUP_LIST.TOOTH_STATE, "Cracked")).statusCode).toBe(404);
+      expect((await add(LOOKUP_LIST.LAB_WORK_TYPE, "Knee brace")).statusCode).toBe(201);
+      expect(await list(LOOKUP_LIST.LAB_WORK_TYPE, token)).toEqual([
+        expect.objectContaining({ nameEn: "Knee brace" }),
+      ]);
     });
   });
 

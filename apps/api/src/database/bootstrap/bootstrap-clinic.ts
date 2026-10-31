@@ -46,11 +46,13 @@ export async function bootstrapClinic(
       );
     }
 
+    for (const code of env.BOOTSTRAP_SPECIALTIES) {
+      await ensureSpecialty(tx, clinicId, code);
+    }
+
     await ensureSystemLookups(tx, clinicId);
 
     for (const code of env.BOOTSTRAP_SPECIALTIES) {
-      await ensureSpecialty(tx, clinicId, code);
-
       if (!existing) {
         const pack = await applySpecialtyPack(tx, clinicId, code);
 

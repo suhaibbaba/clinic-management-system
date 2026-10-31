@@ -1034,6 +1034,7 @@ export type PaymentError = EnumValue<typeof PAYMENT_ERROR>;
 
 export const LAB_ORDER_ERROR = {
   EXPECTED_IN_PAST: "lab_order_expected_in_past",
+  TEETH_NOT_CHARTED: "lab_order_teeth_not_charted",
 } as const satisfies Record<string, string>;
 
 export const AUTH_ERROR = {

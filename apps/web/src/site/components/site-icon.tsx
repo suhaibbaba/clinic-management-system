@@ -1,6 +1,7 @@
 import type { SiteIcon as SiteIconName } from "@clinic/shared";
 import {
   Armchair,
+  Bone,
   ArrowLeft,
   Award,
   Building2,
@@ -96,6 +97,7 @@ const ICONS: Record<SiteIconName | UiIcon, LucideIcon> = {
   armchair: Armchair,
   target: Target,
   tooth: ToothGlyph,
+  bone: Bone,
   "arrow-end": ArrowLeft,
   check: Check,
   "chevron-down": ChevronDown,

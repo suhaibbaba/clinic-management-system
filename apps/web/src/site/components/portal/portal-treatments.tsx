@@ -5,6 +5,7 @@ import { PortalPanel } from "@web/site/components/portal/portal-panel";
 import { PortalStatusPill } from "@web/site/components/portal/portal-status-pill";
 import type { PortalFormat } from "@web/site/hooks/use-portal-format";
 import { useSite } from "@web/site/hooks/use-site";
+import { useSiteGlyph } from "@web/site/hooks/use-site-glyph";
 import { netPrice, treatmentTone } from "@web/site/lib/portal";
 import { nameIn } from "@web/site/lib/text";
 
@@ -13,7 +14,7 @@ export function PortalTreatments({
   empty,
   treatments,
   format,
-  icon = "tooth",
+  icon,
   action,
   paged = false,
   "data-testid": testId,
@@ -22,18 +23,19 @@ export function PortalTreatments({
   readonly empty: string;
   readonly treatments: readonly PortalTreatment[];
   readonly format: PortalFormat;
-  readonly icon?: "tooth" | "history";
+  readonly icon?: "history";
   readonly action?: ReactNode;
   readonly paged?: boolean;
   readonly "data-testid": string;
 }): JSX.Element {
   const { language, t } = useSite();
+  const glyph = useSiteGlyph();
 
   return (
     <PortalPanel
       title={title}
       empty={empty}
-      icon={icon}
+      icon={icon ?? glyph}
       action={action}
       paged={paged}
       data-testid={testId}

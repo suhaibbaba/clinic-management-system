@@ -39,7 +39,7 @@ import { errorToast } from "@web/shared/lib/api-error";
 import { whatsAppNumber } from "@web/shared/lib/whatsapp";
 import { useDoctors } from "@web/shared/queries/doctors";
 import { PATIENT_TABS, PATIENT_TAB_PARAMS } from "@web/modules/patients/constants";
-import { patientCharts } from "@web/modules/patients/lib/chart/charts";
+import { chartTabLabel, patientCharts } from "@web/modules/patients/lib/chart/charts";
 
 const ChartTab = lazyPage(async () => ({
   default: (await import("@web/modules/patients/pages/chart-tab")).ChartTab,
@@ -265,7 +265,10 @@ export function PatientPage(): JSX.Element {
 
       <Tabs
         data-testid="patient-tabs"
-        tabs={tabs.map((tab) => ({ id: tab.id, label: tab.label }))}
+        tabs={tabs.map((tab) => ({
+          id: tab.id,
+          label: tab.id === "chart" ? chartTabLabel(user?.clinic.chartTypes ?? []) : tab.label,
+        }))}
         value={activeTab}
         onChange={setActiveTab}
         label="patients.tabs.label"

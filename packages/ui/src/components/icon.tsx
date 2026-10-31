@@ -1,5 +1,6 @@
 import {
   Armchair,
+  Bone,
   Monitor,
   Target,
   Award,
@@ -82,6 +83,7 @@ export type IconName =
   | "alert"
   | "award"
   | "bell"
+  | "bone"
   | "building"
   | "calendar"
   | "check"
@@ -178,6 +180,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   armchair: Armchair,
   award: Award,
   bell: Bell,
+  bone: Bone,
   building: Building2,
   calendar: CalendarDays,
   check: Check,

@@ -4,12 +4,13 @@ import { SiteIcon } from "@web/site/components/site-icon";
 import { PORTAL_TABS } from "@web/site/constants";
 import { useSegmentThumb } from "@web/site/hooks/use-segment-thumb";
 import { useSite } from "@web/site/hooks/use-site";
+import { useSiteGlyph } from "@web/site/hooks/use-site-glyph";
 import type { PortalTab } from "@web/site/lib/portal";
 
 const TAB_ICONS: Record<PortalTab, ComponentProps<typeof SiteIcon>["name"]> = {
   overview: "dashboard",
   appointments: "calendar-clock",
-  treatments: "tooth",
+  treatments: "stethoscope",
   billing: "wallet",
   prescriptions: "pill",
   files: "files",
@@ -23,6 +24,7 @@ export function PortalTabs({
   readonly onSelect: (tab: PortalTab) => void;
 }): JSX.Element {
   const { language, t } = useSite();
+  const glyph = useSiteGlyph();
   const track = useRef<HTMLDivElement>(null);
   const thumb = useSegmentThumb(track, '[role="tab"][aria-selected="true"]', active);
 
@@ -90,7 +92,7 @@ export function PortalTabs({
             onClick={() => onSelect(tab)}
             className="pill-text relative z-10 inline-flex min-h-(--control-h) shrink-0 cursor-pointer items-center gap-2 rounded-pill px-4 text-label font-medium whitespace-nowrap text-ink-muted transition-colors duration-200 not-aria-selected:hover:bg-success-50 not-aria-selected:hover:text-success-800 aria-selected:text-ink-inverse motion-reduce:transition-none"
           >
-            <SiteIcon name={TAB_ICONS[tab]} className="size-4" />
+            <SiteIcon name={tab === "treatments" ? glyph : TAB_ICONS[tab]} className="size-4" />
             {t(`portal.tabs.${tab}`)}
           </button>
         );

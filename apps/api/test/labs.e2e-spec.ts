@@ -1,4 +1,5 @@
 import {
+  CHART_TYPE,
   LAB_ORDER_ERROR,
   LAB_ORDER_STATUS,
   PAYMENT_METHOD,
@@ -16,7 +17,7 @@ import {
   nameParts,
 } from "@test/helpers/patient-fixtures";
 import { eq } from "drizzle-orm";
-import { labOrders } from "@api/database/schema";
+import { labOrders, specialties } from "@api/database/schema";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 describe("Labs (e2e)", () => {
@@ -141,6 +142,46 @@ describe("Labs (e2e)", () => {
 
     return response.json() as { owed: string; paid: string; balance: string };
   };
+
+  describe("a clinic that charts no teeth", () => {
+    const chart = (chartType: (typeof CHART_TYPE)[keyof typeof CHART_TYPE]) =>
+      context.db
+        .update(specialties)
+        .set({ chartType })
+        .where(eq(specialties.id, clinic.specialtyId));
+
+    const order = (payload: Record<string, unknown>) =>
+      context.app.inject({
+        method: "POST",
+        url: "/lab-orders",
+        headers: auth(tokens[USER_ROLE.DOCTOR]),
+        payload: {
+          labId,
+          patientId,
+          doctorId: fixtures.doctorId,
+          workTypeId: crownId,
+          teeth: [],
+          ...payload,
+        },
+      });
+
+    it("refuses a tooth or a shade on the order and takes one without", async () => {
+      await chart(CHART_TYPE.BODY_REGION);
+
+      try {
+        const withTeeth = await order({ teeth: [26] });
+        expect(withTeeth.statusCode).toBe(400);
+        expect(withTeeth.json<{ message: string }>().message).toBe(
+          LAB_ORDER_ERROR.TEETH_NOT_CHARTED,
+        );
+
+        expect((await order({ shade: "A2" })).statusCode).toBe(400);
+        expect((await order({})).statusCode).toBe(201);
+      } finally {
+        await chart(CHART_TYPE.TOOTH_FDI);
+      }
+    });
+  });
 
   describe("status transitions", () => {
     it("walks the happy path and stamps each date as it goes", async () => {

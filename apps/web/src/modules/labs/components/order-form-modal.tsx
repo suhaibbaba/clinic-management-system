@@ -20,6 +20,7 @@ import {
   useToast,
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
+import { useToothChart } from "@web/shared/hooks/use-tooth-chart";
 import { canPriceLabWork } from "@web/shared/permissions/labs";
 import { PatientPicker } from "@web/shared/components/patient-picker";
 import {
@@ -75,6 +76,7 @@ export function OrderFormModal({
   const doctorName = usePersonName();
   const toast = useToast();
   const { user, can } = useSession();
+  const toothChart = useToothChart();
 
   const create = useCreateLabOrder();
   const update = useUpdateLabOrder();
@@ -365,34 +367,38 @@ export function OrderFormModal({
           </div>
         </div>
 
-        <div onBlur={form.leave("teeth")}>
-          <FormField
-            error={form.errors["teeth"]}
-            label="labs.order.teeth"
-            htmlFor="lab-order-teeth"
-            optional
-          >
-            <TeethField id="lab-order-teeth" value={teeth} onChange={setTeeth} />
-          </FormField>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div onBlur={form.leave("shade")}>
+        {toothChart && (
+          <div onBlur={form.leave("teeth")}>
             <FormField
-              error={form.errors["shade"]}
-              label="labs.order.shade"
-              htmlFor="lab-order-shade"
+              error={form.errors["teeth"]}
+              label="labs.order.teeth"
+              htmlFor="lab-order-teeth"
               optional
             >
-              <Input
-                id="lab-order-shade"
-                data-testid="lab-order-field-shade"
-                placeholder="A2"
-                value={shade}
-                onChange={(event) => setShade(event.target.value)}
-              />
+              <TeethField id="lab-order-teeth" value={teeth} onChange={setTeeth} />
             </FormField>
           </div>
+        )}
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          {toothChart && (
+            <div onBlur={form.leave("shade")}>
+              <FormField
+                error={form.errors["shade"]}
+                label="labs.order.shade"
+                htmlFor="lab-order-shade"
+                optional
+              >
+                <Input
+                  id="lab-order-shade"
+                  data-testid="lab-order-field-shade"
+                  placeholder="A2"
+                  value={shade}
+                  onChange={(event) => setShade(event.target.value)}
+                />
+              </FormField>
+            </div>
+          )}
 
           <div onBlur={form.leave("material")}>
             <FormField
