@@ -10,6 +10,7 @@
         "src/main.ts",
         "src/database/migrate.ts",
         "src/database/seed.ts",
+        "src/database/clinic-specialty.ts",
         "scripts/*.mjs",
         "test/**/*.{spec,e2e-spec,live-spec}.ts",
         "src/**/*.spec.ts",

@@ -1,5 +1,13 @@
 import { randomUUID } from "node:crypto";
-import { BODY_SIDE, CHART_TYPE, USER_ROLE, type UserRole } from "@clinic/shared";
+import {
+  BODY_SIDE,
+  CHART_TYPE,
+  SPECIALTY_CODE,
+  USER_ROLE,
+  type Paginated,
+  type Specialty,
+  type UserRole,
+} from "@clinic/shared";
 import {
   createPatient,
   nameParts,
@@ -8,6 +16,7 @@ import {
   type PatientFixtures,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
+import { grantSpecialty } from "@api/database/clinic-specialties";
 
 describe("Orthopedics: specialties and body-region chart marks (e2e)", () => {
   let context: TestContext;
@@ -43,9 +52,6 @@ describe("Orthopedics: specialties and body-region chart marks (e2e)", () => {
     await context.close();
   });
 
-  const createSpecialty = (token: string, payload: Record<string, unknown>) =>
-    context.app.inject({ method: "POST", url: "/specialties", headers: auth(token), payload });
-
   const createProcedure = (chartMarks: unknown[], procedureId = catalogId) =>
     context.app.inject({
       method: "POST",
@@ -60,23 +66,67 @@ describe("Orthopedics: specialties and body-region chart marks (e2e)", () => {
   });
 
   describe("specialties", () => {
-    it("lets an admin add a specialty with a body chart", async () => {
-      const response = await createSpecialty(tokens[USER_ROLE.ADMIN], {
-        code: "orthopedic",
-        name: "Orthopedics",
-        chartType: CHART_TYPE.BODY_REGION,
+    it("is granted by the vendor, never added by the clinic", async () => {
+      const added = await context.app.inject({
+        method: "POST",
+        url: "/specialties",
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+        payload: { code: "orthopedic", name: "Orthopedics", chartType: CHART_TYPE.BODY_REGION },
+      });
+      expect(added.statusCode).toBe(404);
+
+      const grant = await grantSpecialty(context.db, clinic.id, SPECIALTY_CODE.ORTHOPEDIC);
+      expect(grant.granted).toBe(true);
+
+      const list = await context.app.inject({
+        method: "GET",
+        url: "/specialties",
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+      });
+      const orthopedic = (list.json() as Paginated<Specialty>).items.find(
+        (item) => item.code === SPECIALTY_CODE.ORTHOPEDIC,
+      );
+      expect(orthopedic).toMatchObject({ chartType: CHART_TYPE.BODY_REGION, isActive: true });
+      specialtyId = orthopedic?.id ?? "";
+    });
+
+    it("lets the admin rename it, and nothing else", async () => {
+      const response = await context.app.inject({
+        method: "PATCH",
+        url: `/specialties/${specialtyId}`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+        payload: {
+          name: "Orthopedic surgery",
+          code: "bones",
+          chartType: CHART_TYPE.NONE,
+          isActive: false,
+        },
       });
 
-      expect(response.statusCode).toBe(201);
+      expect(response.statusCode).toBe(200);
       expect(response.json()).toMatchObject({
+        name: "Orthopedic surgery",
         code: "orthopedic",
         chartType: CHART_TYPE.BODY_REGION,
         isActive: true,
       });
-      specialtyId = (response.json() as { id: string }).id;
     });
 
-    it("writes an audit entry for the new specialty", async () => {
+    it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST])(
+      "refuses a %s renaming it",
+      async (role: UserRole) => {
+        const response = await context.app.inject({
+          method: "PATCH",
+          url: `/specialties/${specialtyId}`,
+          headers: auth(tokens[role]),
+          payload: { name: "Bones" },
+        });
+
+        expect(response.statusCode).toBe(403);
+      },
+    );
+
+    it("writes an audit entry for the rename", async () => {
       const response = await context.app.inject({
         method: "GET",
         url: `/audit-log?entity=specialties&entityId=${specialtyId}`,
@@ -85,47 +135,8 @@ describe("Orthopedics: specialties and body-region chart marks (e2e)", () => {
 
       expect(response.statusCode).toBe(200);
       expect((response.json() as { items: { action: string }[] }).items).toEqual(
-        expect.arrayContaining([expect.objectContaining({ action: "create" })]),
+        expect.arrayContaining([expect.objectContaining({ action: "update" })]),
       );
-    });
-
-    it("refuses a code already in use", async () => {
-      const response = await createSpecialty(tokens[USER_ROLE.ADMIN], {
-        code: "orthopedic",
-        name: "Bones",
-        chartType: CHART_TYPE.BODY_REGION,
-      });
-
-      expect(response.statusCode).toBe(409);
-    });
-
-    it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST])(
-      "refuses a %s adding a specialty",
-      async (role: UserRole) => {
-        const response = await createSpecialty(tokens[role], {
-          code: `spec_${randomUUID().slice(0, 6)}`,
-          name: "Physiotherapy",
-          chartType: CHART_TYPE.NONE,
-        });
-
-        expect(response.statusCode).toBe(403);
-      },
-    );
-
-    it("renames a specialty and keeps its code and chart", async () => {
-      const response = await context.app.inject({
-        method: "PATCH",
-        url: `/specialties/${specialtyId}`,
-        headers: auth(tokens[USER_ROLE.ADMIN]),
-        payload: { name: "Orthopedic surgery", code: "bones", chartType: CHART_TYPE.NONE },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.json()).toMatchObject({
-        name: "Orthopedic surgery",
-        code: "orthopedic",
-        chartType: CHART_TYPE.BODY_REGION,
-      });
     });
 
     it("answers another clinic's specialty with 404", async () => {
@@ -139,7 +150,7 @@ describe("Orthopedics: specialties and body-region chart marks (e2e)", () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it("offers the body chart in the session once the specialty is active", async () => {
+    it("offers the body chart in the session once the specialty is granted", async () => {
       const response = await context.app.inject({
         method: "GET",
         url: "/me",

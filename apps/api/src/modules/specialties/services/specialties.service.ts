@@ -1,7 +1,6 @@
-import { ConflictException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
-import { and, count, desc, eq, isNull, type SQL } from "drizzle-orm";
+import { Inject, Injectable, type OnModuleInit } from "@nestjs/common";
+import { count, desc, eq, type SQL } from "drizzle-orm";
 import {
-  type CreateSpecialtyInput,
   type ListSpecialtiesQuery,
   type Paginated,
   type Specialty,
@@ -14,7 +13,6 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { specialties } from "@api/database/schema";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
-import { LookupsService } from "@api/modules/lookups/services/lookups.service";
 import { toSpecialty } from "@api/modules/specialties/lib/specialties";
 
 type SpecialtyRow = typeof specialties.$inferSelect;
@@ -25,7 +23,6 @@ export class SpecialtiesService implements OnModuleInit {
     @Inject(DATABASE) private readonly db: Database,
     private readonly scope: ClinicScopeService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
-    private readonly lookups: LookupsService,
   ) {}
 
   onModuleInit(): void {
@@ -64,31 +61,6 @@ export class SpecialtiesService implements OnModuleInit {
     return toPaginated(rows.map(toSpecialty), totals?.value ?? 0, query);
   }
 
-  async create(actor: AuthenticatedUser, input: CreateSpecialtyInput): Promise<Specialty> {
-    await this.assertCodeIsFree(actor.clinicId, input.code);
-
-    const [row] = await this.db
-      .insert(specialties)
-      .values({
-        clinicId: actor.clinicId,
-        code: input.code,
-        name: input.name,
-        chartType: input.chartType,
-        isActive: input.isActive,
-        createdBy: actor.id,
-        updatedBy: actor.id,
-      })
-      .returning();
-
-    if (!row) {
-      throw new Error("Failed to create specialty");
-    }
-
-    await this.lookups.seedClinic(actor.clinicId);
-
-    return toSpecialty(row);
-  }
-
   async update(
     actor: AuthenticatedUser,
     id: string,
@@ -99,8 +71,7 @@ export class SpecialtiesService implements OnModuleInit {
     const [row] = await this.db
       .update(specialties)
       .set({
-        ...(input.name !== undefined && { name: input.name }),
-        ...(input.isActive !== undefined && { isActive: input.isActive }),
+        name: input.name,
         updatedAt: new Date(),
         updatedBy: actor.id,
       })
@@ -111,28 +82,6 @@ export class SpecialtiesService implements OnModuleInit {
       throw new Error("Failed to update specialty");
     }
 
-    if (input.isActive === true) {
-      await this.lookups.seedClinic(actor.clinicId);
-    }
-
     return toSpecialty(row);
-  }
-
-  private async assertCodeIsFree(clinicId: string, code: string): Promise<void> {
-    const [clash] = await this.db
-      .select({ id: specialties.id })
-      .from(specialties)
-      .where(
-        and(
-          eq(specialties.clinicId, clinicId),
-          eq(specialties.code, code),
-          isNull(specialties.deletedAt),
-        ),
-      )
-      .limit(1);
-
-    if (clash) {
-      throw new ConflictException("Specialty code is already in use");
-    }
   }
 }

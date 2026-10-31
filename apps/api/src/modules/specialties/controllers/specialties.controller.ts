@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Query } from "@nestjs/common";
 import { AUDIT_ACTION, USER_ROLE, type Paginated, type Specialty } from "@clinic/shared";
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
@@ -7,7 +7,6 @@ import { SPECIALTIES_ENTITY } from "@api/common/constants/audit-entities";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { SpecialtiesService } from "@api/modules/specialties/services/specialties.service";
 import {
-  CreateSpecialtyDto,
   IdParamDto,
   ListSpecialtiesQueryDto,
   UpdateSpecialtyDto,
@@ -23,16 +22,6 @@ export class SpecialtiesController {
     @Query() query: ListSpecialtiesQueryDto,
   ): Promise<Paginated<Specialty>> {
     return this.specialtiesService.list(actor, query);
-  }
-
-  @Post()
-  @Roles(USER_ROLE.ADMIN)
-  @Audit(SPECIALTIES_ENTITY, AUDIT_ACTION.CREATE)
-  create(
-    @CurrentUser() actor: AuthenticatedUser,
-    @Body() body: CreateSpecialtyDto,
-  ): Promise<Specialty> {
-    return this.specialtiesService.create(actor, body);
   }
 
   @Patch(":id")

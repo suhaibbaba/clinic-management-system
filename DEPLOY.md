@@ -575,6 +575,14 @@ dc exec postgres \
 dc exec api node scripts/clinic-module.mjs list
 dc exec api node scripts/clinic-module.mjs enable abu-obeid assistant
 dc exec api node scripts/clinic-module.mjs disable abu-obeid assistant
+
+# Specialties per clinic (paid too, so the vendor's switch: an admin can only rename one).
+# Enabling adds the specialty's built-in list rows and its starter pack; disabling keeps
+# its procedures and records. Remove it from BOOTSTRAP_SPECIALTIES as well, or the next
+# boot grants it again.
+dc exec api node dist/database/clinic-specialty.js list
+dc exec api node dist/database/clinic-specialty.js enable abu-obeid orthopedic
+dc exec api node dist/database/clinic-specialty.js disable abu-obeid orthopedic
 ```
 
 The alias is only for this section's brevity; the commands elsewhere are written

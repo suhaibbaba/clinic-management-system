@@ -115,6 +115,8 @@ core · patients · billing · appointments · booking · notifications · labs 
 - **A paid feature is a module** (`CLINIC_MODULE`): its capabilities carry the module, and
   `PermissionsService` refuses them while the clinic's `modules` lacks it. Background jobs filter
   clinics by module. Switching one on is the vendor's command, never a screen.
+- **A specialty is paid too.** The vendor grants it (`BOOTSTRAP_SPECIALTIES`, or
+  `clinic-specialty.js enable`), which adds its list rows and starter pack; an admin may only rename one.
 - `JwtAuthGuard` global; `@Roles(...)` per endpoint; object-level checks inside services.
 - **Every route is rate limited** by the global `RequestThrottlerGuard` (per user, or per IP when
   signed out); a public or costly route adds a tighter `@Throttle`. The client IP is trusted only

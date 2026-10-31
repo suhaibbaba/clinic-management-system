@@ -1,22 +1,9 @@
 import { and, eq, isNull } from "drizzle-orm";
-import {
-  CHART_TYPE,
-  SPECIALTY_CODE,
-  USER_ROLE,
-  joinPersonName,
-  type ChartType,
-  type SpecialtyCode,
-} from "@clinic/shared";
+import { USER_ROLE, joinPersonName } from "@clinic/shared";
 import type { Database, DatabaseExecutor } from "@api/database/database.module";
-import { clinics, specialties, users } from "@api/database/schema";
-import { ensureSystemLookups } from "@api/database/system-lookups";
+import { clinics, users } from "@api/database/schema";
 import type { BootstrapEnv } from "@api/database/bootstrap/bootstrap-env";
-import { applySpecialtyPack } from "@api/database/specialty-packs/specialty-pack";
-
-const SPECIALTIES: Readonly<Record<SpecialtyCode, { name: string; chartType: ChartType }>> = {
-  [SPECIALTY_CODE.DENTAL]: { name: "طب الأسنان", chartType: CHART_TYPE.TOOTH_FDI },
-  [SPECIALTY_CODE.ORTHOPEDIC]: { name: "جراحة العظام", chartType: CHART_TYPE.BODY_REGION },
-};
+import { grantSpecialty } from "@api/database/clinic-specialties";
 
 export interface BootstrapResult {
   readonly clinicId: string;
@@ -47,20 +34,16 @@ export async function bootstrapClinic(
     }
 
     for (const code of env.BOOTSTRAP_SPECIALTIES) {
-      await ensureSpecialty(tx, clinicId, code);
-    }
+      const grant = await grantSpecialty(tx, clinicId, code);
 
-    await ensureSystemLookups(tx, clinicId);
+      if (existing && grant.granted) {
+        notes.push(`Enabled the ${code} specialty.`);
+      }
 
-    for (const code of env.BOOTSTRAP_SPECIALTIES) {
-      if (!existing) {
-        const pack = await applySpecialtyPack(tx, clinicId, code);
-
-        if (pack.procedures + pack.lookups > 0) {
-          notes.push(
-            `Added the ${code} starter pack: ${pack.procedures} procedures (priced 0 and switched off until priced) and ${pack.lookups} list entries.`,
-          );
-        }
+      if (grant.procedures + grant.lookups > 0) {
+        notes.push(
+          `Added the ${code} starter pack: ${grant.procedures} procedures (priced 0 and switched off until priced) and ${grant.lookups} list entries.`,
+        );
       }
     }
 
@@ -94,28 +77,6 @@ async function createClinic(db: DatabaseExecutor, env: BootstrapEnv): Promise<st
   }
 
   return row.id;
-}
-
-async function ensureSpecialty(
-  db: DatabaseExecutor,
-  clinicId: string,
-  code: SpecialtyCode,
-): Promise<void> {
-  const [existing] = await db
-    .select({ id: specialties.id })
-    .from(specialties)
-    .where(
-      and(
-        eq(specialties.clinicId, clinicId),
-        eq(specialties.code, code),
-        isNull(specialties.deletedAt),
-      ),
-    )
-    .limit(1);
-
-  if (!existing) {
-    await db.insert(specialties).values({ clinicId, code, ...SPECIALTIES[code] });
-  }
 }
 
 async function ensureAdmin(

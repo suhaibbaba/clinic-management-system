@@ -321,7 +321,7 @@ export default tseslint.config(
       "apps/api/src/database/migrate.ts",
       "apps/api/src/database/seed.ts",
       "apps/api/src/database/bootstrap.ts",
-      "apps/api/src/database/apply-specialty-pack.ts",
+      "apps/api/src/database/clinic-specialty.ts",
     ],
     rules: {
       "no-console": "off",
