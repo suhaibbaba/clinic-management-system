@@ -1,6 +1,6 @@
 import type { PayrollLine, SettlementPayout } from "@clinic/shared";
 
-export type PayEntryKind = "extra" | "cut" | "salary" | "share";
+export type PayEntryKind = "extra" | "cut" | "salary" | "share" | "remittance";
 
 export interface PayEntry {
   readonly id: string;
@@ -35,6 +35,16 @@ export function payEntries(line: PayrollLine, payouts: readonly SettlementPayout
       reversal: entry.reversesId !== null,
       reversed: entry.reversedAt !== null,
     })),
+    ...line.remittances.map((entry) => ({
+      id: entry.id,
+      kind: "remittance" as const,
+      amount: entry.amount,
+      note: entry.note,
+      at: entry.createdAt,
+      treatments: 0,
+      reversal: entry.reversesId !== null,
+      reversed: entry.reversedAt !== null,
+    })),
     ...payouts.map((entry) => ({
       id: entry.id,
       kind: "share" as const,
@@ -51,4 +61,4 @@ export function payEntries(line: PayrollLine, payouts: readonly SettlementPayout
 export const isReversible = (entry: PayEntry, closed: boolean): boolean =>
   !entry.reversal &&
   !entry.reversed &&
-  (entry.kind === "salary" || entry.kind === "share" || !closed);
+  (entry.kind === "salary" || entry.kind === "share" || entry.kind === "remittance" || !closed);

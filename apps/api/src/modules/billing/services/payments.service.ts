@@ -13,6 +13,7 @@ import {
   type ListPaymentsQuery,
   type Paginated,
   type Payment,
+  type PaymentHolder,
   type ReversePaymentInput,
 } from "@clinic/shared";
 import { desc, eq, sql, type SQL } from "drizzle-orm";
@@ -25,6 +26,7 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import { payments } from "@api/database/schema";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { LookupsService } from "@api/modules/lookups/services/lookups.service";
+import { PayTermsService } from "@api/modules/payroll/services/pay-terms.service";
 import { PAYMENTS_ENTITY } from "@api/common/constants/audit-entities";
 import {
   toPayment,
@@ -40,6 +42,7 @@ export class PaymentsService implements OnModuleInit {
     private readonly lookups: LookupsService,
     private readonly scope: ClinicScopeService,
     private readonly patientAccess: PatientAccessService,
+    private readonly payTerms: PayTermsService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
   ) {}
 
@@ -87,9 +90,23 @@ export class PaymentsService implements OnModuleInit {
     return toPayment(await this.scope.findOneOrFail<PaymentRow>(payments, actor.clinicId, id));
   }
 
+  async holders(actor: AuthenticatedUser): Promise<PaymentHolder[]> {
+    return this.payTerms.holdersAt(
+      actor.clinicId,
+      await this.payTerms.currentMonth(actor.clinicId),
+    );
+  }
+
   async create(actor: AuthenticatedUser, input: CreatePaymentInput): Promise<Payment> {
     await this.patientAccess.requirePatientId(actor, input.patientId);
     await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.PAYMENT_METHOD, input.method);
+
+    if (
+      input.heldBy &&
+      !(await this.holders(actor)).some((holder) => holder.doctorId === input.heldBy)
+    ) {
+      throw new BadRequestException(PAYMENT_ERROR.NOT_A_HOLDER);
+    }
 
     return this.db.transaction(async (tx) => {
       const receiptNumber = await nextReceiptNumber(tx, actor.clinicId);
@@ -105,6 +122,7 @@ export class PaymentsService implements OnModuleInit {
           note: input.note ?? null,
           receiptNumber,
           receivedBy: actor.id,
+          heldBy: input.heldBy ?? null,
           createdBy: actor.id,
           updatedBy: actor.id,
         })
@@ -180,6 +198,7 @@ export class PaymentsService implements OnModuleInit {
           receiptNumber: null,
           reversesId: original.id,
           receivedBy: original.receivedBy,
+          heldBy: original.heldBy,
           createdBy: actor.id,
           updatedBy: actor.id,
         })

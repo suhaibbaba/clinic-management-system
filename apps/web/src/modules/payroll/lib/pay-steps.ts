@@ -1,5 +1,6 @@
 import {
   PAY_BASIS,
+  PAYMENT_COLLECTOR,
   addMoney,
   formatMinorUnits,
   subtractMoney,
@@ -18,7 +19,9 @@ export type PayStepKey =
   | "salary"
   | "bonus"
   | "deduction"
-  | "paidOut";
+  | "paidOut"
+  | "held"
+  | "remitted";
 
 export interface PayStepPart {
   readonly key: "prices" | "discount" | "tax" | "overhead" | "materials";
@@ -36,6 +39,7 @@ export interface PayStep {
 export interface PaySteps {
   readonly steps: readonly PayStep[];
   readonly owed: string;
+  readonly owesClinic: boolean;
 }
 
 const isZero = (amount: string): boolean => Number(amount) === 0;
@@ -109,7 +113,31 @@ function priceSteps(settlement: DoctorSettlement): PayStep[] {
   ];
 }
 
+const holdsCash = (line: PayrollLine): boolean =>
+  line.collector === PAYMENT_COLLECTOR.DOCTOR || !isZero(line.held) || !isZero(line.remitted);
+
+function cashSteps(line: PayrollLine): PayStep[] {
+  if (!holdsCash(line)) {
+    return [];
+  }
+
+  return [
+    { key: "held", amount: line.held, values: {} },
+    ...(isZero(line.remitted)
+      ? []
+      : [
+          {
+            key: "remitted" as const,
+            amount: line.remitted,
+            ready: true,
+            values: { count: line.remittances.length },
+          },
+        ]),
+  ];
+}
+
 export function paySteps(line: PayrollLine, settlement: DoctorSettlement): PaySteps {
+  const owesClinic = Number(line.owed) < 0;
   const salary: PayStep[] = [
     ...(includesSalary(line.plan)
       ? [{ key: "salary" as const, amount: line.base, values: {} }]
@@ -124,10 +152,12 @@ export function paySteps(line: PayrollLine, settlement: DoctorSettlement): PaySt
       ...salary,
       {
         key: "paidOut",
-        amount: line.received,
+        amount: subtractMoney(addMoney(line.received, line.remitted), line.held),
         values: { count: line.payments.length + settlement.payouts.length },
       },
+      ...cashSteps(line),
     ],
-    owed: line.owed,
+    owed: owesClinic ? subtractMoney("0.00", line.owed) : line.owed,
+    owesClinic,
   };
 }

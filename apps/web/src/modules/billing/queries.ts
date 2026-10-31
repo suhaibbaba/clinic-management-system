@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tan
 import type {
   CreatePaymentInput,
   PatientBalance,
+  PaymentHolder,
   ReversePaymentInput,
   Statement,
   StatementQuery,
@@ -38,6 +39,14 @@ export function useStatement(
     queryFn: () => billingApi.statement(patientId, query),
     enabled: enabled && patientId !== "",
     placeholderData: (previous) => previous,
+  });
+}
+
+export function usePaymentHolders(enabled: boolean): UseQueryResult<PaymentHolder[]> {
+  return useQuery({
+    queryKey: [PAYMENTS_KEY, "holders"],
+    queryFn: () => billingApi.paymentHolders(),
+    enabled,
   });
 }
 

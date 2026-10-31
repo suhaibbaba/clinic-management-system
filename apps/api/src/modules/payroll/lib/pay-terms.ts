@@ -1,19 +1,22 @@
 import {
   LAB_COST_BEARER,
+  PAYMENT_COLLECTOR,
   PAY_BASIS,
   PAY_PLAN_KIND,
   PAY_PLAN_KINDS,
   STAFF_SHARE_BASIS,
   USER_ROLE,
+  type CollectionTerm,
   type PayPlan,
   type PayPlanKind,
+  type PaymentCollector,
   type PayRule,
   type PayrollMonth,
   type ShareTerm,
   type StaffShareBasis,
   type UserRole,
 } from "@clinic/shared";
-import { payPlans, payRules, shareTerms } from "@api/database/schema";
+import { collectionTerms, payPlans, payRules, shareTerms } from "@api/database/schema";
 import { monthOf } from "@api/modules/payroll/lib/payroll";
 
 export type PayRuleRow = typeof payRules.$inferSelect;
@@ -21,6 +24,8 @@ export type PayRuleRow = typeof payRules.$inferSelect;
 export type PayPlanRow = typeof payPlans.$inferSelect;
 
 export type ShareTermRow = typeof shareTerms.$inferSelect;
+
+export type CollectionTermRow = typeof collectionTerms.$inferSelect;
 
 export function toPayRule(row: PayRuleRow): PayRule {
   return {
@@ -94,3 +99,18 @@ export const isEmployee = (role: UserRole): boolean => role !== USER_ROLE.VISITI
 export const includesSalary = (kind: PayPlanKind): boolean => kind !== PAY_PLAN_KIND.PERCENTAGE;
 
 export const includesShare = (kind: PayPlanKind): boolean => kind !== PAY_PLAN_KIND.SALARY;
+
+export function toCollectionTerm(row: CollectionTermRow): CollectionTerm {
+  return {
+    id: row.id,
+    doctorId: row.doctorId,
+    collector: row.collector,
+    effectiveMonth: monthOf(row.effectiveMonth),
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
+export const DEFAULT_COLLECTOR: PaymentCollector = PAYMENT_COLLECTOR.CLINIC;
+
+export const doctorCollects = (collector: PaymentCollector): boolean =>
+  collector === PAYMENT_COLLECTOR.DOCTOR;

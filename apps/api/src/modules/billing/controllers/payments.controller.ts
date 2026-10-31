@@ -13,7 +13,13 @@ import {
 import { Throttle } from "@nestjs/throttler";
 import { SendDocumentDto } from "@api/modules/notifications/dto/document-delivery.dto";
 import { DocumentDeliveryService } from "@api/modules/notifications/services/document-delivery.service";
-import { AUDIT_ACTION, USER_ROLE, type Paginated, type Payment } from "@clinic/shared";
+import {
+  AUDIT_ACTION,
+  USER_ROLE,
+  type Paginated,
+  type Payment,
+  type PaymentHolder,
+} from "@clinic/shared";
 import { DocumentsService } from "@api/modules/billing/services/documents.service";
 import { PAYMENTS_ENTITY } from "@api/common/constants/audit-entities";
 import { PaymentsService } from "@api/modules/billing/services/payments.service";
@@ -50,6 +56,11 @@ export class PaymentsController {
     @Query() query: ListPaymentsQueryDto,
   ): Promise<Paginated<Payment>> {
     return this.payments.list(actor, query);
+  }
+
+  @Get("holders")
+  holders(@CurrentUser() actor: AuthenticatedUser): Promise<PaymentHolder[]> {
+    return this.payments.holders(actor);
   }
 
   @AiTool({

@@ -29,9 +29,16 @@ export const paymentSchema = z.object({
   receiptNumber: z.number().int().positive().nullable(),
   reversesId: uuidSchema.nullable(),
   receivedBy: uuidSchema.nullable(),
+  heldBy: uuidSchema.nullable(),
   createdAt: z.iso.datetime(),
 });
 export type Payment = z.infer<typeof paymentSchema>;
+
+export const paymentHolderSchema = z.object({
+  doctorId: uuidSchema,
+  name: personNameSchema,
+});
+export type PaymentHolder = z.infer<typeof paymentHolderSchema>;
 
 export const createPaymentSchema = z.object({
   patientId: uuidSchema,
@@ -41,6 +48,7 @@ export const createPaymentSchema = z.object({
   ),
   method: lookupCodeSchema,
   note: z.string().trim().max(500).nullish(),
+  heldBy: uuidSchema.nullish(),
 });
 export type CreatePaymentInput = z.infer<typeof createPaymentSchema>;
 

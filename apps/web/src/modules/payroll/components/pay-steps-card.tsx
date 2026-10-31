@@ -18,7 +18,7 @@ export function PayStepsCard({
 }): JSX.Element {
   const { t } = useTranslation();
   const currency = useCurrency();
-  const { steps, owed } = paySteps(line, settlement);
+  const { steps, owed, owesClinic } = paySteps(line, settlement);
   const values = (raw: Readonly<Record<string, string | number>>) =>
     Object.fromEntries(
       Object.entries(raw).map(([key, value]) => [
@@ -89,11 +89,16 @@ export function PayStepsCard({
         data-testid="pay-steps-owed"
         className={cn(
           ROW,
-          "items-center rounded-panel border border-success-300 bg-success-50 py-3 text-success-800",
+          "items-center rounded-panel border py-3",
+          owesClinic
+            ? "border-warning-300 bg-warning-50 text-warning-800"
+            : "border-success-300 bg-success-50 text-success-800",
         )}
       >
         <span aria-hidden />
-        <span className="text-value font-semibold">{t("payroll.steps.owed")}</span>
+        <span className="text-value font-semibold">
+          {t(owesClinic ? "payroll.steps.owesClinic" : "payroll.steps.owed")}
+        </span>
         <Money amount={owed} currency={currency} className="text-end text-title font-semibold" />
       </div>
     </Card>

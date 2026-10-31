@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { LAB_COST_BEARERS, PAY_BASES, SETTLEMENT_LINE_STATUSES } from "@shared/enums";
+import {
+  LAB_COST_BEARERS,
+  PAY_BASES,
+  PAYMENT_COLLECTORS,
+  SETTLEMENT_LINE_STATUSES,
+} from "@shared/enums";
 import { calendarDateSchema, uuidSchema } from "@shared/schemas/common";
 import { lookupCodeSchema } from "@shared/schemas/lookups";
 import { moneySchema, signedMoneySchema, wholeMoneySchema } from "@shared/schemas/money";
@@ -139,8 +144,11 @@ export const doctorSettlementSchema = z.object({
   treatments: z.array(settlementTreatmentSchema),
   totals: settlementTotalsSchema,
   payouts: z.array(settlementPayoutSchema),
+  collector: z.enum(PAYMENT_COLLECTORS),
   earned: signedMoneySchema,
   paid: signedMoneySchema,
+  held: signedMoneySchema,
+  remitted: signedMoneySchema,
   balance: signedMoneySchema,
 });
 export type DoctorSettlement = z.infer<typeof doctorSettlementSchema>;
@@ -186,8 +194,11 @@ export const ownSettlementSchema = z.object({
   lines: z.array(ownSettlementLineSchema),
   totals: settlementTotalsSchema.pick({ payable: true, paid: true, outstanding: true }),
   payouts: z.array(settlementPayoutSchema),
+  collector: z.enum(PAYMENT_COLLECTORS),
   earned: signedMoneySchema,
   paid: signedMoneySchema,
+  held: signedMoneySchema,
+  remitted: signedMoneySchema,
   balance: signedMoneySchema,
 });
 export type OwnSettlement = z.infer<typeof ownSettlementSchema>;

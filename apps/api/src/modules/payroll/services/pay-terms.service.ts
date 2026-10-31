@@ -7,13 +7,18 @@ import {
   type OnModuleInit,
 } from "@nestjs/common";
 import {
+  PAYMENT_COLLECTOR,
   PAYROLL_ERROR,
   STAFF_SHARE_BASIS,
   USER_ROLE,
   localDate,
+  type CollectionTerm,
+  type CollectionTermsInput,
   type PayPlan,
   type PayPlanInput,
   type PayPlanKind,
+  type PaymentCollector,
+  type PaymentHolder,
   type PayRule,
   type PayRules,
   type PayRulesInput,
@@ -28,6 +33,7 @@ import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import {
+  collectionTerms,
   doctorRates,
   doctors,
   payPlans,
@@ -37,6 +43,7 @@ import {
   users,
 } from "@api/database/schema";
 import {
+  COLLECTION_TERMS_ENTITY,
   DOCTOR_RATES_ENTITY,
   PAY_PLANS_ENTITY,
   PAY_RULES_ENTITY,
@@ -44,9 +51,11 @@ import {
 } from "@api/common/constants/audit-entities";
 import { monthOf, monthStart } from "@api/modules/payroll/lib/payroll";
 import {
+  DEFAULT_COLLECTOR,
   defaultPayRule,
   defaultPlan,
   defaultShareTerms,
+  toCollectionTerm,
   toPayPlan,
   toPayRule,
   toShareTerm,
@@ -106,6 +115,16 @@ export class PayTermsService implements OnModuleInit {
             effectiveMonth: monthOf(row.effectiveMonth),
           }
         : null;
+    });
+
+    this.auditSnapshots.register(COLLECTION_TERMS_ENTITY, async (id, clinicId) => {
+      const [row] = await this.db
+        .select()
+        .from(collectionTerms)
+        .where(and(eq(collectionTerms.clinicId, clinicId), eq(collectionTerms.id, id)))
+        .limit(1);
+
+      return row ? { ...toCollectionTerm(row) } : null;
     });
   }
 
@@ -357,6 +376,96 @@ export class PayTermsService implements OnModuleInit {
     const own = row ? row.percent : doctor.clinicSharePercent;
 
     return own === null ? null : Number(own);
+  }
+
+  async collectionHistory(clinicId: string, doctorId: string): Promise<CollectionTerm[]> {
+    const rows = await this.db
+      .select()
+      .from(collectionTerms)
+      .where(and(eq(collectionTerms.clinicId, clinicId), eq(collectionTerms.doctorId, doctorId)))
+      .orderBy(desc(collectionTerms.effectiveMonth), desc(collectionTerms.createdAt));
+
+    return rows.map(toCollectionTerm);
+  }
+
+  async setCollector(
+    actor: AuthenticatedUser,
+    doctorId: string,
+    input: CollectionTermsInput,
+  ): Promise<CollectionTerm> {
+    await this.requireNotPast(actor.clinicId, input.effectiveMonth);
+
+    const [row] = await this.db
+      .insert(collectionTerms)
+      .values({
+        clinicId: actor.clinicId,
+        doctorId,
+        collector: input.collector,
+        effectiveMonth: monthStart(input.effectiveMonth),
+        createdBy: actor.id,
+      })
+      .returning();
+
+    if (!row) {
+      throw new Error("Failed to record who collects the payments");
+    }
+
+    return toCollectionTerm(row);
+  }
+
+  async collectorsAt(
+    clinicId: string,
+    doctorIds: readonly string[],
+    month: PayrollMonth,
+  ): Promise<Map<string, PaymentCollector>> {
+    const rows =
+      doctorIds.length === 0
+        ? []
+        : await this.db
+            .select({ doctorId: collectionTerms.doctorId, collector: collectionTerms.collector })
+            .from(collectionTerms)
+            .where(
+              and(
+                eq(collectionTerms.clinicId, clinicId),
+                inArray(collectionTerms.doctorId, [...doctorIds]),
+                lte(collectionTerms.effectiveMonth, monthStart(month)),
+              ),
+            )
+            .orderBy(desc(collectionTerms.effectiveMonth), desc(collectionTerms.createdAt));
+
+    return new Map(
+      doctorIds.map((id) => [
+        id,
+        rows.find((row) => row.doctorId === id)?.collector ?? DEFAULT_COLLECTOR,
+      ]),
+    );
+  }
+
+  async holdersAt(clinicId: string, month: PayrollMonth): Promise<PaymentHolder[]> {
+    const rows = await this.db.execute<{ id: string; name_ar: string; name_en: string }>(
+      sql`select d.id, u.name_ar, u.name_en
+          from ${doctors} d
+          join ${users} u on u.id = d.user_id
+          cross join lateral (
+            select ct.collector
+            from ${collectionTerms} ct
+            where ct.clinic_id = d.clinic_id
+              and ct.doctor_id = d.id
+              and ct.effective_month <= ${monthStart(month)}::date
+            order by ct.effective_month desc, ct.created_at desc
+            limit 1
+          ) term
+          where d.clinic_id = ${clinicId}
+            and d.deleted_at is null
+            and u.deleted_at is null
+            and term.collector = ${PAYMENT_COLLECTOR.DOCTOR}
+          order by u.name_ar`,
+    );
+
+    return [...rows].map((row) => ({
+      doctorId: row.id,
+      name: { ar: row.name_ar, en: row.name_en },
+    }));
   }
 
   async requireOpenFrom(clinicId: string, month: PayrollMonth): Promise<void> {

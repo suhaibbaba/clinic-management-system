@@ -1,5 +1,8 @@
 import type {
+  CollectionTerm,
+  CollectionTermsInput,
   CreatePayrollAdjustmentInput,
+  CreateRemittanceInput,
   CreateSalaryPaymentInput,
   CreateSettlementPayoutInput,
   DoctorSettlement,
@@ -87,6 +90,15 @@ export const payrollApi = {
 
   setTreatmentShare: (treatmentId: string, body: UpdateTreatmentSettlementInput): Promise<void> =>
     apiRequest(`/settlement-treatments/${treatmentId}`, { method: "PATCH", body }),
+
+  collectionTerms: (doctorId: string): Promise<CollectionTerm[]> =>
+    apiRequest(`/doctors/${doctorId}/collection-terms`),
+
+  setCollector: (doctorId: string, body: CollectionTermsInput): Promise<CollectionTerm> =>
+    apiRequest(`/doctors/${doctorId}/collection-terms`, { method: "PUT", body }),
+
+  remit: (doctorId: string, body: CreateRemittanceInput): Promise<StaffPayment> =>
+    apiRequest(`/doctors/${doctorId}/remittances`, { method: "POST", body }),
 
   payout: (doctorId: string, body: CreateSettlementPayoutInput): Promise<SettlementPayout> =>
     apiRequest(`/doctors/${doctorId}/payouts`, { method: "POST", body }),

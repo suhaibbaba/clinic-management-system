@@ -17,6 +17,7 @@ import {
   useToast,
   type Column,
 } from "@clinic/ui";
+import { cn } from "@clinic/ui/lib/cn";
 import { MonthSwitcher } from "@web/modules/payroll/components/month-switcher";
 import { PAY_STATUS_TONES } from "@web/modules/payroll/constants";
 import { usePayrollMonth } from "@web/modules/payroll/hooks/use-payroll-month";
@@ -142,7 +143,14 @@ export function PayrollPage(): JSX.Element {
       <MonthSwitcher state={monthState} closedAt={data?.closedAt} />
 
       {data && (
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div
+          className={cn(
+            "grid gap-3",
+            Number(data.totals.owedToClinic) > 0
+              ? "sm:grid-cols-2 lg:grid-cols-4"
+              : "sm:grid-cols-3",
+          )}
+        >
           <StatCard
             data-testid="payroll-expected"
             label={t("payroll.expected")}
@@ -165,6 +173,15 @@ export function PayrollPage(): JSX.Element {
             icon="money"
             tone="warning"
           />
+          {Number(data.totals.owedToClinic) > 0 && (
+            <StatCard
+              data-testid="payroll-owed-to-clinic"
+              label={t("payroll.owedToClinic")}
+              value={<Money amount={data.totals.owedToClinic} currency={currency} />}
+              icon="money"
+              tone="primary"
+            />
+          )}
         </div>
       )}
 

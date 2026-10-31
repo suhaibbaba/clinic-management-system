@@ -1,4 +1,5 @@
 import {
+  PAYMENT_COLLECTOR,
   PAY_PLAN_KIND,
   STAFF_SHARE_BASIS,
   type PayPlanKind,
@@ -30,22 +31,30 @@ export function salaryPayLabel(line: PayrollLine): SalaryPayLabel {
 export interface PayActions {
   readonly paySalary: boolean;
   readonly payShare: boolean;
+  readonly receive: boolean;
   readonly adjust: boolean;
 }
+
+export const collectsPayments = (line: PayrollLine): boolean =>
+  line.collector === PAYMENT_COLLECTOR.DOCTOR;
 
 export function payActions(line: PayrollLine, closed: boolean): PayActions {
   return {
     paySalary:
       line.employee &&
       (includesSalary(line.plan) || sharesPercent(line) || Number(line.remaining) > 0),
-    payShare: sharesTreatments(line),
+    payShare: sharesTreatments(line) && !collectsPayments(line),
+    receive: collectsPayments(line),
     adjust: line.employee && !closed,
   };
 }
 
-export type PayStatus = "nothing" | "paid" | "partly" | "unpaid";
+export type PayStatus = "nothing" | "paid" | "partly" | "unpaid" | "owesClinic";
 
 export function payStatus(line: PayrollLine): PayStatus {
+  if (Number(line.owed) < 0 && collectsPayments(line)) {
+    return "owesClinic";
+  }
   if (Number(line.expected) <= 0) {
     return "nothing";
   }

@@ -580,7 +580,8 @@
     },
     "payment": {
       "exceedsBalance": "The amount is more than the patient owes",
-      "reversed": "A reversed payment, or its reversal, cannot be deleted: the balance depends on both"
+      "reversed": "A reversed payment, or its reversal, cannot be deleted: the balance depends on both",
+      "notAHolder": "This doctor does not take patients' payments; choose the clinic"
     },
     "stock": {
       "insufficient": "More than is in stock; add stock or correct the count first",
@@ -630,7 +631,8 @@
       "notADoctor": "A percentage is only for somebody who treats patients; add them as a doctor first",
       "nothingToPay": "Nothing is owed for the chosen treatments",
       "notOnPercentage": "This doctor is on a salary, not a percentage",
-      "pastMonth": "A change cannot start in a month that has passed"
+      "pastMonth": "A change cannot start in a month that has passed",
+      "notCollecting": "The clinic takes this doctor's payments, so there is nothing to receive from them"
     },
     "document": {
       "unavailable": "Sending documents on WhatsApp is not set up for this clinic. Add the document template in the assistant settings.",
@@ -992,7 +994,8 @@
       "title": "Record a payment of {{amount}}?",
       "method": "Method: {{method}}",
       "remaining": "Left to pay afterwards: {{amount}}",
-      "permanent": "The receipt prints after saving, and a recorded payment cannot be edited"
+      "permanent": "The receipt prints after saving, and a recorded payment cannot be edited",
+      "heldBy": "Kept by {{doctor}} until the month's settlement"
     },
     "recordAndPrint": "Record and Print Receipt",
     "paymentRecorded": "Payment Recorded",
@@ -1035,7 +1038,10 @@
     },
     "entryMenu": "Entry Options",
     "balanceAfter": "Balance after this payment: {{amount}}",
-    "clearPeriod": "Clear Period"
+    "clearPeriod": "Clear Period",
+    "heldBy": "Received by",
+    "heldByHint": "Choose the doctor when the patient paid them directly; the doctor hands the clinic its share at the end of the month",
+    "heldByClinic": "The clinic"
   },
   "appointments": {
     "title": "Appointments",
@@ -2381,7 +2387,8 @@
         "remove": "Delete a Payment",
         "reverse": "Reverse a Payment",
         "viewDeleted": "See Deleted Payments",
-        "sendReceipt": "Send a Receipt to the Patient by WhatsApp"
+        "sendReceipt": "Send a Receipt to the Patient by WhatsApp",
+        "holders": "See the Doctors Who Take Payments"
       },
       "pending-bookings": {
         "confirm": "Accept an online booking",
@@ -2479,7 +2486,10 @@
         "payout": "Pay a Doctor",
         "payoutPdf": "Print a Doctor Payout",
         "settlementPdf": "Print a Doctor's Settlement",
-        "sendSettlement": "Send a Doctor's Settlement by WhatsApp"
+        "sendSettlement": "Send a Doctor's Settlement by WhatsApp",
+        "collectionTerms": "See Who Takes a Doctor's Payments",
+        "setCollectionTerms": "Change Who Takes a Doctor's Payments",
+        "remit": "Receive Money from a Doctor"
       },
       "settlement-treatments": {
         "update": "Adjust a Treatment's Materials and Share"
@@ -3195,7 +3205,8 @@
       "nothing": "Nothing due",
       "paid": "Paid",
       "partly": "Partly paid",
-      "unpaid": "Unpaid"
+      "unpaid": "Unpaid",
+      "owesClinic": "Owes the clinic"
     },
     "people_one": "1 person",
     "people_other": "{{count}} people",
@@ -3262,7 +3273,8 @@
       "extra": "Bonus",
       "cut": "Deduction",
       "salary": "Salary payment",
-      "share": "Share payout"
+      "share": "Share payout",
+      "remittance": "Handed to the clinic"
     },
     "settings": {
       "saved": "Pay settings saved",
@@ -3287,7 +3299,16 @@
       "followClinicHint": "Changes whenever the general rate changes",
       "ownRate": "Their own rate",
       "ownRateHint": "Stays the same when the general rate changes",
-      "ownClinicPercent": "Clinic's share % for this doctor"
+      "ownClinicPercent": "Clinic's share % for this doctor",
+      "collector": "Who takes the patients' payments",
+      "collectors": {
+        "clinic": "The clinic",
+        "doctor": "The doctor"
+      },
+      "collectorHints": {
+        "clinic": "Patients pay at reception and the clinic pays the doctor their share",
+        "doctor": "Patients pay the doctor, who hands the clinic its share at the end of the month"
+      }
     },
     "payPercent": "Pay Percentage",
     "closeDraw": "The owner's draw of {{amount}} is recorded and next month starts from zero",
@@ -3351,8 +3372,26 @@
         "detail_one": "1 payment.",
         "detail_other": "{{count}} payments.",
         "detail_zero": "No payments yet."
+      },
+      "owesClinic": "They owe the clinic now",
+      "held": {
+        "title": "Taken by them from patients",
+        "detail": "Patients paid them directly this month; it counts as paid to them."
+      },
+      "remitted": {
+        "title": "Handed to the clinic",
+        "detail_one": "1 handover.",
+        "detail_other": "{{count}} handovers."
       }
-    }
+    },
+    "remittance": {
+      "title": "Receive from the Doctor",
+      "receive": "Receive from Doctor",
+      "owed": "They owe the clinic",
+      "recorded": "Handover recorded"
+    },
+    "owedToClinic": "Owed by doctors",
+    "moreActions": "More Actions"
   },
   "earnings": {
     "title": "My Earnings",
@@ -3360,7 +3399,9 @@
     "myShare": "My share",
     "noProfile": "Your account has no doctor profile",
     "earnedInPeriod": "Earned in the period",
-    "paidInPeriod": "Paid in the period"
+    "paidInPeriod": "Paid in the period",
+    "owedToClinic": "You Owe the Clinic",
+    "owedToClinicCaption": "You took {{held}} from patients and handed {{remitted}} to the clinic"
   },
   "website": {
     "title": "Website",

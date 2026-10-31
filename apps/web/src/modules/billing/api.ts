@@ -4,6 +4,7 @@ import type {
   Paginated,
   PatientBalance,
   Payment,
+  PaymentHolder,
   ReversePaymentInput,
   Statement,
   StatementQuery,
@@ -22,6 +23,8 @@ export const billingApi = {
 
   payments: (query: Partial<ListPaymentsQuery>): Promise<Paginated<Payment>> =>
     apiRequest("/payments", { query: { ...query } }),
+
+  paymentHolders: (): Promise<PaymentHolder[]> => apiRequest("/payments/holders"),
 
   createPayment: (body: CreatePaymentInput): Promise<Payment> =>
     apiRequest("/payments", { method: "POST", body }),

@@ -568,6 +568,13 @@
       "when": 1793395078751,
       "tag": "0080_whatsapp_checks",
       "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1793490183734,
+      "tag": "0081_doctor_collects",
+      "breakpoints": true
     }
   ]
 }

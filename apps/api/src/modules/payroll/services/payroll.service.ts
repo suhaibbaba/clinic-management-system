@@ -7,6 +7,7 @@ import {
   type OnModuleInit,
 } from "@nestjs/common";
 import {
+  PAYMENT_COLLECTOR,
   PAY_PLAN_KIND,
   PAYROLL_ADJUSTMENT_KIND,
   MOVEMENT_TYPE,
@@ -148,8 +149,12 @@ export class PayrollService implements OnModuleInit {
         paid: addMoney(sum.paid, line.paid),
         remaining: addMoney(sum.remaining, line.remaining),
         expected: addMoney(sum.expected, line.expected),
+        held: addMoney(sum.held, line.held),
+        remitted: addMoney(sum.remitted, line.remitted),
         received: addMoney(sum.received, line.received),
-        owed: addMoney(sum.owed, line.owed),
+        owed: Number(line.owed) > 0 ? addMoney(sum.owed, line.owed) : sum.owed,
+        owedToClinic:
+          Number(line.owed) < 0 ? subtractMoney(sum.owedToClinic, line.owed) : sum.owedToClinic,
       }),
       {
         base: ZERO,
@@ -159,8 +164,11 @@ export class PayrollService implements OnModuleInit {
         paid: ZERO,
         remaining: ZERO,
         expected: ZERO,
+        held: ZERO,
+        remitted: ZERO,
         received: ZERO,
         owed: ZERO,
+        owedToClinic: ZERO,
       },
     );
 
@@ -386,11 +394,18 @@ export class PayrollService implements OnModuleInit {
     const timeZone = await clinicTimeZone(this.db, clinicId);
     const start = instantFromLocal(monthStart(month), 0, timeZone);
     const end = instantFromLocal(nextMonthStart(month), 0, timeZone);
-    const [shares, outgoings] = await Promise.all([
+    const [shares, held, outgoings] = await Promise.all([
       this.settlements.shareTotalsBetween(clinicId, start, end),
+      this.settlements.heldBetween(clinicId, start, end),
       this.outgoingsOf(clinicId, month, start, end),
     ]);
-    const drafts = await this.linesFor(clinicId, month, shares, outgoings.collections, snapshot);
+    const drafts = await this.linesFor(
+      clinicId,
+      month,
+      { shares, held },
+      outgoings.collections,
+      snapshot,
+    );
     const before = profitBeforeShares(
       outgoings,
       sumMoney(drafts.map((line) => line.due)),
@@ -493,7 +508,10 @@ export class PayrollService implements OnModuleInit {
   private async linesFor(
     clinicId: string,
     month: PayrollMonth,
-    shares: ReadonlyMap<string, ShareTotals>,
+    doctorsMonth: {
+      readonly shares: ReadonlyMap<string, ShareTotals>;
+      readonly held: ReadonlyMap<string, string>;
+    },
     collections: string,
     snapshot?: readonly PayrollLineSnapshot[],
   ): Promise<PayrollLine[]> {
@@ -532,9 +550,11 @@ export class PayrollService implements OnModuleInit {
       return [];
     }
 
-    const [plans, shareTermsOf, terms, adjustments, paid] = await Promise.all([
+    const doctorIds = staff.flatMap((person) => (person.doctorId ? [person.doctorId] : []));
+    const [plans, shareTermsOf, collectors, terms, adjustments, paid] = await Promise.all([
       this.terms.plansAt(clinicId, staff, month),
       this.terms.shareTermsAt(clinicId, staff, month),
+      this.terms.collectorsAt(clinicId, doctorIds, month),
       this.db
         .select()
         .from(salaryTerms)
@@ -564,7 +584,7 @@ export class PayrollService implements OnModuleInit {
           and(
             eq(staffPayments.clinicId, clinicId),
             inArray(staffPayments.userId, ids),
-            eq(staffPayments.kind, STAFF_PAYMENT_KIND.SALARY),
+            inArray(staffPayments.kind, [STAFF_PAYMENT_KIND.SALARY, STAFF_PAYMENT_KIND.REMITTANCE]),
             eq(staffPayments.month, start),
           ),
         )
@@ -573,7 +593,12 @@ export class PayrollService implements OnModuleInit {
 
     return staff.map((person) => {
       const own = adjustments.filter((row) => row.userId === person.id);
-      const payments = paid.filter((row) => row.userId === person.id);
+      const payments = paid.filter(
+        (row) => row.userId === person.id && row.kind === STAFF_PAYMENT_KIND.SALARY,
+      );
+      const remittances = paid.filter(
+        (row) => row.userId === person.id && row.kind === STAFF_PAYMENT_KIND.REMITTANCE,
+      );
       const frozen = snapshot?.find((line) => line.userId === person.id);
       const plan = frozen?.plan ?? plans.get(person.id) ?? PAY_PLAN_KIND.SALARY;
       const salary = terms.find((row) => row.userId === person.id)?.monthlyAmount ?? ZERO;
@@ -586,7 +611,8 @@ export class PayrollService implements OnModuleInit {
       const percentBase = frozen?.percentBase ?? (onCollections ? collections : ZERO);
       const percentShare =
         frozen?.percentShare ?? (onCollections ? percentOf(collections, shareRate) : ZERO);
-      const earned = onTreatments && person.doctorId ? shares.get(person.doctorId) : undefined;
+      const earned =
+        onTreatments && person.doctorId ? doctorsMonth.shares.get(person.doctorId) : undefined;
       const share = frozen?.share ?? earned?.share ?? ZERO;
       const sharePayable = earned?.payable ?? ZERO;
       const sharePaid = earned?.paid ?? ZERO;
@@ -596,8 +622,10 @@ export class PayrollService implements OnModuleInit {
         frozen?.cuts ?? sumOf(own.filter((row) => row.kind === PAYROLL_ADJUSTMENT_KIND.CUT));
       const due = frozen?.due ?? sumMoney([base, extras, negate(cuts), percentShare]);
       const settled = sumOf(payments);
+      const held = (person.doctorId && doctorsMonth.held.get(person.doctorId)) || ZERO;
+      const remitted = sumOf(remittances);
       const expected = addMoney(due, sharePayable);
-      const received = addMoney(settled, sharePaid);
+      const received = sumMoney([settled, sharePaid, held, negate(remitted)]);
 
       return {
         userId: person.id,
@@ -622,10 +650,14 @@ export class PayrollService implements OnModuleInit {
         paid: settled,
         remaining: addMoney(due, negate(settled)),
         expected,
+        collector: (person.doctorId && collectors.get(person.doctorId)) || PAYMENT_COLLECTOR.CLINIC,
+        held,
+        remitted,
         received,
         owed: addMoney(expected, negate(received)),
         adjustments: own.map(toAdjustment),
         payments: payments.map(toStaffPayment),
+        remittances: remittances.map(toStaffPayment),
       };
     });
   }

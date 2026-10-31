@@ -8,3 +8,5 @@ export const canDeletePayment = (can: Can): boolean => can("payments.remove");
 export const canRecordPayment = (can: Can): boolean => can("payments.create");
 
 export const canReversePayment = (can: Can): boolean => can("payments.reverse");
+
+export const canHandPaymentToDoctor = (can: Can): boolean => can("payments.holders");

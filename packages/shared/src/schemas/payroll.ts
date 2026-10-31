@@ -3,6 +3,7 @@ import {
   LAB_COST_BEARERS,
   PAY_BASES,
   PAY_PLAN_KINDS,
+  PAYMENT_COLLECTORS,
   PAYROLL_ADJUSTMENT_KINDS,
   STAFF_PAYMENT_KINDS,
   STAFF_SHARE_BASES,
@@ -44,6 +45,7 @@ export const staffPaymentSchema = z.object({
   reversedAt: z.iso.datetime().nullable(),
   createdAt: z.iso.datetime(),
 });
+
 export type StaffPayment = z.infer<typeof staffPaymentSchema>;
 
 export const createStaffPaymentSchema = z.object({
@@ -51,10 +53,18 @@ export const createStaffPaymentSchema = z.object({
   method: lookupCodeSchema,
   note: z.string().trim().max(500).nullish(),
 });
+
 export type CreateStaffPaymentInput = z.infer<typeof createStaffPaymentSchema>;
 
 export const createSalaryPaymentSchema = createStaffPaymentSchema.extend({ userId: uuidSchema });
+
 export type CreateSalaryPaymentInput = z.infer<typeof createSalaryPaymentSchema>;
+
+export const createRemittanceSchema = createStaffPaymentSchema.extend({
+  month: payrollMonthSchema,
+});
+
+export type CreateRemittanceInput = z.infer<typeof createRemittanceSchema>;
 
 export const reverseEntrySchema = z.object({ reason: z.string().trim().min(3).max(500) });
 export type ReverseEntryInput = z.infer<typeof reverseEntrySchema>;
@@ -146,6 +156,19 @@ export const shareTermSchema = shareTermsInputSchema.extend({
 });
 export type ShareTerm = z.infer<typeof shareTermSchema>;
 
+export const collectionTermsInputSchema = z.object({
+  collector: z.enum(PAYMENT_COLLECTORS),
+  effectiveMonth: payrollMonthSchema,
+});
+export type CollectionTermsInput = z.infer<typeof collectionTermsInputSchema>;
+
+export const collectionTermSchema = collectionTermsInputSchema.extend({
+  id: uuidSchema,
+  doctorId: uuidSchema,
+  createdAt: z.iso.datetime(),
+});
+export type CollectionTerm = z.infer<typeof collectionTermSchema>;
+
 export const payrollLineSchema = z.object({
   userId: uuidSchema,
   name: personNameSchema,
@@ -169,10 +192,14 @@ export const payrollLineSchema = z.object({
   paid: signedMoneySchema,
   remaining: signedMoneySchema,
   expected: signedMoneySchema,
+  collector: z.enum(PAYMENT_COLLECTORS),
+  held: signedMoneySchema,
+  remitted: signedMoneySchema,
   received: signedMoneySchema,
   owed: signedMoneySchema,
   adjustments: z.array(payrollAdjustmentSchema),
   payments: z.array(staffPaymentSchema),
+  remittances: z.array(staffPaymentSchema),
 });
 export type PayrollLine = z.infer<typeof payrollLineSchema>;
 
@@ -184,8 +211,11 @@ export const payrollTotalsSchema = z.object({
   paid: signedMoneySchema,
   remaining: signedMoneySchema,
   expected: signedMoneySchema,
+  held: signedMoneySchema,
+  remitted: signedMoneySchema,
   received: signedMoneySchema,
   owed: signedMoneySchema,
+  owedToClinic: signedMoneySchema,
 });
 export type PayrollTotals = z.infer<typeof payrollTotalsSchema>;
 

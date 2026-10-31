@@ -1,11 +1,14 @@
 import {
+  PAYMENT_COLLECTORS,
   STAFF_SHARE_BASES,
   STAFF_SHARE_BASIS,
+  collectionTermsInputSchema,
   payPlanInputSchema,
   salaryTermsInputSchema,
   settlementTermsSchema,
   shareTermsInputSchema,
   type PayPlanKind,
+  type PaymentCollector,
   type PayrollLine,
   type StaffShareBasis,
 } from "@clinic/shared";
@@ -24,9 +27,11 @@ import {
 } from "@clinic/ui";
 import { includesSalary, includesShare } from "@web/modules/payroll/lib/plans";
 import {
+  useCollectionTerms,
   usePlanHistory,
   useSalaryHistory,
   useSetClinicRate,
+  useSetCollector,
   useSetPlan,
   useSetSalary,
   useSetShareTerms,
@@ -59,10 +64,12 @@ export function PaySettingsForm({
   const salaries = useSalaryHistory(employee);
   const plans = usePlanHistory(employee);
   const shares = useShareTermHistory(employee);
+  const collections = useCollectionTerms(line.doctorId);
   const setPlan = useSetPlan();
   const setSalary = useSetSalary();
   const setShareTerms = useSetShareTerms();
   const setClinicRate = useSetClinicRate();
+  const setCollector = useSetCollector();
 
   const savedSalary = salaries.data?.[0]?.monthlyAmount;
   const savedFollows = clinicRate?.own === null;
@@ -73,11 +80,13 @@ export function PaySettingsForm({
   const [clinic, setClinic] = useState("");
   const [follows, setFollows] = useState(savedFollows);
   const [staff, setStaff] = useState(String(line.shareRate));
+  const [collector, setCollectorChoice] = useState<PaymentCollector>(line.collector);
   const [effectiveMonth, setEffectiveMonth] = useState(thisMonth);
 
   useEffect(() => setKind(line.plan), [line.plan]);
   useEffect(() => setBasis(line.shareBasis), [line.shareBasis]);
   useEffect(() => setStaff(String(line.shareRate)), [line.shareRate]);
+  useEffect(() => setCollectorChoice(line.collector), [line.collector]);
   useEffect(() => setAmount(savedSalary ? whole(savedSalary) : ""), [savedSalary]);
   useEffect(() => setClinic(savedClinic), [savedClinic]);
   useEffect(() => setFollows(savedFollows), [savedFollows]);
@@ -101,7 +110,8 @@ export function PaySettingsForm({
     line.doctorId !== null &&
     clinicRate !== undefined &&
     (follows !== savedFollows || (!follows && clinic !== savedClinic));
-  const changed = planChanged || salaryChanged || termsChanged || clinicChanged;
+  const collectorChanged = onTreatments && line.doctorId !== null && collector !== line.collector;
+  const changed = planChanged || salaryChanged || termsChanged || clinicChanged || collectorChanged;
 
   const salaryBody = { monthlyAmount: amount, effectiveMonth };
   const termsBody = { basis, percent: onPercent ? asNumber(staff) : 0, effectiveMonth };
@@ -114,9 +124,16 @@ export function PaySettingsForm({
     ...(salaryChanged ? schemaErrors(salaryTermsInputSchema, salaryBody) : {}),
     ...(termsChanged ? schemaErrors(shareTermsInputSchema, termsBody) : {}),
     ...(clinicChanged ? schemaErrors(settlementTermsSchema, clinicBody) : {}),
+    ...(collectorChanged
+      ? schemaErrors(collectionTermsInputSchema, { collector, effectiveMonth })
+      : {}),
   });
   const saving =
-    setPlan.isPending || setSalary.isPending || setShareTerms.isPending || setClinicRate.isPending;
+    setPlan.isPending ||
+    setSalary.isPending ||
+    setShareTerms.isPending ||
+    setClinicRate.isPending ||
+    setCollector.isPending;
 
   const submit = async (): Promise<void> => {
     if (!changed || !form.check()) {
@@ -136,6 +153,12 @@ export function PaySettingsForm({
       if (clinicChanged && line.doctorId) {
         await setClinicRate.mutateAsync({ doctorId: line.doctorId, body: clinicBody });
       }
+      if (collectorChanged && line.doctorId) {
+        await setCollector.mutateAsync({
+          doctorId: line.doctorId,
+          body: { collector, effectiveMonth },
+        });
+      }
       toast.success("payroll.settings.saved");
     } catch (error) {
       toast.error(...errorToast(error));
@@ -154,6 +177,12 @@ export function PaySettingsForm({
       month: term.effectiveMonth,
       at: term.createdAt,
       value: <Money amount={term.monthlyAmount} currency={currency} />,
+    })),
+    ...(collections.data ?? []).map((term) => ({
+      id: term.id,
+      month: term.effectiveMonth,
+      at: term.createdAt,
+      value: <span>{t(`payroll.settings.collectors.${term.collector}`)}</span>,
     })),
     ...(shares.data ?? []).map((term) => ({
       id: term.id,
@@ -283,6 +312,23 @@ export function PaySettingsForm({
                 />
               </FormField>
             </div>
+          )}
+
+          {onTreatments && line.doctorId && (
+            <FormField label="payroll.settings.collector" htmlFor="pay-settings-collector">
+              <RadioGroup
+                id="pay-settings-collector"
+                data-testid="pay-settings-collector"
+                label={t("payroll.settings.collector")}
+                value={collector}
+                onChange={setCollectorChoice}
+                options={PAYMENT_COLLECTORS.map((value) => ({
+                  value,
+                  label: t(`payroll.settings.collectors.${value}`),
+                  description: t(`payroll.settings.collectorHints.${value}`),
+                }))}
+              />
+            </FormField>
           )}
 
           {onPercent && (

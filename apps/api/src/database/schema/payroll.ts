@@ -2,6 +2,7 @@ import {
   LAB_COST_BEARERS,
   PAY_BASES,
   PAY_PLAN_KINDS,
+  PAYMENT_COLLECTORS,
   PAYROLL_ADJUSTMENT_KINDS,
   STAFF_PAYMENT_KINDS,
   STAFF_SHARE_BASES,
@@ -50,6 +51,8 @@ export const payBasisEnum = pgEnum("pay_basis", PAY_BASES);
 export const labCostBearerEnum = pgEnum("lab_cost_bearer", LAB_COST_BEARERS);
 
 export const staffShareBasisEnum = pgEnum("staff_share_basis", STAFF_SHARE_BASES);
+
+export const paymentCollectorEnum = pgEnum("payment_collector", PAYMENT_COLLECTORS);
 
 export interface PayrollLineSnapshot {
   readonly userId: string;
@@ -188,6 +191,26 @@ export const doctorRates = pgTable(
   },
   (table) => [
     index("doctor_rates_doctor_idx").on(table.clinicId, table.doctorId, table.effectiveMonth),
+  ],
+);
+
+export const collectionTerms = pgTable(
+  "collection_terms",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    doctorId: uuid("doctor_id")
+      .notNull()
+      .references(() => doctors.id),
+    collector: paymentCollectorEnum("collector").notNull(),
+    effectiveMonth: date("effective_month").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdBy: uuid("created_by"),
+  },
+  (table) => [
+    index("collection_terms_doctor_idx").on(table.clinicId, table.doctorId, table.effectiveMonth),
   ],
 );
 

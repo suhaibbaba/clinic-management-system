@@ -52,6 +52,7 @@ export function toPayment(row: PaymentRow): Payment {
     receiptNumber: row.receiptNumber,
     reversesId: row.reversesId,
     receivedBy: row.receivedBy,
+    heldBy: row.heldBy,
     createdAt: row.createdAt.toISOString(),
   };
 }

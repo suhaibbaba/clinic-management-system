@@ -1,7 +1,18 @@
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useParams } from "react-router-dom";
-import { Badge, Button, Icon, Money, PersonName, TabPanel, Tabs, useTabParam } from "@clinic/ui";
+import {
+  Badge,
+  Button,
+  Icon,
+  MenuItem,
+  Money,
+  PersonName,
+  RowMenu,
+  TabPanel,
+  Tabs,
+  useTabParam,
+} from "@clinic/ui";
 import { SkeletonForm } from "@clinic/ui/components/skeleton";
 import {
   AdjustmentModal,
@@ -12,6 +23,7 @@ import { PayCalculator } from "@web/modules/payroll/components/pay-calculator";
 import { PayEntriesList } from "@web/modules/payroll/components/pay-entries-list";
 import { PayStepsCard } from "@web/modules/payroll/components/pay-steps-card";
 import { PaySettingsForm } from "@web/modules/payroll/components/pay-settings-form";
+import { RemittanceModal } from "@web/modules/payroll/components/remittance-modal";
 import { SalaryPaymentModal } from "@web/modules/payroll/components/salary-payment-modal";
 import { SharePatients } from "@web/modules/payroll/components/share-patients";
 import { SharePayoutModal } from "@web/modules/payroll/components/share-payout-modal";
@@ -27,7 +39,7 @@ import { monthDays } from "@web/shared/lib/months";
 import { canSeeSettlement } from "@web/shared/permissions/doctors";
 import { useSession } from "@web/shared/providers/session";
 import { useCurrency } from "@web/shared/queries/clinic";
-import type { SettlementTreatment } from "@clinic/shared";
+import { subtractMoney, type SettlementTreatment } from "@clinic/shared";
 
 type Tab = (typeof PERSON_TABS)[number];
 
@@ -53,6 +65,7 @@ export function PersonPayPage(): JSX.Element {
   const [adjusting, setAdjusting] = useState<AdjustmentTarget | null>(null);
   const [payingSalary, setPayingSalary] = useState(false);
   const [payingShare, setPayingShare] = useState(false);
+  const [receiving, setReceiving] = useState(false);
   const [editing, setEditing] = useState<SettlementTreatment | null>(null);
 
   if (payroll.isPending) {
@@ -108,25 +121,17 @@ export function PersonPayPage(): JSX.Element {
               }
             />
           )}
-          {actions.adjust && (
-            <>
-              <Button
-                variant="secondary"
-                icon={<Icon name="award" />}
-                data-testid="person-pay-bonus"
-                onClick={() => setAdjusting({ line, kind: "extra" })}
-              >
-                {t("payroll.addBonus")}
-              </Button>
-              <Button
-                variant="secondary"
-                icon={<Icon name="trend-down" />}
-                data-testid="person-pay-deduction"
-                onClick={() => setAdjusting({ line, kind: "cut" })}
-              >
-                {t("payroll.addDeduction")}
-              </Button>
-            </>
+          {actions.receive && line.doctorId && (
+            <Button
+              icon={<Icon name="money" />}
+              data-testid="person-pay-receive"
+              onClick={() => setReceiving(true)}
+            >
+              {t("payroll.remittance.receive")}
+              {Number(line.owed) < 0 && (
+                <Money amount={subtractMoney("0.00", line.owed)} currency={currency} />
+              )}
+            </Button>
           )}
           {actions.payShare && withShare && (
             <Button
@@ -146,6 +151,24 @@ export function PersonPayPage(): JSX.Element {
             >
               {t(`payroll.${salaryPayLabel(line)}`)}
             </Button>
+          )}
+          {actions.adjust && (
+            <RowMenu size="target" label={t("payroll.moreActions")} data-testid="person-pay-more">
+              <MenuItem
+                icon="award"
+                data-testid="person-pay-bonus"
+                onSelect={() => setAdjusting({ line, kind: "extra" })}
+              >
+                {t("payroll.addBonus")}
+              </MenuItem>
+              <MenuItem
+                icon="trend-down"
+                data-testid="person-pay-deduction"
+                onSelect={() => setAdjusting({ line, kind: "cut" })}
+              >
+                {t("payroll.addDeduction")}
+              </MenuItem>
+            </RowMenu>
           )}
         </div>
       </header>
@@ -217,6 +240,12 @@ export function PersonPayPage(): JSX.Element {
             onOpenChange={setPayingShare}
             doctorId={line.doctorId}
             balance={share?.balance ?? "0.00"}
+          />
+          <RemittanceModal
+            line={receiving ? line : null}
+            doctorId={line.doctorId}
+            month={month}
+            onClose={() => setReceiving(false)}
           />
           <TreatmentShareModal
             doctorId={line.doctorId}

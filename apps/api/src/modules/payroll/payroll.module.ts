@@ -38,5 +38,6 @@ import { StaffPaymentsService } from "@api/modules/payroll/services/staff-paymen
     PayrollService,
     PayrollDocumentsService,
   ],
+  exports: [PayTermsService],
 })
 export class PayrollModule {}

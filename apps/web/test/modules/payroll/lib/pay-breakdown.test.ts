@@ -30,10 +30,14 @@ function line(overrides: Partial<PayrollLine> = {}): PayrollLine {
     paid: "0.00",
     remaining: "3000.00",
     expected: "3000.00",
+    collector: "clinic",
+    held: "0.00",
+    remitted: "0.00",
     received: "0.00",
     owed: "3000.00",
     adjustments: [],
     payments: [],
+    remittances: [],
     ...overrides,
   };
 }
@@ -159,6 +163,7 @@ describe("a percentage of payments or of profit", () => {
     expect(payActions(receptionist, false)).toEqual({
       paySalary: true,
       payShare: false,
+      receive: false,
       adjust: true,
     });
     expect(salaryPayLabel(receptionist)).toBe("payPercent");
@@ -173,7 +178,12 @@ describe("a percentage of payments or of profit", () => {
 
 describe("payActions", () => {
   it("gives a salaried person salary pay and adjustments, never a share", () => {
-    expect(payActions(line(), false)).toEqual({ paySalary: true, payShare: false, adjust: true });
+    expect(payActions(line(), false)).toEqual({
+      paySalary: true,
+      payShare: false,
+      receive: false,
+      adjust: true,
+    });
   });
 
   it("gives a percentage doctor the share, and salary pay only for a bonus still owed", () => {
@@ -182,6 +192,7 @@ describe("payActions", () => {
     expect(payActions(percentage, false)).toEqual({
       paySalary: false,
       payShare: true,
+      receive: false,
       adjust: true,
     });
     expect(payActions({ ...percentage, remaining: "150.00" }, false).paySalary).toBe(true);
@@ -190,7 +201,14 @@ describe("payActions", () => {
   it("gives a visiting doctor the share alone", () => {
     expect(
       payActions(line({ plan: "percentage", employee: false, remaining: "0.00" }), false),
-    ).toEqual({ paySalary: false, payShare: true, adjust: false });
+    ).toEqual({ paySalary: false, payShare: true, receive: false, adjust: false });
+  });
+
+  it("receives money from a doctor who takes the patients' payments", () => {
+    expect(payActions(line({ plan: "percentage", collector: "doctor" }), false)).toMatchObject({
+      payShare: false,
+      receive: true,
+    });
   });
 
   it("stops adjustments once the month is closed", () => {
@@ -204,5 +222,12 @@ describe("payStatus", () => {
     expect(payStatus(line())).toBe("unpaid");
     expect(payStatus(line({ received: "1000.00", owed: "2000.00" }))).toBe("partly");
     expect(payStatus(line({ received: "3000.00", owed: "0.00" }))).toBe("paid");
+  });
+
+  it("reads a doctor holding more than their share as owing the clinic", () => {
+    expect(payStatus(line({ collector: "doctor", owed: "-400.00" }))).toBe("owesClinic");
+    expect(payStatus(line({ collector: "doctor", owed: "0.00", received: "3000.00" }))).toBe(
+      "paid",
+    );
   });
 });

@@ -1,5 +1,6 @@
 import {
   SETTLEMENT_LINE_STATUSES,
+  subtractMoney,
   type OwnSettlementLine,
   type SettlementLineStatus,
 } from "@clinic/shared";
@@ -188,14 +189,28 @@ export function MyEarningsPage(): JSX.Element {
                 icon="check"
                 tone="success"
               />
-              <StatCard
-                data-testid="my-earnings-balance"
-                label={t("doctors.settlement.balance")}
-                value={<Money amount={data.balance} currency={currency} />}
-                caption={t("doctors.settlement.balanceCaption")}
-                icon="money"
-                tone="warning"
-              />
+              {Number(data.balance) < 0 ? (
+                <StatCard
+                  data-testid="my-earnings-balance"
+                  label={t("earnings.owedToClinic")}
+                  value={<Money amount={subtractMoney("0.00", data.balance)} currency={currency} />}
+                  caption={t("earnings.owedToClinicCaption", {
+                    held: moneyText(data.held, currency),
+                    remitted: moneyText(data.remitted, currency),
+                  })}
+                  icon="money"
+                  tone="warning"
+                />
+              ) : (
+                <StatCard
+                  data-testid="my-earnings-balance"
+                  label={t("doctors.settlement.balance")}
+                  value={<Money amount={data.balance} currency={currency} />}
+                  caption={t("doctors.settlement.balanceCaption")}
+                  icon="money"
+                  tone="warning"
+                />
+              )}
             </div>
           )}
 
