@@ -1,4 +1,4 @@
-name: Deploy sandbox
+name: Deploy
 
 # Manual only, and without the CI checks: run CI by hand first when it matters.
 # Build on the server -> healthcheck. No registry and no checkout: the VPS
@@ -6,6 +6,14 @@ name: Deploy sandbox
 on:
   workflow_dispatch:
     inputs:
+      target:
+        description: "Which environment to deploy. Each is its own checkout, .env, database and containers on the VPS."
+        required: true
+        default: sandbox
+        type: choice
+        options:
+          - sandbox
+          - kossai-jarrar
       reset_data:
         # Typed, not a checkbox: a checkbox beside "Run workflow" is one
         # mis-click from deleting the database.
@@ -19,30 +27,57 @@ on:
         default: ""
         type: string
 
-# Never two at once, never cancelled: a half-applied migration is worse than a
-# queued deploy.
+# Never two at once per environment, never cancelled: a half-applied migration
+# is worse than a queued deploy.
 concurrency:
-  group: deploy-sandbox
+  group: deploy-${{ inputs.target }}
   cancel-in-progress: false
-
-env:
-  SANDBOX_URL: https://clinic-sandbox.organza-moda.com
-  REMOTE_DIR: /opt/clinic/sandbox
-  COMPOSE_PROJECT: clinic-sandbox
 
 jobs:
   deploy:
-    name: Deploy to sandbox VPS
+    name: Deploy ${{ inputs.target }} to the VPS
     runs-on: ubuntu-latest
 
     steps:
+      # The one table of environments: folder, Compose project and the public URL the health check
+      # goes through. A new environment is a row here and a checkout on the server (DEPLOY.md).
+      - name: Resolve the environment
+        env:
+          TARGET: ${{ inputs.target }}
+        run: |
+          set -eu
+
+          case "$TARGET" in
+            sandbox)
+              echo "REMOTE_DIR=/opt/clinic/sandbox" >> "$GITHUB_ENV"
+              echo "COMPOSE_PROJECT=clinic-sandbox" >> "$GITHUB_ENV"
+              echo "SITE_URL=https://clinic-sandbox.organza-moda.com" >> "$GITHUB_ENV"
+              ;;
+            kossai-jarrar)
+              echo "REMOTE_DIR=/opt/clinic/kossai-jarrar" >> "$GITHUB_ENV"
+              echo "COMPOSE_PROJECT=clinic-kossai-jarrar" >> "$GITHUB_ENV"
+              echo "SITE_URL=https://admin.kossai-jarrar.organza-moda.com" >> "$GITHUB_ENV"
+              ;;
+            *)
+              echo "::error::unknown target \"$TARGET\""
+              exit 1
+              ;;
+          esac
+
       # A typo must stop the job, not deploy without the reset that was asked for.
       - name: Check the typed confirmations
         env:
           RESET: ${{ inputs.reset_data }}
           SAMPLE: ${{ inputs.sample_website }}
+          TARGET: ${{ inputs.target }}
         run: |
           set -eu
+
+          # A clinic's real environment holds real patients: no wipe and no sample text, ever.
+          if [ "$TARGET" != "sandbox" ] && { [ -n "${RESET}" ] || [ -n "${SAMPLE}" ]; }; then
+            echo "::error::reset_data and sample_website are for the sandbox only — leave them empty for ${TARGET}"
+            exit 1
+          fi
 
           if [ -n "${RESET}" ] && [ "${RESET}" != "RESET" ]; then
             echo "::error::reset_data must be empty or exactly RESET — got \"${RESET}\""
@@ -102,7 +137,7 @@ jobs:
       # one alone, so changing it cannot change the sandbox — only a wipe can.
       # Dumps first, and keeps the backups volume, which is why not `down -v`.
       - name: Wipe the sandbox data
-        if: ${{ inputs.reset_data == 'RESET' }}
+        if: ${{ inputs.target == 'sandbox' && inputs.reset_data == 'RESET' }}
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SANDBOX_HOST }}
@@ -201,7 +236,7 @@ jobs:
       - name: Healthcheck through the public hostname
         run: |
           set -euo pipefail
-          url="${{ env.SANDBOX_URL }}/api/health"
+          url="${{ env.SITE_URL }}/api/health"
 
           for attempt in $(seq 1 30); do
             body=$(curl -fsS --max-time 10 "$url" 2>/dev/null) || body=""
@@ -230,7 +265,7 @@ jobs:
       # Overwrites the website's draft and published content on purpose; the logo is set only when
       # the clinic has none. Runs inside the api container, so it uses the stack's own .env.
       - name: Apply the sample website
-        if: ${{ inputs.sample_website == 'WEBSITE' }}
+        if: ${{ inputs.target == 'sandbox' && inputs.sample_website == 'WEBSITE' }}
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SANDBOX_HOST }}

@@ -10,11 +10,17 @@
 # nginx reaches them over the loopback interface. Nothing here may listen on
 # 0.0.0.0 — see DEPLOY.md for the server blocks that sit in front.
 #
-# Port map, fixed because the machine is shared:
-#   127.0.0.1:15000 -> api   :3000
-#   127.0.0.1:15080 -> web   :80
-#   127.0.0.1:15900 -> minio :9000   (S3 API only; the console is not published)
-#   postgres          — no host port at all, internal network only
+# One file, one stack per environment: each environment is its own checkout
+# with its own .env, so it gets its own database, object store, containers and
+# images. STACK_NAME and the three ports below come from that .env; the
+# defaults are the sandbox's, which is why the sandbox's .env needs neither.
+#
+# Port map, fixed per environment because the machine is shared:
+#                  sandbox            kossai-jarrar
+#   api   :3000    127.0.0.1:15000    127.0.0.1:16000   (API_PORT)
+#   web   :80      127.0.0.1:15080    127.0.0.1:16080   (WEB_PORT)
+#   minio :9000    127.0.0.1:15900    127.0.0.1:16900   (S3_PORT; the console is not published)
+#   postgres       no host port at all, internal network only
 #
 # The api and web images are built on the server from this checkout — the VPS
 # holds the repository at /opt/clinic/sandbox, so this file sits at the root of
@@ -24,7 +30,7 @@
 # /opt/clinic/sandbox/.env, which is also the file Compose reads for the
 # ${...} substitutions below. See .env.sandbox.example.
 
-name: clinic-sandbox
+name: ${STACK_NAME:-clinic-sandbox}
 
 services:
   postgres:
@@ -57,7 +63,7 @@ services:
       # the host nginx passes Host through unchanged, presigned URLs for the
       # public hostname verify here without MinIO being told about it.
     ports:
-      - "127.0.0.1:15900:9000"
+      - "127.0.0.1:${S3_PORT:-15900}:9000"
     volumes:
       - clinic_minio_data:/data
     healthcheck:
@@ -94,7 +100,7 @@ services:
     build:
       context: .
       dockerfile: docker/api.Dockerfile
-    image: clinic-sandbox-api
+    image: ${STACK_NAME:-clinic-sandbox}-api
     restart: unless-stopped
     env_file: .env
     environment:
@@ -103,10 +109,12 @@ services:
       # hand-run `docker compose up`, which is why the API has a fallback.
       APP_VERSION: ${APP_VERSION:-}
     ports:
-      - "127.0.0.1:15000:3000"
-    # Migrations run to completion before the server listens, so the sandbox
+      - "127.0.0.1:${API_PORT:-15000}:3000"
+    # Migrations run to completion before the server listens, so the stack
     # never serves traffic against an un-migrated database. SEED_ON_BOOT=true
-    # additionally runs the seed, which is idempotent and safe to repeat.
+    # additionally runs the demo seed (the sandbox); BOOTSTRAP_ON_BOOT=true
+    # creates a real clinic from BOOTSTRAP_* with no demo data. Both are
+    # idempotent and safe to repeat; an environment turns on one, never both.
     command:
       - sh
       - -c
@@ -115,6 +123,9 @@ services:
         node dist/database/migrate.js
         if [ "$${SEED_ON_BOOT:-false}" = "true" ]; then
           node dist/database/seed.js
+        fi
+        if [ "$${BOOTSTRAP_ON_BOOT:-false}" = "true" ]; then
+          node dist/database/bootstrap.js
         fi
         exec node dist/main.js
     depends_on:
@@ -140,10 +151,10 @@ services:
         # disagree with /api/version, which is the whole point of showing both.
         VITE_APP_VERSION: ${APP_VERSION:-}
         VITE_STORAGE_ORIGIN: ${VITE_STORAGE_ORIGIN:-}
-    image: clinic-sandbox-web
+    image: ${STACK_NAME:-clinic-sandbox}-web
     restart: unless-stopped
     ports:
-      - "127.0.0.1:15080:80"
+      - "127.0.0.1:${WEB_PORT:-15080}:80"
     # The image's own nginx serves the built SPA and proxies /api/ to the api
     # service, so the host nginx has a single upstream to point at.
     depends_on:

@@ -317,7 +317,11 @@ export default tseslint.config(
 
   {
     // Standalone scripts run outside Nest and log to stdout by design.
-    files: ["apps/api/src/database/migrate.ts", "apps/api/src/database/seed.ts"],
+    files: [
+      "apps/api/src/database/migrate.ts",
+      "apps/api/src/database/seed.ts",
+      "apps/api/src/database/bootstrap.ts",
+    ],
     rules: {
       "no-console": "off",
     },
