@@ -1,7 +1,6 @@
 import type { JSX, ReactNode } from "react";
-import { cx } from "@web/booking/ui";
 import { AccentRule } from "@web/site/components/accent-rule";
-import { BottomCurve, SideCurve } from "@web/site/components/curves";
+import { HeroRibbon, HeroSwoosh } from "@web/site/components/curves";
 import { SiteIcon } from "@web/site/components/site-icon";
 import { SiteImage } from "@web/site/components/site-image";
 import { Tagline } from "@web/site/components/tagline";
@@ -13,10 +12,7 @@ export function PageHero({
   subtitle,
   intro,
   image,
-  media,
-  overlay,
   tagline = false,
-  tall = false,
   children,
 }: {
   readonly id: string;
@@ -25,54 +21,60 @@ export function PageHero({
   readonly subtitle?: string | undefined;
   readonly intro?: string | undefined;
   readonly image?: string | undefined;
-  readonly media?: ReactNode;
-  readonly overlay?: ReactNode;
   readonly tagline?: boolean;
-  readonly tall?: boolean;
   readonly children?: ReactNode;
 }): JSX.Element {
   return (
     <section
       data-testid={`site-page-hero-${id}`}
       aria-labelledby={`${id}-title`}
-      className="relative overflow-hidden bg-surface"
+      className="site-hero-wash relative overflow-hidden"
     >
-      <div
-        data-testid={`site-page-hero-${id}-image`}
-        className="relative aspect-[4/3] w-full sm:aspect-[16/9] md:absolute md:inset-y-0 md:end-0 md:aspect-auto md:w-[60%]"
-      >
-        {media ?? (
-          <SiteImage
-            src={image}
-            priority
-            layer
-            fallback={<SiteIcon name="sparkles" className="size-16" />}
-          />
-        )}
-        <SideCurve className="absolute inset-y-0 -start-px hidden h-full w-[26%] md:block" />
-        <BottomCurve className="absolute inset-x-0 -bottom-px h-10 text-surface md:h-20" />
-        {overlay}
+      <div aria-hidden className="absolute inset-0 hidden overflow-hidden lg:block">
+        <span className="absolute -top-40 start-[6%] size-[36rem] rounded-pill bg-primary-50/70 blur-3xl" />
+        <span className="absolute -bottom-48 start-[34%] size-[32rem] rounded-pill bg-primary-50/30 blur-3xl" />
       </div>
-
-      <div
-        className={cx(
-          "relative mx-auto flex max-w-6xl px-4",
-          tall ? "md:min-h-[40rem]" : "md:min-h-[32rem]",
-        )}
-      >
+      <HeroSwoosh className="absolute inset-y-0 start-0 hidden h-full w-1/2 opacity-80 lg:block" />
+      <div className="relative flex flex-col lg:block lg:min-h-[30rem]">
         <div
-          data-reveal
-          className="flex flex-col items-start gap-4 pb-10 md:w-[44%] md:justify-center md:py-20"
+          data-testid={`site-page-hero-${id}-image`}
+          className="relative aspect-[4/3] sm:aspect-[16/9] lg:absolute lg:inset-y-0 lg:end-0 lg:aspect-auto lg:w-[50%]"
         >
-          {eyebrow && <p className="text-heading font-medium text-primary-600">{eyebrow}</p>}
-          <h1 id={`${id}-title`} className="text-headline font-bold text-primary-900 md:text-hero">
-            {title}
-          </h1>
-          {subtitle && <p className="text-title font-medium text-primary-800">{subtitle}</p>}
-          {intro && <p className="max-w-lg text-section text-ink-muted">{intro}</p>}
-          <AccentRule className="mt-1" />
-          {tagline && <Tagline />}
-          {children}
+          <div className="absolute inset-0 overflow-hidden lg:site-hero-arc">
+            <SiteImage
+              src={image}
+              priority
+              layer
+              fallback={<SiteIcon name="sparkles" className="size-16" />}
+            />
+            <span
+              aria-hidden
+              className="absolute inset-0 hidden from-transparent from-55% to-surface/50 lg:block ltr:bg-linear-to-l rtl:bg-linear-to-r"
+            />
+          </div>
+          <HeroRibbon className="absolute inset-0 hidden size-full overflow-visible lg:block" />
+        </div>
+
+        <div className="relative mx-auto max-w-6xl px-4 pt-8 pb-12 lg:py-16">
+          <div data-reveal className="flex flex-col items-start gap-4 lg:max-w-[30rem]">
+            {eyebrow && (
+              <p className="flex items-center gap-3 text-heading font-medium text-primary-600">
+                <span aria-hidden className="h-px w-12 bg-primary-300" />
+                {eyebrow}
+              </p>
+            )}
+            <h1
+              id={`${id}-title`}
+              className="text-headline font-bold text-primary-900 md:text-hero"
+            >
+              {title}
+            </h1>
+            {subtitle && <p className="text-title font-medium text-primary-800">{subtitle}</p>}
+            {intro && <p className="text-section text-ink-muted">{intro}</p>}
+            <AccentRule className="mt-1" />
+            {tagline && <Tagline />}
+            {children}
+          </div>
         </div>
       </div>
     </section>
