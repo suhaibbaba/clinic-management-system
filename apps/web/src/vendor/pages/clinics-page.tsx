@@ -62,7 +62,7 @@ export function ClinicsPage({ location }: { readonly location: VendorLocation })
         <span className="flex flex-col">
           <span className="font-medium text-ink">{localized(row.name, i18n.language)}</span>
           <span className="text-meta text-ink-muted" dir="ltr">
-            {row.slug}
+            {row.domain ?? row.slug}
           </span>
         </span>
       ),

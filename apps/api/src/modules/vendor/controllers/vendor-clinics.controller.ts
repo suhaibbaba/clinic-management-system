@@ -19,6 +19,7 @@ import type {
 import { Public } from "@api/common/decorators/public.decorator";
 import {
   GrantSpecialtyDto,
+  SaveClinicDomainDto,
   VendorIdParamDto,
   SaveSubscriptionDto,
   VendorClinicsQueryDto,
@@ -60,6 +61,16 @@ export class VendorClinicsController {
     @VendorSession() session: VendorSessionContext,
   ): Promise<void> {
     return this.subscriptions.save(params.id, body, session.vendorUserId);
+  }
+
+  @Put("clinics/:id/domain")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  saveDomain(
+    @Param() params: VendorIdParamDto,
+    @Body() body: SaveClinicDomainDto,
+    @VendorSession() session: VendorSessionContext,
+  ): Promise<void> {
+    return this.clinics.saveDomain(params.id, body.domain, session.vendorUserId);
   }
 
   @Post("clinics/:id/specialties")

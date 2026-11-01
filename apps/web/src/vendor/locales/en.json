@@ -161,7 +161,16 @@
       "noHistory": "No changes yet",
       "system": "System",
       "readOnlyNote": "The clinic is read-only: staff can open records but cannot change anything.",
-      "unmanagedNote": "This clinic has no subscription, so its modules are as they were set by hand."
+      "unmanagedNote": "This clinic has no subscription, so its modules are as they were set by hand.",
+      "domain": "Domain",
+      "domainHint": "The website is the domain itself and the dashboard is admin. of it. Each domain needs its DNS records and a certificate on the server.",
+      "domainPlaceholder": "example.com",
+      "website": "Website",
+      "dashboard": "Dashboard",
+      "noDomain": "No domain: the website answers at /site/{{slug}}",
+      "saveDomain": "Save domain",
+      "domainSaved": "Domain saved",
+      "domainInvalid": "Enter a domain such as clinic.ps"
     },
     "plans": {
       "new": "New plan",
@@ -191,7 +200,8 @@
       "subscription_saved": "Subscription saved",
       "status_advanced": "Status moved on automatically",
       "specialty_granted": "Specialty granted",
-      "plan_changed": "Plan changed"
+      "plan_changed": "Plan changed",
+      "domain_changed": "Domain changed"
     },
     "modules": {
       "appointments": "Appointments",
@@ -211,7 +221,8 @@
       "missingModules": "Online booking needs the appointments module",
       "duplicateCode": "A plan already has this code",
       "unknown": "Something went wrong, try again",
-      "notFound": "Page not found"
+      "notFound": "Page not found",
+      "domainTaken": "Another clinic already uses this domain"
     }
   }
 }

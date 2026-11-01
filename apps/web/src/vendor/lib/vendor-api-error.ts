@@ -1,4 +1,4 @@
-import { AUTH_ERROR, VENDOR_MISSING_MODULES } from "@clinic/shared";
+import { AUTH_ERROR, VENDOR_DOMAIN_TAKEN, VENDOR_MISSING_MODULES } from "@clinic/shared";
 
 export class VendorApiError extends Error {
   constructor(
@@ -17,6 +17,10 @@ export const vendorErrorKey = (error: unknown): string => {
 
   if (error.code === VENDOR_MISSING_MODULES) {
     return "vendor.errors.missingModules";
+  }
+
+  if (error.code === VENDOR_DOMAIN_TAKEN) {
+    return "vendor.errors.domainTaken";
   }
 
   if (error.code === AUTH_ERROR.LOCKED) {

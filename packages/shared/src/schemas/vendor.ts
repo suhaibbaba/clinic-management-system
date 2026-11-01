@@ -82,10 +82,30 @@ export const saveSubscriptionSchema = z
   });
 export type SaveSubscriptionInput = z.infer<typeof saveSubscriptionSchema>;
 
+export const VENDOR_DOMAIN_TAKEN = "vendor_domain_taken";
+
+export const clinicDomainSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .transform((value) => value.replace(/^https?:\/\//, "").replace(/\/+$/, "").replace(/^(?:www|admin)\./, ""))
+  .pipe(
+    z
+      .string()
+      .max(253)
+      .regex(/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/, "Not a domain"),
+  );
+
+export const saveClinicDomainSchema = z.object({
+  domain: clinicDomainSchema.nullable(),
+});
+export type SaveClinicDomainInput = z.infer<typeof saveClinicDomainSchema>;
+
 export const vendorClinicSummarySchema = z.object({
   id: z.uuid(),
   slug: z.string(),
   name: localizedTextSchema,
+  domain: z.string().nullable(),
   modules: z.array(z.enum(CLINIC_MODULES)),
   specialties: z.array(z.string()),
   users: z.number().int().min(0),

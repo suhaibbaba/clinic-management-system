@@ -34,7 +34,14 @@ import {
 } from "@web/vendor/lib/subscription";
 import { VENDOR_TRIAL_DAYS } from "@web/vendor/constants";
 import { vendorErrorKey } from "@web/vendor/lib/vendor-api-error";
-import { useClinic, useGrantSpecialty, usePlans, useSaveSubscription } from "@web/vendor/queries";
+import {
+  useClinic,
+  useGrantSpecialty,
+  usePlans,
+  useSaveDomain,
+  useSaveSubscription,
+} from "@web/vendor/queries";
+import { clinicAddresses, parseDomain } from "@web/vendor/lib/domain";
 
 export function ClinicPage({
   id,
@@ -87,10 +94,113 @@ export function ClinicPage({
         </p>
       )}
 
+      <DomainForm key={`domain-${detail.id}`} detail={detail} />
       <SubscriptionForm key={detail.id} detail={detail} plans={plans.data.items} />
       <Specialties detail={detail} />
       <History detail={detail} />
     </div>
+  );
+}
+
+function DomainForm({ detail }: { readonly detail: VendorClinicDetail }): JSX.Element {
+  const { t } = useTranslation();
+  const save = useSaveDomain(detail.id);
+  const [text, setText] = useState(detail.domain ?? "");
+  const parsed = parseDomain(text);
+  const invalid = parsed === undefined;
+  const unchanged = parsed === detail.domain;
+  const addresses = detail.domain ? clinicAddresses(detail.domain) : null;
+
+  return (
+    <section
+      className="flex flex-col gap-4 rounded-card border border-line bg-surface p-5"
+      data-testid="vendor-domain"
+    >
+      <h2 className="text-section font-semibold text-ink">{t("vendor.clinic.domain")}</h2>
+      <div className="flex max-w-(--form-max) flex-wrap items-end gap-3">
+        <div className="min-w-0 flex-1">
+          <FormField
+            label="vendor.clinic.domain"
+            htmlFor="vendor-domain-input"
+            hint="vendor.clinic.domainHint"
+          >
+            <Input
+              id="vendor-domain-input"
+              dir="ltr"
+              inputMode="url"
+              autoComplete="off"
+              spellCheck={false}
+              placeholder={t("vendor.clinic.domainPlaceholder")}
+              value={text}
+              hasError={invalid}
+              onChange={(event) => setText(event.target.value)}
+              data-testid="vendor-domain-input"
+            />
+          </FormField>
+        </div>
+        <Button
+          aria-disabled={invalid || unchanged || undefined}
+          isLoading={save.isPending}
+          onClick={() => !invalid && !unchanged && save.mutate(parsed)}
+          data-testid="vendor-domain-save"
+        >
+          {t("vendor.clinic.saveDomain")}
+        </Button>
+      </div>
+
+      {invalid && (
+        <p role="alert" className="text-label text-danger-700" data-testid="vendor-domain-invalid">
+          {t("vendor.clinic.domainInvalid")}
+        </p>
+      )}
+
+      {addresses ? (
+        <dl
+          className="grid gap-2 text-label sm:grid-cols-[auto_1fr]"
+          data-testid="vendor-domain-addresses"
+        >
+          <dt className="text-ink-muted">{t("vendor.clinic.website")}</dt>
+          <dd>
+            <a
+              href={addresses.website}
+              target="_blank"
+              rel="noreferrer"
+              dir="ltr"
+              className="text-primary-700 underline"
+            >
+              {addresses.website}
+            </a>
+          </dd>
+          <dt className="text-ink-muted">{t("vendor.clinic.dashboard")}</dt>
+          <dd>
+            <a
+              href={addresses.dashboard}
+              target="_blank"
+              rel="noreferrer"
+              dir="ltr"
+              className="text-primary-700 underline"
+            >
+              {addresses.dashboard}
+            </a>
+          </dd>
+        </dl>
+      ) : (
+        <p className="text-meta text-ink-muted">
+          {t("vendor.clinic.noDomain", { slug: detail.slug })}
+        </p>
+      )}
+
+      {save.isError && (
+        <p role="alert" className="text-label text-danger-700">
+          {t(vendorErrorKey(save.error))}
+        </p>
+      )}
+      {save.isSuccess && (
+        <p role="status" className="text-label text-success-700">
+          {t("vendor.clinic.domainSaved")}
+        </p>
+      )}
+    </section>
   );
 }
 

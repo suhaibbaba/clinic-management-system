@@ -161,7 +161,16 @@
       "noHistory": "Henüz değişiklik yok",
       "system": "Sistem",
       "readOnlyNote": "Klinik salt okunur: personel kayıtları açabilir ama değiştiremez.",
-      "unmanagedNote": "Bu kliniğin aboneliği yok; modülleri elle ayarlandığı gibi."
+      "unmanagedNote": "Bu kliniğin aboneliği yok; modülleri elle ayarlandığı gibi.",
+      "domain": "Alan adı",
+      "domainHint": "Web sitesi alan adının kendisidir, panel ise onun admin. alt alanıdır. Her alan adı için DNS kayıtları ve sunucuda bir sertifika gerekir.",
+      "domainPlaceholder": "example.com",
+      "website": "Web sitesi",
+      "dashboard": "Panel",
+      "noDomain": "Alan adı yok: web sitesi /site/{{slug}} adresinde",
+      "saveDomain": "Alan adını kaydet",
+      "domainSaved": "Alan adı kaydedildi",
+      "domainInvalid": "clinic.ps gibi bir alan adı yazın"
     },
     "plans": {
       "new": "Yeni paket",
@@ -191,7 +200,8 @@
       "subscription_saved": "Abonelik kaydedildi",
       "status_advanced": "Durum otomatik değişti",
       "specialty_granted": "Uzmanlık etkinleştirildi",
-      "plan_changed": "Paket değişti"
+      "plan_changed": "Paket değişti",
+      "domain_changed": "Alan adı değişti"
     },
     "modules": {
       "appointments": "Randevular",
@@ -211,7 +221,8 @@
       "missingModules": "Çevrimiçi randevu, randevular modülünü gerektirir",
       "duplicateCode": "Bu kodla bir paket zaten var",
       "unknown": "Bir hata oldu, tekrar deneyin",
-      "notFound": "Sayfa bulunamadı"
+      "notFound": "Sayfa bulunamadı",
+      "domainTaken": "Bu alan adını başka bir klinik kullanıyor"
     }
   }
 }

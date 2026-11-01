@@ -254,7 +254,8 @@ It answers at `/site/<slug>` on any host. To put it on the clinic's own domain, 
 `admin.` of the same domain:
 
 1. Point both names at the server and add them to the TLS certificate.
-2. Switch the module on and record the domain (no `www.`, no port):
+2. Switch the module on and record the domain in the vendor console (the clinic's page, **Domain**;
+   no `www.`, no port). Without a console account, the same by hand:
 
    ```sh
    pnpm -C apps/api module:enable <clinic slug> website

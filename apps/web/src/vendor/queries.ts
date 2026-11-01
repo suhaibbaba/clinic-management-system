@@ -69,6 +69,15 @@ export function useSaveSubscription(clinicId: string) {
   });
 }
 
+export function useSaveDomain(clinicId: string) {
+  const refresh = useRefreshAll();
+
+  return useMutation({
+    mutationFn: (domain: string | null) => vendorApi.saveDomain(clinicId, { domain }),
+    onSuccess: refresh,
+  });
+}
+
 export function useGrantSpecialty(clinicId: string) {
   const refresh = useRefreshAll();
 

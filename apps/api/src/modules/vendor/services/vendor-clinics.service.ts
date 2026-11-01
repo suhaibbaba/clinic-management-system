@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { and, count, desc, eq, ilike, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
 import {
   addDays,
@@ -6,6 +6,7 @@ import {
   SUBSCRIPTION_EVENT,
   SUBSCRIPTION_STATUS,
   VENDOR_CLINIC_FILTER,
+  VENDOR_DOMAIN_TAKEN,
   type Paginated,
   type SpecialtyCode,
   type VendorClinicDetail,
@@ -30,6 +31,8 @@ import {
   type SummaryRow,
 } from "@api/modules/vendor/lib/vendor-clinic-row";
 import { grantSpecialty } from "@api/database/clinic-specialties";
+import { violatedConstraint } from "@api/common/lib/postgres-errors";
+import { UNIQUE_VIOLATION } from "@api/common/constants/postgres-errors";
 import { VENDOR_ENDING_SOON_DAYS, VENDOR_EVENT_LIMIT } from "@api/modules/vendor/constants";
 import { SubscriptionsService } from "@api/modules/vendor/services/subscriptions.service";
 
@@ -176,6 +179,43 @@ export class VendorClinicsService {
     });
   }
 
+  async saveDomain(clinicId: string, domain: string | null, actorId: string): Promise<void> {
+    try {
+      await this.db.transaction(async (tx) => {
+        const [clinic] = await tx
+          .select({ domain: clinics.siteDomain })
+          .from(clinics)
+          .where(and(eq(clinics.id, clinicId), isNull(clinics.deletedAt)))
+          .limit(1);
+
+        if (!clinic) {
+          throw new NotFoundException("Clinic not found");
+        }
+
+        if (clinic.domain === domain) {
+          return;
+        }
+
+        await tx
+          .update(clinics)
+          .set({ siteDomain: domain, updatedAt: new Date() })
+          .where(eq(clinics.id, clinicId));
+        await this.subscriptions.record(
+          tx,
+          clinicId,
+          actorId,
+          SUBSCRIPTION_EVENT.DOMAIN_CHANGED,
+          { domain: clinic.domain },
+          { domain },
+        );
+      });
+    } catch (error) {
+      throw violatedConstraint(error, UNIQUE_VIOLATION)
+        ? new ConflictException(VENDOR_DOMAIN_TAKEN)
+        : error;
+    }
+  }
+
   private async summaries(rows: readonly SummaryRow[]): Promise<VendorClinicSummary[]> {
     const ids = rows.map((row) => row.id);
 
@@ -206,6 +246,7 @@ export class VendorClinicsService {
       id: row.id,
       slug: row.slug,
       name: row.name,
+      domain: row.domain,
       modules: row.modules,
       specialties: specialtyRows
         .filter((entry) => entry.clinicId === row.id)
@@ -224,7 +265,11 @@ export class VendorClinicsService {
 
     const pattern = `%${query.search.replaceAll(/[%_\\]/g, (match) => `\\${match}`)}%`;
 
-    return or(ilike(clinics.slug, pattern), sql`${clinics.name}::text ilike ${pattern}`);
+    return or(
+      ilike(clinics.slug, pattern),
+      ilike(clinics.siteDomain, pattern),
+      sql`${clinics.name}::text ilike ${pattern}`,
+    );
   }
 
   private statusFilter(query: VendorClinicsQuery): SQL | undefined {

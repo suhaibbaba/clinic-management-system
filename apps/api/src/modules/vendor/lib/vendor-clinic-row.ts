@@ -10,6 +10,7 @@ export const SUMMARY_COLUMNS = {
   id: clinics.id,
   slug: clinics.slug,
   name: clinics.name,
+  domain: clinics.siteDomain,
   modules: clinics.modules,
   createdAt: clinics.createdAt,
   planId: subscriptions.planId,
@@ -27,6 +28,7 @@ export interface SummaryRow {
   readonly id: string;
   readonly slug: string;
   readonly name: LocalizedText;
+  readonly domain: string | null;
   readonly modules: ClinicModule[];
   readonly createdAt: Date;
   readonly planId: string | null;

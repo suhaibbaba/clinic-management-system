@@ -169,7 +169,16 @@
       "noHistory": "لا تغييرات بعد",
       "system": "النظام",
       "readOnlyNote": "العيادة للقراءة فقط: يرى الموظفون السجلات ولا يمكنهم التعديل.",
-      "unmanagedNote": "هذه العيادة بلا اشتراك، فوحداتها كما ضُبطت يدويًا."
+      "unmanagedNote": "هذه العيادة بلا اشتراك، فوحداتها كما ضُبطت يدويًا.",
+      "domain": "النطاق",
+      "domainHint": "الموقع على النطاق نفسه، ولوحة التحكم على admin. منه. يحتاج كل نطاق إلى سجلات DNS وشهادة على الخادم.",
+      "domainPlaceholder": "example.com",
+      "website": "الموقع",
+      "dashboard": "لوحة التحكم",
+      "noDomain": "بلا نطاق: الموقع على /site/{{slug}}",
+      "saveDomain": "حفظ النطاق",
+      "domainSaved": "حُفظ النطاق",
+      "domainInvalid": "اكتب نطاقًا صحيحًا مثل clinic.ps"
     },
     "plans": {
       "new": "باقة جديدة",
@@ -199,7 +208,8 @@
       "subscription_saved": "حُفظ الاشتراك",
       "status_advanced": "تغيّرت الحالة تلقائيًا",
       "specialty_granted": "فُعّل تخصص",
-      "plan_changed": "تغيّرت الباقة"
+      "plan_changed": "تغيّرت الباقة",
+      "domain_changed": "تغيّر النطاق"
     },
     "modules": {
       "appointments": "المواعيد",
@@ -219,7 +229,8 @@
       "missingModules": "الحجز الإلكتروني يحتاج وحدة المواعيد",
       "duplicateCode": "يوجد باقة بهذا الرمز",
       "unknown": "حدث خطأ، حاول مجددًا",
-      "notFound": "الصفحة غير موجودة"
+      "notFound": "الصفحة غير موجودة",
+      "domainTaken": "هذا النطاق مستخدم لعيادة أخرى"
     }
   }
 }

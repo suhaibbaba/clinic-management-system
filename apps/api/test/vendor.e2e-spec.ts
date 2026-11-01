@@ -6,6 +6,7 @@ import {
   SUBSCRIPTION_EVENT,
   SUBSCRIPTION_STATUS,
   USER_ROLE,
+  VENDOR_DOMAIN_TAKEN,
   VENDOR_MISSING_MODULES,
   addDays,
   type Paginated,
@@ -323,6 +324,63 @@ describe("Vendor console (e2e)", () => {
       expect(read.statusCode).toBe(200);
       expect(write.statusCode).toBe(403);
       expect(write.json()).toMatchObject({ message: CLINIC_ERROR.SUSPENDED });
+    });
+  });
+
+  describe("the domain", () => {
+    it("stores the bare domain, records the change and finds the clinic by it", async () => {
+      const clinic = await context.createClinic({ modules: [] });
+      const domain = `clinic-${randomUUID().slice(0, 8)}.example.ps`;
+
+      const saved = await call("PUT", `/vendor/clinics/${clinic.id}/domain`, {
+        domain: `https://www.${domain.toUpperCase()}/`,
+      });
+
+      expect(saved.statusCode).toBe(204);
+
+      const detail = (await call("GET", `/vendor/clinics/${clinic.id}`)).json<VendorClinicDetail>();
+      const found = (await call("GET", `/vendor/clinics?search=${domain}`)).json<
+        Paginated<VendorClinicSummary>
+      >();
+
+      expect(detail.domain).toBe(domain);
+      expect(detail.events[0]).toMatchObject({
+        action: SUBSCRIPTION_EVENT.DOMAIN_CHANGED,
+        oldValue: { domain: null },
+        newValue: { domain },
+      });
+      expect(found.items.map((item) => item.id)).toEqual([clinic.id]);
+    });
+
+    it("refuses a domain another clinic already has", async () => {
+      const first = await context.createClinic({ modules: [] });
+      const second = await context.createClinic({ modules: [] });
+      const domain = `taken-${randomUUID().slice(0, 8)}.example.ps`;
+
+      await call("PUT", `/vendor/clinics/${first.id}/domain`, { domain });
+      const taken = await call("PUT", `/vendor/clinics/${second.id}/domain`, { domain });
+
+      expect(taken.statusCode).toBe(409);
+      expect(taken.json()).toMatchObject({ message: VENDOR_DOMAIN_TAKEN });
+    });
+
+    it("refuses something that is not a domain, and clears one with null", async () => {
+      const clinic = await context.createClinic({ modules: [] });
+
+      await call("PUT", `/vendor/clinics/${clinic.id}/domain`, {
+        domain: `clear-${randomUUID().slice(0, 8)}.example.ps`,
+      });
+
+      expect(
+        (await call("PUT", `/vendor/clinics/${clinic.id}/domain`, { domain: "not a domain" }))
+          .statusCode,
+      ).toBe(400);
+      expect(
+        (await call("PUT", `/vendor/clinics/${clinic.id}/domain`, { domain: null })).statusCode,
+      ).toBe(204);
+      expect(
+        (await call("GET", `/vendor/clinics/${clinic.id}`)).json<VendorClinicDetail>().domain,
+      ).toBeNull();
     });
   });
 

@@ -1309,6 +1309,7 @@ export const SUBSCRIPTION_EVENT = {
   SUBSCRIPTION_SAVED: "subscription_saved",
   STATUS_ADVANCED: "status_advanced",
   PLAN_CHANGED: "plan_changed",
+  DOMAIN_CHANGED: "domain_changed",
   SPECIALTY_GRANTED: "specialty_granted",
 } as const satisfies Record<string, string>;
 export type SubscriptionEventAction = EnumValue<typeof SUBSCRIPTION_EVENT>;
