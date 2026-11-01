@@ -40,28 +40,35 @@ export function HeroSection(): JSX.Element {
       >
         <div
           data-testid="site-page-hero-home-image"
-          className="site-fade-end absolute inset-y-0 start-0 -z-10 w-[52%] md:w-1/2"
+          className="absolute inset-y-0 start-0 -z-10 w-[53%] md:w-[52%]"
           onMouseEnter={() => hold(true)}
           onMouseLeave={() => hold(false)}
         >
-          {slides.length === 0 ? (
-            <SiteImage src={null} layer fallback={<SiteIcon name="smile" className="size-16" />} />
-          ) : (
-            slides.map((url, slide) => (
+          <span aria-hidden className="site-curve-end absolute inset-0 bg-surface/70" />
+          <div className="site-curve-end absolute inset-y-0 start-0 end-3 sm:end-5">
+            {slides.length === 0 ? (
               <SiteImage
-                key={url}
-                src={url}
-                priority={slide === 0}
+                src={null}
                 layer
-                fit="top"
-                data-testid={`site-hero-image-${slide + 1}`}
-                className={cx(
-                  "transition-opacity duration-1000 ease-in-out",
-                  slide === active ? "opacity-100" : "opacity-0",
-                )}
+                fallback={<SiteIcon name="smile" className="size-16" />}
               />
-            ))
-          )}
+            ) : (
+              slides.map((url, slide) => (
+                <SiteImage
+                  key={url}
+                  src={url}
+                  priority={slide === 0}
+                  layer
+                  fit="top"
+                  data-testid={`site-hero-image-${slide + 1}`}
+                  className={cx(
+                    "transition-opacity duration-1000 ease-in-out",
+                    slide === active ? "opacity-100" : "opacity-0",
+                  )}
+                />
+              ))
+            )}
+          </div>
           <Dots
             count={slides.length}
             active={active}
@@ -97,7 +104,7 @@ export function HeroSection(): JSX.Element {
         </div>
 
         <WaveDivider
-          fills={["fill-primary-200/60", "fill-primary-100", "fill-surface"]}
+          fills={["fill-primary-500/70", "fill-primary-100", "fill-surface"]}
           className="-mt-6 sm:-mt-10"
         />
       </section>

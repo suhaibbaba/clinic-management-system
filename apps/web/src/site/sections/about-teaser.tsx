@@ -62,11 +62,15 @@ export function AboutTeaser(): JSX.Element | null {
         </div>
 
         <div className="relative order-first aspect-[4/3] md:order-none md:aspect-auto md:h-full md:min-h-[30rem]">
+          <span
+            aria-hidden
+            className="site-curve-bottom absolute inset-0 bg-primary-200/70 md:hidden"
+          />
           <SiteImage
             src={imageOf(site, about.image) ?? imageOf(site, story.image)}
             layer
             data-testid="site-about-teaser-image"
-            className="md:site-arc-start"
+            className="max-md:site-curve-bottom max-md:bottom-3 md:site-arc-start"
             fallback={<SiteIcon name="smile" className="size-16" />}
           />
           {badge && (
