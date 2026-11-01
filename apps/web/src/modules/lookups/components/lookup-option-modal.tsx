@@ -1,4 +1,8 @@
 import {
+  FALLBACK_LANGUAGE,
+  isRtlLanguage,
+  type LanguageCode,
+  type LocalizedText,
   DEFAULT_LOOKUP_COLOUR,
   ENGLISH_ONLY_LOOKUP_LISTS,
   LOOKUP_LIST,
@@ -16,6 +20,7 @@ import { useCreateLookupOption, useUpdateLookupOption } from "@web/shared/querie
 import { errorToast } from "@web/shared/lib/api-error";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
+import { useClinicLanguages } from "@web/shared/hooks/use-clinic-languages";
 import { InstructionSuggestions } from "@web/shared/components/instruction-suggestions";
 import { RegimenRow } from "@web/shared/components/regimen-row";
 import {
@@ -50,18 +55,19 @@ export function LookupOptionModal({
   const create = useCreateLookupOption();
   const update = useUpdateLookupOption();
 
-  const [nameAr, setNameAr] = useState("");
-  const [nameEn, setNameEn] = useState("");
+  const clinicLanguages = useClinicLanguages();
+  const [name, setName] = useState<LocalizedText>({});
   const [color, setColor] = useState(DEFAULT_LOOKUP_COLOUR);
   const [regimen, setRegimen] = useState<RegimenInput>(EMPTY_REGIMEN_INPUT);
   const [note, setNote] = useState("");
   const englishOnly = ENGLISH_ONLY_LOOKUP_LISTS.includes(listKey);
   const isDrug = listKey === LOOKUP_LIST.FREQUENT_DRUG;
-  const arabic = englishOnly ? nameEn : nameAr;
+  const languages: readonly LanguageCode[] = englishOnly ? [FALLBACK_LANGUAGE] : clinicLanguages;
   const chosen = coloured && (color !== DEFAULT_LOOKUP_COLOUR || !option?.isSystem) ? color : null;
   const body = {
-    nameAr: arabic.trim(),
-    nameEn: nameEn.trim(),
+    name: Object.fromEntries(
+      Object.entries(name).map(([code, value]) => [code, (value ?? "").trim()]),
+    ) as LocalizedText,
     color: chosen,
     ...(isDrug && {
       meta: withDrugNote(withRegimen(option?.meta, toRegimen(regimen)), note),
@@ -79,8 +85,7 @@ export function LookupOptionModal({
       return;
     }
 
-    setNameAr(option?.nameAr ?? "");
-    setNameEn(option?.nameEn ?? "");
+    setName(option?.name ?? {});
     setColor(option?.color ?? DEFAULT_LOOKUP_COLOUR);
     setRegimen(toRegimenInput(readDrugRegimen(option?.meta)));
     setNote(readDrugNote(option?.meta));
@@ -144,42 +149,29 @@ export function LookupOptionModal({
           </p>
         )}
 
-        <div className={englishOnly ? "max-w-(--field-max)" : "grid gap-4 sm:grid-cols-2"}>
-          {!englishOnly && (
-            <div onBlur={form.leave("nameAr")}>
+        <div
+          className={languages.length === 1 ? "max-w-(--field-max)" : "grid gap-4 sm:grid-cols-2"}
+        >
+          {languages.map((code) => (
+            <div key={code} onBlur={form.leave(`name.${code}`)}>
               <FormField
-                error={form.errors["nameAr"]}
-                label="lookups.nameAr"
-                htmlFor="lookup-name-ar"
-                required
+                error={form.errors[`name.${code}`] ?? form.errors["name"]}
+                label="lookups.nameIn"
+                labelValues={{ language: t(`languages.in.${code}`) }}
+                htmlFor={`lookup-name-${code}`}
+                required={code === languages[0]}
               >
                 <Input
-                  id="lookup-name-ar"
-                  data-testid="lookup-field-name-ar"
-                  dir="auto"
-                  value={nameAr}
-                  onChange={(event) => setNameAr(event.target.value)}
+                  id={`lookup-name-${code}`}
+                  data-testid={`lookup-field-name-${code}`}
+                  lang={code}
+                  dir={isRtlLanguage(code) ? "auto" : "ltr"}
+                  value={name[code] ?? ""}
+                  onChange={(event) => setName({ ...name, [code]: event.target.value })}
                 />
               </FormField>
             </div>
-          )}
-
-          <div onBlur={form.leave("nameEn")}>
-            <FormField
-              error={form.errors["nameEn"]}
-              label="lookups.nameEn"
-              htmlFor="lookup-name-en"
-              required
-            >
-              <Input
-                id="lookup-name-en"
-                data-testid="lookup-field-name-en"
-                dir="ltr"
-                value={nameEn}
-                onChange={(event) => setNameEn(event.target.value)}
-              />
-            </FormField>
-          </div>
+          ))}
         </div>
 
         {isDrug && (

@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  DEFAULT_NUMBER_SEPARATORS,
+  groupDigits,
+  type NumberSeparators,
+} from "@shared/locale/numbers";
 
 export const moneySchema = z
   .string()
@@ -39,33 +44,24 @@ export const wholeMoneySchema = z
 
 export const isWholeMoney = (value: string): boolean => /^\d{1,8}(\.0{1,2})?$/.test(value);
 
-export const CURRENCY_SYMBOLS: Record<string, string> = {
-  JOD: "د.ا",
-  ILS: "₪",
-  USD: "$",
-};
-
-export function currencySymbol(code: string | undefined): string {
-  if (!code) {
-    return "";
-  }
-
-  return CURRENCY_SYMBOLS[code.toUpperCase()] ?? code;
-}
-
-const groupThousands = (whole: string): string => whole.replace(/\B(?=(\d{3})+$)/g, ",");
-
-export function formatWholeMoney(amount: string): string {
+export function formatWholeMoney(
+  amount: string,
+  separators: NumberSeparators = DEFAULT_NUMBER_SEPARATORS,
+): string {
   const negative = amount.startsWith("-");
   const [whole = "0"] = (negative ? amount.slice(1) : amount).split(".");
 
-  return `${negative ? "-" : ""}${groupThousands(whole)}`;
+  return `${negative ? "-" : ""}${groupDigits(whole, separators.group)}`;
 }
 
-export function formatCentsMoney(amount: string): string {
+export function formatCentsMoney(
+  amount: string,
+  separators: NumberSeparators = DEFAULT_NUMBER_SEPARATORS,
+): string {
   const negative = amount.startsWith("-");
   const [whole = "0", fraction = ""] = (negative ? amount.slice(1) : amount).split(".");
   const cents = fraction.padEnd(2, "0").slice(0, 2);
+  const grouped = groupDigits(whole, separators.group);
 
-  return `${negative ? "-" : ""}${groupThousands(whole)}${cents === "00" ? "" : `.${cents}`}`;
+  return `${negative ? "-" : ""}${grouped}${cents === "00" ? "" : `${separators.decimal}${cents}`}`;
 }

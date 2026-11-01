@@ -1,6 +1,6 @@
-export const STAFF_NAME_FIELDS = [
-  { path: "firstName.ar", label: "users.firstNameAr", placeholder: "firstNameAr", ltr: false },
-  { path: "lastName.ar", label: "users.lastNameAr", placeholder: "lastNameAr", ltr: false },
-  { path: "firstName.en", label: "users.firstNameEn", placeholder: "firstNameEn", ltr: true },
-  { path: "lastName.en", label: "users.lastNameEn", placeholder: "lastNameEn", ltr: true },
-] as const;
+export const STAFF_NAME_PARTS = ["firstName", "lastName"] as const;
+
+export const STAFF_NAME_LABELS = {
+  firstName: "users.firstNameIn",
+  lastName: "users.lastNameIn",
+} as const;

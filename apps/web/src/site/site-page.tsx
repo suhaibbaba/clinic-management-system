@@ -1,4 +1,4 @@
-import { SITE_SECTION, type PublicSite, type SiteSection } from "@clinic/shared";
+import { languageDirection, SITE_SECTION, type PublicSite, type SiteSection } from "@clinic/shared";
 import { useCallback, useEffect, useMemo, type JSX } from "react";
 import { SITE_PARAM } from "@web/site/constants";
 import { usePortalAccount } from "@web/site/hooks/use-portal-account";
@@ -8,7 +8,7 @@ import { translator } from "@web/site/i18n";
 import { SiteContext } from "@web/site/lib/site-context";
 import { pageTitle } from "@web/site/lib/page-title";
 import { PortalContext } from "@web/site/lib/portal-context";
-import { isSiteLanguage } from "@web/site/lib/text";
+import { siteLanguage } from "@web/site/lib/text";
 import { AboutPage } from "@web/site/pages/about-page";
 import { AccountPage } from "@web/site/pages/account-page";
 import { BookingPage } from "@web/site/pages/booking-page";
@@ -66,7 +66,8 @@ export function SitePage({
 }): JSX.Element {
   const { pathname, params, navigate, setParams } = useSiteLocation();
   const requested = params.get(SITE_PARAM.LANGUAGE);
-  const language = isSiteLanguage(requested) ? requested : "ar";
+  const { languages, primaryLanguage } = site.clinic.locale;
+  const language = siteLanguage(requested, site.clinic.locale);
   const t = useMemo(() => translator(language), [language]);
   const routed = sitePage(pathname, base);
   const section = SECTION_OF[routed.kind];
@@ -82,7 +83,7 @@ export function SitePage({
     (path: string, extra: Record<string, string> = {}) => {
       const query = new URLSearchParams(extra);
 
-      if (language !== "ar") {
+      if (language !== primaryLanguage) {
         query.set(SITE_PARAM.LANGUAGE, language);
       }
 
@@ -91,17 +92,17 @@ export function SitePage({
 
       return search ? `${target}?${search}` : target;
     },
-    [base, language],
+    [base, language, primaryLanguage],
   );
 
   const value = useMemo(
-    () => ({ site, language, t, preview, page, params, setParams, href, navigate }),
-    [site, language, t, preview, page, params, setParams, href, navigate],
+    () => ({ site, language, languages, t, preview, page, params, setParams, href, navigate }),
+    [site, language, languages, t, preview, page, params, setParams, href, navigate],
   );
 
   useEffect(() => {
     document.documentElement.lang = language;
-    document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+    document.documentElement.dir = languageDirection(language);
   }, [language]);
 
   useEffect(() => {

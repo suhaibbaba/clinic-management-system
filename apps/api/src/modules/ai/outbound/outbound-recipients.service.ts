@@ -3,9 +3,9 @@ import {
   AI_OUTBOUND_TARGET,
   addDays,
   APPOINTMENT_STATUS,
-  clinicScheduleSettings,
+  clinicLocale,
   currencySymbol,
-  DEFAULT_TIME_ZONE,
+  documentLanguage,
   formatWholeMoney,
   instantFromLocal,
   LAB_ORDER_AWAITING_STATUSES,
@@ -166,10 +166,12 @@ export class OutboundRecipientsService {
         name: patients.fullName,
         phone: patients.phone,
         startsAt: appointments.startsAt,
-        doctorNameAr: users.nameAr,
-        doctorNameEn: users.nameEn,
+        doctorName: users.name,
+        country: clinics.country,
+        settings: clinics.settings,
       })
       .from(appointments)
+      .innerJoin(clinics, eq(clinics.id, appointments.clinicId))
       .innerJoin(patients, eq(patients.id, appointments.patientId))
       .innerJoin(doctors, eq(doctors.id, appointments.doctorId))
       .innerJoin(users, eq(users.id, doctors.userId))
@@ -200,7 +202,7 @@ export class OutboundRecipientsService {
         phone: row.phone,
         vars: {
           time: clockTime(row.startsAt, tomorrow, timeZone),
-          doctor: notificationName({ ar: row.doctorNameAr, en: row.doctorNameEn }),
+          doctor: notificationName(row.doctorName, documentLanguage(row)),
         },
       });
 
@@ -235,8 +237,8 @@ export class OutboundRecipientsService {
   async clinic(clinicId: string): Promise<ClinicContext> {
     const [row] = await this.db
       .select({
-        nameAr: clinics.nameAr,
-        nameEn: clinics.nameEn,
+        name: clinics.name,
+        country: clinics.country,
         currency: clinics.currency,
         settings: clinics.settings,
       })
@@ -245,9 +247,9 @@ export class OutboundRecipientsService {
       .limit(1);
 
     return {
-      name: notificationName({ ar: row?.nameAr ?? "", en: row?.nameEn ?? "" }),
+      name: row ? notificationName(row.name, documentLanguage(row)) : "",
       currency: row?.currency ?? "",
-      timeZone: clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE,
+      timeZone: clinicLocale(row).timeZone,
       settings: row?.settings ?? {},
     };
   }

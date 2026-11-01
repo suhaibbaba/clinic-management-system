@@ -42,10 +42,10 @@ const LINKS: readonly {
 ];
 
 export function SiteHeader(): JSX.Element {
-  const { site, language, t, page } = useSite();
+  const { site, language, languages, t, page } = useSite();
   const [open, setOpen] = useState(false);
   const account = usePortal();
-  const name = nameIn(site.clinic.name, language);
+  const name = nameIn(site.clinic.name, language, languages);
   const links = LINKS.filter(
     (link) => link.section === null || site.content.sections.includes(link.section),
   );

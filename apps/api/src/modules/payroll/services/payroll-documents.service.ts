@@ -5,6 +5,7 @@ import {
   addMoney,
   subtractMoney,
   personName,
+  type LocalizedText,
   type Money,
   type PayrollMonth,
   type SettlementQuery,
@@ -51,7 +52,8 @@ export class PayrollDocumentsService {
     const strings = documentStrings(clinic.language);
     const text = strings.settlement;
     const zone = clinic.timeZone;
-    const money = (amount: Money): string => documentMoney(amount, clinic.currency);
+    const money = (amount: Money): string =>
+      documentMoney(amount, clinic.currency, clinic.separators);
     const day = (date: string): string => documentDate(`${date}T12:00:00Z`, zone);
 
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
@@ -66,7 +68,11 @@ export class PayrollDocumentsService {
         value: `${day(settlement.from)} – ${day(settlement.to)}`,
         ltr: true,
       },
-      { label: text.printedAt, value: documentDateTime(new Date().toISOString(), zone), ltr: true },
+      {
+        label: text.printedAt,
+        value: documentDateTime(new Date().toISOString(), zone, clinic.clock),
+        ltr: true,
+      },
     ]);
 
     if (settlement.treatments.length === 0) {
@@ -144,7 +150,8 @@ export class PayrollDocumentsService {
     const clinic = await this.letterheads.load(actor.clinicId);
     const strings = documentStrings(clinic.language);
     const text = strings.payroll;
-    const money = (amount: Money): string => documentMoney(amount, clinic.currency);
+    const money = (amount: Money): string =>
+      documentMoney(amount, clinic.currency, clinic.separators);
     const [year, monthNumber] = payroll.month.split("-");
 
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
@@ -156,7 +163,7 @@ export class PayrollDocumentsService {
       { label: text.month, value: `${monthNumber}/${year}`, ltr: true },
       {
         label: text.printedAt,
-        value: documentDateTime(new Date().toISOString(), clinic.timeZone),
+        value: documentDateTime(new Date().toISOString(), clinic.timeZone, clinic.clock),
         ltr: true,
       },
     ]);
@@ -213,7 +220,8 @@ export class PayrollDocumentsService {
     const strings = documentStrings(clinic.language);
     const text = strings.payout;
     const zone = clinic.timeZone;
-    const money = (amount: Money): string => documentMoney(amount, clinic.currency);
+    const money = (amount: Money): string =>
+      documentMoney(amount, clinic.currency, clinic.separators);
 
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
@@ -222,7 +230,11 @@ export class PayrollDocumentsService {
 
     pdf.infoGrid([
       { label: text.doctor, value: personName(doctor, clinic.language) },
-      { label: text.paidAt, value: documentDateTime(payout.createdAt, zone), ltr: true },
+      {
+        label: text.paidAt,
+        value: documentDateTime(payout.createdAt, zone, clinic.clock),
+        ltr: true,
+      },
       { label: text.method, value: methods.get(payout.method) ?? payout.method },
       ...(payout.note ? [{ label: text.note, value: payout.note }] : []),
     ]);
@@ -261,12 +273,9 @@ export class PayrollDocumentsService {
     return pdf.save();
   }
 
-  private async doctorName(
-    clinicId: string,
-    doctorId: string,
-  ): Promise<{ readonly ar: string; readonly en: string }> {
+  private async doctorName(clinicId: string, doctorId: string): Promise<LocalizedText> {
     const [row] = await this.db
-      .select({ ar: users.nameAr, en: users.nameEn })
+      .select({ name: users.name })
       .from(doctors)
       .innerJoin(users, eq(users.id, doctors.userId))
       .where(this.scope.where(doctors, clinicId, eq(doctors.id, doctorId)))
@@ -276,6 +285,6 @@ export class PayrollDocumentsService {
       throw new NotFoundException("Resource not found");
     }
 
-    return row;
+    return row.name;
   }
 }

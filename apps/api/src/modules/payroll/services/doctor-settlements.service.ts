@@ -18,6 +18,7 @@ import {
   type CreateRemittanceInput,
   type CreateSettlementPayoutInput,
   type DoctorSettlement,
+  type LocalizedText,
   type OwnSettlement,
   type PayrollMonth,
   type SettlementPayout,
@@ -416,9 +417,9 @@ export class DoctorSettlementsService implements OnModuleInit {
   ): Promise<TreatmentSettlementStatus[]> {
     const timeZone = await clinicTimeZone(this.db, actor.clinicId);
     const rows = await this.db.execute<
-      SettlementRow & { name_ar: string; name_en: string } & Record<string, unknown>
+      SettlementRow & { name: LocalizedText } & Record<string, unknown>
     >(
-      sql`select line.*, u.name_ar, u.name_en
+      sql`select line.*, u.name
           from (${settlementLines({
             clinicId: actor.clinicId,
             timeZone,
@@ -432,7 +433,7 @@ export class DoctorSettlementsService implements OnModuleInit {
     return [...rows].map((row) => ({
       treatmentId: row.id,
       doctorId: row.doctor_id,
-      doctorName: { ar: row.name_ar, en: row.name_en },
+      doctorName: row.name,
       payable: row.payable,
       paid: row.paid,
       status: row.status,

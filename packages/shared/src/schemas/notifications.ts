@@ -1,4 +1,6 @@
 import { z } from "zod";
+import type { LanguageCode } from "@shared/locale/languages";
+import { localized, type LocalizedText } from "@shared/locale/localized-text";
 import {
   NOTIFICATION_CHANNEL,
   NOTIFICATION_CHANNELS,
@@ -38,7 +40,7 @@ export const notificationSettingsSchema = z.object({
 });
 export type NotificationSettings = z.infer<typeof notificationSettingsSchema>;
 
-export const DEFAULT_NOTIFICATION_TEMPLATES: Record<NotificationTemplate, string> = {
+const ARABIC_TEMPLATES: Record<NotificationTemplate, string> = {
   [NOTIFICATION_TEMPLATE.BOOKING_OTP]:
     "رمز تأكيد حجزك في {clinic} هو {code}. صالح لمدة {minutes} دقائق.",
   [NOTIFICATION_TEMPLATE.BOOKING_CONFIRMED]:
@@ -60,6 +62,79 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: Record<NotificationTemplate, string
   [NOTIFICATION_TEMPLATE.PORTAL_CODE]:
     "رمز الدخول إلى حسابك في {clinic} هو {code}. صالح لمدة {minutes} دقائق. لا تشاركه مع أحد.",
 };
+
+const ENGLISH_TEMPLATES: Record<NotificationTemplate, string> = {
+  [NOTIFICATION_TEMPLATE.BOOKING_OTP]:
+    "Your booking code for {clinic} is {code}. It is valid for {minutes} minutes.",
+  [NOTIFICATION_TEMPLATE.BOOKING_CONFIRMED]:
+    "Your appointment at {clinic} with {doctor} is confirmed for {date} at {time}. Manage it here: {link}",
+  [NOTIFICATION_TEMPLATE.REMINDER_24H]:
+    "Reminder: you have an appointment tomorrow at {clinic} with {doctor} at {time}.",
+  [NOTIFICATION_TEMPLATE.REMINDER_2H]:
+    "Reminder: your appointment at {clinic} with {doctor} is in two hours, at {time}.",
+  [NOTIFICATION_TEMPLATE.BOOKING_CANCELLED]:
+    "Your appointment at {clinic} on {date} at {time} has been cancelled. Contact us to book again.",
+  [NOTIFICATION_TEMPLATE.URGENT_RECEIVED]:
+    "We have received your urgent request at {clinic}. We will call you on this number as soon as we can.",
+  [NOTIFICATION_TEMPLATE.URGENT_SCHEDULED]:
+    "We have booked you an appointment at {clinic} with {doctor} on {date} at {time}.",
+  [NOTIFICATION_TEMPLATE.URGENT_DECLINED]:
+    "About your urgent request at {clinic}: {reason}. Contact us with any questions.",
+  [NOTIFICATION_TEMPLATE.ASSISTANT_MESSAGE]: "{body}",
+  [NOTIFICATION_TEMPLATE.DOCUMENT]: "{document} from {clinic}.",
+  [NOTIFICATION_TEMPLATE.PORTAL_CODE]:
+    "Your sign-in code for {clinic} is {code}. It is valid for {minutes} minutes. Do not share it with anyone.",
+};
+
+const TURKISH_TEMPLATES: Record<NotificationTemplate, string> = {
+  [NOTIFICATION_TEMPLATE.BOOKING_OTP]:
+    "{clinic} randevu onay kodunuz: {code}. Kod {minutes} dakika geçerlidir.",
+  [NOTIFICATION_TEMPLATE.BOOKING_CONFIRMED]:
+    "{clinic} randevunuz onaylandı. Doktor: {doctor}, tarih: {date}, saat: {time}. Randevunuzu yönetmek için: {link}",
+  [NOTIFICATION_TEMPLATE.REMINDER_24H]:
+    "Hatırlatma: Yarın saat {time} için {clinic} kliniğinde {doctor} ile randevunuz var.",
+  [NOTIFICATION_TEMPLATE.REMINDER_2H]:
+    "Hatırlatma: {clinic} kliniğinde {doctor} ile randevunuz iki saat sonra, saat {time}.",
+  [NOTIFICATION_TEMPLATE.BOOKING_CANCELLED]:
+    "{clinic} kliniğindeki {date} tarihli, saat {time} randevunuz iptal edildi. Yeni randevu için bize ulaşın.",
+  [NOTIFICATION_TEMPLATE.URGENT_RECEIVED]:
+    "{clinic} kliniğine acil talebiniz ulaştı. En kısa sürede bu numaradan size dönüş yapacağız.",
+  [NOTIFICATION_TEMPLATE.URGENT_SCHEDULED]:
+    "{clinic} kliniğinde {doctor} ile {date} tarihinde saat {time} için randevunuz oluşturuldu.",
+  [NOTIFICATION_TEMPLATE.URGENT_DECLINED]:
+    "{clinic} kliniğine acil talebiniz hakkında: {reason}. Sorularınız için bize ulaşın.",
+  [NOTIFICATION_TEMPLATE.ASSISTANT_MESSAGE]: "{body}",
+  [NOTIFICATION_TEMPLATE.DOCUMENT]: "{clinic}: {document}.",
+  [NOTIFICATION_TEMPLATE.PORTAL_CODE]:
+    "{clinic} hesabınıza giriş kodunuz: {code}. Kod {minutes} dakika geçerlidir. Kimseyle paylaşmayın.",
+};
+
+export const DEFAULT_NOTIFICATION_TEMPLATES: Record<
+  LanguageCode,
+  Record<NotificationTemplate, string>
+> = {
+  ar: ARABIC_TEMPLATES,
+  en: ENGLISH_TEMPLATES,
+  tr: TURKISH_TEMPLATES,
+};
+
+export const defaultNotificationTemplate = (
+  template: NotificationTemplate,
+  language: LanguageCode,
+): string => DEFAULT_NOTIFICATION_TEMPLATES[language][template];
+
+export type NotificationVars = Readonly<Record<string, string | LocalizedText>>;
+
+export const resolveNotificationVars = (
+  vars: NotificationVars,
+  language: LanguageCode,
+): Record<string, string> =>
+  Object.fromEntries(
+    Object.entries(vars).map(([key, value]) => [
+      key,
+      typeof value === "string" ? value : localized(value, language),
+    ]),
+  );
 
 export function notificationSettings(settings: unknown): NotificationSettings {
   const raw =

@@ -56,7 +56,7 @@ export class NotesService implements OnModuleInit {
       this.db
         .select({
           note: clinicNotes,
-          author: { nameAr: users.nameAr, nameEn: users.nameEn, role: users.role },
+          author: { name: users.name, role: users.role },
         })
         .from(clinicNotes)
         .leftJoin(users, eq(users.id, clinicNotes.authorId))
@@ -129,7 +129,7 @@ export class NotesService implements OnModuleInit {
     const [row] = await this.db
       .select({
         note: clinicNotes,
-        author: { nameAr: users.nameAr, nameEn: users.nameEn, role: users.role },
+        author: { name: users.name, role: users.role },
       })
       .from(clinicNotes)
       .leftJoin(users, eq(users.id, clinicNotes.authorId))

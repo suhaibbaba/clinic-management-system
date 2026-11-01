@@ -1,7 +1,7 @@
 import { BadGatewayException, ConflictException, Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
-  DEFAULT_NOTIFICATION_TEMPLATES,
+  defaultNotificationTemplate,
   DOCUMENT_SEND_ERROR,
   NOTIFICATION_CHANNEL,
   NOTIFICATION_STATUS,
@@ -61,7 +61,7 @@ export class DocumentDeliveryService {
       : renderTemplate(
           typeof custom === "string" && custom.trim() !== ""
             ? custom
-            : DEFAULT_NOTIFICATION_TEMPLATES[NOTIFICATION_TEMPLATE.DOCUMENT],
+            : defaultNotificationTemplate(NOTIFICATION_TEMPLATE.DOCUMENT, clinic.language),
           vars,
         );
 
@@ -94,6 +94,7 @@ export class DocumentDeliveryService {
           pdf: input.pdf,
           filename: `${title}.pdf`,
           caption,
+          language: clinic.language,
         });
       }
 

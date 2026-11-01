@@ -2,7 +2,7 @@ import type { SiteText } from "@clinic/shared";
 import type { JSX } from "react";
 import { TextPair } from "@web/modules/website/components/text-pair";
 import { useEditor } from "@web/modules/website/hooks/use-editor";
-import { valueAt, withValueAt } from "@web/modules/website/lib/site-draft";
+import { blankText, valueAt, withValueAt } from "@web/modules/website/lib/site-draft";
 
 export function DraftText({
   path,
@@ -20,7 +20,7 @@ export function DraftText({
   readonly placeholder?: string;
 }): JSX.Element {
   const { draft, update, errors, leave } = useEditor();
-  const value = (valueAt(draft, path) as SiteText | undefined) ?? { ar: "", en: "" };
+  const value = (valueAt(draft, path) as SiteText | undefined) ?? blankText();
 
   return (
     <TextPair

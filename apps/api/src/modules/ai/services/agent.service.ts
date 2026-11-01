@@ -245,12 +245,12 @@ export class AgentService {
   async context(actor: AuthenticatedUser): Promise<SystemPromptInput> {
     const [[clinic], [user], [doctor]] = await Promise.all([
       this.db
-        .select({ nameAr: clinics.nameAr, nameEn: clinics.nameEn, settings: clinics.settings })
+        .select({ name: clinics.name, settings: clinics.settings })
         .from(clinics)
         .where(eq(clinics.id, actor.clinicId))
         .limit(1),
       this.db
-        .select({ nameAr: users.nameAr, nameEn: users.nameEn })
+        .select({ name: users.name })
         .from(users)
         .where(and(eq(users.id, actor.id), eq(users.clinicId, actor.clinicId)))
         .limit(1),
@@ -268,10 +268,10 @@ export class AgentService {
     ]);
 
     const timeZone = clinicScheduleSettings(clinic?.settings).timezone || DEFAULT_TIME_ZONE;
-    const name: PersonName = { ar: user?.nameAr ?? "", en: user?.nameEn ?? "" };
+    const name: PersonName = user?.name ?? {};
 
     return {
-      clinicName: { ar: clinic?.nameAr ?? "", en: clinic?.nameEn ?? "" },
+      clinicName: clinic?.name ?? {},
       user: { name, role: actor.role },
       doctor: doctor ? { id: doctor.id, name } : null,
       today: localDate(new Date(), timeZone),

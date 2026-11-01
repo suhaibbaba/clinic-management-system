@@ -1,6 +1,7 @@
 import { BadRequestException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
-import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
 import {
+  clinicLocale,
+  type LocalizedText,
   APPOINTMENT_TYPE,
   canTransitionWaitingListEntry,
   localDate,
@@ -24,7 +25,6 @@ import { asc, eq, isNull, sql, type SQL } from "drizzle-orm";
 import { AppointmentsService } from "@api/modules/appointments/services/appointments.service";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
-import { notificationName, toPersonName } from "@api/common/person-name";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
@@ -228,13 +228,13 @@ export class WaitingListService implements OnModuleInit {
     const entry = await this.findOne(actor, id);
 
     if (input.notify) {
-      const timeZone = await clinicTimeZone(this.db, actor.clinicId);
+      const { locale } = await this.clinicProfile(actor.clinicId);
       const startsAt = new Date(appointment.startsAt);
 
       await this.notify(actor.clinicId, entry, NOTIFICATION_TEMPLATE.URGENT_SCHEDULED, {
-        doctor: notificationName(appointment.doctorName),
-        date: shortDate(localDate(startsAt, timeZone)),
-        time: timeIn(timeZone, startsAt),
+        doctor: appointment.doctorName,
+        date: shortDate(localDate(startsAt, locale.timeZone)),
+        time: timeIn(locale.timeZone, startsAt, locale.clock),
       });
     }
 
@@ -337,8 +337,7 @@ export class WaitingListService implements OnModuleInit {
         entry: waitingList,
         patientName: patients.fullName,
         patientPhone: patients.phone,
-        doctorNameAr: users.nameAr,
-        doctorNameEn: users.nameEn,
+        doctorName: users.name,
       })
       .from(waitingList)
       .innerJoin(patients, eq(patients.id, waitingList.patientId))
@@ -384,22 +383,25 @@ export class WaitingListService implements OnModuleInit {
     clinicId: string,
     entry: WaitingListEntry,
     template: (typeof NOTIFICATION_TEMPLATE)[keyof typeof NOTIFICATION_TEMPLATE],
-    vars: Record<string, string>,
+    vars: Record<string, string | LocalizedText>,
   ): Promise<void> {
-    const [row] = await this.db
-      .select({ nameAr: clinics.nameAr, nameEn: clinics.nameEn })
-      .from(clinics)
-      .where(eq(clinics.id, clinicId))
-      .limit(1);
+    const { name } = await this.clinicProfile(clinicId);
 
     await this.notifications.send({
       clinicId,
       to: entry.patientPhone,
       template,
-      vars: {
-        clinic: row ? notificationName(toPersonName(row.nameAr, row.nameEn)) : "",
-        ...vars,
-      },
+      vars: { clinic: name, ...vars },
     });
+  }
+
+  private async clinicProfile(clinicId: string) {
+    const [row] = await this.db
+      .select({ name: clinics.name, country: clinics.country, settings: clinics.settings })
+      .from(clinics)
+      .where(eq(clinics.id, clinicId))
+      .limit(1);
+
+    return { name: row?.name ?? "", locale: clinicLocale(row) };
   }
 }

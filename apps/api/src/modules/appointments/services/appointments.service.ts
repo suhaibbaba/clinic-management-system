@@ -482,8 +482,7 @@ export class AppointmentsService implements OnModuleInit {
         patientPhone: patients.phone,
         patientFileNumber: patients.fileNumber,
         patientUnverified: sql<boolean>`${patients.createdBy} is null`,
-        doctorNameAr: users.nameAr,
-        doctorNameEn: users.nameEn,
+        doctorName: users.name,
       })
       .from(appointments)
       .innerJoin(patients, eq(patients.id, appointments.patientId))

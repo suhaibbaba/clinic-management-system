@@ -9,7 +9,7 @@ import { orDefault } from "@web/site/lib/text";
 import { SITE_PATH } from "@web/site/route";
 
 export function ServicesTeaser(): JSX.Element | null {
-  const { site, language, t } = useSite();
+  const { site, language, languages, t } = useSite();
   const { services } = site.content;
 
   if (!site.content.sections.includes(SITE_SECTION.SERVICES) || services.items.length === 0) {
@@ -24,8 +24,8 @@ export function ServicesTeaser(): JSX.Element | null {
     >
       <ShowcaseHeading
         id="services-teaser"
-        eyebrow={orDefault(services.subtitle, language, t("services.eyebrow"))}
-        title={orDefault(services.title, language, t("services.pageTitle"))}
+        eyebrow={orDefault(services.subtitle, language, t("services.eyebrow"), languages)}
+        title={orDefault(services.title, language, t("services.pageTitle"), languages)}
         action={
           <PillLink to={SITE_PATH.SERVICES} tone="outline" data-testid="site-services-more">
             {t("home.servicesAll")}

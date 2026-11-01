@@ -51,7 +51,7 @@ describe("Clinic bootstrap (e2e)", () => {
     const [clinic] = await context.db.select().from(clinics).where(eq(clinics.id, result.clinicId));
     expect(clinic).toMatchObject({
       slug: env.BOOTSTRAP_CLINIC_SLUG,
-      nameEn: "Dr. Kossai Jarrar Clinic",
+      name: expect.objectContaining({ en: "Dr. Kossai Jarrar Clinic" }),
       siteDomain: env.BOOTSTRAP_SITE_DOMAIN,
       modules: [CLINIC_MODULE.WEBSITE],
       currency: "ILS",
@@ -77,10 +77,12 @@ describe("Clinic bootstrap (e2e)", () => {
     expect(regions.length).toBeGreaterThan(0);
 
     const staff = await context.db
-      .select({ role: users.role, nameEn: users.nameEn })
+      .select({ role: users.role, name: users.name })
       .from(users)
       .where(and(eq(users.clinicId, result.clinicId), isNull(users.deletedAt)));
-    expect(staff).toEqual([{ role: USER_ROLE.ADMIN, nameEn: "Kossai Jarrar" }]);
+    expect(staff).toEqual([
+      { role: USER_ROLE.ADMIN, name: expect.objectContaining({ en: "Kossai Jarrar" }) },
+    ]);
   });
 
   it("lets the admin sign in with the bootstrap password and see an empty clinic", async () => {
@@ -114,10 +116,10 @@ describe("Clinic bootstrap (e2e)", () => {
     });
 
     const [clinic] = await context.db
-      .select({ nameEn: clinics.nameEn })
+      .select({ name: clinics.name })
       .from(clinics)
       .where(eq(clinics.id, first.clinicId));
-    expect(clinic?.nameEn).toBe("Dr. Kossai Jarrar Clinic");
+    expect(clinic?.name).toMatchObject({ en: "Dr. Kossai Jarrar Clinic" });
 
     const admins = await context.db
       .select({ id: users.id })

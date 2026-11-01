@@ -1,6 +1,10 @@
 import {
   CONTACT_MESSAGE_STATUS,
+  languageDefinition,
+  localized,
+  localizedValues,
   type ContactMessage,
+  type LocalizedText,
   type PublicSite,
   type SiteContent,
 } from "@clinic/shared";
@@ -11,7 +15,7 @@ export type SiteContentRow = typeof siteContent.$inferSelect;
 
 export type ContactMessageRow = typeof contactMessages.$inferSelect;
 
-export type HandlerRow = { nameAr: string; nameEn: string } | null;
+export type HandlerRow = { name: LocalizedText } | null;
 
 export function toContactMessage(row: ContactMessageRow, handler: HandlerRow): ContactMessage {
   return {
@@ -24,7 +28,7 @@ export function toContactMessage(row: ContactMessageRow, handler: HandlerRow): C
     status: row.handledAt ? CONTACT_MESSAGE_STATUS.HANDLED : CONTACT_MESSAGE_STATUS.OPEN,
     createdAt: row.createdAt.toISOString(),
     handledAt: row.handledAt?.toISOString() ?? null,
-    handledBy: handler ? { ar: handler.nameAr, en: handler.nameEn } : null,
+    handledBy: handler ? handler.name : null,
   };
 }
 
@@ -54,19 +58,26 @@ export type SiteIconLinks = { favicon: string; appleTouchIcon: string };
 
 export function siteHead(site: PublicSite, icons: SiteIconLinks | null): string {
   const { clinic, content } = site;
-  const title = content.hero.title.ar || clinic.name.ar;
+  const language = clinic.locale.primaryLanguage;
+  const text = (value: LocalizedText): string =>
+    localized(value, language, clinic.locale.languages);
+
+  const name = text(clinic.name);
+  const title = text(content.hero.title) || name;
   const description = clip(
-    content.hero.subtitle.ar || content.about.body.ar || clinic.address || clinic.name.ar,
+    text(content.hero.subtitle) || text(content.about.body) || clinic.address || name,
     SITE_DESCRIPTION_MAX,
   );
+
+  const [alternateName] = localizedValues(clinic.name).filter((value) => value !== name);
   const firstImage = content.hero.images[0];
   const image = (firstImage && site.images[firstImage]) ?? clinic.logoUrl;
 
   const structured = {
     "@context": "https://schema.org",
     "@type": "MedicalClinic",
-    name: clinic.name.ar,
-    alternateName: clinic.name.en,
+    name,
+    ...(alternateName && { alternateName }),
     ...(clinic.phone && { telephone: clinic.phone }),
     ...(clinic.email && { email: clinic.email }),
     ...(clinic.address && { address: clinic.address }),
@@ -77,14 +88,14 @@ export function siteHead(site: PublicSite, icons: SiteIconLinks | null): string 
     ...(image && { image }),
   };
 
-  const page = `${title === clinic.name.ar ? title : `${title} — ${clinic.name.ar}`}`;
+  const page = `${title === name ? title : `${title} — ${name}`}`;
 
   return [
     `<title>${escapeHtml(page)}</title>`,
     `<meta name="description" content="${escapeHtml(description)}" />`,
     `<meta property="og:type" content="website" />`,
-    `<meta property="og:locale" content="ar_AR" />`,
-    `<meta property="og:site_name" content="${escapeHtml(clinic.name.ar)}" />`,
+    `<meta property="og:locale" content="${languageDefinition(language).intlLocale.replace("-", "_")}" />`,
+    `<meta property="og:site_name" content="${escapeHtml(name)}" />`,
     `<meta property="og:title" content="${escapeHtml(page)}" />`,
     `<meta property="og:description" content="${escapeHtml(description)}" />`,
     ...(image ? [`<meta property="og:image" content="${escapeHtml(image)}" />`] : []),

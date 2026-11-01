@@ -10,7 +10,7 @@ import { orDefault, pick } from "@web/site/lib/text";
 import { SITE_PATH } from "@web/site/route";
 
 export function GallerySection(): JSX.Element | null {
-  const { site, language, t } = useSite();
+  const { site, language, languages, t } = useSite();
   const { gallery } = site.content;
   const photos = gallery.images
     .map((key) => imageOf(site, key))
@@ -27,9 +27,9 @@ export function GallerySection(): JSX.Element | null {
     >
       <SectionHeading
         id="gallery"
-        eyebrow={orDefault(gallery.eyebrow, language, t("home.galleryEyebrow"))}
-        title={orDefault(gallery.title, language, t("home.galleryTitle"))}
-        subtitle={pick(gallery.body, language)}
+        eyebrow={orDefault(gallery.eyebrow, language, t("home.galleryEyebrow"), languages)}
+        title={orDefault(gallery.title, language, t("home.galleryTitle"), languages)}
+        subtitle={pick(gallery.body, language, languages)}
       >
         {site.content.sections.includes(SITE_SECTION.ABOUT) && (
           <PillLink

@@ -154,8 +154,8 @@ function harness(
   } as unknown as ConfigService<Env, true>;
 
   const rows = new Map<unknown, unknown[]>([
-    [clinics, [{ nameAr: "عيادة", nameEn: "Clinic", settings: {} }]],
-    [users, [{ nameAr: "سارة", nameEn: "Sara" }]],
+    [clinics, [{ name: { ar: "عيادة", en: "Clinic" }, settings: {} }]],
+    [users, [{ name: { ar: "سارة", en: "Sara" } }]],
     [doctors, options.doctorId ? [{ id: options.doctorId }] : []],
   ]);
   const db = {

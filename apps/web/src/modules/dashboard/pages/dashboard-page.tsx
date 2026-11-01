@@ -19,7 +19,7 @@ import { AppointmentFormModal } from "@web/modules/appointments/components/appoi
 import { canBookAppointment, canMoveAppointment } from "@web/shared/permissions/appointments";
 import { useAppointmentStep } from "@web/shared/queries/appointments";
 import { useNowMinute } from "@web/shared/hooks/use-now-minute";
-import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
+import { setClinicTimeZone } from "@web/shared/lib/clinic-locale";
 import { Money } from "@web/shared/components/money";
 import { useClinic } from "@web/shared/queries/clinic";
 import { useDashboardSummary } from "@web/modules/dashboard/queries";

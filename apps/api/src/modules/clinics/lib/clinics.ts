@@ -1,20 +1,27 @@
 import { clinics } from "@api/database/schema";
-import { type DocumentSettings, documentSettings, type Clinic } from "@clinic/shared";
+import {
+  appointmentSettingsSchema,
+  clinicLocaleSettingsSchema,
+  documentLanguage,
+  documentSettingsSchema,
+  localized,
+  type Clinic,
+  type LocalizedText,
+} from "@clinic/shared";
+import type { ZodType } from "zod";
 
 export type ClinicRow = typeof clinics.$inferSelect;
 
 export const iconKey = (sourceKey: string, name: string): string => `${sourceKey}/icons/${name}`;
 
 export function appName(
-  row: { nameAr: string; nameEn: string; settings: unknown } | undefined,
+  row: { name: LocalizedText; country: string; settings: unknown } | undefined,
 ): string {
   if (!row) {
     return "";
   }
 
-  const language: DocumentSettings["language"] = documentSettings(row.settings).language;
-
-  return language === "ar" ? row.nameAr : row.nameEn;
+  return localized(row.name, documentLanguage(row));
 }
 
 export const iconSource = (row: {
@@ -25,7 +32,7 @@ export const iconSource = (row: {
 export function toClinic(row: ClinicRow): Omit<Clinic, "logoUrl" | "appIconUrl"> {
   return {
     id: row.id,
-    name: { ar: row.nameAr, en: row.nameEn },
+    name: row.name,
     logoKey: row.logoKey,
     appIconKey: row.appIconKey,
     logoIconsAt: row.logoIconsAt?.toISOString() ?? null,
@@ -41,4 +48,24 @@ export function toClinic(row: ClinicRow): Omit<Clinic, "logoUrl" | "appIconUrl">
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
+}
+
+export const SETTINGS_SECTIONS: readonly (readonly [string, ZodType])[] = [
+  ["appointments", appointmentSettingsSchema.strict()],
+  ["locale", clinicLocaleSettingsSchema.strict()],
+  ["documents", documentSettingsSchema.strict()],
+];
+
+export function isTimeZone(value: unknown): value is string {
+  if (typeof value !== "string" || value === "") {
+    return false;
+  }
+
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: value });
+
+    return true;
+  } catch {
+    return false;
+  }
 }

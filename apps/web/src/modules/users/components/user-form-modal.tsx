@@ -95,8 +95,8 @@ export function UserFormModal({
             joinedOn: user.joinedOn ?? "",
           }
         : {
-            firstName: { ar: "", en: "" },
-            lastName: { ar: "", en: "" },
+            firstName: {},
+            lastName: {},
             phone: "",
             email: null,
             isActive: true,

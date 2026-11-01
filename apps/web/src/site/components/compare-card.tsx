@@ -1,3 +1,4 @@
+import { isRtlLanguage } from "@clinic/shared";
 import { useId, useState, type JSX } from "react";
 import { CardFill } from "@web/site/components/card-fill";
 import { SiteImage } from "@web/site/components/site-image";
@@ -17,7 +18,9 @@ export function CompareCard({
   const { language, t } = useSite();
   const [split, setSplit] = useState(50);
   const slider = useId();
-  const clipPath = language === "ar" ? `inset(0 ${100 - split}% 0 0)` : `inset(0 0 0 ${split}%)`;
+  const clipPath = isRtlLanguage(language)
+    ? `inset(0 ${100 - split}% 0 0)`
+    : `inset(0 0 0 ${split}%)`;
 
   return (
     <figure

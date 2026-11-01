@@ -1,15 +1,19 @@
+import { DEFAULT_LANGUAGE } from "@clinic/shared";
 import { StrictMode, type JSX } from "react";
 import { createRoot } from "react-dom/client";
 import "@web/site/site.css";
 import { Button, Skeleton } from "@web/booking/ui";
 import { siteFailureKey } from "@web/site/api";
+import { SITE_PARAM } from "@web/site/constants";
 import { useSiteData } from "@web/site/hooks/use-site-data";
 import { translator } from "@web/site/i18n";
 import { siteSource } from "@web/site/route";
+import { isSiteLanguage } from "@web/site/lib/text";
 import { SitePage } from "@web/site/site-page";
 
 const { source, base } = siteSource(window.location.pathname);
-const t = translator("ar");
+const requested = new URLSearchParams(window.location.search).get(SITE_PARAM.LANGUAGE);
+const t = translator(isSiteLanguage(requested) ? requested : DEFAULT_LANGUAGE);
 
 function SiteApp(): JSX.Element {
   const { site, error, loading, reload } = useSiteData(source);

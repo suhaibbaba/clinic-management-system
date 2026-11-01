@@ -1,4 +1,11 @@
-import { currencySymbol, formatWholeMoney, type Money } from "@clinic/shared";
+import {
+  clockTime,
+  currencySymbol,
+  formatWholeMoney,
+  type ClockFormat,
+  type Money,
+  type NumberSeparators,
+} from "@clinic/shared";
 import { isolateLtr } from "@api/modules/billing/pdf/arabic-text";
 
 const parts = (iso: string, timeZone: string, options: Intl.DateTimeFormatOptions) =>
@@ -13,21 +20,30 @@ export function documentDate(iso: string, timeZone: string): string {
   return `${pick(list, "day")}/${pick(list, "month")}/${pick(list, "year")}`;
 }
 
-export function documentDateTime(iso: string, timeZone: string): string {
-  const time = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).format(new Date(iso));
+export function documentTime(iso: string, timeZone: string, clock: ClockFormat = "12h"): string {
+  const list = parts(iso, timeZone, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  const minute = (Number(pick(list, "hour")) % 24) * 60 + Number(pick(list, "minute"));
 
-  return `${documentDate(iso, timeZone)} · ${time}`;
+  return clockTime(minute, clock);
 }
 
-export function documentMoney(amount: Money, currency: string): string {
-  const symbol = currencySymbol(currency);
+export function documentDateTime(
+  iso: string,
+  timeZone: string,
+  clock: ClockFormat = "12h",
+): string {
+  return `${documentDate(iso, timeZone)} · ${documentTime(iso, timeZone, clock)}`;
+}
 
-  return symbol === "" ? formatWholeMoney(amount) : `${formatWholeMoney(amount)} ${symbol}`;
+export function documentMoney(
+  amount: Money,
+  currency: string,
+  separators?: NumberSeparators,
+): string {
+  const symbol = currencySymbol(currency);
+  const figure = formatWholeMoney(amount, separators);
+
+  return symbol === "" ? figure : `${figure} ${symbol}`;
 }
 
 export const receiptNumber = (value: number): string =>

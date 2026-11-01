@@ -21,7 +21,7 @@ export function PortalNextVisit({
   readonly format: PortalFormat;
   readonly compact?: boolean;
 }): JSX.Element {
-  const { language, t } = useSite();
+  const { language, languages, t } = useSite();
   const bookable = useBookable();
 
   return (
@@ -48,7 +48,8 @@ export function PortalNextVisit({
                 {format.time(appointment.startsAt)}
               </bdi>
               <span className="text-label text-ink-muted">
-                {format.weekday(appointment.startsAt)} · {nameIn(appointment.doctor, language)}
+                {format.weekday(appointment.startsAt)} ·{" "}
+                {nameIn(appointment.doctor, language, languages)}
               </span>
             </span>
             <PortalStatusPill tone={appointmentTone(appointment.status)}>

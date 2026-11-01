@@ -1,4 +1,6 @@
 import {
+  isRtlLanguage,
+  type LocalizedText,
   createDoctorSchema,
   personName,
   updateDoctorSchema,
@@ -36,12 +38,13 @@ import {
   DEFAULT_APPOINTMENT_DURATION,
   DOCTOR_FORM_MODES,
   DOCTOR_KINDS,
-  DOCTOR_NAME_FIELDS,
   VISITING_DOCTOR_FORM_ID,
 } from "@web/modules/doctors/constants";
 import { VisitingDoctorFields } from "@web/modules/doctors/components/visiting-doctor-fields";
 import { useVisitingDoctorForm } from "@web/modules/doctors/hooks/use-visiting-doctor-form";
 import { ellipsis } from "@web/i18n/ellipsis";
+import { STAFF_NAME_LABELS, STAFF_NAME_PARTS } from "@web/shared/constants/staff";
+import { useClinicLanguages } from "@web/shared/hooks/use-clinic-languages";
 
 interface DoctorFormModalProps {
   "data-testid"?: string | undefined;
@@ -54,10 +57,8 @@ type Mode = (typeof DOCTOR_FORM_MODES)[number];
 type Kind = (typeof DOCTOR_KINDS)[number]["id"];
 
 interface NewUserFields {
-  firstNameAr: string;
-  lastNameAr: string;
-  firstNameEn: string;
-  lastNameEn: string;
+  firstName: LocalizedText;
+  lastName: LocalizedText;
   phone: string;
   email: string;
   password: string;
@@ -65,10 +66,8 @@ interface NewUserFields {
 }
 
 const EMPTY_USER: NewUserFields = {
-  firstNameAr: "",
-  lastNameAr: "",
-  firstNameEn: "",
-  lastNameEn: "",
+  firstName: {},
+  lastName: {},
   phone: "",
   email: "",
   password: "",
@@ -83,6 +82,7 @@ export function DoctorFormModal({
   "data-testid": testId = "doctor-form-modal",
 }: DoctorFormModalProps): JSX.Element {
   const { t, i18n } = useTranslation();
+  const languages = useClinicLanguages();
   const toast = useToast();
   const createDoctor = useCreateDoctor();
   const updateDoctor = useUpdateDoctor();
@@ -143,8 +143,8 @@ export function DoctorFormModal({
     ...(mode === "new"
       ? {
           newUser: {
-            firstName: { ar: newUser.firstNameAr.trim(), en: newUser.firstNameEn.trim() },
-            lastName: { ar: newUser.lastNameAr.trim(), en: newUser.lastNameEn.trim() },
+            firstName: trimmedText(newUser.firstName),
+            lastName: trimmedText(newUser.lastName),
             phone: newUser.phone.trim(),
             password: newUser.password,
             joinedOn: newUser.joinedOn,
@@ -263,28 +263,44 @@ export function DoctorFormModal({
 
                 {mode === "new" ? (
                   <div className="grid gap-4 sm:grid-cols-2">
-                    {DOCTOR_NAME_FIELDS.map((field) => (
-                      <div key={field.key} onBlur={form.leave(namePath(field.key))}>
-                        <FormField
-                          label={field.label}
-                          htmlFor={field.id}
-                          error={errors[namePath(field.key)]}
-                          required
-                        >
-                          <Input
-                            id={field.id}
-                            data-testid={field.id.replace("doctor-", "doctor-field-")}
-                            adornment="user"
-                            {...(field.ltr && { dir: "ltr" })}
-                            placeholder={t(`common.placeholders.${field.key}`)}
-                            value={newUser[field.key]}
-                            onChange={(event) =>
-                              setNewUser({ ...newUser, [field.key]: event.target.value })
-                            }
-                          />
-                        </FormField>
-                      </div>
-                    ))}
+                    {languages.flatMap((language) =>
+                      STAFF_NAME_PARTS.map((part) => {
+                        const slug = part === "firstName" ? "first" : "last";
+                        const id = `doctor-${slug}-name-${language}`;
+                        const path = `newUser.${part}.${language}`;
+                        const inLanguage = t(`languages.in.${language}`);
+
+                        return (
+                          <div key={path} onBlur={form.leave(path)}>
+                            <FormField
+                              label={STAFF_NAME_LABELS[part]}
+                              labelValues={{ language: inLanguage }}
+                              htmlFor={id}
+                              error={errors[path]}
+                              required={language === languages[0]}
+                            >
+                              <Input
+                                id={id}
+                                data-testid={`doctor-field-${slug}-name-${language}`}
+                                adornment="user"
+                                {...(!isRtlLanguage(language) && { dir: "ltr" })}
+                                lang={language}
+                                placeholder={t(`common.placeholders.${part}In`, {
+                                  language: inLanguage,
+                                })}
+                                value={newUser[part][language] ?? ""}
+                                onChange={(event) =>
+                                  setNewUser({
+                                    ...newUser,
+                                    [part]: { ...newUser[part], [language]: event.target.value },
+                                  })
+                                }
+                              />
+                            </FormField>
+                          </div>
+                        );
+                      }),
+                    )}
 
                     <div onBlur={form.leave("newUser.phone")}>
                       <FormField
@@ -439,8 +455,8 @@ export function DoctorFormModal({
   );
 }
 
-function namePath(key: (typeof DOCTOR_NAME_FIELDS)[number]["key"]): string {
-  const part = key.startsWith("first") ? "firstName" : "lastName";
-
-  return `newUser.${part}.${key.endsWith("Ar") ? "ar" : "en"}`;
+function trimmedText(text: LocalizedText): LocalizedText {
+  return Object.fromEntries(
+    Object.entries(text).map(([language, value]) => [language, (value ?? "").trim()]),
+  );
 }

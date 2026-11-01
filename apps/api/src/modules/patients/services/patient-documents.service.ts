@@ -37,7 +37,7 @@ export class PatientDocumentsService {
     const text = strings.prescription;
 
     const [doctor] = await this.db
-      .select({ nameAr: users.nameAr, nameEn: users.nameEn })
+      .select({ name: users.name })
       .from(doctors)
       .innerJoin(users, eq(users.id, doctors.userId))
       .where(and(eq(doctors.id, prescription.doctorId), eq(doctors.clinicId, actor.clinicId)))
@@ -61,9 +61,7 @@ export class PatientDocumentsService {
       { label: text.fileNumber, value: patient.fileNumber, ltr: true },
       {
         label: text.doctor,
-        value: doctor
-          ? personName({ ar: doctor.nameAr, en: doctor.nameEn }, clinic.language)
-          : "--",
+        value: doctor ? personName(doctor.name, clinic.language) : "--",
       },
       {
         label: text.date,
@@ -119,7 +117,7 @@ export class PatientDocumentsService {
       { label: text.fileNumber, value: patient.fileNumber, ltr: true },
       {
         label: text.printedAt,
-        value: documentDateTime(new Date().toISOString(), clinic.timeZone),
+        value: documentDateTime(new Date().toISOString(), clinic.timeZone, clinic.clock),
         ltr: true,
       },
     ]);
@@ -144,7 +142,11 @@ export class PatientDocumentsService {
               sub: teeth.length > 0 ? `${text.columns.teeth}: ${teeth.join(", ")}` : undefined,
             },
             text.statuses[item.status as keyof typeof text.statuses] ?? item.status,
-            documentMoney(subtractMoney(item.price, item.discount), clinic.currency),
+            documentMoney(
+              subtractMoney(item.price, item.discount),
+              clinic.currency,
+              clinic.separators,
+            ),
           ];
         }),
       );
@@ -158,6 +160,7 @@ export class PatientDocumentsService {
               "0.00",
             ),
             clinic.currency,
+            clinic.separators,
           ),
           strong: true,
         },

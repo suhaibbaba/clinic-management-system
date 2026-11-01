@@ -6,6 +6,7 @@ import type { SitePageRoute } from "@web/site/route";
 export interface SiteContextValue {
   readonly site: PublicSite;
   readonly language: SiteLanguage;
+  readonly languages: readonly SiteLanguage[];
   readonly t: Translate;
   readonly preview: boolean;
   readonly page: SitePageRoute;

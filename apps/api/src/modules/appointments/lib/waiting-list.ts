@@ -1,6 +1,5 @@
 import { waitingList } from "@api/database/schema";
-import { type WaitingListEntry } from "@clinic/shared";
-import { toOptionalPersonName } from "@api/common/person-name";
+import { type LocalizedText, type WaitingListEntry } from "@clinic/shared";
 
 export type WaitingListRow = typeof waitingList.$inferSelect;
 
@@ -8,8 +7,7 @@ export interface WaitingListJoinedRow {
   readonly entry: WaitingListRow;
   readonly patientName: string;
   readonly patientPhone: string;
-  readonly doctorNameAr: string | null;
-  readonly doctorNameEn: string | null;
+  readonly doctorName: LocalizedText | null;
 }
 
 export function toWaitingListEntry(row: WaitingListJoinedRow): WaitingListEntry {
@@ -20,7 +18,7 @@ export function toWaitingListEntry(row: WaitingListJoinedRow): WaitingListEntry 
     patientName: row.patientName,
     patientPhone: row.patientPhone,
     doctorId: row.entry.doctorId,
-    doctorName: toOptionalPersonName(row.doctorNameAr, row.doctorNameEn),
+    doctorName: row.doctorName,
     reason: row.entry.reason,
     priority: row.entry.priority,
     source: row.entry.source,

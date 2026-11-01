@@ -38,8 +38,7 @@ export class LabDocumentsService {
       .select({
         order: labOrders,
         patientName: patients.fullName,
-        doctorNameAr: users.nameAr,
-        doctorNameEn: users.nameEn,
+        doctorName: users.name,
         labName: labs.name,
         workTypeName: labWorkTypes.name,
       })
@@ -72,7 +71,7 @@ export class LabDocumentsService {
       { label: strings.patient, value: firstName(row.patientName) },
       {
         label: strings.doctor,
-        value: personName({ ar: row.doctorNameAr, en: row.doctorNameEn }, clinic.language),
+        value: personName(row.doctorName, clinic.language),
       },
     ]);
 
@@ -116,8 +115,9 @@ export class LabDocumentsService {
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
     const zone = clinic.timeZone;
-    const money = (amount: Money): string => documentMoney(amount, clinic.currency);
-    const figure = (amount: Money): string => documentMoney(amount, "");
+    const money = (amount: Money): string =>
+      documentMoney(amount, clinic.currency, clinic.separators);
+    const figure = (amount: Money): string => documentMoney(amount, "", clinic.separators);
     const symbol = currencySymbol(clinic.currency);
     const withSymbol = (header: string): string => (symbol ? `${header} (${symbol})` : header);
 
@@ -130,7 +130,7 @@ export class LabDocumentsService {
       { label: strings.lab, value: statement.labName },
       {
         label: strings.printedAt,
-        value: documentDateTime(new Date().toISOString(), zone),
+        value: documentDateTime(new Date().toISOString(), zone, clinic.clock),
         ltr: true,
       },
       {

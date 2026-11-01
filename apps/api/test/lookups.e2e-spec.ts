@@ -88,8 +88,8 @@ describe("Lookups (e2e)", () => {
 
       expect(codes).toEqual(expect.arrayContaining([...values]));
       for (const option of await list(listKey)) {
-        expect(option.nameAr).not.toBe("");
-        expect(option.nameEn).not.toBe("");
+        expect(option.name.ar).toBeTruthy();
+        expect(option.name.en).toBeTruthy();
       }
     });
 
@@ -188,11 +188,11 @@ describe("Lookups (e2e)", () => {
         method: "PATCH",
         url: `/lookups/${cash?.id}`,
         headers: auth(tokens[USER_ROLE.ADMIN]),
-        payload: { nameAr: "خالص", nameEn: "Settled" },
+        payload: { name: { ar: "خالص", en: "Settled" } },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.json()).toMatchObject({ code: "cash", nameAr: "خالص" });
+      expect(response.json()).toMatchObject({ code: "cash", name: { ar: "خالص", en: "Settled" } });
     });
   });
 
@@ -231,13 +231,13 @@ describe("Lookups (e2e)", () => {
           method: "POST",
           url: "/lookups",
           headers: auth(token),
-          payload: { listKey, nameAr: name, nameEn: name },
+          payload: { listKey, name: { ar: name, en: name } },
         });
 
       expect((await add(LOOKUP_LIST.TOOTH_STATE, "Cracked")).statusCode).toBe(404);
       expect((await add(LOOKUP_LIST.LAB_WORK_TYPE, "Knee brace")).statusCode).toBe(201);
       expect(await list(LOOKUP_LIST.LAB_WORK_TYPE, token)).toEqual([
-        expect.objectContaining({ nameEn: "Knee brace" }),
+        expect.objectContaining({ name: expect.objectContaining({ en: "Knee brace" }) }),
       ]);
     });
   });
@@ -252,8 +252,7 @@ describe("Lookups (e2e)", () => {
         headers: auth(tokens[USER_ROLE.ADMIN]),
         payload: {
           listKey: LOOKUP_LIST.TOOTH_STATE,
-          nameAr: "وجه تجميلي",
-          nameEn: "Veneer",
+          name: { ar: "وجه تجميلي", en: "Veneer" },
           color: "#c084fc",
         },
       });
@@ -269,7 +268,7 @@ describe("Lookups (e2e)", () => {
         method: "POST",
         url: "/lookups",
         headers: auth(tokens[USER_ROLE.ADMIN]),
-        payload: { listKey: LOOKUP_LIST.TOOTH_STATE, nameAr: "آخر", nameEn: "Veneer" },
+        payload: { listKey: LOOKUP_LIST.TOOTH_STATE, name: { ar: "آخر", en: "Veneer" } },
       });
 
       expect(response.statusCode).toBe(409);
@@ -406,7 +405,10 @@ describe("Lookups (e2e)", () => {
           method: "POST",
           url: "/lookups",
           headers: auth(tokens[role]),
-          payload: { listKey: LOOKUP_LIST.APPOINTMENT_TYPE, nameAr: "استشارة", nameEn: "Consult" },
+          payload: {
+            listKey: LOOKUP_LIST.APPOINTMENT_TYPE,
+            name: { ar: "استشارة", en: "Consult" },
+          },
         });
 
         expect(response.statusCode).toBe(403);
@@ -438,7 +440,7 @@ describe("Lookups (e2e)", () => {
         method: "PATCH",
         url: `/lookups/${mine?.id}`,
         headers: auth(otherAdmin),
-        payload: { nameAr: "مسروق" },
+        payload: { name: { ar: "مسروق" } },
       });
 
       expect(response.statusCode).toBe(404);

@@ -1,10 +1,11 @@
 import type { SiteLanguage } from "@clinic/shared";
 import ar from "@web/site/locales/ar.json";
 import en from "@web/site/locales/en.json";
+import tr from "@web/site/locales/tr.json";
 
 type Dictionary = { readonly [key: string]: string | Dictionary };
 
-const DICTIONARIES: Record<SiteLanguage, Dictionary> = { ar, en };
+const DICTIONARIES: Record<SiteLanguage, Dictionary> = { ar, en, tr };
 
 export type Translate = (key: string, vars?: Record<string, string | number>) => string;
 

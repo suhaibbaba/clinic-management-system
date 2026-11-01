@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import { and, asc, eq, isNull } from "drizzle-orm";
 import postgres from "postgres";
-import { SPECIALTY_CODE, type SpecialtyCode } from "@clinic/shared";
+import { FALLBACK_LANGUAGE, SPECIALTY_CODE, localized, type SpecialtyCode } from "@clinic/shared";
 import { validateEnv } from "@api/config/env.schema";
 import * as schema from "@api/database/schema";
 import { clinics, specialties } from "@api/database/schema";
@@ -35,7 +35,7 @@ async function main(): Promise<void> {
   try {
     if (action === "list") {
       const rows = await db
-        .select({ slug: clinics.slug, nameEn: clinics.nameEn, code: specialties.code })
+        .select({ slug: clinics.slug, name: clinics.name, code: specialties.code })
         .from(clinics)
         .leftJoin(
           specialties,
@@ -48,9 +48,12 @@ async function main(): Promise<void> {
         .where(isNull(clinics.deletedAt))
         .orderBy(asc(clinics.createdAt), asc(specialties.code));
 
-      const byClinic = new Map<string, { nameEn: string; codes: string[] }>();
+      const byClinic = new Map<string, { name: string; codes: string[] }>();
       for (const row of rows) {
-        const entry = byClinic.get(row.slug) ?? { nameEn: row.nameEn, codes: [] };
+        const entry = byClinic.get(row.slug) ?? {
+          name: localized(row.name, FALLBACK_LANGUAGE),
+          codes: [],
+        };
         if (row.code) {
           entry.codes.push(row.code);
         }
@@ -58,7 +61,7 @@ async function main(): Promise<void> {
       }
 
       for (const [slug, entry] of byClinic) {
-        console.log(`${slug}\t${entry.nameEn}\t${entry.codes.join(", ") || "-"}`);
+        console.log(`${slug}\t${entry.name}\t${entry.codes.join(", ") || "-"}`);
       }
 
       return;

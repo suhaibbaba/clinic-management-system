@@ -3,9 +3,9 @@ import { settingsSchema, weeklyScheduleSchema, optionalPhoneSchema } from "@shar
 import { personNameInputSchema, personNameSchema } from "@shared/schemas/person-name";
 import { DEFAULT_TIME_ZONE } from "@shared/time/zone";
 import { PHONE_COUNTRY_CODES } from "@shared/constants/phone";
-
-export const CURRENCIES = ["JOD", "ILS", "USD"] as const;
-export type Currency = (typeof CURRENCIES)[number];
+import { CURRENCIES } from "@shared/locale/currencies";
+import { languageCodeSchema, type LanguageCode } from "@shared/locale/languages";
+import { clinicLocale, type ClinicLocaleSource } from "@shared/locale/profile";
 
 export const clinicScheduleSettingsSchema = z.object({
   timezone: z.string().min(1).default(DEFAULT_TIME_ZONE),
@@ -42,19 +42,19 @@ export function appointmentSettings(settings: unknown): AppointmentSettings {
 }
 
 export const documentSettingsSchema = z.object({
-  language: z.enum(["ar", "en"]).default("ar"),
+  language: languageCodeSchema,
 });
 export type DocumentSettings = z.infer<typeof documentSettingsSchema>;
 
-export function documentSettings(settings: unknown): DocumentSettings {
+export function documentLanguage(clinic: ClinicLocaleSource): LanguageCode {
   const raw =
-    typeof settings === "object" && settings !== null
-      ? (settings as Record<string, unknown>)["documents"]
+    typeof clinic.settings === "object" && clinic.settings !== null
+      ? (clinic.settings as Record<string, unknown>)["documents"]
       : undefined;
 
   const parsed = documentSettingsSchema.safeParse(raw ?? {});
 
-  return parsed.success ? parsed.data : { language: "ar" };
+  return parsed.success ? parsed.data.language : clinicLocale(clinic).primaryLanguage;
 }
 
 export const MAX_CLINIC_LOGO_BYTES = 2 * 1024 * 1024;

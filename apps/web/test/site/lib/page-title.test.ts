@@ -1,4 +1,4 @@
-import { defaultSiteContent, type PublicSite } from "@clinic/shared";
+import { clinicLocale, defaultSiteContent, type PublicSite } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
 import { translator } from "@web/site/i18n";
 import { pageTitle } from "@web/site/lib/page-title";
@@ -23,6 +23,7 @@ const site = (): PublicSite => {
       workingHours: [],
       bookingEnabled: true,
       chartTypes: [],
+      locale: clinicLocale({ country: "PS" }),
     },
     doctors: [{ id: DOCTOR, name: { ar: "باسل", en: "Basel" }, specialty: "", photoUrl: null }],
     content,

@@ -124,6 +124,7 @@ const MOBILE_NATIONAL_PATTERNS: Readonly<Record<string, RegExp>> = {
   "+20": /^1[0125]\d{8}$/,
   "+966": /^5\d{8}$/,
   "+971": /^5\d{8}$/,
+  "+90": /^5\d{9}$/,
 };
 
 export function isMobilePhone(phone: string): boolean {

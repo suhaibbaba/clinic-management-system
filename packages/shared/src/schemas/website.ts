@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { clinicLocaleSchema } from "@shared/locale/profile";
+import { LANGUAGE_CODES, languageCodeSchema, type LanguageCode } from "@shared/locale/languages";
+import type { LocalizedText } from "@shared/locale/localized-text";
 import { CHART_TYPES } from "@shared/enums";
 import {
   dayScheduleSchema,
@@ -54,16 +57,18 @@ export const SITE_SECTION = {
 export const SITE_SECTIONS = Object.values(SITE_SECTION);
 export type SiteSection = (typeof SITE_SECTION)[keyof typeof SITE_SECTION];
 
-export const SITE_LANGUAGES = ["ar", "en"] as const;
-export type SiteLanguage = (typeof SITE_LANGUAGES)[number];
+export const SITE_LANGUAGES = LANGUAGE_CODES;
+export type SiteLanguage = LanguageCode;
 
-const siteText = (max: number) =>
-  z.object({ ar: z.string().trim().max(max), en: z.string().trim().max(max) });
+const siteText = (max: number) => z.partialRecord(languageCodeSchema, z.string().trim().max(max));
 
 const requiredSiteText = (max: number) =>
-  z.object({ ar: z.string().trim().min(1).max(max), en: z.string().trim().max(max) });
+  siteText(max).refine(
+    (text) => Object.values(text).some((value) => typeof value === "string" && value !== ""),
+    { message: "At least one language is required" },
+  );
 
-export type SiteText = z.infer<ReturnType<typeof siteText>>;
+export type SiteText = LocalizedText;
 
 export const siteImageKeySchema = z.string().min(1).max(512);
 
@@ -72,7 +77,7 @@ const siteImage = siteImageKeySchema.nullable();
 export const siteFeatureSchema = z.object({
   icon: z.enum(SITE_ICONS),
   label: requiredSiteText(60),
-  text: siteText(200).default({ ar: "", en: "" }),
+  text: siteText(200).default({}),
 });
 
 export const siteStatSchema = z.object({
@@ -96,7 +101,7 @@ export type SiteService = z.infer<typeof siteServiceSchema>;
 
 const sitePromoSchema = z.object({ title: siteText(120), image: siteImage });
 
-const blankText = { ar: "", en: "" };
+const blankText: LocalizedText = {};
 
 const optionalText = (max: number) => siteText(max).default(blankText);
 
@@ -244,7 +249,7 @@ export const siteContentSchema = z.object({
 });
 export type SiteContent = z.infer<typeof siteContentSchema>;
 
-const blank = (): SiteText => ({ ar: "", en: "" });
+const blank = (): SiteText => ({});
 
 export function defaultSiteContent(): SiteContent {
   return {
@@ -359,6 +364,7 @@ export const publicSiteClinicSchema = z.object({
   workingHours: z.array(dayScheduleSchema),
   bookingEnabled: z.boolean(),
   chartTypes: z.array(z.enum(CHART_TYPES)),
+  locale: clinicLocaleSchema,
 });
 export type PublicSiteClinic = z.infer<typeof publicSiteClinicSchema>;
 

@@ -1,5 +1,7 @@
 export interface EmailLayout {
   readonly clinicName: string;
+  readonly language: string;
+  readonly direction: "rtl" | "ltr";
   readonly logoContentId?: string | undefined;
   readonly heading: string;
   readonly body: readonly string[];
@@ -50,7 +52,7 @@ export function renderEmail(layout: EmailLayout): { html: string; text: string }
     : "";
 
   const html = `<!doctype html>
-<html dir="rtl" lang="ar"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><title>${escape(layout.heading)}</title></head>
+<html dir="${layout.direction}" lang="${escape(layout.language)}"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><title>${escape(layout.heading)}</title></head>
 <body style="margin:0;padding:24px 12px;background:${CANVAS}">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;border-collapse:collapse;background:#ffffff;border:1px solid ${LINE};border-radius:16px">

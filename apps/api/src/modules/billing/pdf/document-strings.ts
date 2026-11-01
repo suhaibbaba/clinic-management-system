@@ -1,3 +1,5 @@
+import { languageDirection, type LanguageCode } from "@clinic/shared";
+
 const AR = {
   common: {
     page: "صفحة {page} من {total}",
@@ -459,12 +461,241 @@ const EN: typeof AR = {
   },
 };
 
-export type DocumentLanguage = "ar" | "en";
-
 export type DocumentStrings = typeof AR;
 
-export const documentStrings = (language: DocumentLanguage): DocumentStrings =>
-  language === "en" ? EN : AR;
+const TR: DocumentStrings = {
+  common: {
+    page: "Sayfa {page} / {total}",
+    printed: "Yazdırılma tarihi",
+  },
+  receipt: {
+    title: "Ödeme makbuzu",
+    number: "Makbuz no",
+    date: "Tarih",
+    patient: "Hasta",
+    fileNumber: "Dosya no",
+    amount: "Alınan tutar",
+    reversedAmount: "İade edilen tutar",
+    method: "Yöntem",
+    note: "Notlar",
+    balanceAfter: "Bu ödemeden sonra kalan bakiye",
+    balanceAfterReversal: "Bu iptalden sonraki bakiye",
+    reversalTitle: "İptal makbuzu",
+    reversalOf: "İptal edilen makbuz no",
+    signature: "Teslim alan",
+    stamp: "Klinik kaşesi",
+  },
+  statement: {
+    title: "Hesap ekstresi",
+    patient: "Hasta",
+    fileNumber: "Dosya no",
+    period: "Dönem",
+    periodUntil: "Dönem sonu",
+    openingBalance: "Açılış bakiyesi",
+    closingBalance: "Ödenecek bakiye",
+    totalCharges: "Toplam ücret",
+    totalPayments: "Toplam ödeme",
+    printedAt: "Yazdırılma tarihi",
+    all: "Şu tarihe kadar tüm kayıtlar",
+    columns: {
+      date: "Tarih",
+      description: "Açıklama",
+      charge: "Ücret",
+      payment: "Ödeme",
+      balance: "Bakiye",
+    },
+    payment: "Ödeme",
+    receipt: "Makbuz",
+    reversal: "İptal",
+    reversedPayment: "Ödeme iptal edildi",
+    empty: "Bu dönemde kayıt yok",
+  },
+  labOrder: {
+    title: "Laboratuvar iş emri",
+    number: "Sipariş no",
+    lab: "Laboratuvar",
+    date: "Tarih",
+    patient: "Hasta",
+    doctor: "Doktor",
+    workType: "İş",
+    teeth: "Dişler",
+    material: "Malzeme",
+    shade: "Renk",
+    expected: "Beklenen tarih",
+    instructions: "Talimatlar",
+    signature: "Teslim alan",
+  },
+  labStatement: {
+    title: "Laboratuvar ekstresi",
+    lab: "Laboratuvar",
+    period: "Dönem",
+    periodUntil: "Dönem sonu",
+    openingBalance: "Açılış bakiyesi",
+    closingBalance: "Laboratuvara ödenecek bakiye",
+    printedAt: "Yazdırılma tarihi",
+    columns: {
+      date: "Tarih",
+      description: "Açıklama",
+      order: "Borç",
+      payment: "Ödenen",
+      balance: "Bakiye",
+    },
+    reversal: "İptal",
+    empty: "Bu dönemde kayıt yok",
+  },
+  treatmentPlan: {
+    title: "Tedavi planı",
+    patient: "Hasta",
+    fileNumber: "Dosya numarası",
+    printedAt: "Yazdırılma tarihi",
+    columns: {
+      number: "#",
+      procedure: "İşlem",
+      teeth: "Dişler",
+      status: "Durum",
+      price: "Tahmini fiyat",
+    },
+    statuses: { planned: "Planlandı", in_progress: "Devam ediyor" },
+    total: "Tahmini toplam",
+    disclaimer: "Fiyatlar tahminidir ve tedavinin gerekliliklerine göre değişebilir.",
+    empty: "Planlanmış tedavi yok",
+    signatureDoctor: "Doktor imzası",
+    signaturePatient: "Hasta imzası",
+  },
+
+  prescription: {
+    title: "Reçete",
+    patient: "Hasta",
+    fileNumber: "Dosya numarası",
+    doctor: "Doktor",
+    date: "Tarih",
+    columns: {
+      number: "#",
+      drug: "İlaç",
+      perDose: "Her seferde miktar",
+      timesPerDay: "Günlük kullanım",
+      duration: "Süre",
+    },
+    days: { one: "1 gün", two: "2 gün", few: "{count} gün", many: "{count} gün" },
+    instructions: "Talimatlar",
+    notes: "Notlar",
+    signatureDoctor: "Doktor imzası",
+  },
+
+  settlement: {
+    title: "Doktor hesaplaşması",
+    doctor: "Doktor",
+    period: "Dönem",
+    printedAt: "Yazdırılma tarihi",
+    columns: {
+      date: "Tarih",
+      patient: "Hasta",
+      procedure: "İşlem",
+      amount: "Tutar",
+      deductions: "Vergi ve genel gider",
+      materials: "Malzeme",
+      clinicShare: "Klinik payı",
+      doctorShare: "Doktor payı",
+    },
+    totalPrices: "İndirim öncesi fiyatlar",
+    totalDiscount: "Hastalara yapılan indirim",
+    totalRevenue: "Tedavi fiyatları",
+    totalTax: "Vergi",
+    totalOverhead: "İşletme giderleri",
+    totalMaterials: "Laboratuvar ve malzeme",
+    totalClinicShare: "Klinik payı",
+    totalDoctorShare: "Doktor payı",
+    collected: "Hastaların kliniğe ödediği tutar",
+    collectedShare: "Hastaların ödediği tutardan doktor payı",
+    waiting: "Hasta ödemesi bekleniyor",
+    paid: "Doktora ödenen",
+    held: "Doktorun hastalardan tahsil ettiği",
+    remitted: "Doktorun kliniğe teslim ettiği",
+    balance: "Doktora borç",
+    owedToClinic: "Doktorun kliniğe borcu",
+    empty: "Bu dönemde tedavi yok",
+    signatureClinic: "Klinik imzası",
+    signatureDoctor: "Doktor imzası",
+  },
+
+  payroll: {
+    title: "Bordro",
+    month: "Ay",
+    printedAt: "Yazdırılma tarihi",
+    columns: {
+      employee: "Çalışan",
+      salary: "Aylık maaş",
+      extras: "Ek ödemeler",
+      cuts: "Kesintiler",
+      due: "Hakediş",
+      paid: "Ödenen",
+      remaining: "Kalan",
+    },
+    totalDue: "Toplam hakediş",
+    totalPaid: "Toplam ödenen",
+    totalRemaining: "Toplam kalan",
+    doctorShares: "Doktor yüzde payları",
+    staffCost: "Personel maliyeti",
+    empty: "Bu ay çalışan yok",
+    signature: "Yönetim imzası",
+  },
+
+  payout: {
+    title: "Doktor ödemesi",
+    doctor: "Doktor",
+    paidAt: "Ödeme tarihi",
+    method: "Yöntem",
+    note: "Not",
+    advance: "Hesaba avans — belirli bir tedaviyi karşılamaz",
+    columns: {
+      date: "Tarih",
+      patient: "Hasta",
+      fileNumber: "Dosya no",
+      procedure: "İşlem",
+      amount: "Tutar",
+    },
+    total: "Ödeme toplamı",
+    reversed: "Bu ödeme iptal edildi",
+    signatureClinic: "Klinik imzası",
+    signatureDoctor: "Doktor imzası",
+  },
+
+  shoppingList: {
+    title: "Alışveriş listesi",
+    printedAt: "Yazdırılma tarihi",
+    note: "Önerilen miktarlar asgari miktarın iki katına ulaşır — bir rehberdir, sipariş değildir.",
+    columns: {
+      item: "Ürün",
+      unit: "Birim",
+      current: "Stokta",
+      minimum: "Asgari",
+      suggested: "Önerilen",
+      supplier: "Tedarikçi",
+    },
+    empty: "Asgari düzeyin altında ürün yok",
+    signature: "İmza",
+  },
+
+  purchaseRequest: {
+    title: "Satın alma talebi",
+    greeting: "Merhaba {supplier}, aşağıdaki ürünlere ihtiyacımız var",
+    neededBy: "Gerekli tarih",
+    columns: {
+      item: "Ürün",
+      unit: "Birim",
+      quantity: "Miktar",
+      lastPrice: "Son fiyat",
+    },
+    note: "Notlar",
+    signature: "İmza",
+  },
+};
+
+export type DocumentLanguage = LanguageCode;
+
+const STRINGS: Record<LanguageCode, DocumentStrings> = { ar: AR, en: EN, tr: TR };
+
+export const documentStrings = (language: DocumentLanguage): DocumentStrings => STRINGS[language];
 
 export const documentDirection = (language: DocumentLanguage): "rtl" | "ltr" =>
-  language === "en" ? "ltr" : "rtl";
+  languageDirection(language);

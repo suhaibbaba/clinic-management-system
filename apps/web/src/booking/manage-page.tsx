@@ -1,4 +1,4 @@
-import type { ManagedBooking } from "@clinic/shared";
+import type { LanguageCode, ManagedBooking } from "@clinic/shared";
 import { APPOINTMENT_STATUS } from "@shared/enums";
 import { useMemo, useState, type JSX } from "react";
 import { bookingApi, failureKey } from "@web/booking/api";
@@ -17,6 +17,7 @@ import { BookingFacts } from "@web/booking/steps/success-view";
 import { WhenStep, type SlotOption } from "@web/booking/steps/when-step";
 import { Alert, Button, Card, Skeleton, cx } from "@web/booking/ui";
 import { useAsync } from "@web/booking/use-async";
+import { useBookingLanguage } from "@web/booking/use-booking-language";
 
 const VISIBLE_DAYS = 7;
 
@@ -39,6 +40,8 @@ export function ManagePage({
   readonly slug: string | undefined;
 }): JSX.Element {
   const managed = useAsync(() => bookingApi.managed(token), [token]);
+  const clinic = useAsync(() => bookingApi.clinic(slug ?? ""), [slug], slug !== undefined);
+  const language = useBookingLanguage(clinic.data?.locale);
   const [mode, setMode] = useState<Mode>("view");
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
@@ -48,7 +51,7 @@ export function ManagePage({
 
   if (managed.loading) {
     return (
-      <PageShell clinicName={undefined}>
+      <PageShell clinicName={undefined} language={language}>
         <Skeleton className="h-8 w-1/2" />
         <div className="mt-4">
           <Skeleton className="h-40 rounded-card" />
@@ -59,7 +62,7 @@ export function ManagePage({
 
   if (managed.error || !booking) {
     return (
-      <PageShell clinicName={undefined}>
+      <PageShell clinicName={undefined} language={language}>
         <FullPageMessage title={t(failureKey(managed.error))} />
       </PageShell>
     );
@@ -83,7 +86,7 @@ export function ManagePage({
   };
 
   return (
-    <PageShell clinicName={bookingName(booking.clinicName)}>
+    <PageShell clinicName={bookingName(booking.clinicName)} language={language}>
       <h1 data-testid="manage-heading" className="mb-4 text-title font-medium text-primary-900">
         {t("manage.heading")}
       </h1>
@@ -171,6 +174,7 @@ export function ManagePage({
           <ReschedulePanel
             booking={booking}
             slug={slug}
+            language={language.language}
             busy={busy}
             onPick={(slot) => void act(() => bookingApi.reschedule(token, slot.startsAt))}
             onClose={() => setMode("view")}
@@ -203,12 +207,14 @@ export function ManagePage({
 function ReschedulePanel({
   booking,
   slug,
+  language,
   busy,
   onPick,
   onClose,
 }: {
   readonly booking: ManagedBooking;
   readonly slug: string | undefined;
+  readonly language: LanguageCode;
   readonly busy: boolean;
   readonly onPick: (slot: SlotOption) => void;
   readonly onClose: () => void;
@@ -225,7 +231,7 @@ function ReschedulePanel({
     (entry) => bookingName(entry.name) === bookingName(booking.doctorName),
   )?.id;
 
-  const chips = useMemo(() => dayChips(from, VISIBLE_DAYS, MAX_DAYS_AHEAD), [from]);
+  const chips = useMemo(() => dayChips(from, VISIBLE_DAYS, MAX_DAYS_AHEAD), [from, language]);
 
   const week = useAsync(
     async () => {

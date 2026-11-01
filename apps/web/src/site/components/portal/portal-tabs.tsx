@@ -1,3 +1,4 @@
+import { isRtlLanguage } from "@clinic/shared";
 import { useRef, type ComponentProps, type JSX, type KeyboardEvent } from "react";
 import { cx } from "@web/booking/ui";
 import { SiteIcon } from "@web/site/components/site-icon";
@@ -35,8 +36,9 @@ export function PortalTabs({
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     const index = PORTAL_TABS.indexOf(active);
-    const forward = language === "ar" ? "ArrowLeft" : "ArrowRight";
-    const backward = language === "ar" ? "ArrowRight" : "ArrowLeft";
+    const rtl = isRtlLanguage(language);
+    const forward = rtl ? "ArrowLeft" : "ArrowRight";
+    const backward = rtl ? "ArrowRight" : "ArrowLeft";
     const last = PORTAL_TABS.length - 1;
     const target =
       event.key === forward

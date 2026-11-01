@@ -6,7 +6,9 @@ import {
   mapsSearchLink,
   orDefault,
   pick,
+  siteLanguage,
   timeLabel,
+  topicValue,
   titleLines,
   weekdayName,
 } from "@web/site/lib/text";
@@ -16,6 +18,27 @@ describe("site text", () => {
     expect(pick({ ar: "خدماتنا", en: "" }, "en")).toBe("خدماتنا");
     expect(pick({ ar: "خدماتنا", en: "Services" }, "en")).toBe("Services");
     expect(orDefault({ ar: "", en: "" }, "ar", "fallback")).toBe("fallback");
+  });
+
+  it("falls back through the clinic's languages in order", () => {
+    expect(pick({ ar: "مرحبا", tr: "Merhaba" }, "en", ["tr", "ar"])).toBe("Merhaba");
+    expect(pick({ tr: "Merhaba" }, "ar")).toBe("Merhaba");
+  });
+
+  it("serves a requested language only when the clinic offers it", () => {
+    const locale = { languages: ["tr", "en"] as ["tr", "en"], primaryLanguage: "tr" as const };
+
+    expect(siteLanguage("en", locale)).toBe("en");
+    expect(siteLanguage("ar", locale)).toBe("tr");
+    expect(siteLanguage(null, locale)).toBe("tr");
+  });
+
+  it("keys a topic by its primary-language text", () => {
+    const arabic = { languages: ["ar", "en"] as ["ar", "en"], primaryLanguage: "ar" as const };
+    const turkish = { languages: ["tr"] as ["tr"], primaryLanguage: "tr" as const };
+
+    expect(topicValue({ ar: "حجز", en: "Booking" }, arabic)).toBe("حجز");
+    expect(topicValue({ tr: "Randevu" }, turkish)).toBe("Randevu");
   });
 
   it("splits a hero title into its lead line and the accented rest", () => {
@@ -46,11 +69,13 @@ describe("opening hours", () => {
   it("names a weekday with Sunday as zero", () => {
     expect(weekdayName(0, "en")).toBe("Sunday");
     expect(weekdayName(6, "en")).toBe("Saturday");
+    expect(weekdayName(0, "tr")).toBe("Pazar");
   });
 
   it("writes a clock time with Latin digits in both languages", () => {
     expect(timeLabel("20:30")).toBe("8:30 PM");
     expect(timeLabel("08:00")).toBe("8:00 AM");
+    expect(timeLabel("20:30", "24h")).toBe("20:30");
   });
 });
 

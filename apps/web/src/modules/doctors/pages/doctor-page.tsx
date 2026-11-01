@@ -14,7 +14,7 @@ import { useDoctor, useUpdateDoctorSchedule } from "@web/modules/doctors/queries
 import { ExtraHoursPanel } from "@web/modules/schedule/components/extra-hours-panel";
 import { TimeOffPanel } from "@web/modules/schedule/components/time-off-panel";
 import { errorToast } from "@web/shared/lib/api-error";
-import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
+import { setClinicTimeZone } from "@web/shared/lib/clinic-locale";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { UnsavedChanges } from "@web/shared/components/unsaved-changes";
 import { countChanges } from "@web/shared/lib/changes";

@@ -11,10 +11,11 @@ function heading(
   t: Translate,
 ): string {
   const { content } = site;
+  const { languages } = site.clinic.locale;
 
   switch (page.kind) {
     case "home":
-      return pick(content.hero.title, language);
+      return pick(content.hero.title, language, languages);
     case "services":
       return t("nav.services");
     case "doctors":
@@ -22,14 +23,14 @@ function heading(
     case "doctor": {
       const doctor = visibleDoctors(site).find((candidate) => candidate.id === page.id);
 
-      return doctor ? nameIn(doctor.name, language) : t("doctors.notFound");
+      return doctor ? nameIn(doctor.name, language, languages) : t("doctors.notFound");
     }
     case "about":
-      return orDefault(content.about.title, language, t("nav.about"));
+      return orDefault(content.about.title, language, t("nav.about"), languages);
     case "contact":
-      return orDefault(content.contact.title, language, t("nav.contact"));
+      return orDefault(content.contact.title, language, t("nav.contact"), languages);
     case "booking":
-      return orDefault(content.booking.title, language, t("nav.booking"));
+      return orDefault(content.booking.title, language, t("nav.booking"), languages);
     case "account":
       return t("portal.title");
     case "notFound":
@@ -43,7 +44,7 @@ export function pageTitle(
   language: SiteLanguage,
   t: Translate,
 ): string {
-  const name = nameIn(site.clinic.name, language);
+  const name = nameIn(site.clinic.name, language, site.clinic.locale.languages);
   const title = heading(site, page, language, t);
 
   return title && title !== name ? `${title} — ${name}` : name;

@@ -28,7 +28,7 @@ export function PortalTreatments({
   readonly paged?: boolean;
   readonly "data-testid": string;
 }): JSX.Element {
-  const { language, t } = useSite();
+  const { language, languages, t } = useSite();
   const glyph = useSiteGlyph();
 
   return (
@@ -50,7 +50,7 @@ export function PortalTreatments({
           <span className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="text-value font-bold text-primary-900">{item.name}</span>
             <span className="flex flex-wrap items-center gap-2 text-label text-ink-muted">
-              <span>{nameIn(item.doctor, language)}</span>
+              <span>{nameIn(item.doctor, language, languages)}</span>
               {item.teeth.length > 0 && (
                 <span
                   data-part="teeth"

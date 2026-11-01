@@ -1,3 +1,4 @@
+import { languageDirection } from "@clinic/shared";
 import type { JSX } from "react";
 import { BookingWizard } from "@web/booking/booking-wizard";
 import { SectionHeading } from "@web/site/components/section-heading";
@@ -10,7 +11,7 @@ import { imageOf } from "@web/site/lib/images";
 import { orDefault } from "@web/site/lib/text";
 
 export function BookingPage(): JSX.Element {
-  const { site, language, t, params } = useSite();
+  const { site, language, languages, t, params } = useSite();
   const portal = usePortal();
   const signedIn = portal.state.status === "ready" ? portal.state.account : undefined;
   const { booking } = site.content;
@@ -24,8 +25,8 @@ export function BookingPage(): JSX.Element {
           id="booking"
           align="center"
           level={1}
-          title={orDefault(booking.title, language, t("booking.title"))}
-          subtitle={orDefault(booking.subtitle, language, t("booking.subtitle"))}
+          title={orDefault(booking.title, language, t("booking.title"), languages)}
+          subtitle={orDefault(booking.subtitle, language, t("booking.subtitle"), languages)}
         />
 
         <div
@@ -43,12 +44,13 @@ export function BookingPage(): JSX.Element {
           </p>
         </div>
 
-        <div dir="rtl" lang="ar" className="mt-6">
+        <div dir={languageDirection(language)} lang={language} className="mt-6">
           {site.clinic.bookingEnabled ? (
             <BookingWizard
               key={`${doctorId ?? ""}-${signedIn ? "account" : "guest"}`}
               slug={site.clinic.slug}
               inline
+              language={language}
               initialDoctorId={doctorId}
               account={signedIn && { patients: signedIn.patients, onBooked: portal.refresh }}
             />

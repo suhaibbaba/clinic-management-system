@@ -14,6 +14,7 @@ import {
   localDate,
   type CollectionTerm,
   type CollectionTermsInput,
+  type LocalizedText,
   type PayPlan,
   type PayPlanInput,
   type PayPlanKind,
@@ -442,8 +443,8 @@ export class PayTermsService implements OnModuleInit {
   }
 
   async holdersAt(clinicId: string, month: PayrollMonth): Promise<PaymentHolder[]> {
-    const rows = await this.db.execute<{ id: string; name_ar: string; name_en: string }>(
-      sql`select d.id, u.name_ar, u.name_en
+    const rows = await this.db.execute<{ id: string; name: LocalizedText }>(
+      sql`select d.id, u.name
           from ${doctors} d
           join ${users} u on u.id = d.user_id
           cross join lateral (
@@ -459,12 +460,12 @@ export class PayTermsService implements OnModuleInit {
             and d.deleted_at is null
             and u.deleted_at is null
             and term.collector = ${PAYMENT_COLLECTOR.DOCTOR}
-          order by u.name_ar`,
+          order by u.normalized_name`,
     );
 
     return [...rows].map((row) => ({
       doctorId: row.id,
-      name: { ar: row.name_ar, en: row.name_en },
+      name: row.name,
     }));
   }
 

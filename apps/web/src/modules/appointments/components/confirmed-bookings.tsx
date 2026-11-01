@@ -15,7 +15,7 @@ import {
   type Column,
 } from "@clinic/ui";
 import { todayIso } from "@web/shared/lib/dates";
-import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
+import { setClinicTimeZone } from "@web/shared/lib/clinic-locale";
 import { useAppointments } from "@web/modules/appointments/queries";
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/shared/lib/appointment-status";
 import { useClinic } from "@web/shared/queries/clinic";

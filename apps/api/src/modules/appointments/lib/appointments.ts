@@ -4,8 +4,8 @@ import {
   addDays,
   type Appointment,
   type CalendarAppointment,
+  type LocalizedText,
 } from "@clinic/shared";
-import { toPersonName } from "@api/common/person-name";
 
 export type AppointmentRow = typeof appointments.$inferSelect;
 
@@ -78,8 +78,7 @@ export interface CalendarRow {
   readonly patientPhone: string;
   readonly patientFileNumber: string;
   readonly patientUnverified: boolean;
-  readonly doctorNameAr: string;
-  readonly doctorNameEn: string;
+  readonly doctorName: LocalizedText;
 }
 
 export function toCalendarAppointment(row: CalendarRow): CalendarAppointment {
@@ -91,6 +90,6 @@ export function toCalendarAppointment(row: CalendarRow): CalendarAppointment {
     patientPhone: row.patientPhone,
     patientFileNumber: row.patientFileNumber,
     patientUnverified: row.patientUnverified,
-    doctorName: toPersonName(row.doctorNameAr, row.doctorNameEn),
+    doctorName: row.doctorName,
   };
 }

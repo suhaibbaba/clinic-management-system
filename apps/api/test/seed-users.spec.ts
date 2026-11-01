@@ -45,10 +45,10 @@ describe("the seeded staff", () => {
     ]);
 
     for (const account of ACCOUNTS) {
-      expect(account.firstName.ar.length).toBeGreaterThan(0);
-      expect(account.firstName.en.length).toBeGreaterThan(0);
-      expect(account.lastName.ar.length).toBeGreaterThan(0);
-      expect(account.lastName.en.length).toBeGreaterThan(0);
+      expect(account.firstName.ar?.length).toBeGreaterThan(0);
+      expect(account.firstName.en?.length).toBeGreaterThan(0);
+      expect(account.lastName.ar?.length).toBeGreaterThan(0);
+      expect(account.lastName.en?.length).toBeGreaterThan(0);
       expect(account.phone.startsWith("+970")).toBe(true);
     }
   });
@@ -129,11 +129,11 @@ describe("the seeded staff", () => {
 
     const [clinicA] = await db
       .insert(schema.clinics)
-      .values({ nameAr: "أ", nameEn: "A", slug: `a-${handle}` })
+      .values({ name: { ar: "أ", en: "A" }, slug: `a-${handle}` })
       .returning({ id: schema.clinics.id });
     const [clinicB] = await db
       .insert(schema.clinics)
-      .values({ nameAr: "ب", nameEn: "B", slug: `b-${handle}` })
+      .values({ name: { ar: "ب", en: "B" }, slug: `b-${handle}` })
       .returning({ id: schema.clinics.id });
 
     await upsertUser(db, clinicA?.id as string, account, "x".repeat(32));

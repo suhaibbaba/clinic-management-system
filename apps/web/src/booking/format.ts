@@ -1,8 +1,10 @@
-import type { PersonName } from "@clinic/shared";
+import { languageDefinition, type PersonName } from "@clinic/shared";
 import { personName } from "@shared/text/person-name";
 import { clockTime, shortDate } from "@shared/time/zone";
+import { bookingLocale } from "@web/booking/i18n";
 
-const DATE_LOCALE = "ar-SY-u-ca-gregory-nu-latn";
+const dateLocale = (): string =>
+  `${languageDefinition(bookingLocale().language).intlLocale}-u-ca-gregory-nu-latn`;
 
 const stripBidiMarks = (value: string): string => value.replace(/[\u200e\u200f]/g, "");
 
@@ -44,7 +46,7 @@ export function weekTitle(from: string, to: string): string {
 }
 
 const weekdayOf = (at: Date): string =>
-  stripBidiMarks(at.toLocaleDateString(DATE_LOCALE, { weekday: "long" }));
+  stripBidiMarks(at.toLocaleDateString(dateLocale(), { weekday: "long" }));
 
 export function dayTitle(iso: string): string {
   return `${weekdayOf(noon(iso))} ${shortDate(iso)}`;
@@ -102,7 +104,7 @@ const inClinicZone = (iso: string): Date => {
 export function formatTime(iso: string): string {
   const at = inClinicZone(iso);
 
-  return clockTime(at.getHours() * 60 + at.getMinutes());
+  return clockTime(at.getHours() * 60 + at.getMinutes(), bookingLocale().clock);
 }
 
 export function formatLongDate(iso: string): string {
@@ -116,5 +118,7 @@ export function clinicDate(iso: string): string {
 }
 
 export function bookingName(name: PersonName | null | undefined): string {
-  return personName(name, "ar");
+  const { language, primaryLanguage } = bookingLocale();
+
+  return personName(name, language, [primaryLanguage]);
 }

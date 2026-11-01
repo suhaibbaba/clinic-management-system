@@ -10,8 +10,8 @@ import { pick } from "@web/site/lib/text";
 import { SITE_PATH } from "@web/site/route";
 
 export function ServiceTile({ service }: { readonly service: SiteService }): JSX.Element {
-  const { site, language } = useSite();
-  const description = pick(service.description, language);
+  const { site, language, languages } = useSite();
+  const description = pick(service.description, language, languages);
 
   return (
     <SiteLink
@@ -36,7 +36,7 @@ export function ServiceTile({ service }: { readonly service: SiteService }): JSX
           <SiteIcon name="arrow-end" className="size-4" />
         </span>
         <h3 className="site-fill-ink text-heading font-bold text-primary-900">
-          {pick(service.title, language)}
+          {pick(service.title, language, languages)}
         </h3>
         {description && (
           <p className="site-fill-soft line-clamp-2 text-label text-ink-muted">{description}</p>

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { clinicLocaleSchema } from "@shared/locale/profile";
 import { CHART_TYPES, USER_ROLES } from "@shared/enums";
 import { personNameSchema } from "@shared/schemas/person-name";
 
@@ -109,6 +110,7 @@ export const sessionClinicSchema = z.object({
   logoUrl: z.url().nullable(),
   chartTypes: z.array(z.enum(CHART_TYPES)),
   country: z.string(),
+  locale: clinicLocaleSchema,
 });
 export type SessionClinic = z.infer<typeof sessionClinicSchema>;
 

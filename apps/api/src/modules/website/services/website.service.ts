@@ -12,9 +12,11 @@ import {
   SITE_SECTION,
   USER_ROLE,
   bookingSettings,
+  clinicLocale,
   defaultSiteContent,
   siteContentSchema,
   siteImageKeys,
+  type ClinicLocale,
   type PersonName,
   type PresignSiteImageInput,
   type PresignSiteImageResponse,
@@ -24,7 +26,6 @@ import {
   type WebsiteEditor,
 } from "@clinic/shared";
 import { and, asc, eq, isNull, ne, sql, type SQL } from "drizzle-orm";
-import { toPersonName } from "@api/common/person-name";
 import { clinicChartTypes } from "@api/common/lib/clinic-charts";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { SITE_CONTENT_ENTITY } from "@api/common/constants/audit-entities";
@@ -44,12 +45,12 @@ import {
 type ClinicRow = Pick<
   typeof clinics.$inferSelect,
   | "id"
-  | "nameAr"
-  | "nameEn"
+  | "name"
   | "slug"
   | "logoKey"
   | "phone"
   | "country"
+  | "currency"
   | "email"
   | "address"
   | "latitude"
@@ -60,12 +61,12 @@ type ClinicRow = Pick<
 
 const CLINIC_COLUMNS = {
   id: clinics.id,
-  nameAr: clinics.nameAr,
-  nameEn: clinics.nameEn,
+  name: clinics.name,
   slug: clinics.slug,
   logoKey: clinics.logoKey,
   phone: clinics.phone,
   country: clinics.country,
+  currency: clinics.currency,
   email: clinics.email,
   address: clinics.address,
   latitude: clinics.latitude,
@@ -225,7 +226,9 @@ export class WebsiteService implements OnModuleInit {
     }
   }
 
-  async requirePublishedClinic(slug: string): Promise<{ id: string; content: SiteContent }> {
+  async requirePublishedClinic(
+    slug: string,
+  ): Promise<{ id: string; content: SiteContent; locale: ClinicLocale }> {
     const clinic = await this.liveClinic(eq(clinics.slug, slug));
     const row = await this.contentRow(clinic.id);
 
@@ -233,7 +236,7 @@ export class WebsiteService implements OnModuleInit {
       throw new NotFoundException("Clinic not found");
     }
 
-    return { id: clinic.id, content: readContent(row.published) };
+    return { id: clinic.id, content: readContent(row.published), locale: clinicLocale(clinic) };
   }
 
   async requirePortalClinic(slug: string): Promise<{ id: string; name: PersonName }> {
@@ -243,7 +246,7 @@ export class WebsiteService implements OnModuleInit {
       throw new NotFoundException("Clinic not found");
     }
 
-    return { id: clinic.id, name: toPersonName(clinic.nameAr, clinic.nameEn) };
+    return { id: clinic.id, name: clinic.name };
   }
 
   async portalOpen(clinicId: string): Promise<boolean> {
@@ -285,7 +288,7 @@ export class WebsiteService implements OnModuleInit {
 
     return {
       clinic: {
-        name: toPersonName(clinic.nameAr, clinic.nameEn),
+        name: clinic.name,
         slug: clinic.slug,
         logoUrl: clinic.logoKey ? (await this.storage.createBrandingUrl(clinic.logoKey)).url : null,
         phone: clinic.phone,
@@ -297,6 +300,7 @@ export class WebsiteService implements OnModuleInit {
         workingHours: clinic.workingHours,
         bookingEnabled: bookingSettings(clinic.settings).enabled,
         chartTypes: await clinicChartTypes(this.db, clinic.id),
+        locale: clinicLocale(clinic),
       },
       doctors: await this.doctors(clinic.id),
       content,
@@ -308,8 +312,7 @@ export class WebsiteService implements OnModuleInit {
     const rows = await this.db
       .select({
         id: doctors.id,
-        nameAr: users.nameAr,
-        nameEn: users.nameEn,
+        name: users.name,
         photoKey: users.photoKey,
         specialty: specialties.name,
       })
@@ -325,12 +328,12 @@ export class WebsiteService implements OnModuleInit {
           isNull(users.deletedAt),
         ),
       )
-      .orderBy(asc(users.nameAr));
+      .orderBy(asc(users.normalizedName));
 
     return Promise.all(
       rows.map(async (row) => ({
         id: row.id,
-        name: toPersonName(row.nameAr, row.nameEn),
+        name: row.name,
         specialty: row.specialty,
         photoUrl: row.photoKey ? (await this.storage.createBrandingUrl(row.photoKey)).url : null,
       })),

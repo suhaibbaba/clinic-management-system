@@ -8,9 +8,9 @@ import {
   type LabOrder,
   type LabOrderRow,
   type LabOrderSort,
+  type LocalizedText,
   awaitingLab,
 } from "@clinic/shared";
-import { toPersonName } from "@api/common/person-name";
 
 export type OrderRow = typeof labOrders.$inferSelect;
 
@@ -93,8 +93,7 @@ export interface JoinedOrderRow {
   readonly order: OrderRow;
   readonly patientName: string;
   readonly patientFileNumber: string;
-  readonly doctorNameAr: string;
-  readonly doctorNameEn: string;
+  readonly doctorName: LocalizedText;
   readonly labName: string;
   readonly workTypeName: string | null;
 }
@@ -106,7 +105,7 @@ export function toLabOrderRow(row: JoinedOrderRow): LabOrderRow {
     ...order,
     patientName: row.patientName,
     patientFileNumber: row.patientFileNumber,
-    doctorName: toPersonName(row.doctorNameAr, row.doctorNameEn),
+    doctorName: row.doctorName,
     labName: row.labName,
     workTypeName: row.workTypeName,
     isOverdue:

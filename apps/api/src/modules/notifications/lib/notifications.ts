@@ -2,6 +2,7 @@ import { type DocumentStrings } from "@api/modules/billing/pdf/document-strings"
 import {
   type NotificationTemplate,
   type NotificationChannel,
+  type NotificationVars,
   NOTIFICATION_STATUS,
 } from "@clinic/shared";
 
@@ -9,7 +10,7 @@ export interface SendNotification {
   readonly clinicId: string;
   readonly to: string;
   readonly template: NotificationTemplate;
-  readonly vars: Record<string, string>;
+  readonly vars: NotificationVars;
   readonly channel?: NotificationChannel | undefined;
   readonly appointmentId?: string | undefined;
 }

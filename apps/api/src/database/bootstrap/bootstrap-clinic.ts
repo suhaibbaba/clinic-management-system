@@ -62,8 +62,7 @@ async function createClinic(db: DatabaseExecutor, env: BootstrapEnv): Promise<st
     .insert(clinics)
     .values({
       slug: env.BOOTSTRAP_CLINIC_SLUG,
-      nameAr: env.BOOTSTRAP_CLINIC_NAME_AR,
-      nameEn: env.BOOTSTRAP_CLINIC_NAME_EN,
+      name: { ar: env.BOOTSTRAP_CLINIC_NAME_AR, en: env.BOOTSTRAP_CLINIC_NAME_EN },
       siteDomain: env.BOOTSTRAP_SITE_DOMAIN ?? null,
       currency: env.BOOTSTRAP_CURRENCY,
       country: env.BOOTSTRAP_COUNTRY,
@@ -102,16 +101,12 @@ async function ensureAdmin(
     en: env.BOOTSTRAP_ADMIN_FIRST_NAME_EN,
   };
   const lastName = { ar: env.BOOTSTRAP_ADMIN_LAST_NAME_AR, en: env.BOOTSTRAP_ADMIN_LAST_NAME_EN };
-  const name = joinPersonName(firstName, lastName);
 
   await db.insert(users).values({
     clinicId,
-    firstNameAr: firstName.ar,
-    lastNameAr: lastName.ar,
-    firstNameEn: firstName.en,
-    lastNameEn: lastName.en,
-    nameAr: name.ar,
-    nameEn: name.en,
+    firstName,
+    lastName,
+    name: joinPersonName(firstName, lastName),
     phone: env.BOOTSTRAP_ADMIN_PHONE,
     email: env.BOOTSTRAP_ADMIN_EMAIL ?? null,
     passwordHash,

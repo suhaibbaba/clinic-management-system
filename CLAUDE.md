@@ -31,7 +31,7 @@ rules, in short:
 
 - **API** NestJS on Fastify, TypeScript strict
 - **Database** Drizzle ORM + PostgreSQL, migrations via `drizzle-kit`
-- **Web** React + Vite, RTL-first Arabic, i18n (Arabic default)
+- **Web** React + Vite, i18n in every language of `LANGUAGE_DEFINITIONS` (Arabic default, RTL-first)
 - **Shared** pnpm workspaces: `packages/shared` (Zod schemas, types, enums), `packages/ui` (the
   interface system)
 - **Validation** Zod everywhere; DTOs are shared schemas via `nestjs-zod`
@@ -86,19 +86,26 @@ core · patients · billing · appointments · booking · notifications · labs 
    off, and booked appointments. `closedReason` says which. A closure or absence over booked
    appointments answers 409 with who is in the way; the caller returns with `force` and optionally
    `cancelAppointments`.
-10. **Staff and clinic names are bilingual, patient names are not.** `{ ar, en }` through
-    `<PersonName>` / `personName()`, never a per-screen ternary. A patient's name is one language.
-    Names are stored in parts (patient: first, optional middle, last; staff: first and last per
-    language) and the API writes the full name beside them — `fullName` / `name` in every response,
-    `firstName` / `lastName` where a screen is short of room. The web never splits a full name.
-    Printed documents use the clinic's document language.
+10. **Staff, clinic and list names are stored per language, patient names are not.** A
+    `LocalizedText` (`{ ar?, en?, tr?, … }`, jsonb) read through `<PersonName>` / `localized()`, never
+    `.ar`, never a per-screen ternary. A form shows one input per clinic language. A patient's name is
+    one language. Names are stored in parts (patient: first, optional middle, last; staff: first and
+    last per language) and the API writes the full name beside them — `fullName` / `name` in every
+    response, `firstName` / `lastName` where a screen is short of room. The web never splits a full
+    name. Printed documents and patient messages use the clinic's document language.
 11. **Money is whole numbers in the interface, and a symbol.** `wholeMoneySchema` gates every write;
-    money inputs refuse a decimal separator; displays format with zero decimals. Storage stays
-    `numeric(10,2)` and read schemas stay `moneySchema`. The currency is its symbol from
-    `CURRENCY_SYMBOLS`, never a code or a name.
+    money inputs refuse a decimal separator; displays format with zero decimals, grouped the way the
+    clinic's country writes numbers. Storage stays `numeric(10,2)` and read schemas stay
+    `moneySchema`. The currency is its symbol from `CURRENCY_DEFINITIONS`, never a code or a name,
+    and it cannot change once the clinic has recorded money.
 12. **Translations are editable per clinic.** `translation_overrides` stores only what an admin
     changed; the locale files remain the default, so improved wording still reaches untouched keys
     and a reset is a row delete.
+13. **A clinic's locale is one profile.** `clinicLocale(clinic)` (country, currency, time zone,
+    languages, primary language, clock, week start, number locale) starts from the country's
+    `COUNTRY_PRESETS` row and the clinic's `settings.locale` overrides it. Every date, time, number
+    and language decision reads it; nothing compares a language code. A new language is a row in
+    `LANGUAGE_DEFINITIONS` plus its locale files; a new country is a preset row.
 
 ## Backend
 
@@ -152,11 +159,12 @@ core · patients · billing · appointments · booking · notifications · labs 
 - **One date and time format.** `shared/lib/format.ts` alone turns an instant into text, in the
   clinic's time zone: `formatDate` "09/05/2026", `formatTime` "10:30 AM", `formatDateTime`
   "09/05/2026 · 10:30 AM", `formatPeriod`. Never `toLocaleString` or a hand-joined date and time.
-  Every date the product writes is DD/MM/YYYY and every time is AM/PM, in Arabic and English
-  alike: the booking pages, the patient account, printed documents and messages too
-  (`shortDate` and `clockTime` in `packages/shared`).
-- **RTL by default.** Gregorian dates, Arabic through i18n. `check:i18n` fails on an Arabic literal
-  in a component and on a key missing from either locale.
+  Every date the product writes is DD/MM/YYYY and every time follows the clinic's clock (AM/PM or
+  24-hour), in every language: the booking pages, the patient account, printed documents and
+  messages too (`shortDate` and `clockTime(minute, clock)` in `packages/shared`).
+- **Direction comes from the language.** RTL for Arabic, LTR for Turkish and English, through
+  `languageDirection()`. Gregorian dates, words through i18n. `check:i18n` fails on an Arabic
+  literal in a component, on a key missing from any locale, and on a plural form a language needs.
 - Dropdowns read the clinic's lists through `useLookupOptions` / `useLookupLabels`, never a constant.
 - Role-aware UI is cosmetic; the API is the boundary. Never link to a page the reader would be
   bounced off — check the helper the route guard uses.

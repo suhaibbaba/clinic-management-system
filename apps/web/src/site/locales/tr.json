@@ -1,0 +1,256 @@
+{
+  "skip": "İçeriğe geç",
+  "nav": {
+    "label": "Site bölümleri",
+    "home": "Ana sayfa",
+    "services": "Hizmetler",
+    "doctors": "Doktorlar",
+    "about": "Hakkımızda",
+    "booking": "Randevu",
+    "contact": "İletişim",
+    "book": "Randevu al",
+    "menu": "Menü",
+    "account": "Hesabım",
+    "language": "Dil"
+  },
+  "hero": {
+    "subtitle": "Modern teknolojiyle, sakin ve güvenli bir ortamda eksiksiz bakım",
+    "cta": "Hemen randevu al",
+    "slides": "Klinik fotoğrafları",
+    "slide": "Fotoğraf {{number}}",
+    "services": "Hizmetlerimizi keşfedin"
+  },
+  "services": {
+    "title": "Hizmetlerimiz",
+    "subtitle": "İhtiyacınız olan her şey için eksiksiz bakım",
+    "book": "{{name}} için randevu al",
+    "promo": "Daha sağlıklı bir yaşam muayeneyle başlar",
+    "promoCta": "Randevunuzu alın",
+    "eyebrow": "Hizmetlerimiz",
+    "pageTitle": "Gülüşünüz için eksiksiz bakım"
+  },
+  "doctors": {
+    "title": "Doktorlarımız",
+    "subtitle": "Sizinle en yüksek standartta ilgilenen uzman bir ekip",
+    "filter": "Uzmanlık",
+    "all": "Tüm uzmanlıklar",
+    "book": "Randevu al",
+    "bookWith": "{{name}} ile randevu al",
+    "empty": "Bu uzmanlıkta doktor yok.",
+    "promo": "Doktorunuzu seçin, kolayca randevu alın",
+    "promoCta": "Hemen randevu al",
+    "profile": "Profili gör",
+    "profileOf": "{{name}} profilini gör",
+    "back": "Tüm doktorlar",
+    "notFound": "Bu doktor şu anda mevcut değil."
+  },
+  "about": {
+    "title": "Hakkımızda",
+    "subtitle": "Sağlığınızı önemsiyoruz, çünkü en iyisini hak ediyorsunuz",
+    "cta": "Randevu al",
+    "why": "Neden biz?"
+  },
+  "booking": {
+    "title": "Randevu al",
+    "subtitle": "Birkaç hızlı ve basit adım",
+    "aside": "Daha sağlıklı bir yaşama bir adım",
+    "closed": "Online randevu şu anda kullanılamıyor. Lütfen bizi arayın."
+  },
+  "contact": {
+    "title": "İletişim",
+    "subtitle": "Sorularınızı yanıtlamak için buradayız",
+    "phone": "Bizi arayın",
+    "email": "E-posta gönderin",
+    "address": "Bizi bulun",
+    "hours": "Çalışma saatleri",
+    "closedDay": "Kapalı",
+    "dayRange": "{{from}} – {{to}}",
+    "welcome": "Kliniğimize her zaman bekleriz",
+    "map": "{{name}} haritası",
+    "directions": "Yol tarifi",
+    "form": {
+      "title": "Bize mesaj gönderin",
+      "name": "Ad soyad",
+      "phone": "Telefon numarası",
+      "message": "Mesajınız",
+      "optional": "İsteğe bağlı",
+      "send": "Mesajı gönder",
+      "sent": "Mesajınız bize ulaştı. En kısa sürede sizinle iletişime geçeceğiz.",
+      "another": "Başka mesaj gönder",
+      "preview": "Gönderme, site yayınlandığında çalışır.",
+      "invalid": {
+        "name": "Ad ve soyadınızı yazın.",
+        "phone": "Geçerli bir telefon numarası yazın.",
+        "message": "En az beş karakter yazın."
+      },
+      "subtitle": "Sizden haber almaktan memnun oluruz",
+      "topic": "Talep türü",
+      "topicNone": "Talep türü seçin",
+      "country": "Ülke kodu",
+      "placeholder": {
+        "name": "Örn: Ahmet Yılmaz",
+        "phone": "59 123 4567",
+        "message": "Size nasıl yardımcı olabiliriz?"
+      }
+    },
+    "onMap": "Haritada gör",
+    "emailNote": "En kısa sürede yanıtlayacağız",
+    "subtitleDefault": "Her zaman yanınızdayız",
+    "hoursSpan": "{{from}} – {{to}}",
+    "hoursTime": "{{opens}} – {{closes}}"
+  },
+  "footer": {
+    "rights": "© {{year}} {{name}}. Tüm hakları saklıdır.",
+    "social": "Bizi takip edin",
+    "socials": {
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "whatsapp": "WhatsApp",
+      "youtube": "YouTube"
+    }
+  },
+  "preview": {
+    "waiting": "Önizleme bekleniyor…"
+  },
+  "common": {
+    "retry": "Tekrar dene"
+  },
+  "errors": {
+    "notFound": "Bu site mevcut değil.",
+    "network": "Bağlantı kurulamadı. İnternetinizi kontrol edip tekrar deneyin.",
+    "throttled": "Kısa sürede çok fazla istek yapıldı. Birazdan tekrar deneyin.",
+    "closed": "Mesajlar şu anda kapalı.",
+    "server": "Bizim tarafımızda bir sorun oluştu. Birazdan tekrar deneyin.",
+    "generic": "Beklenmeyen bir sorun oluştu. Tekrar deneyin.",
+    "unauthorized": "Oturumunuz sona erdi. Lütfen yeniden giriş yapın."
+  },
+  "home": {
+    "statsLabel": "Rakamlarla biz",
+    "aboutLink": "Hakkımızda daha fazlası",
+    "servicesAll": "Tüm hizmetler",
+    "doctorsAll": "Doktorlarımızla tanışın",
+    "galleryEyebrow": "Kliniğimiz",
+    "galleryTitle": "Sizin için tasarlanmış bir mekân",
+    "galleryLink": "Daha fazlasını keşfedin",
+    "contactLink": "Bize ulaşmanın tüm yolları",
+    "ctaTitle": "Hemen randevunuzu alın",
+    "ctaSubtitle": "Ekibimiz sizi ağırlamaya ve dişlerinize en iyi bakımı sunmaya hazır",
+    "callNow": "Hemen ara"
+  },
+  "notFound": {
+    "title": "Sayfa bulunamadı",
+    "home": "Ana sayfaya dön"
+  },
+  "carousel": {
+    "item": "Kart {{number}} / {{total}}",
+    "next": "Sonraki",
+    "previous": "Önceki"
+  },
+  "cases": {
+    "title": "Gerçek başarı hikâyeleri",
+    "before": "Öncesi",
+    "after": "Sonrası",
+    "beforeOf": "{{title}}, tedavi öncesi",
+    "afterOf": "{{title}}, tedavi sonrası",
+    "compare": "Öncesi ve sonrasını karşılaştır: {{title}}"
+  },
+  "testimonials": {
+    "title": "Hastalarımız ne diyor?",
+    "rating": "{{max}} üzerinden {{count}} puan"
+  },
+  "portal": {
+    "title": "Hesabım",
+    "subtitle": "Randevularınız, tedavileriniz, bakiyeniz ve dosyalarınız tek yerde",
+    "signInTitle": "Hesabınıza giriş yapın",
+    "signInIntro": "Kliniğin kayıtlı olarak tuttuğu telefon numarasını girin, size bir giriş kodu gönderelim.",
+    "phoneHint": "Kliniğe verdiğiniz numara.",
+    "sendCode": "Kodu gönder",
+    "codeTitle": "Kodunuzu girin",
+    "codeIntro": "{{phone}} kayıtlıysa, bu numaraya 6 haneli bir kod gönderdik.",
+    "code": "Giriş kodu",
+    "codeInvalid": "6 haneli kodu girin.",
+    "wrongCode": "Kod yanlış veya süresi dolmuş. Yeni bir kod isteyin.",
+    "verify": "Giriş yap",
+    "changePhone": "Numarayı değiştir",
+    "resend": "Yeni kod gönder",
+    "signOut": "Çıkış yap",
+    "family": "Bu numaradaki aile üyeleri",
+    "noPatients": "Bu numarada şu anda hasta dosyası yok. Lütfen kliniğle iletişime geçin.",
+    "fileNumber": "Dosya {{number}}",
+    "sections": "Hesap bölümleri",
+    "tabs": {
+      "overview": "Genel bakış",
+      "appointments": "Randevular",
+      "treatments": "Tedaviler",
+      "billing": "Bakiye",
+      "prescriptions": "Reçeteler",
+      "files": "Dosyalar"
+    },
+    "upcoming": "Yaklaşan randevular",
+    "history": "Geçmiş randevular",
+    "recentTreatments": "Son tedaviler",
+    "visits": "Muayeneler",
+    "statement": "Hesap özeti",
+    "complaint": "Şikâyet",
+    "diagnosis": "Tanı",
+    "medicalAlerts": "Tıbbi uyarılar",
+    "teeth": "Diş {{teeth}}",
+    "receipt": "Makbuz {{number}}",
+    "reversal": "Düzeltme",
+    "runningBalance": "Bakiye {{amount}}",
+    "money": {
+      "charged": "Tedavi toplamı",
+      "paid": "Ödenen",
+      "balance": "Kalan"
+    },
+    "entry": {
+      "charge": "Tedavi",
+      "payment": "Ödeme"
+    },
+    "empty": {
+      "upcoming": "Yaklaşan randevu yok.",
+      "history": "Geçmiş randevu yok.",
+      "treatments": "Henüz kayıtlı tedavi yok.",
+      "visits": "Henüz kayıtlı muayene yok.",
+      "statement": "Hesapta henüz hareket yok.",
+      "prescriptions": "Henüz reçete yok.",
+      "files": "Henüz dosya yok."
+    },
+    "regimen": {
+      "perDose": "Dozda {{count}}",
+      "timesPerDay": "Günde {{count}} kez",
+      "days": "{{count}} gün boyunca"
+    },
+    "appointmentStatus": {
+      "requested": "Onay bekliyor",
+      "confirmed": "Onaylandı",
+      "arrived": "Geldi",
+      "in_progress": "Tedavide",
+      "completed": "Tamamlandı",
+      "no_show": "Gelmedi",
+      "cancelled": "İptal edildi"
+    },
+    "treatmentStatus": {
+      "planned": "Planlandı",
+      "in_progress": "Devam ediyor",
+      "done": "Tamamlandı",
+      "cancelled": "İptal edildi"
+    },
+    "accountMenu": "Hesap menüsü",
+    "myProfile": "Profilim",
+    "greeting": {
+      "morning": "Günaydın,",
+      "evening": "İyi akşamlar,"
+    },
+    "nextVisitTitle": "Bir sonraki muayeneniz",
+    "nextVisit": "Sonraki muayene {{date}}",
+    "noUpcoming": "Yaklaşan muayene yok",
+    "noUpcomingHint": "Bir sonraki muayenenizi birkaç adımda planlayın.",
+    "bookNow": "Hemen randevu al",
+    "viewAll": "Tümünü gör",
+    "balanceSummary": "Bakiye",
+    "showMore": "{{count}} tane daha göster",
+    "showLess": "Daha az göster",
+    "drugCount": "İlaçlar: {{count}}"
+  }
+}

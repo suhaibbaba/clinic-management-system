@@ -1,16 +1,11 @@
+import { localized, localizedValues, type LocalizedText } from "@shared/locale/localized-text";
+
 export function personName(
-  name: { readonly ar: string; readonly en: string } | null | undefined,
+  name: LocalizedText | null | undefined,
   language: string,
+  fallbacks: readonly string[] = [],
 ): string {
-  if (!name) {
-    return "";
-  }
-
-  const english = language.startsWith("en");
-  const ar = typeof name.ar === "string" ? name.ar : "";
-  const en = typeof name.en === "string" ? name.en : "";
-
-  const preferred = english ? en : ar;
-
-  return preferred.trim() !== "" ? preferred : english ? ar : en;
+  return localized(name, language, fallbacks);
 }
+
+export const bothNames = (name: LocalizedText): string => localizedValues(name).join(" — ");

@@ -572,8 +572,7 @@ export class PayrollService implements OnModuleInit {
     const staff = await this.db
       .select({
         id: users.id,
-        nameAr: users.nameAr,
-        nameEn: users.nameEn,
+        name: users.name,
         role: users.role,
         joinedOn: users.joinedOn,
         doctorId: doctors.id,
@@ -594,7 +593,7 @@ export class PayrollService implements OnModuleInit {
               ),
         ),
       )
-      .orderBy(asc(users.nameAr));
+      .orderBy(asc(users.normalizedName));
 
     const ids = staff.map((person) => person.id);
     if (ids.length === 0) {
@@ -680,7 +679,7 @@ export class PayrollService implements OnModuleInit {
 
       return {
         userId: person.id,
-        name: { ar: person.nameAr, en: person.nameEn },
+        name: person.name,
         role: person.role,
         joinedOn: person.joinedOn,
         plan,

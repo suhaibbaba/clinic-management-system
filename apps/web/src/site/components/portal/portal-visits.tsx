@@ -12,7 +12,7 @@ export function PortalVisits({
   readonly visits: readonly PortalVisit[];
   readonly format: PortalFormat;
 }): JSX.Element {
-  const { language, t } = useSite();
+  const { language, languages, t } = useSite();
 
   return (
     <PortalPanel
@@ -29,7 +29,7 @@ export function PortalVisits({
           className="flex flex-col gap-1 py-3"
         >
           <span className="text-label text-ink-muted">
-            {format.date(visit.visitDate)} · {nameIn(visit.doctor, language)}
+            {format.date(visit.visitDate)} · {nameIn(visit.doctor, language, languages)}
           </span>
           {visit.complaint && (
             <span className="text-value text-ink">

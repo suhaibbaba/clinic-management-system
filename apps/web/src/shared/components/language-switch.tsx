@@ -1,19 +1,23 @@
+import { languageDefinition, languageScript } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@clinic/ui/components/icon";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@clinic/ui/components/menu";
 import { cn } from "@clinic/ui/lib/cn";
-import { changeLanguage, LANGUAGES } from "@web/i18n/language";
-import { LANGUAGE_LABELS } from "@web/shared/constants/layout";
+import { changeLanguage, LANGUAGES, type Language } from "@web/i18n/language";
 
 interface LanguageSwitchProps {
   readonly className?: string;
+  readonly languages?: readonly Language[] | undefined;
 }
 
-export function LanguageSwitch({ className }: LanguageSwitchProps): JSX.Element {
+export function LanguageSwitch({
+  className,
+  languages = LANGUAGES,
+}: LanguageSwitchProps): JSX.Element {
   const { t, i18n } = useTranslation();
   const base = i18n.language.split("-")[0];
-  const current = LANGUAGES.find((language) => language === base) ?? LANGUAGES[0];
+  const current = languages.find((language) => language === base) ?? languages[0] ?? LANGUAGES[0];
 
   return (
     <div className={className}>
@@ -28,7 +32,7 @@ export function LanguageSwitch({ className }: LanguageSwitchProps): JSX.Element 
           )}
         >
           <Icon name="globe" className="text-ink-subtle" />
-          {LANGUAGE_LABELS[current]}
+          {languageDefinition(current).nativeName}
           <Icon
             name="chevron-down"
             className={cn(
@@ -39,17 +43,17 @@ export function LanguageSwitch({ className }: LanguageSwitchProps): JSX.Element 
         </MenuTrigger>
 
         <MenuContent align="end" data-testid="language-switch-content">
-          {LANGUAGES.map((language) => (
+          {languages.map((language) => (
             <MenuItem
               key={language}
               data-testid={`language-switch-${language}`}
-              icon={language === "ar" ? "language" : "globe"}
+              icon={languageScript(language) === "arabic" ? "language" : "globe"}
               onSelect={() => void changeLanguage(language)}
               {...(language === current && {
                 trailing: <Icon name="check" className="text-primary-600" />,
               })}
             >
-              {LANGUAGE_LABELS[language]}
+              {languageDefinition(language).nativeName}
             </MenuItem>
           ))}
         </MenuContent>

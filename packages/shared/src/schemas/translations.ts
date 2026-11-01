@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { LANGUAGE_CODES, languageCodeSchema, type LanguageCode } from "@shared/locale/languages";
 
-export const TRANSLATION_LANGUAGES = ["ar", "en"] as const;
-export type TranslationLanguage = (typeof TRANSLATION_LANGUAGES)[number];
+export const TRANSLATION_LANGUAGES = LANGUAGE_CODES;
+export type TranslationLanguage = LanguageCode;
 
 export const translationKeySchema = z
   .string()
@@ -16,7 +17,7 @@ export const translationKeySchema = z
 export const translationValueSchema = z.string().min(1).max(2000);
 
 export const translationOverrideSchema = z.object({
-  language: z.enum(TRANSLATION_LANGUAGES),
+  language: languageCodeSchema,
   key: translationKeySchema,
   value: translationValueSchema,
   updatedAt: z.iso.datetime(),
@@ -24,14 +25,14 @@ export const translationOverrideSchema = z.object({
 export type TranslationOverride = z.infer<typeof translationOverrideSchema>;
 
 export const upsertTranslationOverrideSchema = z.object({
-  language: z.enum(TRANSLATION_LANGUAGES),
+  language: languageCodeSchema,
   key: translationKeySchema,
   value: translationValueSchema,
 });
 export type UpsertTranslationOverrideInput = z.infer<typeof upsertTranslationOverrideSchema>;
 
 export const saveTranslationItemSchema = z.object({
-  language: z.enum(TRANSLATION_LANGUAGES),
+  language: languageCodeSchema,
   key: translationKeySchema,
   value: z.string().max(2000),
 });
@@ -44,15 +45,15 @@ export const saveTranslationOverridesSchema = z.object({
 export type SaveTranslationOverridesInput = z.infer<typeof saveTranslationOverridesSchema>;
 
 export const deleteTranslationOverrideSchema = z.object({
-  language: z.enum(TRANSLATION_LANGUAGES),
+  language: languageCodeSchema,
   key: translationKeySchema,
 });
 export type DeleteTranslationOverrideInput = z.infer<typeof deleteTranslationOverrideSchema>;
 
-export const translationBundleSchema = z.object({
-  ar: z.record(z.string(), z.unknown()),
-  en: z.record(z.string(), z.unknown()),
-});
+export const translationBundleSchema = z.partialRecord(
+  languageCodeSchema,
+  z.record(z.string(), z.unknown()),
+);
 export type TranslationBundle = z.infer<typeof translationBundleSchema>;
 
 export const listTranslationOverridesSchema = z.object({

@@ -139,12 +139,9 @@ describe("Admin user management and specialties (e2e)", () => {
       const national = () => `59${String(Date.now()).slice(-7)}`;
       const row = (phone: string) => ({
         clinicId: clinic.id,
-        firstNameAr: "زميل",
-        lastNameAr: "مكرر",
-        firstNameEn: "Colleague",
-        lastNameEn: "Twin",
-        nameAr: "زميل مكرر",
-        nameEn: "Colleague Twin",
+        firstName: { ar: "زميل", en: "Colleague" },
+        lastName: { ar: "مكرر", en: "Twin" },
+        name: { ar: "زميل مكرر", en: "Colleague Twin" },
         phone,
         role: USER_ROLE.RECEPTIONIST,
       });

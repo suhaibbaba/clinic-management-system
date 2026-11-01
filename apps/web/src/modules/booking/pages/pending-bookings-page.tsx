@@ -21,7 +21,7 @@ import {
   useToast,
   type Column,
 } from "@clinic/ui";
-import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
+import { setClinicTimeZone } from "@web/shared/lib/clinic-locale";
 import { useConfirmBooking, useRejectBooking } from "@web/modules/booking/queries";
 import { usePendingBookings } from "@web/shared/queries/booking";
 import { canConfirmBooking, canRejectBooking } from "@web/shared/permissions/booking";

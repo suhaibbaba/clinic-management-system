@@ -1,7 +1,8 @@
 {
   "page": {
     "title": "حجز موعد",
-    "poweredBy": "حجز إلكتروني"
+    "poweredBy": "حجز إلكتروني",
+    "language": "اللغة"
   },
   "steps": {
     "counter": "الخطوة {{current}} من {{total}}",

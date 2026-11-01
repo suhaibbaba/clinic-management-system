@@ -136,7 +136,11 @@ describe("Assistant schedule actions (e2e)", () => {
     ] as const) {
       await context.db
         .update(users)
-        .set({ nameAr: "باسل حداد", nameEn: "Basel Haddad" })
+        .set({
+          firstName: { ar: "باسل", en: "Basel" },
+          lastName: { ar: "حداد", en: "Haddad" },
+          name: { ar: "باسل حداد", en: "Basel Haddad" },
+        })
         .where(and(eq(users.id, userId), eq(users.clinicId, target.id)));
       await context.db
         .update(clinics)

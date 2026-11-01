@@ -1,10 +1,20 @@
-import { currencySymbol, formatWholeMoney } from "@clinic/shared";
+import {
+  clockTime,
+  currencySymbol,
+  formatWholeMoney,
+  languageDefinition,
+  languageScript,
+} from "@clinic/shared";
 import i18n from "@web/i18n";
-import { clinicTimeZone } from "@web/shared/lib/clinic-zone";
+import {
+  activeClinicLocale,
+  clinicSeparators,
+  clinicTimeZone,
+} from "@web/shared/lib/clinic-locale";
 import { minutesOf } from "@web/shared/lib/dates";
 
-const dateLocale = (): string =>
-  i18n.language.startsWith("en") ? "en-GB-u-ca-gregory-nu-latn" : "ar-SY-u-ca-gregory-nu-latn";
+export const dateLocale = (): string =>
+  `${languageDefinition(i18n.language).intlLocale}-u-ca-gregory-nu-latn`;
 
 const stripBidiMarks = (value: string): string => value.replace(/[\u200e\u200f]/g, "");
 
@@ -82,6 +92,10 @@ export function formatWeekday(iso: string): string {
 }
 
 export function formatMinute(minute: number): string {
+  if (activeClinicLocale().clock === "24h") {
+    return clockTime(minute, "24h");
+  }
+
   const hours = Math.floor(minute / 60) % 24;
   const minutes = Math.floor(minute % 60);
   const marker = i18n.t(hours < 12 ? "common.clock.am" : "common.clock.pm");
@@ -117,9 +131,9 @@ export function formatRelativeTime(iso: string): string {
 }
 
 export function formatList(items: readonly string[]): string {
-  return items.join(i18n.language.startsWith("en") ? ", " : "، ");
+  return items.join(languageScript(i18n.language) === "arabic" ? "، " : ", ");
 }
 
 export function moneyText(amount: string, currency: string | undefined): string {
-  return `\u2066${formatWholeMoney(amount)}\u00A0${currencySymbol(currency)}\u2069`;
+  return `\u2066${formatWholeMoney(amount, clinicSeparators())}\u00A0${currencySymbol(currency)}\u2069`;
 }

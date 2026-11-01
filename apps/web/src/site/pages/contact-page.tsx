@@ -15,16 +15,16 @@ import { mapEmbed, mapsLink, mapsSearchLink, nameIn, orDefault, pick } from "@we
 const MAP_SPAN = 0.006;
 
 export function ContactPage(): JSX.Element {
-  const { site, language, t } = useSite();
+  const { site, language, languages, t } = useSite();
   const { clinic, content } = site;
   const { contact } = content;
   const hours = useHoursText();
-  const name = nameIn(clinic.name, language);
+  const name = nameIn(clinic.name, language, languages);
   const pin =
     clinic.latitude !== null && clinic.longitude !== null
       ? { lat: clinic.latitude, lng: clinic.longitude }
       : null;
-  const note = pick(contact.note, language);
+  const note = pick(contact.note, language, languages);
   const map = mapEmbed(pin, clinic.address, MAP_SPAN);
   const directions = pin
     ? mapsLink(pin.lat, pin.lng)
@@ -36,9 +36,9 @@ export function ContactPage(): JSX.Element {
     <>
       <PageHero
         id="contact"
-        title={orDefault(contact.title, language, t("contact.title"))}
-        subtitle={orDefault(contact.subtitle, language, t("contact.subtitleDefault"))}
-        intro={pick(contact.intro, language)}
+        title={orDefault(contact.title, language, t("contact.title"), languages)}
+        subtitle={orDefault(contact.subtitle, language, t("contact.subtitleDefault"), languages)}
+        intro={pick(contact.intro, language, languages)}
         image={imageOf(site, contact.image)}
       />
 
@@ -106,10 +106,12 @@ export function ContactPage(): JSX.Element {
         >
           <div className="flex flex-col justify-center gap-2 p-6 md:p-8">
             <p className="text-title font-bold text-primary-900 md:text-headline">
-              {orDefault(contact.welcome, language, t("contact.welcome"))}
+              {orDefault(contact.welcome, language, t("contact.welcome"), languages)}
             </p>
-            {pick(contact.welcomeBody, language) && (
-              <p className="text-value text-ink-muted">{pick(contact.welcomeBody, language)}</p>
+            {pick(contact.welcomeBody, language, languages) && (
+              <p className="text-value text-ink-muted">
+                {pick(contact.welcomeBody, language, languages)}
+              </p>
             )}
           </div>
           {hours && (

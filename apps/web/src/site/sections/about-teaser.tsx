@@ -10,12 +10,14 @@ import { heroLines, orDefault, pick } from "@web/site/lib/text";
 import { SITE_PATH } from "@web/site/route";
 
 export function AboutTeaser(): JSX.Element | null {
-  const { site, language, t } = useSite();
+  const { site, language, languages, t } = useSite();
   const { about, story } = site.content;
-  const summary = pick(about.body, language).split(/\n{2,}/)[0] ?? "";
-  const badge = pick(story.badge, language);
+  const summary = pick(about.body, language, languages).split(/\n{2,}/)[0] ?? "";
+  const badge = pick(story.badge, language, languages);
   const image = imageOf(site, about.image) ?? imageOf(site, story.image);
-  const [lead, accent] = heroLines(orDefault(story.title, language, t("about.subtitle")));
+  const [lead, accent] = heroLines(
+    orDefault(story.title, language, t("about.subtitle"), languages),
+  );
 
   if (!site.content.sections.includes(SITE_SECTION.ABOUT)) {
     return null;
@@ -59,7 +61,7 @@ export function AboutTeaser(): JSX.Element | null {
           <div data-reveal className="flex flex-col items-start gap-4 lg:max-w-[32rem]">
             <p className="flex items-center gap-4 text-section font-medium text-primary-600">
               <span aria-hidden className="h-px w-12 bg-primary-600" />
-              {orDefault(about.title, language, t("about.title"))}
+              {orDefault(about.title, language, t("about.title"), languages)}
             </p>
             <h2 id="about-teaser-title" className="text-headline font-bold text-primary-900">
               {lead}
@@ -86,7 +88,9 @@ export function AboutTeaser(): JSX.Element | null {
                       <SiteIcon name={stat.icon} className="size-6" />
                     </span>
                     <bdi className="text-title font-bold text-primary-900">{stat.value}</bdi>
-                    <span className="text-meta text-ink-muted">{pick(stat.label, language)}</span>
+                    <span className="text-meta text-ink-muted">
+                      {pick(stat.label, language, languages)}
+                    </span>
                   </li>
                 ))}
               </ul>

@@ -12,7 +12,7 @@ import { nameIn, pick } from "@web/site/lib/text";
 import { SITE_PATH } from "@web/site/route";
 
 export function DoctorPage({ id }: { readonly id: string }): JSX.Element {
-  const { site, language, t } = useSite();
+  const { site, language, languages, t } = useSite();
   const doctor = visibleDoctors(site).find((candidate) => candidate.id === id);
   const bookable = useBookable();
 
@@ -25,9 +25,9 @@ export function DoctorPage({ id }: { readonly id: string }): JSX.Element {
     );
   }
 
-  const name = nameIn(doctor.name, language);
+  const name = nameIn(doctor.name, language, languages);
   const profile = profileOf(site, doctor.id);
-  const bio = profile ? pick(profile.bio, language) : "";
+  const bio = profile ? pick(profile.bio, language, languages) : "";
 
   return (
     <section data-testid="site-doctor-page" aria-labelledby="doctor-title" className="site-wash">
@@ -51,7 +51,7 @@ export function DoctorPage({ id }: { readonly id: string }): JSX.Element {
             {name}
           </h1>
           <p className="text-heading font-medium text-primary-600">
-            {(profile && pick(profile.title, language)) || doctor.specialty}
+            {(profile && pick(profile.title, language, languages)) || doctor.specialty}
           </p>
           <AccentRule />
           {bio && <p className="text-section whitespace-pre-line text-ink-muted">{bio}</p>}

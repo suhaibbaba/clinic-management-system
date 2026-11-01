@@ -14,9 +14,8 @@ import {
   APPOINTMENT_TYPE,
   BOOKING_CONFIRMATION_MODE,
   bookingSettings,
-  clinicScheduleSettings,
+  clinicLocale,
   notificationSettings,
-  DEFAULT_TIME_ZONE,
   joinPatientName,
   localDate,
   shortDate,
@@ -24,6 +23,7 @@ import {
   USER_ROLE,
   occupiesSlot,
   type BookingReceipt,
+  type ClinicLocale,
   type CreateBookingInput,
   type CreateUrgentRequestInput,
   type ManagedBooking,
@@ -43,7 +43,6 @@ import { AvailabilityService } from "@api/modules/appointments/services/availabi
 import { WaitingListService } from "@api/modules/appointments/services/waiting-list.service";
 import { BookingTokenService } from "@api/modules/booking/services/booking-token.service";
 import { type Env } from "@api/config/env.schema";
-import { notificationName, toPersonName } from "@api/common/person-name";
 import { DATABASE, type Database } from "@api/database/database.module";
 import {
   appointments,
@@ -92,6 +91,7 @@ export class BookingService {
       confirmationMode: clinic.booking.confirmationMode,
       maxDaysAhead: clinic.booking.maxDaysAhead,
       messageChannel: clinic.messageChannel,
+      locale: clinic.locale,
     };
   }
 
@@ -101,8 +101,7 @@ export class BookingService {
     const rows = await this.db
       .select({
         id: doctors.id,
-        nameAr: users.nameAr,
-        nameEn: users.nameEn,
+        name: users.name,
         specialty: specialties.name,
         photoKey: users.photoKey,
       })
@@ -118,12 +117,12 @@ export class BookingService {
           isNull(users.deletedAt),
         ),
       )
-      .orderBy(asc(users.nameAr));
+      .orderBy(asc(users.normalizedName));
 
     return Promise.all(
       rows.map(async (row) => ({
         id: row.id,
-        name: toPersonName(row.nameAr, row.nameEn),
+        name: row.name,
         specialty: row.specialty,
         photoUrl: row.photoKey ? (await this.storage.createBrandingUrl(row.photoKey)).url : null,
       })),
@@ -182,7 +181,7 @@ export class BookingService {
       clinicId: clinic.id,
       to: phone,
       template: NOTIFICATION_TEMPLATE.URGENT_RECEIVED,
-      vars: { clinic: notificationName(clinic.name) },
+      vars: { clinic: clinic.name },
     });
 
     return { received: true };
@@ -412,9 +411,9 @@ export class BookingService {
       template: NOTIFICATION_TEMPLATE.BOOKING_CANCELLED,
       appointmentId,
       vars: {
-        clinic: notificationName(clinic.name),
+        clinic: clinic.name,
         date: shortDate(localDate(existing.startsAt, clinic.timeZone)),
-        time: timeIn(clinic.timeZone, existing.startsAt),
+        time: timeIn(clinic.timeZone, existing.startsAt, clinic.locale.clock),
       },
     });
 
@@ -469,7 +468,7 @@ export class BookingService {
       template: NOTIFICATION_TEMPLATE.BOOKING_OTP,
       appointmentId,
       vars: {
-        clinic: notificationName(clinic.name),
+        clinic: clinic.name,
         code,
         minutes: String(OTP_TTL_SECONDS / 60),
       },
@@ -538,7 +537,7 @@ export class BookingService {
   }
 
   private async announceConfirmed(
-    clinic: ClinicContext,
+    clinic: ClinicContext & { readonly locale: ClinicLocale },
     appointmentId: string,
     token: string,
   ): Promise<ManagedBooking> {
@@ -550,10 +549,10 @@ export class BookingService {
       template: NOTIFICATION_TEMPLATE.BOOKING_CONFIRMED,
       appointmentId,
       vars: {
-        clinic: notificationName(clinic.name),
-        doctor: notificationName(booking.doctorName),
+        clinic: clinic.name,
+        doctor: booking.doctorName,
         date: shortDate(localDate(new Date(booking.startsAt), clinic.timeZone)),
-        time: timeIn(clinic.timeZone, new Date(booking.startsAt)),
+        time: timeIn(clinic.timeZone, new Date(booking.startsAt), clinic.locale.clock),
         link: this.manageLink(token),
       },
     });
@@ -694,15 +693,17 @@ export class BookingService {
     return row.duration;
   }
 
-  private async requireClinic(slug: string): Promise<ClinicContext> {
+  private async requireClinic(
+    slug: string,
+  ): Promise<ClinicContext & { readonly locale: ClinicLocale }> {
     const [row] = await this.db
       .select({
         id: clinics.id,
-        nameAr: clinics.nameAr,
-        nameEn: clinics.nameEn,
+        name: clinics.name,
         logoKey: clinics.logoKey,
         phone: clinics.phone,
         country: clinics.country,
+        currency: clinics.currency,
         settings: clinics.settings,
       })
       .from(clinics)
@@ -713,19 +714,24 @@ export class BookingService {
       throw new NotFoundException("Clinic not found");
     }
 
+    const locale = clinicLocale(row);
+
     return {
       id: row.id,
-      name: toPersonName(row.nameAr, row.nameEn),
+      name: row.name,
       logoKey: row.logoKey,
       phone: row.phone,
       country: row.country,
-      timeZone: clinicScheduleSettings(row.settings).timezone || DEFAULT_TIME_ZONE,
+      timeZone: locale.timeZone,
+      locale,
       booking: bookingSettings(row.settings),
       messageChannel: notificationSettings(row.settings).channel,
     };
   }
 
-  private async requireBookingEnabled(slug: string): Promise<ClinicContext> {
+  private async requireBookingEnabled(
+    slug: string,
+  ): Promise<ClinicContext & { readonly locale: ClinicLocale }> {
     const clinic = await this.requireClinic(slug);
 
     if (!clinic.booking.enabled) {
@@ -735,7 +741,9 @@ export class BookingService {
     return clinic;
   }
 
-  private async clinicForAppointment(appointmentId: string): Promise<ClinicContext> {
+  private async clinicForAppointment(
+    appointmentId: string,
+  ): Promise<ClinicContext & { readonly locale: ClinicLocale }> {
     const [row] = await this.db
       .select({ slug: clinics.slug })
       .from(appointments)
@@ -813,8 +821,7 @@ export class BookingService {
         status: appointments.status,
         startsAt: appointments.startsAt,
         durationMinutes: appointments.durationMinutes,
-        doctorNameAr: users.nameAr,
-        doctorNameEn: users.nameEn,
+        doctorName: users.name,
       })
       .from(appointments)
       .innerJoin(doctors, eq(doctors.id, appointments.doctorId))
@@ -836,7 +843,7 @@ export class BookingService {
       status: row.status,
       startsAt: row.startsAt.toISOString(),
       durationMinutes: row.durationMinutes,
-      doctorName: toPersonName(row.doctorNameAr, row.doctorNameEn),
+      doctorName: row.doctorName,
       clinicName: clinic.name,
       clinicPhone: clinic.phone,
       canModify:

@@ -85,12 +85,9 @@ describe("Notifications and schedulers (e2e)", () => {
       .insert(users)
       .values({
         clinicId: clinic.id,
-        firstNameAr: "طبيب",
-        lastNameAr: suffix,
-        firstNameEn: "Doctor",
-        lastNameEn: suffix,
-        nameAr: `طبيب اختبار ${suffix}`,
-        nameEn: `Test doctor ${suffix}`,
+        firstName: { ar: "طبيب", en: "Doctor" },
+        lastName: { ar: suffix, en: suffix },
+        name: { ar: `طبيب اختبار ${suffix}`, en: `Test doctor ${suffix}` },
         phone: `+98${suffix}`,
         email: `doctor.${suffix}@test.local`,
         passwordHash: "not-a-login",
@@ -468,7 +465,7 @@ describe("Notifications and schedulers (e2e)", () => {
           continue;
         }
 
-        const body = DEFAULT_NOTIFICATION_TEMPLATES[template];
+        const body = DEFAULT_NOTIFICATION_TEMPLATES.ar[template];
 
         expect(body).toBeDefined();
         expect(body).toMatch(/[؀-ۿ]/);
@@ -476,7 +473,7 @@ describe("Notifications and schedulers (e2e)", () => {
     });
 
     it("passes an assistant message through untouched", () => {
-      expect(DEFAULT_NOTIFICATION_TEMPLATES[NOTIFICATION_TEMPLATE.ASSISTANT_MESSAGE]).toBe(
+      expect(DEFAULT_NOTIFICATION_TEMPLATES.ar[NOTIFICATION_TEMPLATE.ASSISTANT_MESSAGE]).toBe(
         "{body}",
       );
     });

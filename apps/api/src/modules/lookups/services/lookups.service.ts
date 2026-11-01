@@ -9,10 +9,12 @@ import {
 import {
   AUDIT_ACTION,
   BODY_SIDE,
+  FALLBACK_LANGUAGE,
   LOOKUP_LIST,
   LOOKUP_LIST_KEYS,
   PAIRED_SIDES,
   isPairedRegion,
+  localized,
   lookupLabel,
   offersLookup,
   type BodyRegionLocation,
@@ -99,7 +101,7 @@ export class LookupsService implements OnModuleInit {
   }
 
   async create(actor: AuthenticatedUser, input: CreateLookupOptionInput): Promise<LookupOption> {
-    const code = input.code ?? deriveCode(input.nameEn || input.nameAr);
+    const code = input.code ?? deriveCode(localized(input.name, FALLBACK_LANGUAGE));
     const charts = await clinicChartTypes(this.db, actor.clinicId);
 
     if (!offersLookup(charts, { listKey: input.listKey, code, isSystem: false })) {
@@ -125,8 +127,7 @@ export class LookupsService implements OnModuleInit {
         clinicId: actor.clinicId,
         listKey: input.listKey,
         code,
-        nameAr: input.nameAr,
-        nameEn: input.nameEn,
+        name: input.name,
         color: input.color ?? null,
         sortOrder: Number(next),
         isSystem: false,
@@ -153,8 +154,7 @@ export class LookupsService implements OnModuleInit {
     const [row] = await this.db
       .update(lookupOptions)
       .set({
-        ...(input.nameAr !== undefined && { nameAr: input.nameAr }),
-        ...(input.nameEn !== undefined && { nameEn: input.nameEn }),
+        ...(input.name !== undefined && { name: input.name }),
         ...(input.color !== undefined && { color: input.color ?? null }),
         ...(input.isActive !== undefined && { isActive: input.isActive }),
         ...(input.meta !== undefined && { meta: input.meta }),
@@ -369,8 +369,7 @@ export class LookupsService implements OnModuleInit {
     const rows = await this.db
       .select({
         code: lookupOptions.code,
-        nameAr: lookupOptions.nameAr,
-        nameEn: lookupOptions.nameEn,
+        name: lookupOptions.name,
       })
       .from(lookupOptions)
       .where(this.scope.where(lookupOptions, clinicId, eq(lookupOptions.listKey, listKey)))

@@ -24,7 +24,7 @@ import { useCurrency } from "@web/shared/queries/clinic";
 import { actionErrorKey, actionRefusalKey } from "@web/modules/assistant/lib/messages";
 import { useAction, useActionDecision } from "@web/modules/assistant/queries";
 import { useLookupLabels } from "@web/shared/queries/lookups";
-import { clinicTimeZone } from "@web/shared/lib/clinic-zone";
+import { clinicTimeZone } from "@web/shared/lib/clinic-locale";
 import { formatDate, formatDateTime, formatPeriod, formatTime } from "@web/shared/lib/format";
 import { AI_ACTION_STATUS_TONES, AI_PLAN_STEP_TONES } from "@web/modules/assistant/constants";
 

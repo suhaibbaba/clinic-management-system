@@ -3,13 +3,11 @@ import { Cron, CronExpression } from "@nestjs/schedule";
 import {
   APPOINTMENT_STATUS,
   bookingSettings,
-  clinicScheduleSettings,
-  DEFAULT_TIME_ZONE,
+  clinicLocale,
   localDate,
   shortDate,
 } from "@clinic/shared";
 import { and, eq, gt, isNotNull, isNull, lt, notExists } from "drizzle-orm";
-import { notificationName } from "@api/common/person-name";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { appointments, bookingOtps, clinics, doctors, patients, users } from "@api/database/schema";
 import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
@@ -45,10 +43,9 @@ export class RemindersScheduler {
           clinicId: appointments.clinicId,
           startsAt: appointments.startsAt,
           phone: patients.phone,
-          doctorNameAr: users.nameAr,
-          doctorNameEn: users.nameEn,
-          clinicNameAr: clinics.nameAr,
-          clinicNameEn: clinics.nameEn,
+          doctorName: users.name,
+          clinicName: clinics.name,
+          country: clinics.country,
           settings: clinics.settings,
         })
         .from(appointments)
@@ -66,7 +63,7 @@ export class RemindersScheduler {
         );
 
       for (const row of due) {
-        const settings = clinicScheduleSettings(row.settings);
+        const locale = clinicLocale(row);
         const notify = await this.notifications.settingsFor(row.clinicId);
 
         if (!notify[reminder.setting]) {
@@ -77,7 +74,7 @@ export class RemindersScheduler {
           continue;
         }
 
-        const zone = settings.timezone || DEFAULT_TIME_ZONE;
+        const zone = locale.timeZone;
 
         await this.notifications.send({
           clinicId: row.clinicId,
@@ -85,10 +82,10 @@ export class RemindersScheduler {
           template: reminder.template,
           appointmentId: row.id,
           vars: {
-            clinic: notificationName({ ar: row.clinicNameAr, en: row.clinicNameEn }),
-            doctor: notificationName({ ar: row.doctorNameAr, en: row.doctorNameEn }),
+            clinic: row.clinicName,
+            doctor: row.doctorName,
             date: shortDate(localDate(row.startsAt, zone)),
-            time: timeIn(zone, row.startsAt),
+            time: timeIn(zone, row.startsAt, locale.clock),
           },
         });
 

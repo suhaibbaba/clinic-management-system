@@ -2,13 +2,13 @@ import type { SiteLanguage } from "@clinic/shared";
 import { Flag } from "@clinic/ui/components/flag";
 import { useCallback, useRef, useState, type JSX } from "react";
 import { SiteIcon } from "@web/site/components/site-icon";
-import { SITE_LANGUAGE_LABELS, SITE_LANGUAGES, SITE_PARAM } from "@web/site/constants";
+import { SITE_PARAM } from "@web/site/constants";
 import { useDismiss } from "@web/site/hooks/use-dismiss";
 import { useSite } from "@web/site/hooks/use-site";
-import { languageFlag } from "@web/site/lib/language";
+import { languageFlag, languageLabel } from "@web/site/lib/language";
 
-export function SiteLanguageMenu(): JSX.Element {
-  const { site, language, t, setParams } = useSite();
+export function SiteLanguageMenu(): JSX.Element | null {
+  const { site, language, languages, t, setParams } = useSite();
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -16,9 +16,13 @@ export function SiteLanguageMenu(): JSX.Element {
 
   useDismiss(open, close, root, trigger);
 
+  if (languages.length < 2) {
+    return null;
+  }
+
   const choose = (next: SiteLanguage): void => {
     setOpen(false);
-    setParams({ [SITE_PARAM.LANGUAGE]: next === "ar" ? null : next });
+    setParams({ [SITE_PARAM.LANGUAGE]: next === site.clinic.locale.primaryLanguage ? null : next });
   };
 
   return (
@@ -38,7 +42,7 @@ export function SiteLanguageMenu(): JSX.Element {
           country={languageFlag(language, site.clinic.country)}
           className="ring-ink-inverse/30"
         />
-        <span>{SITE_LANGUAGE_LABELS[language]}</span>
+        <span>{languageLabel(language)}</span>
         <SiteIcon name="chevron-down" className="size-3.5" />
       </button>
 
@@ -50,7 +54,7 @@ export function SiteLanguageMenu(): JSX.Element {
           data-part="menu"
           className="absolute end-0 top-full z-40 mt-1.5 flex w-44 flex-col gap-0.5 rounded-panel border border-line bg-surface p-1.5 text-ink shadow-float"
         >
-          {SITE_LANGUAGES.map((option) => (
+          {languages.map((option) => (
             <li key={option} role="none">
               <button
                 type="button"
@@ -62,7 +66,7 @@ export function SiteLanguageMenu(): JSX.Element {
                 className="flex min-h-(--control-h) w-full cursor-pointer items-center gap-2.5 rounded-control px-2.5 text-start text-label font-medium hover:bg-primary-50 aria-checked:bg-primary-50 aria-checked:text-primary-800"
               >
                 <Flag country={languageFlag(option, site.clinic.country)} />
-                <span className="flex-1">{SITE_LANGUAGE_LABELS[option]}</span>
+                <span className="flex-1">{languageLabel(option)}</span>
                 {option === language && (
                   <SiteIcon name="check" className="size-4 text-primary-600" />
                 )}

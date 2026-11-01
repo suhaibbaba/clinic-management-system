@@ -29,8 +29,7 @@ export class PurchaseReviewService {
         .select({
           row: stockReceipts,
           supplierName: suppliers.name,
-          createdByNameAr: users.nameAr,
-          createdByNameEn: users.nameEn,
+          createdByName: users.name,
           lines: sql<number>`(select count(*)::int from stock_receipt_lines l where l.receipt_id = "stock_receipts"."id")`,
         })
         .from(stockReceipts)
@@ -49,8 +48,7 @@ export class PurchaseReviewService {
         .select({
           row: supplierInvoices,
           supplierName: suppliers.name,
-          createdByNameAr: users.nameAr,
-          createdByNameEn: users.nameEn,
+          createdByName: users.name,
           lines: sql<number>`(select count(*)::int from supplier_invoice_lines l where l.invoice_id = "supplier_invoices"."id")`,
         })
         .from(supplierInvoices)
@@ -68,7 +66,7 @@ export class PurchaseReviewService {
     ]);
 
     return [
-      ...receipts.map(({ row, supplierName, createdByNameAr, createdByNameEn, lines }) => ({
+      ...receipts.map(({ row, supplierName, createdByName, lines }) => ({
         kind: PURCHASE_REVIEW_KIND.RECEIPT,
         id: row.id,
         number: row.number,
@@ -78,10 +76,10 @@ export class PurchaseReviewService {
         supplierRef: null,
         total: null,
         lines,
-        createdByName: toOptionalPersonName(createdByNameAr, createdByNameEn),
+        createdByName: toOptionalPersonName(createdByName),
         createdAt: row.createdAt.toISOString(),
       })),
-      ...invoices.map(({ row, supplierName, createdByNameAr, createdByNameEn, lines }) => ({
+      ...invoices.map(({ row, supplierName, createdByName, lines }) => ({
         kind: PURCHASE_REVIEW_KIND.INVOICE,
         id: row.id,
         number: row.number,
@@ -91,7 +89,7 @@ export class PurchaseReviewService {
         supplierRef: row.supplierRef,
         total: row.total,
         lines,
-        createdByName: toOptionalPersonName(createdByNameAr, createdByNameEn),
+        createdByName: toOptionalPersonName(createdByName),
         createdAt: row.createdAt.toISOString(),
       })),
     ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));

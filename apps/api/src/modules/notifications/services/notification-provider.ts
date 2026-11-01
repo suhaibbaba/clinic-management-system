@@ -129,7 +129,7 @@ export class WhatsAppNotificationProvider implements NotificationProvider {
         type: "template",
         template: {
           name: credentials.documentTemplateName,
-          language: { code: this.config.get("WHATSAPP_TEMPLATE_LANGUAGE", { infer: true }) },
+          language: { code: this.templateLanguage(document.language) },
           components: [
             {
               type: "header",
@@ -180,6 +180,10 @@ export class WhatsAppNotificationProvider implements NotificationProvider {
     }
 
     return messageId;
+  }
+
+  private templateLanguage(language: string | undefined): string {
+    return language ?? this.config.get("WHATSAPP_TEMPLATE_LANGUAGE", { infer: true });
   }
 
   private async call(
@@ -239,7 +243,7 @@ export class WhatsAppNotificationProvider implements NotificationProvider {
             type: "template",
             template: {
               name: credentials.templateName,
-              language: { code: this.config.get("WHATSAPP_TEMPLATE_LANGUAGE", { infer: true }) },
+              language: { code: this.templateLanguage(message.language) },
               components: [
                 {
                   type: "body",

@@ -1,12 +1,5 @@
 import type { PhoneCountry, SiteLanguage } from "@clinic/shared";
 
-export const SITE_LANGUAGES: readonly SiteLanguage[] = ["ar", "en"];
-
-export const SITE_LANGUAGE_LABELS: Record<SiteLanguage, string> = {
-  ar: "العربية", // i18n-allow: a language is named in its own script, never translated
-  en: "English",
-};
-
 export const ARABIC_FLAG_COUNTRIES: readonly PhoneCountry[] = [
   "PS",
   "JO",
@@ -22,7 +15,14 @@ export const ARABIC_FLAG_COUNTRIES: readonly PhoneCountry[] = [
   "IQ",
 ];
 
-export const ENGLISH_FLAG_COUNTRY: PhoneCountry = "GB";
+export const LANGUAGE_FLAGS: Record<
+  SiteLanguage,
+  { readonly countries: readonly PhoneCountry[]; readonly fallback: PhoneCountry }
+> = {
+  ar: { countries: ARABIC_FLAG_COUNTRIES, fallback: "PS" },
+  en: { countries: [], fallback: "GB" },
+  tr: { countries: [], fallback: "TR" },
+};
 
 export const HERO_SLIDE_MS = 6000;
 

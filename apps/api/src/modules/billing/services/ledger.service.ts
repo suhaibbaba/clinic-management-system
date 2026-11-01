@@ -14,7 +14,6 @@ import {
 import { and, eq, isNull, sql, type SQL } from "drizzle-orm";
 import { type PgColumn } from "drizzle-orm/pg-core";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { toPersonName } from "@api/common/person-name";
 import {
   charges,
   payments,
@@ -179,8 +178,7 @@ export class LedgerService {
       this.db
         .select({
           payment: payments,
-          deletedByAr: users.nameAr,
-          deletedByEn: users.nameEn,
+          deletedByName: users.name,
         })
         .from(payments)
         .leftJoin(users, eq(users.id, payments.updatedBy))
@@ -207,7 +205,7 @@ export class LedgerService {
         deletedAt: null,
         deletedBy: null,
       })),
-      ...paymentRows.map(({ payment: row, deletedByAr, deletedByEn }) => ({
+      ...paymentRows.map(({ payment: row, deletedByName }) => ({
         id: row.id,
         kind: LEDGER_ENTRY_KIND.PAYMENT,
         occurredAt: row.createdAt,
@@ -218,10 +216,7 @@ export class LedgerService {
         isReversed: row.reversedAt !== null,
         note: row.note,
         deletedAt: row.deletedAt,
-        deletedBy:
-          row.deletedAt && deletedByAr !== null && deletedByEn !== null
-            ? toPersonName(deletedByAr, deletedByEn)
-            : null,
+        deletedBy: row.deletedAt && deletedByName !== null ? deletedByName : null,
       })),
     ].sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime() || a.id.localeCompare(b.id));
 

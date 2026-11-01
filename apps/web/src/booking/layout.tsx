@@ -1,18 +1,22 @@
 import { useEffect, type JSX, type ReactNode } from "react";
 import { STEP_KEYS } from "@web/booking/constants";
 import { t } from "@web/booking/i18n";
+import { LanguageMenu } from "@web/booking/language-menu";
 import { cx, Img } from "@web/booking/ui";
+import type { BookingLanguage } from "@web/booking/use-booking-language";
 
 export function PageShell({
   clinicName,
   logoUrl,
   children,
   inline = false,
+  language,
 }: {
   readonly clinicName: string | undefined;
   readonly logoUrl?: string | null;
   readonly children: ReactNode;
   readonly inline?: boolean;
+  readonly language?: BookingLanguage | undefined;
 }): JSX.Element {
   const name = clinicName ?? t("page.title");
 
@@ -30,7 +34,7 @@ export function PageShell({
     <div data-testid="booking-shell" className="flex min-h-full flex-col">
       <header
         data-testid="booking-header"
-        className="flex items-center justify-center gap-2.5 px-4 py-5"
+        className="flex flex-wrap items-center justify-center gap-2.5 px-4 py-5"
       >
         {logoUrl !== null && logoUrl !== undefined && (
           <Img src={logoUrl} alt="" width={32} height={32} priority data-testid="booking-logo" />
@@ -41,6 +45,7 @@ export function PageShell({
         >
           {name}
         </span>
+        <LanguageMenu language={language} />
       </header>
 
       <main data-testid="booking-main" className="mx-auto w-full max-w-[480px] flex-1 px-4 pb-6">
@@ -70,6 +75,7 @@ export function BookingBoard({
   choices,
   panel,
   bar,
+  language,
 }: {
   readonly clinicName: string;
   readonly logoUrl: string | null | undefined;
@@ -79,6 +85,7 @@ export function BookingBoard({
   readonly choices: ReactNode;
   readonly panel: ReactNode;
   readonly bar?: ReactNode;
+  readonly language?: BookingLanguage | undefined;
 }): JSX.Element {
   useDocumentTitle(clinicName, inline);
 
@@ -127,15 +134,18 @@ export function BookingBoard({
           >
             {clinicName}
           </span>
-          {phone && (
-            <a
-              href={`tel:${phone}`}
-              data-testid="booking-phone"
-              className="pill-text ms-auto inline-flex min-h-(--control-h) items-center rounded-pill bg-canvas px-3 text-label font-medium text-ink-muted hover:text-primary-800"
-            >
-              <bdi dir="ltr">{phone}</bdi>
-            </a>
-          )}
+          <div className="ms-auto flex items-center gap-2">
+            <LanguageMenu language={language} />
+            {phone && (
+              <a
+                href={`tel:${phone}`}
+                data-testid="booking-phone"
+                className="pill-text inline-flex min-h-(--control-h) items-center rounded-pill bg-canvas px-3 text-label font-medium text-ink-muted hover:text-primary-800"
+              >
+                <bdi dir="ltr">{phone}</bdi>
+              </a>
+            )}
+          </div>
         </div>
       </header>
 

@@ -23,7 +23,7 @@ export function PortalAppointments({
   readonly paged?: boolean;
   readonly "data-testid": string;
 }): JSX.Element {
-  const { language, t } = useSite();
+  const { language, languages, t } = useSite();
 
   return (
     <PortalPanel
@@ -51,7 +51,9 @@ export function PortalAppointments({
               <bdi className="text-value font-bold text-primary-900">
                 {format.time(item.startsAt)}
               </bdi>
-              <span className="text-label text-ink-muted">{nameIn(item.doctor, language)}</span>
+              <span className="text-label text-ink-muted">
+                {nameIn(item.doctor, language, languages)}
+              </span>
             </span>
             <PortalStatusPill tone={tone}>
               {t(`portal.appointmentStatus.${item.status}`)}

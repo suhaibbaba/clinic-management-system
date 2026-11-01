@@ -1,5 +1,7 @@
+import { clinicLocale } from "@clinic/shared";
 import { BadRequestException, Injectable, Logger, NotFoundException, Inject } from "@nestjs/common";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
+import type { PersonName } from "@clinic/shared";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, users } from "@api/database/schema";
 import { AccountEmailService } from "@api/modules/email/services/account-email.service";
@@ -23,8 +25,7 @@ export class AccountInvitationsService {
     const [user] = await this.db
       .select({
         id: users.id,
-        nameAr: users.nameAr,
-        nameEn: users.nameEn,
+        name: users.name,
         email: users.email,
         isActive: users.isActive,
       })
@@ -44,11 +45,7 @@ export class AccountInvitationsService {
       throw new BadRequestException("That account is disabled");
     }
 
-    await this.issueAndSend(
-      { id: user.id, name: { ar: user.nameAr, en: user.nameEn }, email: user.email },
-      clinicId,
-      purpose,
-    );
+    await this.issueAndSend({ id: user.id, name: user.name, email: user.email }, clinicId, purpose);
   }
 
   async forgot(identifier: string): Promise<void> {
@@ -58,8 +55,7 @@ export class AccountInvitationsService {
       .select({
         id: users.id,
         clinicId: users.clinicId,
-        nameAr: users.nameAr,
-        nameEn: users.nameEn,
+        name: users.name,
         email: users.email,
         hasPassword: sql<boolean>`${users.passwordHash} is not null`,
       })
@@ -81,7 +77,7 @@ export class AccountInvitationsService {
     }
 
     await this.issueAndSend(
-      { id: user.id, name: { ar: user.nameAr, en: user.nameEn }, email: user.email },
+      { id: user.id, name: user.name, email: user.email },
       user.clinicId,
       user.hasPassword ? "reset" : "activate",
     );
@@ -119,16 +115,17 @@ export class AccountInvitationsService {
   }
 
   private async issueAndSend(
-    recipient: { id: string; name: { ar: string; en: string }; email: string },
+    recipient: { id: string; name: PersonName; email: string },
     clinicId: string,
     purpose: AccountEmailPurpose,
   ): Promise<void> {
     const [clinic] = await this.db
       .select({
-        nameAr: clinics.nameAr,
-        nameEn: clinics.nameEn,
+        name: clinics.name,
         logoKey: clinics.logoKey,
         email: clinics.email,
+        country: clinics.country,
+        settings: clinics.settings,
       })
       .from(clinics)
       .where(eq(clinics.id, clinicId))
@@ -149,9 +146,10 @@ export class AccountInvitationsService {
       purpose,
       { email: recipient.email, name: recipient.name },
       {
-        name: { ar: clinic.nameAr, en: clinic.nameEn },
+        name: clinic.name,
         logoKey: clinic.logoKey,
         email: clinic.email,
+        language: clinicLocale(clinic).primaryLanguage,
       },
       issued.token,
     );

@@ -11,8 +11,8 @@ export function Tagline({
   readonly tone?: "brand" | "inverse";
   readonly className?: string;
 }): JSX.Element | null {
-  const { site, language } = useSite();
-  const tagline = pick(site.content.brand.tagline, language);
+  const { site, language, languages } = useSite();
+  const tagline = pick(site.content.brand.tagline, language, languages);
 
   if (!tagline) {
     return null;

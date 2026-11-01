@@ -61,8 +61,7 @@ export class StockCountsService {
     const rows = await this.db
       .select({
         count: stockCounts,
-        createdByNameAr: users.nameAr,
-        createdByNameEn: users.nameEn,
+        createdByName: users.name,
         items: sql<number>`(select count(*)::int from stock_count_lines l where l.count_id = "stock_counts"."id")`,
         counted: sql<number>`(select count(*)::int from stock_count_lines l where l.count_id = "stock_counts"."id" and l.counted is not null)`,
       })
@@ -72,8 +71,8 @@ export class StockCountsService {
       .orderBy(desc(stockCounts.createdAt))
       .limit(50);
 
-    return rows.map(({ count, createdByNameAr, createdByNameEn, items, counted }) => ({
-      ...this.header(count, toOptionalPersonName(createdByNameAr, createdByNameEn)),
+    return rows.map(({ count, createdByName, items, counted }) => ({
+      ...this.header(count, toOptionalPersonName(createdByName)),
       items,
       counted,
     }));
@@ -81,7 +80,7 @@ export class StockCountsService {
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<StockCount> {
     const [row] = await this.db
-      .select({ count: stockCounts, createdByNameAr: users.nameAr, createdByNameEn: users.nameEn })
+      .select({ count: stockCounts, createdByName: users.name })
       .from(stockCounts)
       .leftJoin(users, eq(users.id, stockCounts.createdBy))
       .where(and(eq(stockCounts.id, id), eq(stockCounts.clinicId, actor.clinicId)))
@@ -111,7 +110,7 @@ export class StockCountsService {
       : new Map<string, number>();
 
     return {
-      ...this.header(row.count, toOptionalPersonName(row.createdByNameAr, row.createdByNameEn)),
+      ...this.header(row.count, toOptionalPersonName(row.createdByName)),
       lines: lines.map(({ line, itemName, unit }) => {
         const expected = toThousandths(line.expected);
         const now = open ? (current.get(line.itemId) ?? 0) : expected;

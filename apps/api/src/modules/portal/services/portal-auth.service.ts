@@ -8,7 +8,6 @@ import {
   type PortalPatientSummary,
 } from "@clinic/shared";
 import { and, desc, eq, gt, inArray, isNull, lt, sql } from "drizzle-orm";
-import { notificationName } from "@api/common/person-name";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, patients, portalCodes, portalSessions } from "@api/database/schema";
 import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
@@ -86,7 +85,7 @@ export class PortalAuthService {
         to: rawPhone,
         template: NOTIFICATION_TEMPLATE.PORTAL_CODE,
         vars: {
-          clinic: notificationName(clinic.name),
+          clinic: clinic.name,
           code,
           minutes: String(PORTAL_CODE_TTL_SECONDS / 60),
         },

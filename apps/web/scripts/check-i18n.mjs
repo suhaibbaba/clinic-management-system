@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -42,12 +42,10 @@ function withoutComments(source) {
     .replace(/\/\/[^\n]*/g, "");
 }
 
-const PLURAL_CATEGORIES = Object.fromEntries(
-  ["ar", "en"].map((language) => [
-    language,
-    new Set(new Intl.PluralRules(language).resolvedOptions().pluralCategories),
-  ]),
-);
+const pluralCategories = (language) =>
+  new Set(new Intl.PluralRules(language).resolvedOptions().pluralCategories);
+
+const ARABIC_SCRIPT = new Set(["ar"]);
 
 const SUFFIX = /_(zero|one|two|few|many|other)$/;
 
@@ -84,55 +82,58 @@ function checkLiterals() {
 
 function checkParity(locales) {
   const where = relative(ROOT, locales).replaceAll("\\", "/");
+  const languages = readdirSync(locales)
+    .filter((entry) => entry.endsWith(".json"))
+    .map((entry) => entry.replace(/\.json$/, ""));
 
-  if (!existsSync(join(locales, "en.json"))) {
+  if (languages.length < 2) {
     return;
   }
 
-  const ar = JSON.parse(readFileSync(join(locales, "ar.json"), "utf8"));
-  const en = JSON.parse(readFileSync(join(locales, "en.json"), "utf8"));
+  const read = (language) => JSON.parse(readFileSync(join(locales, `${language}.json`), "utf8"));
+  const reference = read("ar");
+  const referenceBases = new Set(keysOf(reference).map(baseKey));
 
-  const arKeys = keysOf(ar);
-  const enKeys = keysOf(en);
+  for (const language of languages) {
+    const strings = read(language);
+    const keys = keysOf(strings);
+    const bases = new Set(keys.map(baseKey));
 
-  const arBases = new Set(arKeys.map(baseKey));
-  const enBases = new Set(enKeys.map(baseKey));
+    if (language !== "ar") {
+      for (const key of referenceBases) {
+        if (!bases.has(key)) {
+          failures.push(`${where}/${language}.json  missing "${key}"`);
+        }
+      }
 
-  for (const key of arBases) {
-    if (!enBases.has(key)) {
-      failures.push(`${where}/en.json  missing "${key}" — it would fall back to Arabic`);
+      for (const key of bases) {
+        if (!referenceBases.has(key)) {
+          failures.push(`${where}/ar.json  missing "${key}" (present in ${language}.json)`);
+        }
+      }
     }
-  }
 
-  for (const key of enBases) {
-    if (!arBases.has(key)) {
-      failures.push(`${where}/ar.json  missing "${key}"`);
-    }
-  }
-
-  for (const [language, keys] of [
-    ["ar", arKeys],
-    ["en", enKeys],
-  ]) {
     const families = new Set(keys.filter((key) => SUFFIX.test(key)).map(baseKey));
 
     for (const family of families) {
-      for (const category of PLURAL_CATEGORIES[language]) {
+      for (const category of pluralCategories(language)) {
         if (!keys.includes(`${family}_${category}`)) {
           failures.push(`${where}/${language}.json  missing "${family}_${category}"`);
         }
       }
     }
-  }
 
-  const untranslated = keysOf(en).filter((key) => {
-    const value = key.split(".").reduce((node, part) => node?.[part], en);
+    if (ARABIC_SCRIPT.has(language)) {
+      continue;
+    }
 
-    return typeof value === "string" && ARABIC_LETTER.test(value);
-  });
+    for (const key of keys) {
+      const value = key.split(".").reduce((node, part) => node?.[part], strings);
 
-  for (const key of untranslated) {
-    failures.push(`${where}/en.json  "${key}" is still Arabic`);
+      if (typeof value === "string" && ARABIC_LETTER.test(value)) {
+        failures.push(`${where}/${language}.json  "${key}" is still Arabic`);
+      }
+    }
   }
 }
 
@@ -176,7 +177,7 @@ function checkUsage() {
       continue;
     }
 
-    failures.push(`${where}/*.json  "${key}" is used nowhere — remove it from both files`);
+    failures.push(`${where}/*.json  "${key}" is used nowhere — remove it from every locale`);
   }
 }
 
@@ -194,5 +195,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "i18n: no static Arabic outside the locale files, both locales agree, and every key is used.",
+  "i18n: no static Arabic outside the locale files, every locale agrees, and every key is used.",
 );

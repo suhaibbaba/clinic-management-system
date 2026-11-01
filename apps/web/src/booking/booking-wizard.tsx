@@ -1,4 +1,4 @@
-import type { ManagedBooking, PublicDoctor } from "@clinic/shared";
+import type { LanguageCode, ManagedBooking, PublicDoctor } from "@clinic/shared";
 import { DEFAULT_PHONE_COUNTRY, isPhoneCountry, joinPhone } from "@shared/constants/phone";
 import { BOOKING_CONFIRMATION_MODE } from "@shared/enums";
 import { useEffect, useMemo, useState, type JSX, type ReactNode } from "react";
@@ -31,6 +31,7 @@ import { UrgentSentView, UrgentStep, type UrgentDetails } from "@web/booking/ste
 import { WhenStep, type SlotOption } from "@web/booking/steps/when-step";
 import { Alert, Button, cx, Skeleton } from "@web/booking/ui";
 import { useAsync } from "@web/booking/use-async";
+import { useBookingLanguage } from "@web/booking/use-booking-language";
 
 const byDate = (days: readonly { date: string; slots: unknown[] }[]) =>
   new Map(days.map((day) => [day.date, day.slots]));
@@ -46,14 +47,20 @@ export function BookingWizard({
   inline = false,
   initialDoctorId,
   account,
+  language: fixedLanguage,
 }: {
   readonly slug: string;
   readonly inline?: boolean;
+  readonly language?: LanguageCode | undefined;
   readonly initialDoctorId?: string | undefined;
   readonly account?: BookingAccount | undefined;
 }): JSX.Element {
   const clinic = useAsync(() => bookingApi.clinic(slug), [slug]);
   const logoUrl = useClinicLogo(slug, clinic.data?.logoUrl);
+  const language = useBookingLanguage(clinic.data?.locale, {
+    ...(fixedLanguage && { fixed: fixedLanguage }),
+    standalone: !inline,
+  });
   const doctors = useAsync(() => bookingApi.doctors(slug), [slug], clinic.data?.bookingEnabled);
 
   const [stage, setStage] = useState<Stage>("details");
@@ -109,7 +116,10 @@ export function BookingWizard({
     setUrgent((current) => ({ ...current, country }));
   }, [country]);
 
-  const chips = useMemo(() => dayChips(from, VISIBLE_DAYS, maxDaysAhead), [from, maxDaysAhead]);
+  const chips = useMemo(
+    () => dayChips(from, VISIBLE_DAYS, maxDaysAhead),
+    [from, maxDaysAhead, language.language],
+  );
 
   const week = useAsync(
     async () => {
@@ -333,7 +343,7 @@ export function BookingWizard({
 
   if (clinic.loading) {
     return (
-      <PageShell clinicName={undefined} logoUrl={logoUrl} inline={inline}>
+      <PageShell clinicName={undefined} logoUrl={logoUrl} inline={inline} language={language}>
         <Skeleton className="h-8 w-2/3" />
         <div className="mt-4 flex flex-col gap-3">
           <Skeleton className="h-[76px] rounded-card" />
@@ -345,7 +355,7 @@ export function BookingWizard({
 
   if (clinic.error || !clinic.data) {
     return (
-      <PageShell clinicName={undefined} logoUrl={logoUrl} inline={inline}>
+      <PageShell clinicName={undefined} logoUrl={logoUrl} inline={inline} language={language}>
         <FullPageMessage
           title={t(failureKey(clinic.error))}
           action={
@@ -360,7 +370,12 @@ export function BookingWizard({
 
   if (!clinic.data.bookingEnabled) {
     return (
-      <PageShell clinicName={bookingName(clinic.data.name)} logoUrl={logoUrl} inline={inline}>
+      <PageShell
+        clinicName={bookingName(clinic.data.name)}
+        logoUrl={logoUrl}
+        inline={inline}
+        language={language}
+      >
         <FullPageMessage
           title={t("errors.closed")}
           {...(clinic.data.phone && { body: clinic.data.phone })}
@@ -556,6 +571,7 @@ export function BookingWizard({
       choices={choices}
       panel={panel}
       bar={bar}
+      language={language}
     />
   );
 }

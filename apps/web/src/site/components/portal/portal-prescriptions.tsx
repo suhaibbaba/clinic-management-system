@@ -14,7 +14,7 @@ export function PortalPrescriptions({
   readonly prescriptions: readonly PortalPrescription[];
   readonly format: PortalFormat;
 }): JSX.Element {
-  const { language, t } = useSite();
+  const { language, languages, t } = useSite();
 
   return (
     <PortalPanel
@@ -38,7 +38,7 @@ export function PortalPrescriptions({
             />
             <span className="flex min-w-0 flex-col">
               <span className="text-value font-bold text-primary-900">
-                {nameIn(prescription.doctor, language)}
+                {nameIn(prescription.doctor, language, languages)}
               </span>
               <span className="text-label text-ink-muted">
                 {t("portal.drugCount", { count: prescription.items.length })}

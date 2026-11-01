@@ -49,16 +49,13 @@
       "date": "dd/mm/yyyy",
       "time": "Select a time",
       "dateRange": "Choose a period",
-      "fullNameAr": "Full name in Arabic",
-      "fullNameEn": "Full name in English",
       "location": "32.221, 35.254",
       "firstName": "e.g. Ahmad",
       "middleName": "e.g. Khaled Mohammad",
       "lastName": "e.g. Al-Hasan",
-      "firstNameAr": "First name in Arabic",
-      "lastNameAr": "Last name in Arabic",
-      "firstNameEn": "First name in English",
-      "lastNameEn": "Last name in English"
+      "firstNameIn": "First name {{language}}",
+      "lastNameIn": "Last name {{language}}",
+      "fullNameIn": "Full name {{language}}"
     },
     "clear": "Clear",
     "today": "Today",
@@ -236,12 +233,10 @@
     "updated": "User Updated",
     "uploadPhoto": "Upload Photo",
     "willBeInvited": "An activation link will be sent to {{email}} — they choose their own password.",
-    "firstNameAr": "First Name in Arabic",
-    "lastNameAr": "Last Name in Arabic",
-    "firstNameEn": "First Name in English",
-    "lastNameEn": "Last Name in English",
     "confirmRemovePhoto": "Remove the photo?",
-    "joinedOn": "Joined the Clinic"
+    "joinedOn": "Joined the Clinic",
+    "firstNameIn": "First Name {{language}}",
+    "lastNameIn": "Last Name {{language}}"
   },
   "doctors": {
     "title": "Doctors",
@@ -452,11 +447,6 @@
     "locationVerify": "Open on the Map to Check",
     "currency": "Currency",
     "currencyHint": "Shown beside every figure in the system",
-    "currencies": {
-      "JOD": "Jordanian Dinar",
-      "ILS": "Israeli Shekel",
-      "USD": "US Dollar"
-    },
     "workingHours": "Opening Hours",
     "logo": "Clinic Logo",
     "uploadLogo": "Upload Logo",
@@ -480,8 +470,6 @@
     "version": "Version",
     "apiVersion": "Server Version",
     "versionMismatch": "This page is older than the server — reload it",
-    "nameAr": "Clinic Name in Arabic",
-    "nameEn": "Clinic Name in English",
     "confirmRemoveLogo": {
       "title": "Remove the logo?",
       "consequence": "A mark generated from the clinic's name takes its place."
@@ -492,7 +480,25 @@
     },
     "appointmentsSection": "Appointments",
     "autoNoShowDays": "Mark as No-Show Automatically After (days)",
-    "autoNoShowHint": "A confirmed appointment with no outcome recorded within this many days is marked no-show automatically"
+    "autoNoShowHint": "A confirmed appointment with no outcome recorded within this many days is marked no-show automatically",
+    "nameIn": "Clinic Name {{language}}",
+    "locale": {
+      "title": "Language and Region",
+      "applyCountry": "Use the Country's Settings",
+      "languages": "Clinic Languages",
+      "languagesHint": "The languages your team works in, and that names, the website and the booking page are written in.",
+      "primaryLanguage": "Primary Language",
+      "primaryLanguageHint": "The app, the website and the booking page open in it for anyone who has not picked a language.",
+      "documentLanguage": "Documents and Messages",
+      "documentLanguageHint": "The language of printed receipts and invoices, and of the messages patients receive.",
+      "timeZone": "Time Zone",
+      "clock": "Time Format",
+      "clocks": {
+        "12h": "12-hour (10:30 PM)",
+        "24h": "24-hour (22:30)"
+      },
+      "weekStart": "First Day of the Week"
+    }
   },
   "audit": {
     "title": "Audit Log",
@@ -664,6 +670,9 @@
       "alreadyOpen": "A count is already in progress",
       "notOpen": "This count is already posted or cancelled",
       "incomplete": "Count at least one item before posting"
+    },
+    "clinic": {
+      "currencyLocked": "The currency cannot change once the clinic has recorded an amount."
     }
   },
   "patients": {
@@ -2020,8 +2029,6 @@
     "empty": "No options in this list yet",
     "newTitle": "New Option",
     "editTitle": "Edit Option",
-    "nameAr": "Arabic Name",
-    "nameEn": "English Name",
     "color": "Colour",
     "colorHint": "The colour this option is painted with on the tooth chart",
     "code": "Code",
@@ -2090,7 +2097,8 @@
       "hint": "Filled into the prescription when this drug is picked, and can be changed there."
     },
     "drugNote": "Notes",
-    "drugNoteHint": "Written into “Instructions for the Patient” when this drug is picked in a prescription"
+    "drugNoteHint": "Written into “Instructions for the Patient” when this drug is picked in a prescription",
+    "nameIn": "Name {{language}}"
   },
   "priceList": {
     "title": "Price List",
@@ -2728,8 +2736,6 @@
     "allSections": "All Sections",
     "hint": "Identical wording is one row: changing it changes it everywhere it appears. Open a row to word one place differently. Anything you never change keeps following the system's updates.",
     "original": "Original",
-    "arabic": "Arabic",
-    "english": "English",
     "usedIn_one": "Used in {{count}} Place",
     "usedIn_other": "Used in {{count}} Places",
     "mixed": "Worded Differently in Some Places"
@@ -3514,7 +3520,8 @@
     },
     "language": {
       "ar": "In Arabic",
-      "en": "In English"
+      "en": "In English",
+      "tr": "In Turkish"
     },
     "image": {
       "unsupported": "The image must be PNG, JPEG or WebP",
@@ -3688,6 +3695,18 @@
       "tooth_fdi": "Tooth chart",
       "body_region": "Body chart",
       "none": "No chart"
+    }
+  },
+  "languages": {
+    "in": {
+      "ar": "in Arabic",
+      "en": "in English",
+      "tr": "in Turkish"
+    },
+    "name": {
+      "ar": "Arabic",
+      "en": "English",
+      "tr": "Turkish"
     }
   }
 }
