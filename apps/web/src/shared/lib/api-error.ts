@@ -47,6 +47,7 @@ const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [APPOINTMENT_ERROR.HAS_VISIT]: "errors.appointment.hasVisit",
   [APPOINTMENT_ERROR.NOT_ARRIVED]: "errors.appointment.notArrived",
   [CLINIC_ERROR.CURRENCY_LOCKED]: "errors.clinic.currencyLocked",
+  [CLINIC_ERROR.SUSPENDED]: "errors.clinic.suspended",
   [PATIENT_ERROR.NATIONAL_ID_INVALID]: "errors.patient.nationalIdInvalid",
   [PAYROLL_ERROR.MONTH_CLOSED]: "errors.payroll.monthClosed",
   [PAYROLL_ERROR.ALREADY_CLOSED]: "errors.payroll.alreadyClosed",

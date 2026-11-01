@@ -89,7 +89,8 @@ How a module is wired:
   A core screen showing a module's widget checks the capability that feeds it.
 - **Dependencies** — `MODULE_REQUIRES`; the module script and bootstrap refuse a module without what
   it needs, and refuse to remove what another enabled module needs.
-- **Only the vendor switches a module.** No clinic screen does, admin included.
+- **Only the vendor switches a module** — from the console, or `module:enable|disable` for a clinic
+  without a subscription. No clinic screen does, admin included.
 - **Switching off hides, never deletes.** The data stays and returns when the module returns.
 - **New clinics** get `STANDARD_CLINIC_MODULES` unless `BOOTSTRAP_MODULES` says otherwise.
 - `clinic-modules.e2e-spec` files every capability scope as core or a module; a new controller fails
@@ -103,21 +104,34 @@ enable`), which adds its list rows and starter pack; an admin may only rename on
 treatment to a location generically per specialty; `CHART_TYPE` names the chart. A new specialty is
 a code, a chart type if it needs one, and its starter pack — never a branch in core.
 
-## Licensing and the vendor (planned)
+## Licensing and the vendor
 
-Next steps, in order; build toward them, never against them:
-
-1. **Subscriptions** — `plans` (modules included, limits), `subscriptions` (clinic, plan, add-on
-   modules, specialties, `ends_at`, status `trial`/`active`/`grace`/`suspended`/`cancelled` as a code
-   enum) and an append-only `subscription_events` history. `clinics.modules` becomes computed from the
-   active subscription. An expired clinic goes to grace, then read-only — never deleted.
-2. **Vendor console** — a separate `vendor` identity and sign-in above every clinic, never a clinic
-   role. It sees business data only (plan, modules, users, dates), never patients. It replaces the
-   `module:*` and `clinic-specialty.js` scripts.
-3. **Clinic subscription page** — the clinic admin reads their plan and asks for a module.
-
-Until then the vendor switches modules with `pnpm -C apps/api module:enable|disable|list`. A clinic
-that needs its own server later runs the same app and checks a signed license from the console.
+- **Subscriptions** — `plans` (modules included, limits), `subscriptions` (one per clinic: plan,
+  add-on modules, `starts_on`/`ends_on`, grace days, status `trial`/`active`/`grace`/`suspended`/
+  `cancelled` as a code enum) and the append-only `subscription_events` (a trigger forbids rewriting
+  it). Saving a subscription or a plan writes `clinics.modules` = plan ∪ add-ons, in one transaction
+  with its event, and refuses a set that breaks `MODULE_REQUIRES`.
+- **Expiry** — `SubscriptionExpiryScheduler` moves an ended subscription to `grace`, then to
+  `suspended` once its grace days pass. `suspended` and `cancelled` are read-only: `RolesGuard` refuses
+  every non-GET request from the clinic's staff with `clinic_suspended`. Nothing is deleted.
+- **Basic** (`DEFAULT_PLAN_CODE`, migration 0090) is the built-in core-only plan and the default in
+  the console. The clinic's **Modules** tab sets modules by hand: on a plan, what is ticked beyond the
+  plan becomes add-ons; without a subscription it writes `clinics.modules` directly. A specialty is
+  switched on and off from its tab; a clinic always keeps at least one.
+- **A clinic without a subscription** keeps its modules exactly as set; the vendor takes it over by
+  saving one.
+- **Creating and removing a clinic** is the console's too. Creating writes the clinic, its specialty
+  grants, its admin (signs in by phone code, no password) and a trial or active subscription in one
+  transaction. Removing sets `clinics.deleted_at` and nothing else: sessions and sign-in require a live
+  clinic, its refresh tokens are revoked, its slug and domain are freed, and restoring brings it back.
+- **The vendor console** — `/vendor`, its own bundle (`src/vendor`) and its own sign-in
+  (`vendor_users`, an opaque session in the `clinic_vendor_session` httpOnly cookie), never a clinic
+  role or a staff token. It sees business data only (plan, modules, specialties, user counts, dates,
+  history), never patients. Accounts are made by the vendor with `pnpm -C apps/api vendor:create`;
+  there is no sign-up.
+- **Next** — a clinic subscription page where the admin reads their plan and asks for a module, and
+  plan limits enforced on user and doctor creation. A clinic that needs its own server later runs the
+  same app and checks a signed license from the console.
 
 ## Tech stack
 

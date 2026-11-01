@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+@import "@clinic/ui/styles/base.css";
+@import "../theme.css";
+@import "../base.css";

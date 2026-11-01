@@ -27,6 +27,7 @@ import { clinics, specialties, users } from "@api/database/schema";
 import { INVALID_CREDENTIALS, PHONE_MIN_DIGITS } from "@api/modules/auth/constants";
 import { UserRow } from "@api/modules/auth/lib/auth";
 import { typedPhoneMatches } from "@api/common/lib/phone";
+import { inLiveClinic } from "@api/common/lib/live-clinic";
 
 @Injectable()
 export class AuthService {
@@ -102,7 +103,13 @@ export class AuthService {
     const [user] = await this.db
       .select()
       .from(users)
-      .where(and(isNull(users.deletedAt), eq(sql`lower(${users.email})`, email.toLowerCase())))
+      .where(
+        and(
+          isNull(users.deletedAt),
+          inLiveClinic,
+          eq(sql`lower(${users.email})`, email.toLowerCase()),
+        ),
+      )
       .limit(1);
 
     if (!user?.isActive) {
@@ -194,7 +201,13 @@ export class AuthService {
       const [user] = await this.db
         .select()
         .from(users)
-        .where(and(isNull(users.deletedAt), eq(sql`lower(${users.email})`, trimmed.toLowerCase())))
+        .where(
+          and(
+            isNull(users.deletedAt),
+            inLiveClinic,
+            eq(sql`lower(${users.email})`, trimmed.toLowerCase()),
+          ),
+        )
         .limit(1);
 
       return user;
@@ -209,7 +222,7 @@ export class AuthService {
     const matches = await this.db
       .select()
       .from(users)
-      .where(and(isNull(users.deletedAt), typedPhoneMatches(users.phone, trimmed)))
+      .where(and(isNull(users.deletedAt), inLiveClinic, typedPhoneMatches(users.phone, trimmed)))
       .limit(2);
 
     return matches.length === 1 ? matches[0] : undefined;
@@ -219,7 +232,7 @@ export class AuthService {
     const [user] = await this.db
       .select()
       .from(users)
-      .where(and(eq(users.id, id), isNull(users.deletedAt), eq(users.isActive, true)))
+      .where(and(eq(users.id, id), isNull(users.deletedAt), inLiveClinic, eq(users.isActive, true)))
       .limit(1);
 
     return user;

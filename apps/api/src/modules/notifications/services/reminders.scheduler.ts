@@ -62,6 +62,7 @@ export class RemindersScheduler {
             gt(appointments.startsAt, from),
             lt(appointments.startsAt, to),
             clinicHasModule(CLINIC_MODULE.APPOINTMENTS),
+            isNull(clinics.deletedAt),
           ),
         );
 

@@ -32,6 +32,11 @@ const DASHBOARD_PATTERNS = [
       "The website entry is a separate bundle; the dashboard previews it in a frame instead.",
   },
   {
+    group: ["@web/vendor/*"],
+    message:
+      "The vendor console is a separate bundle with its own session; nothing reaches into it.",
+  },
+  {
     group: ["@ui/*"],
     message:
       "Import the library by its package name — @clinic/ui, @clinic/ui/components/… — never by its internal alias.",
@@ -212,9 +217,38 @@ export default tseslint.config(
   },
 
   {
+    // The vendor console signs in with its own cookie and sees every clinic: it shares the UI library
+    // and `@clinic/shared`, never the dashboard's session, router or API client.
+    files: ["apps/web/src/vendor/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            RELATIVE_PATTERN,
+            {
+              group: [
+                "@web/modules/*",
+                "@web/shared/*",
+                "@web/app/*",
+                "@web/i18n*",
+                "@web/App",
+                "@web/booking/*",
+                "@web/site/*",
+              ],
+              message:
+                "The vendor console ships its own bundle and must not import the dashboard or the public entries. Write what it needs under src/vendor.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  {
     /* And the other way: the dashboard has no business reaching into the
        booking entry either — a shared piece belongs in a shared place. */
-    files: ["apps/web/src/!(booking|site)/**/*.{ts,tsx}", "apps/web/src/*.{ts,tsx}"],
+    files: ["apps/web/src/!(booking|site|vendor)/**/*.{ts,tsx}", "apps/web/src/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": ["error", { patterns: DASHBOARD_PATTERNS }],
     },

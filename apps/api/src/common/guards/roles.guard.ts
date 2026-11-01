@@ -5,13 +5,14 @@ import {
   type ExecutionContext,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { USER_ROLE, type ClinicModule, type UserRole } from "@clinic/shared";
+import { CLINIC_ERROR, USER_ROLE, type ClinicModule, type UserRole } from "@clinic/shared";
 import { ROLES_KEY } from "@api/common/decorators/roles.decorator";
 import { OR_SELF_KEY } from "@api/common/decorators/or-self.decorator";
 import { CLINIC_FEATURE_KEY } from "@api/common/decorators/clinic-feature.decorator";
 import { CapabilityRegistry } from "@api/modules/permissions/services/capability-registry.service";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import type { RequestWithUser } from "@api/common/types/authenticated-user";
+import { READ_METHODS } from "@api/common/constants/http";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -27,7 +28,17 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    const { user, params } = context.switchToHttp().getRequest<RequestWithUser>();
+    const { user, params, method } = context
+      .switchToHttp()
+      .getRequest<RequestWithUser & { method?: string }>();
+
+    if (
+      user &&
+      !READ_METHODS.has(method ?? "GET") &&
+      (await this.permissions.readOnly(user.clinicId))
+    ) {
+      throw new ForbiddenException(CLINIC_ERROR.SUSPENDED);
+    }
 
     const feature = this.reflector.getAllAndOverride<ClinicModule | undefined>(CLINIC_FEATURE_KEY, [
       context.getHandler(),

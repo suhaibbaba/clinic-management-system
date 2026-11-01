@@ -13,6 +13,7 @@ const LOCALE_PAIRS = [
   join(SRC, "i18n", "locales"),
   join(SRC, "booking", "locales"),
   join(SRC, "site", "locales"),
+  join(SRC, "vendor", "locales"),
 ];
 
 const ARABIC_LETTER = /[ؠ-ي٠-٩ٮ-ۿ]/;

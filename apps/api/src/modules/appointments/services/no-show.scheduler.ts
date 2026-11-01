@@ -47,6 +47,7 @@ export class NoShowScheduler {
           eq(appointments.status, APPOINTMENT_STATUS.CONFIRMED),
           lt(appointments.startsAt, earliestCutoff),
           clinicHasModule(CLINIC_MODULE.APPOINTMENTS),
+          isNull(clinics.deletedAt),
         ),
       );
 

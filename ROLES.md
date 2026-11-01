@@ -20,7 +20,7 @@ Users belong to one clinic and have exactly one role (v1). `admin` implicitly pa
 
 **Every permission is a capability a clinic can change.** The matrix below is the shipped default. Each endpoint is a capability, and so is each data rule below (`RULE` in `packages/shared`); the Permissions page grants or withdraws any of them per role. The sidebar and the route guards follow the same capabilities, so a page appears the moment its list capability is granted.
 
-**Paid modules** sit above the matrix. A clinic has a `modules` list; while a module is off its capabilities are refused to everyone, admin included, and leave the session and the Permissions page, so its pages, tabs, buttons and widgets go with them. Its data stays and returns when the module is switched back on. Only the vendor switches one on: `pnpm -C apps/api module:enable <clinic slug> <module>` (and `module:disable`, `module:list`). A controller names its module with `@ClinicFeature`; a controller without one is core (patients, visits, the timeline, billing, users, permissions, audit, settings, lists, notes, the dashboard).
+**Paid modules** sit above the matrix. A clinic has a `modules` list; while a module is off its capabilities are refused to everyone, admin included, and leave the session and the Permissions page, so its pages, tabs, buttons and widgets go with them. Its data stays and returns when the module is switched back on. Only the vendor switches one on: from the vendor console's subscription (plan modules plus add-ons), or with `pnpm -C apps/api module:enable <clinic slug> <module>` (and `module:disable`, `module:list`) for a clinic without a subscription. A controller names its module with `@ClinicFeature`; a controller without one is core (patients, visits, the timeline, billing, users, permissions, audit, settings, lists, notes, the dashboard).
 
 | Module | Covers | Needs |
 |---|---|---|
@@ -34,6 +34,8 @@ Users belong to one clinic and have exactly one role (v1). `admin` implicitly pa
 | `assistant` | Every `/ai` route, the AI query and the daily follow-ups | — |
 
 A new clinic gets `appointments`, `booking`, `labs`, `inventory`, `expenses` and `payroll` unless `BOOTSTRAP_MODULES` says otherwise.
+
+**The vendor** is not a role. A vendor account (`vendor_users`) signs in at `/vendor` with its own cookie session, sees every clinic's plan, modules, specialties, user counts and subscription history, and never a patient. A clinic whose subscription is `suspended` or `cancelled` is read-only for all its staff, admin included: reads answer, every change is refused with `clinic_suspended`.
 
 | Rule capability | Decides | Default roles (admin always) |
 |---|---|---|

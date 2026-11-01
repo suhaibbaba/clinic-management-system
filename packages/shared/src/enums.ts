@@ -1280,7 +1280,44 @@ export const PAYROLL_ERROR = {
 
 export const CLINIC_ERROR = {
   CURRENCY_LOCKED: "clinic_currency_locked",
+  SUSPENDED: "clinic_suspended",
 } as const;
+
+export const SUBSCRIPTION_STATUS = {
+  TRIAL: "trial",
+  ACTIVE: "active",
+  GRACE: "grace",
+  SUSPENDED: "suspended",
+  CANCELLED: "cancelled",
+} as const satisfies Record<string, string>;
+export type SubscriptionStatus = EnumValue<typeof SUBSCRIPTION_STATUS>;
+
+export const SUBSCRIPTION_STATUSES = [
+  SUBSCRIPTION_STATUS.TRIAL,
+  SUBSCRIPTION_STATUS.ACTIVE,
+  SUBSCRIPTION_STATUS.GRACE,
+  SUBSCRIPTION_STATUS.SUSPENDED,
+  SUBSCRIPTION_STATUS.CANCELLED,
+] as const;
+
+export const READ_ONLY_SUBSCRIPTION_STATUSES: readonly SubscriptionStatus[] = [
+  SUBSCRIPTION_STATUS.SUSPENDED,
+  SUBSCRIPTION_STATUS.CANCELLED,
+];
+
+export const SUBSCRIPTION_EVENT = {
+  SUBSCRIPTION_SAVED: "subscription_saved",
+  STATUS_ADVANCED: "status_advanced",
+  PLAN_CHANGED: "plan_changed",
+  DOMAIN_CHANGED: "domain_changed",
+  CLINIC_CREATED: "clinic_created",
+  CLINIC_REMOVED: "clinic_removed",
+  CLINIC_RESTORED: "clinic_restored",
+  MODULES_CHANGED: "modules_changed",
+  SPECIALTY_REVOKED: "specialty_revoked",
+  SPECIALTY_GRANTED: "specialty_granted",
+} as const satisfies Record<string, string>;
+export type SubscriptionEventAction = EnumValue<typeof SUBSCRIPTION_EVENT>;
 
 export const WHATSAPP_STATUS = {
   UNKNOWN: "unknown",

@@ -617,6 +617,27 @@
       "when": 1793555906145,
       "tag": "0087_standard_clinic_modules",
       "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "7",
+      "when": 1793567733302,
+      "tag": "0088_vendor_console",
+      "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1793567734020,
+      "tag": "0089_subscription_events_append_only",
+      "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "7",
+      "when": 1793573128680,
+      "tag": "0090_basic_plan",
+      "breakpoints": true
     }
   ]
 }
