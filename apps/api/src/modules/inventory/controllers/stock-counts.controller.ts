@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, Put } from "@nestjs/common";
-import { USER_ROLE, type StockCount, type StockCountSummary } from "@clinic/shared";
+import { CLINIC_MODULE, USER_ROLE, type StockCount, type StockCountSummary } from "@clinic/shared";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
@@ -9,7 +9,9 @@ import {
   IdParamDto,
   RecordCountsDto,
 } from "@api/modules/inventory/dto/stock-counts.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.INVENTORY)
 @Controller("stock-counts")
 export class StockCountsController {
   constructor(private readonly counts: StockCountsService) {}

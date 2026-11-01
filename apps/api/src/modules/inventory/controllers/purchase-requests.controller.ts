@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Header, Param, Patch, Post, Put, Query } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import {
+  CLINIC_MODULE,
   USER_ROLE,
   type OpenOrderLine,
   type Paginated,
@@ -21,7 +22,9 @@ import {
   SendPurchaseRequestDto,
   UpdatePurchaseRequestDto,
 } from "@api/modules/inventory/dto/purchase-requests.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.INVENTORY)
 @Controller("purchase-requests")
 export class PurchaseRequestsController {
   constructor(

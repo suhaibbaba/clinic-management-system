@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { and, eq } from "drizzle-orm";
-import { USER_ROLE, type UserRole } from "@clinic/shared";
+import { USER_ROLE, type ClinicModule, type UserRole } from "@clinic/shared";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, roleCapabilities } from "@api/database/schema";
 import { CapabilityRegistry } from "@api/modules/permissions/services/capability-registry.service";
@@ -25,7 +25,11 @@ export class PermissionsService {
   async available(clinicId: string, capability: string): Promise<boolean> {
     const module = this.registry.get(capability)?.module;
 
-    return module === undefined || (await this.enabledModules(clinicId)).has(module);
+    return module === undefined || (await this.moduleEnabled(clinicId, module));
+  }
+
+  async moduleEnabled(clinicId: string, module: ClinicModule): Promise<boolean> {
+    return (await this.enabledModules(clinicId)).has(module);
   }
 
   async availableCapabilities(clinicId: string): Promise<Capability[]> {

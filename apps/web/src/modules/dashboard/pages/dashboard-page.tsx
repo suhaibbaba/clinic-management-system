@@ -16,7 +16,11 @@ import {
 import { RefreshBar, SkeletonKpi } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/shared/providers/session";
 import { AppointmentFormModal } from "@web/modules/appointments/components/appointment-form-modal";
-import { canBookAppointment, canMoveAppointment } from "@web/shared/permissions/appointments";
+import {
+  canBookAppointment,
+  canMoveAppointment,
+  seesAppointments,
+} from "@web/shared/permissions/appointments";
 import { useAppointmentStep } from "@web/shared/queries/appointments";
 import { useNowMinute } from "@web/shared/hooks/use-now-minute";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-locale";
@@ -51,6 +55,7 @@ export function DashboardPage(): JSX.Element {
 
   const overdue = data?.overdueTotal;
   const pending = data?.pendingBookings;
+  const calendar = seesAppointments(can);
 
   return (
     <div data-testid="dashboard-page" className="flex flex-col gap-4">
@@ -89,15 +94,17 @@ export function DashboardPage(): JSX.Element {
 
           {!showSkeleton && (
             <div data-testid="dashboard-kpis" className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-              <KpiLink to="/appointments" data-testid="dashboard-kpi-today-link">
-                <StatCard
-                  icon="calendar"
-                  data-testid="dashboard-kpi-today"
-                  label={t("dashboard.kpi.today")}
-                  value={data?.appointmentsToday ?? "—"}
-                  caption={data ? formatDate(data.date) : undefined}
-                />
-              </KpiLink>
+              {calendar && (
+                <KpiLink to="/appointments" data-testid="dashboard-kpi-today-link">
+                  <StatCard
+                    icon="calendar"
+                    data-testid="dashboard-kpi-today"
+                    label={t("dashboard.kpi.today")}
+                    value={data?.appointmentsToday ?? "—"}
+                    caption={data ? formatDate(data.date) : undefined}
+                  />
+                </KpiLink>
+              )}
 
               {pending !== undefined && (
                 <KpiLink to="/appointments?status=pending" data-testid="dashboard-kpi-pending-link">
@@ -129,19 +136,21 @@ export function DashboardPage(): JSX.Element {
             </div>
           )}
 
-          <TodaySchedule
-            rows={data?.schedule ?? []}
-            isLoading={summary.isPending}
-            isRefreshing={isRefreshing}
-            linkPatients={user !== null && canOpenPatientFile(can)}
-          />
+          {calendar && (
+            <TodaySchedule
+              rows={data?.schedule ?? []}
+              isLoading={summary.isPending}
+              isRefreshing={isRefreshing}
+              linkPatients={user !== null && canOpenPatientFile(can)}
+            />
+          )}
         </div>
 
         <aside
           data-testid="dashboard-side"
           className="flex min-w-0 flex-col gap-4 max-[1219px]:flex-row max-[759px]:flex-col"
         >
-          <MiniCalendar />
+          {calendar && <MiniCalendar />}
           <NotesWidget />
         </aside>
       </div>

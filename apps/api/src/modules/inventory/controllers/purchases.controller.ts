@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post } from "@nestjs/common";
 import {
+  CLINIC_MODULE,
   USER_ROLE,
   type PurchaseResult,
   type PurchaseReviewEntry,
@@ -21,7 +22,9 @@ import {
   SupplierReturnDto,
   VoidDocumentDto,
 } from "@api/modules/inventory/dto/purchases.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.INVENTORY)
 @Controller("purchases")
 export class PurchasesController {
   constructor(

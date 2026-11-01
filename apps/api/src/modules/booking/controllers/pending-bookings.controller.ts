@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Query } from "@nestjs/common";
 import {
+  CLINIC_MODULE,
   APPOINTMENT_STATUS,
   USER_ROLE,
   type CalendarAppointment,
@@ -15,7 +16,9 @@ import {
   IdParamDto,
   RejectBookingDto,
 } from "@api/modules/booking/dto/pending-bookings.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.BOOKING)
 @Controller("appointments/pending-confirmation")
 @Roles(USER_ROLE.RECEPTIONIST)
 export class PendingBookingsController {

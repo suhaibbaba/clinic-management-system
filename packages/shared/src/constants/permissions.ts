@@ -17,6 +17,12 @@ export const RULE = {
 export type Rule = (typeof RULE)[keyof typeof RULE];
 
 export const CLINIC_MODULE = {
+  APPOINTMENTS: "appointments",
+  BOOKING: "booking",
+  LABS: "labs",
+  INVENTORY: "inventory",
+  EXPENSES: "expenses",
+  PAYROLL: "payroll",
   ASSISTANT: "assistant",
   WEBSITE: "website",
 } as const;
@@ -24,3 +30,28 @@ export const CLINIC_MODULE = {
 export const CLINIC_MODULES = Object.values(CLINIC_MODULE);
 
 export type ClinicModule = (typeof CLINIC_MODULE)[keyof typeof CLINIC_MODULE];
+
+export const STANDARD_CLINIC_MODULES: readonly ClinicModule[] = [
+  CLINIC_MODULE.APPOINTMENTS,
+  CLINIC_MODULE.BOOKING,
+  CLINIC_MODULE.LABS,
+  CLINIC_MODULE.INVENTORY,
+  CLINIC_MODULE.EXPENSES,
+  CLINIC_MODULE.PAYROLL,
+];
+
+export const MODULE_REQUIRES: Readonly<Partial<Record<ClinicModule, readonly ClinicModule[]>>> = {
+  [CLINIC_MODULE.BOOKING]: [CLINIC_MODULE.APPOINTMENTS],
+};
+
+export const missingModules = (modules: readonly string[]): ClinicModule[] => {
+  const enabled = new Set(modules);
+
+  return [
+    ...new Set(
+      modules.flatMap((module) =>
+        (MODULE_REQUIRES[module as ClinicModule] ?? []).filter((needed) => !enabled.has(needed)),
+      ),
+    ),
+  ];
+};

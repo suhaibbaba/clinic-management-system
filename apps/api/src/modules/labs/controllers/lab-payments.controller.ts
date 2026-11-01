@@ -14,6 +14,7 @@ import { Throttle } from "@nestjs/throttler";
 import { SendDocumentDto } from "@api/modules/notifications/dto/document-delivery.dto";
 import { DocumentDeliveryService } from "@api/modules/notifications/services/document-delivery.service";
 import {
+  CLINIC_MODULE,
   AUDIT_ACTION,
   USER_ROLE,
   type LabBalance,
@@ -38,7 +39,9 @@ import {
   IdParamDto,
   ReverseLabPaymentDto,
 } from "@api/modules/labs/dto/lab-payments.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.LABS)
 @Controller("labs/:labId")
 export class LabLedgerController {
   constructor(
@@ -121,6 +124,7 @@ export class LabLedgerController {
   }
 }
 
+@ClinicFeature(CLINIC_MODULE.LABS)
 @Controller("lab-payments")
 export class LabPaymentsController {
   constructor(private readonly payments: LabPaymentsService) {}

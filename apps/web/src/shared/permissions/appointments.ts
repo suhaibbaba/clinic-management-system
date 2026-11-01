@@ -2,6 +2,8 @@ import { RULE } from "@clinic/shared";
 import type { Can } from "@web/shared/providers/session";
 import type { AppointmentStep } from "@web/shared/queries/appointments";
 
+export const seesAppointments = (can: Can): boolean => can("appointments.list");
+
 export const canBookAppointment = (can: Can): boolean => can("appointments.create");
 
 export const canMoveAppointment = (can: Can, step: AppointmentStep): boolean =>

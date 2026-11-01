@@ -1,6 +1,7 @@
 import {
   APPOINTMENT_STATUS,
   BOOKING_CONFIRMATION_MODE,
+  CLINIC_MODULES,
   DEFAULT_NOTIFICATION_TEMPLATES,
   NOTIFICATION_CHANNEL,
   NOTIFICATION_STATUS,
@@ -333,6 +334,26 @@ describe("Notifications and schedulers (e2e)", () => {
       });
 
       await scheduler.sendReminders();
+
+      expect(await logged(appointmentId)).toHaveLength(0);
+    });
+
+    it("sends nothing for a clinic whose appointments module is off", async () => {
+      const appointmentId = await insertAppointment({
+        startsAt: new Date(Date.now() + 24 * HOUR + 5 * MINUTE),
+        doctorId: await createDoctor(),
+      });
+
+      await context.db.update(clinics).set({ modules: [] }).where(eq(clinics.id, clinic.id));
+
+      try {
+        await scheduler.sendReminders();
+      } finally {
+        await context.db
+          .update(clinics)
+          .set({ modules: [...CLINIC_MODULES] })
+          .where(eq(clinics.id, clinic.id));
+      }
 
       expect(await logged(appointmentId)).toHaveLength(0);
     });

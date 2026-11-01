@@ -5,9 +5,10 @@ import {
   type ExecutionContext,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { USER_ROLE, type UserRole } from "@clinic/shared";
+import { USER_ROLE, type ClinicModule, type UserRole } from "@clinic/shared";
 import { ROLES_KEY } from "@api/common/decorators/roles.decorator";
 import { OR_SELF_KEY } from "@api/common/decorators/or-self.decorator";
+import { CLINIC_FEATURE_KEY } from "@api/common/decorators/clinic-feature.decorator";
 import { CapabilityRegistry } from "@api/modules/permissions/services/capability-registry.service";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import type { RequestWithUser } from "@api/common/types/authenticated-user";
@@ -27,6 +28,15 @@ export class RolesGuard implements CanActivate {
     ]);
 
     const { user, params } = context.switchToHttp().getRequest<RequestWithUser>();
+
+    const feature = this.reflector.getAllAndOverride<ClinicModule | undefined>(CLINIC_FEATURE_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (feature && user && !(await this.permissions.moduleEnabled(user.clinicId, feature))) {
+      throw new ForbiddenException("This module is not enabled for the clinic");
+    }
 
     if (!required || required.length === 0) {
       return true;

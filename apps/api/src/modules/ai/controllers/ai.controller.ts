@@ -16,6 +16,7 @@ import {
 import { Throttle } from "@nestjs/throttler";
 import { type FastifyReply } from "fastify";
 import {
+  CLINIC_MODULE,
   AI_ERROR_CODE,
   AI_STREAM_EVENT,
   type AiConversation,
@@ -38,7 +39,9 @@ import {
   RenameConversationDto,
 } from "@api/modules/ai/dto/ai.dto";
 import { frame } from "@api/modules/ai/lib/ai";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.ASSISTANT)
 @Controller("ai")
 export class AiController {
   private readonly logger = new Logger("Assistant");

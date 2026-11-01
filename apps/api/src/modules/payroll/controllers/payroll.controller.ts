@@ -15,6 +15,7 @@ import { DocumentDeliveryService } from "@api/modules/notifications/services/doc
 import { PayrollDocumentsService } from "@api/modules/payroll/services/payroll-documents.service";
 
 import {
+  CLINIC_MODULE,
   AUDIT_ACTION,
   USER_ROLE,
   type OwnerDraw,
@@ -54,7 +55,9 @@ import {
   SalaryTermsDto,
   ShareTermsDto,
 } from "@api/modules/payroll/dto/payroll.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.PAYROLL)
 @Controller("payroll")
 @Roles(USER_ROLE.ADMIN)
 export class PayrollController {
@@ -203,6 +206,7 @@ export class PayrollController {
   }
 }
 
+@ClinicFeature(CLINIC_MODULE.PAYROLL)
 @Controller("payroll-adjustments")
 @Roles(USER_ROLE.ADMIN)
 export class PayrollAdjustmentsController {
@@ -219,6 +223,7 @@ export class PayrollAdjustmentsController {
   }
 }
 
+@ClinicFeature(CLINIC_MODULE.PAYROLL)
 @Controller("staff-payments")
 @Roles(USER_ROLE.ADMIN)
 export class StaffPaymentsController {

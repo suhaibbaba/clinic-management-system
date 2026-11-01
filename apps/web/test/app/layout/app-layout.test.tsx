@@ -155,6 +155,50 @@ describe("Sidebar navigation", () => {
     ]);
   });
 
+  it("gives the admin of a clinic without paid modules only the core sections", async () => {
+    const paid = [
+      "ai",
+      "appointments.",
+      "waiting-list.",
+      "clinic-closures.",
+      "doctor-time-off.",
+      "doctor-extra-hours.",
+      "pending-bookings.",
+      "lab",
+      "inventory.",
+      "purchas",
+      "stock-counts.",
+      "supplier",
+      "expenses.",
+      "payroll",
+      "staff-payments.",
+      "doctor-settlements.",
+      "my-settlement.",
+      "patient-settlement-status.",
+      "settlement-treatments.",
+      "website",
+    ];
+
+    await renderAs(
+      USER_ROLE.ADMIN,
+      "/dashboard",
+      SHIPPED_CAPABILITIES[USER_ROLE.ADMIN].filter(
+        (capability) => !paid.some((prefix) => capability.startsWith(prefix)),
+      ),
+    );
+
+    expect(linkNames()).toEqual([
+      ar.nav.dashboard,
+      ar.nav.patients,
+      ar.nav.users,
+      ar.nav.catalog,
+      ar.nav.settingsPage,
+    ]);
+    expect(
+      screen.queryByRole("region", { name: ar.dashboard.schedule.title }),
+    ).not.toBeInTheDocument();
+  });
+
   it("keeps the account out of the nav and behind the avatar", async () => {
     await renderAs(USER_ROLE.RECEPTIONIST);
 

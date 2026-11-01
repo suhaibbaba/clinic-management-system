@@ -61,6 +61,7 @@ import {
 } from "@api/modules/ai/tools/ai-views";
 
 const CAPABILITY = {
+  APPOINTMENTS: "appointments.list",
   PATIENT_TIMELINE: "timeline.list",
   PATIENT_BALANCE: "patient-billing.balance",
   OVERDUE: "billing.list",
@@ -117,7 +118,7 @@ export class AiToolsService {
         name: AI_TOOL.GET_APPOINTMENTS,
         description:
           'Appointments between two local dates (inclusive), optionally for one doctor or status; "my" means the speaker\'s doctor_id. Not for free times — find_available_slots. Returns rows, drawn as a table.',
-        capability: null,
+        capability: CAPABILITY.APPOINTMENTS,
         schema: z.object({
           date_from: dateSchema,
           date_to: dateSchema,
@@ -184,7 +185,7 @@ export class AiToolsService {
         name: AI_TOOL.FIND_AVAILABLE_SLOTS,
         description:
           "Free start times for one doctor, day by day for up to 7 days, as booking computes them. Before proposing any new time. Returns free times per day, or why a day has none.",
-        capability: null,
+        capability: CAPABILITY.APPOINTMENTS,
         schema: z.object({
           doctor_id: z.uuid(),
           date: dateSchema,
@@ -279,7 +280,7 @@ export class AiToolsService {
         name: AI_TOOL.GET_DAILY_STATS,
         description:
           "Counts of appointments between two dates: total, completed, cancelled, no-show. For attendance, not lists (get_appointments). Returns counts.",
-        capability: null,
+        capability: CAPABILITY.APPOINTMENTS,
         schema: z.object({ date_from: dateSchema, date_to: dateSchema }),
         run: async (actor, args) => {
           const range = { from: args.date_from, to: args.date_to };

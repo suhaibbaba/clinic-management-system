@@ -1,6 +1,8 @@
 import { z } from "zod";
 import {
   CLINIC_MODULES,
+  missingModules,
+  STANDARD_CLINIC_MODULES,
   LANGUAGE_CODES,
   SPECIALTY_CODE,
   phoneSchema,
@@ -52,7 +54,15 @@ export const bootstrapEnvSchema = z
       (codes) => codes.length > 0,
       "At least one specialty is required",
     ),
-    BOOTSTRAP_MODULES: list(z.enum(CLINIC_MODULES)).default([]),
+    BOOTSTRAP_MODULES: list(z.enum(CLINIC_MODULES))
+      .default([...STANDARD_CLINIC_MODULES])
+      .superRefine((modules, context) => {
+        const missing = missingModules(modules);
+
+        if (missing.length > 0) {
+          context.addIssue({ code: "custom", message: `Also enable: ${missing.join(", ")}` });
+        }
+      }),
     BOOTSTRAP_SITE_DOMAIN: z
       .string()
       .trim()

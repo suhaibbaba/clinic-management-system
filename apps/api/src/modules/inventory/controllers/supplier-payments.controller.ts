@@ -1,5 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, Param, Patch, Post, Put } from "@nestjs/common";
-import { AUDIT_ACTION, USER_ROLE, type SupplierPayment } from "@clinic/shared";
+import { CLINIC_MODULE, AUDIT_ACTION, USER_ROLE, type SupplierPayment } from "@clinic/shared";
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
@@ -13,7 +13,9 @@ import {
   IdParamDto,
   ReverseSupplierPaymentDto,
 } from "@api/modules/inventory/dto/supplier-payments.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.INVENTORY)
 @Controller("supplier-payments")
 export class SupplierPaymentsController {
   constructor(

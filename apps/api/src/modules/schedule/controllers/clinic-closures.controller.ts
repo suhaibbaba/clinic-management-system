@@ -11,6 +11,7 @@ import {
   Query,
 } from "@nestjs/common";
 import {
+  CLINIC_MODULE,
   AUDIT_ACTION,
   USER_ROLE,
   type ClinicClosure,
@@ -31,7 +32,9 @@ import {
   IdParamDto,
   UpdateClinicClosureDto,
 } from "@api/modules/schedule/dto/clinic-closures.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.APPOINTMENTS)
 @Controller("clinic-closures")
 export class ClinicClosuresController {
   constructor(private readonly closures: ClinicClosuresService) {}

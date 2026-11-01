@@ -11,6 +11,7 @@ import {
   Query,
 } from "@nestjs/common";
 import {
+  CLINIC_MODULE,
   APPOINTMENT_STATUS,
   AUDIT_ACTION,
   USER_ROLE,
@@ -37,7 +38,9 @@ import {
   UpdateAppointmentDto,
   CancelAppointmentDto,
 } from "@api/modules/appointments/dto/appointments.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.APPOINTMENTS)
 @Controller("appointments")
 export class AppointmentsController {
   constructor(
