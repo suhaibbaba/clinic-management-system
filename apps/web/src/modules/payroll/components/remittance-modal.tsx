@@ -8,6 +8,7 @@ import {
   Money,
   MoneyInput,
   Select,
+  Summary,
   Textarea,
   useToast,
 } from "@clinic/ui";
@@ -100,10 +101,17 @@ export function RemittanceModal({
       }
     >
       <div ref={form.formRef} className="flex flex-col gap-4">
-        <div className="flex items-baseline justify-between rounded-panel bg-inset px-3 py-2">
-          <span className="text-label text-ink-muted">{t("payroll.remittance.owed")}</span>
-          <Money amount={owed} currency={currency} className="font-medium" />
-        </div>
+        <Summary
+          data-testid="remittance-owed"
+          rows={[
+            {
+              key: "owed",
+              label: t("payroll.remittance.owed"),
+              value: <Money amount={owed} currency={currency} />,
+              emphasis: "total",
+            },
+          ]}
+        />
 
         <div onBlur={form.leave("amount")}>
           <FormField

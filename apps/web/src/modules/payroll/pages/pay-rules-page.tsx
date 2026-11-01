@@ -15,6 +15,7 @@ import {
   QuantityInput,
   SegmentedControl,
   Select,
+  Summary,
   useToast,
 } from "@clinic/ui";
 import { usePayRules, useSetPayRules } from "@web/modules/payroll/queries";
@@ -203,24 +204,20 @@ export function PayRulesPage(): JSX.Element {
         {(rules.data?.history ?? []).length > 0 && (
           <Card data-testid="pay-rules-history" className="flex flex-col gap-3">
             <h2 className="text-value font-semibold text-ink">{t("payroll.rules.history")}</h2>
-            <ul className="flex flex-col gap-1">
-              {rules.data?.history.map((rule) => (
-                <li
-                  key={rule.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-panel bg-inset px-3 py-1.5 text-meta"
-                >
-                  <span>{formatMonth(rule.effectiveMonth)}</span>
-                  <span className="text-ink-muted">
-                    {t("payroll.rules.summary", {
-                      clinic: rule.clinicSharePercent,
-                      tax: rule.taxPercent,
-                      overhead: rule.overheadPercent,
-                      basis: t(`doctors.settlement.basis.${rule.basis}`),
-                    })}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <Summary
+              data-testid="pay-rules-history-rows"
+              divided
+              rows={(rules.data?.history ?? []).map((rule, index) => ({
+                key: rule.id ?? String(index),
+                label: formatMonth(rule.effectiveMonth),
+                value: t("payroll.rules.summary", {
+                  clinic: rule.clinicSharePercent,
+                  tax: rule.taxPercent,
+                  overhead: rule.overheadPercent,
+                  basis: t(`doctors.settlement.basis.${rule.basis}`),
+                }),
+              }))}
+            />
           </Card>
         )}
       </div>

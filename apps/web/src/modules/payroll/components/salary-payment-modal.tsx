@@ -8,6 +8,7 @@ import {
   Money,
   MoneyInput,
   Select,
+  Summary,
   Textarea,
   useToast,
 } from "@clinic/ui";
@@ -94,10 +95,17 @@ export function SalaryPaymentModal({
       }
     >
       <div ref={form.formRef} className="flex flex-col gap-4">
-        <div className="flex items-baseline justify-between rounded-panel bg-inset px-3 py-2">
-          <span className="text-label text-ink-muted">{t("payroll.remaining")}</span>
-          <Money amount={line?.remaining ?? "0.00"} currency={currency} className="font-medium" />
-        </div>
+        <Summary
+          data-testid="payroll-payment-remaining"
+          rows={[
+            {
+              key: "remaining",
+              label: t("payroll.remaining"),
+              value: <Money amount={line?.remaining ?? "0.00"} currency={currency} />,
+              emphasis: "total",
+            },
+          ]}
+        />
 
         <div onBlur={form.leave("amount")}>
           <FormField

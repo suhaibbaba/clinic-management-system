@@ -15,6 +15,7 @@ import {
   MoneyInput,
   SegmentedControl,
   Select,
+  Summary,
   Switch,
   Textarea,
   useToast,
@@ -141,10 +142,17 @@ export function SharePayoutModal({
       }
     >
       <div ref={form.formRef} className="flex flex-col gap-4">
-        <div className="flex items-baseline justify-between rounded-panel bg-inset px-3 py-2">
-          <span className="text-label text-ink-muted">{t("doctors.settlement.balance")}</span>
-          <Money amount={balance} currency={currency} className="font-medium" />
-        </div>
+        <Summary
+          data-testid="doctor-payout-balance"
+          rows={[
+            {
+              key: "balance",
+              label: t("doctors.settlement.balance"),
+              value: <Money amount={balance} currency={currency} />,
+              emphasis: "total",
+            },
+          ]}
+        />
 
         <SegmentedControl
           data-testid="doctor-payout-mode"
