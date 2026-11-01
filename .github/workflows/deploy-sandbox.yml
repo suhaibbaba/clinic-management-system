@@ -44,8 +44,16 @@ jobs:
       - name: Resolve the environment
         env:
           TARGET: ${{ inputs.target }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
           set -eu
+
+          # A real clinic runs main only; the sandbox runs whichever branch the run was started from.
+          if [ "$TARGET" != "abu-obaid" ] && [ "$REF_NAME" != "main" ]; then
+            echo "::error::${TARGET} deploys main only — start the run from main"
+            exit 1
+          fi
+          echo "DEPLOY_REF=${REF_NAME}" >> "$GITHUB_ENV"
 
           case "$TARGET" in
             abu-obaid)
@@ -194,15 +202,15 @@ jobs:
               exit 1
             }
 
-            # Reset, not merge: the deploy lands exactly main. `.env` is gitignored.
-            git fetch origin main
-            git reset --hard origin/main
+            # Reset, not merge: the deploy lands exactly the branch. `.env` is gitignored.
+            git fetch origin "${{ env.DEPLOY_REF }}"
+            git reset --hard FETCH_HEAD
             echo "deploying $(git rev-parse --short HEAD)"
 
             echo "==> Making sure the full history is here (the version is a commit count)"
             if [ -f "$(git rev-parse --git-dir)/shallow" ]; then
               echo "    shallow clone — unshallowing"
-              git fetch --unshallow origin main || git fetch --depth=2147483647 origin main
+              git fetch --unshallow origin "${{ env.DEPLOY_REF }}" || git fetch --depth=2147483647 origin "${{ env.DEPLOY_REF }}"
             fi
 
             echo "==> Resolving app version"
