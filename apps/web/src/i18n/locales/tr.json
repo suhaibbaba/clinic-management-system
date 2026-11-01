@@ -673,7 +673,8 @@
       "incomplete": "İşlemeden önce en az bir ürünü sayın"
     },
     "clinic": {
-      "currencyLocked": "Klinikte bir tutar kaydedildikten sonra para birimi değiştirilemez."
+      "currencyLocked": "Klinikte bir tutar kaydedildikten sonra para birimi değiştirilemez.",
+      "suspended": "Kliniğin aboneliği askıya alındı: kayıtları görebilir ama değiştiremezsiniz. Yenilemek için sağlayıcınızla iletişime geçin."
     },
     "patient": {
       "nationalIdInvalid": "Kimlik numarası kliniğin ülkesi için geçerli değil"

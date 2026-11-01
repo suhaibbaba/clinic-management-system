@@ -30,6 +30,7 @@ import { TranslationsModule } from "@api/modules/translations/translations.modul
 import { NotesModule } from "@api/modules/notes/notes.module";
 import { PortalModule } from "@api/modules/portal/portal.module";
 import { WebsiteModule } from "@api/modules/website/website.module";
+import { VendorModule } from "@api/modules/vendor/vendor.module";
 import { PdfModule } from "@api/modules/billing/pdf/pdf.module";
 import { EmailModule } from "@api/modules/email/email.module";
 import { NotificationsModule } from "@api/modules/notifications/notifications.module";
@@ -72,6 +73,7 @@ import { UsersModule } from "@api/modules/users/users.module";
     TranslationsModule,
     NotesModule,
     WebsiteModule,
+    VendorModule,
     PortalModule,
     PdfModule,
     LabsModule,

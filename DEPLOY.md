@@ -571,7 +571,14 @@ dc exec postgres \
   psql -U "$(grep -E '^POSTGRES_USER=' .env | cut -d= -f2)" \
        -d "$(grep -E '^POSTGRES_DB=' .env | cut -d= -f2)"
 
-# Paid modules per clinic (the vendor's switch, never a screen).
+# Vendor console accounts (the console is /vendor on the dashboard host). The password comes from
+# VENDOR_PASSWORD, never the command line; at least 12 characters.
+dc exec -e VENDOR_PASSWORD='…' api node scripts/vendor-user.mjs create you@example.com "Your Name"
+dc exec api node scripts/vendor-user.mjs list
+dc exec -e VENDOR_PASSWORD='…' api node scripts/vendor-user.mjs password you@example.com
+dc exec api node scripts/vendor-user.mjs disable you@example.com
+
+# Paid modules per clinic without a subscription (with one, the console computes them).
 dc exec api node scripts/clinic-module.mjs list
 dc exec api node scripts/clinic-module.mjs enable abu-obeid assistant
 dc exec api node scripts/clinic-module.mjs disable abu-obeid assistant

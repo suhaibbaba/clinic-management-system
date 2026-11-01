@@ -25,6 +25,8 @@ function bookingEntry(): Plugin {
         request.url = "/booking.html";
       } else if (/^\/site(\/|$)/.test(path)) {
         request.url = "/site.html";
+      } else if (/^\/vendor(\/|$)/.test(path)) {
+        request.url = "/vendor.html";
       }
 
       next();
@@ -77,6 +79,7 @@ function pwa(): Plugin[] {
         /^\/book(\/|$)/,
         /^\/booking\/manage(\/|$)/,
         /^\/site(\/|$)/,
+        /^\/vendor(\/|$)/,
       ],
       runtimeCaching: [],
       cleanupOutdatedCaches: true,
@@ -147,6 +150,7 @@ export default defineConfig({
         index: fileURLToPath(new URL("./index.html", import.meta.url)),
         booking: fileURLToPath(new URL("./booking.html", import.meta.url)),
         site: fileURLToPath(new URL("./site.html", import.meta.url)),
+        vendor: fileURLToPath(new URL("./vendor.html", import.meta.url)),
       },
       treeshake: {
         moduleSideEffects: (id) => !id.includes(sharedSrcDir),

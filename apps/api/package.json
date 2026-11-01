@@ -7,7 +7,8 @@
   "files": [
     "dist",
     "drizzle",
-    "scripts/clinic-module.mjs"
+    "scripts/clinic-module.mjs",
+    "scripts/vendor-user.mjs"
   ],
   "scripts": {
     "build": "nest build && tsc-alias -p tsconfig.build.json",
@@ -26,6 +27,10 @@
     "module:list": "node --env-file-if-exists=../../.env scripts/clinic-module.mjs list",
     "module:enable": "node --env-file-if-exists=../../.env scripts/clinic-module.mjs enable",
     "module:disable": "node --env-file-if-exists=../../.env scripts/clinic-module.mjs disable",
+    "vendor:list": "node --env-file-if-exists=../../.env scripts/vendor-user.mjs list",
+    "vendor:create": "node --env-file-if-exists=../../.env scripts/vendor-user.mjs create",
+    "vendor:password": "node --env-file-if-exists=../../.env scripts/vendor-user.mjs password",
+    "vendor:disable": "node --env-file-if-exists=../../.env scripts/vendor-user.mjs disable",
     "specialty:list": "node --env-file-if-exists=../../.env dist/database/clinic-specialty.js list",
     "specialty:enable": "node --env-file-if-exists=../../.env dist/database/clinic-specialty.js enable",
     "specialty:disable": "node --env-file-if-exists=../../.env dist/database/clinic-specialty.js disable",

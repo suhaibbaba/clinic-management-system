@@ -673,7 +673,8 @@
       "incomplete": "Count at least one item before posting"
     },
     "clinic": {
-      "currencyLocked": "The currency cannot change once the clinic has recorded an amount."
+      "currencyLocked": "The currency cannot change once the clinic has recorded an amount.",
+      "suspended": "The clinic's subscription is suspended: you can view records but not change them. Contact your provider to renew it."
     },
     "patient": {
       "nationalIdInvalid": "The national ID is not valid for the clinic's country"

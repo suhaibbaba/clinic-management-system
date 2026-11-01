@@ -1,8 +1,13 @@
 import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { and, eq } from "drizzle-orm";
-import { USER_ROLE, type ClinicModule, type UserRole } from "@clinic/shared";
+import {
+  READ_ONLY_SUBSCRIPTION_STATUSES,
+  USER_ROLE,
+  type ClinicModule,
+  type UserRole,
+} from "@clinic/shared";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { clinics, roleCapabilities } from "@api/database/schema";
+import { clinics, roleCapabilities, subscriptions } from "@api/database/schema";
 import { CapabilityRegistry } from "@api/modules/permissions/services/capability-registry.service";
 import { Grants } from "@api/modules/permissions/lib/permissions";
 import { type Capability } from "@api/modules/permissions/lib/capability-registry";
@@ -12,9 +17,9 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 @Injectable()
 export class PermissionsService {
   private readonly cache = new Map<string, Grants>();
-  private readonly modulesCache = new Map<
+  private readonly clinicCache = new Map<
     string,
-    { readonly modules: ReadonlySet<string>; readonly at: number }
+    { readonly modules: ReadonlySet<string>; readonly readOnly: boolean; readonly at: number }
   >();
 
   constructor(
@@ -29,11 +34,19 @@ export class PermissionsService {
   }
 
   async moduleEnabled(clinicId: string, module: ClinicModule): Promise<boolean> {
-    return (await this.enabledModules(clinicId)).has(module);
+    return (await this.clinicState(clinicId)).modules.has(module);
+  }
+
+  async readOnly(clinicId: string): Promise<boolean> {
+    return (await this.clinicState(clinicId)).readOnly;
+  }
+
+  forgetClinic(clinicId: string): void {
+    this.clinicCache.delete(clinicId);
   }
 
   async availableCapabilities(clinicId: string): Promise<Capability[]> {
-    const modules = await this.enabledModules(clinicId);
+    const { modules } = await this.clinicState(clinicId);
 
     return this.registry
       .all()
@@ -128,22 +141,29 @@ export class PermissionsService {
     return grants;
   }
 
-  private async enabledModules(clinicId: string): Promise<ReadonlySet<string>> {
-    const cached = this.modulesCache.get(clinicId);
+  private async clinicState(
+    clinicId: string,
+  ): Promise<{ readonly modules: ReadonlySet<string>; readonly readOnly: boolean }> {
+    const cached = this.clinicCache.get(clinicId);
 
     if (cached && Date.now() - cached.at < MODULES_CACHE_MS) {
-      return cached.modules;
+      return cached;
     }
 
     const [row] = await this.db
-      .select({ modules: clinics.modules })
+      .select({ modules: clinics.modules, status: subscriptions.status })
       .from(clinics)
+      .leftJoin(subscriptions, eq(subscriptions.clinicId, clinics.id))
       .where(eq(clinics.id, clinicId))
       .limit(1);
-    const modules = new Set<string>(row?.modules ?? []);
+    const state = {
+      modules: new Set<string>(row?.modules ?? []),
+      readOnly: row?.status != null && READ_ONLY_SUBSCRIPTION_STATUSES.includes(row.status),
+      at: Date.now(),
+    };
 
-    this.modulesCache.set(clinicId, { modules, at: Date.now() });
+    this.clinicCache.set(clinicId, state);
 
-    return modules;
+    return state;
   }
 }

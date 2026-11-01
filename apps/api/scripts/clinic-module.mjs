@@ -45,7 +45,16 @@ try {
     const isId = /^[0-9a-f-]{36}$/i.test(clinic);
     const match = isId ? sql`id = ${clinic}` : sql`slug = ${clinic}`;
     const [current] = await sql`
-      select modules from clinics where deleted_at is null and ${match}`;
+      select modules, exists(select 1 from subscriptions where clinic_id = clinics.id) as managed
+      from clinics where deleted_at is null and ${match}`;
+
+    if (current?.managed) {
+      console.error(
+        "This clinic has a subscription: change its plan or add-ons in the vendor console.",
+      );
+      process.exit(1);
+    }
+
     const enabled = new Set(current?.modules ?? []);
     const blockers =
       action === "enable"
