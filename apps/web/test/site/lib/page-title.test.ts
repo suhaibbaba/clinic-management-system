@@ -25,7 +25,7 @@ const site = (): PublicSite => {
       chartTypes: [],
       locale: clinicLocale({ country: "PS" }),
     },
-    doctors: [{ id: DOCTOR, name: { ar: "باسل", en: "Basel" }, specialty: "", photoUrl: null }],
+    doctors: [{ id: DOCTOR, name: { ar: "باسل", en: "Basel" }, specialty: {}, photoUrl: null }],
     content,
     images: {},
   };

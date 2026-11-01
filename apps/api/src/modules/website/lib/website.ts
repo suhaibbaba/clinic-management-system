@@ -59,13 +59,14 @@ export type SiteIconLinks = { favicon: string; appleTouchIcon: string };
 export function siteHead(site: PublicSite, icons: SiteIconLinks | null): string {
   const { clinic, content } = site;
   const language = clinic.locale.primaryLanguage;
-  const text = (value: LocalizedText): string =>
+  const text = (value: LocalizedText | null): string =>
     localized(value, language, clinic.locale.languages);
 
   const name = text(clinic.name);
+  const address = text(clinic.address);
   const title = text(content.hero.title) || name;
   const description = clip(
-    text(content.hero.subtitle) || text(content.about.body) || clinic.address || name,
+    text(content.hero.subtitle) || text(content.about.body) || address || name,
     SITE_DESCRIPTION_MAX,
   );
 
@@ -80,7 +81,7 @@ export function siteHead(site: PublicSite, icons: SiteIconLinks | null): string 
     ...(alternateName && { alternateName }),
     ...(clinic.phone && { telephone: clinic.phone }),
     ...(clinic.email && { email: clinic.email }),
-    ...(clinic.address && { address: clinic.address }),
+    ...(address && { address }),
     ...(clinic.latitude !== null &&
       clinic.longitude !== null && {
         geo: { "@type": "GeoCoordinates", latitude: clinic.latitude, longitude: clinic.longitude },

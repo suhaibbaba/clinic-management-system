@@ -48,6 +48,8 @@ async function firstChoice(
         today: new Date().toISOString().slice(0, 10),
         now: "10:00",
         weekday: "Wednesday",
+        language: "ar",
+        clock: "12h",
       }),
     },
     { role: "user", content: question },

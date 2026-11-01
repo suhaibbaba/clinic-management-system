@@ -8,6 +8,7 @@ import {
   AI_OUTBOUND_TRIGGER,
   AI_PROPOSAL_STATUS,
   APPOINTMENT_STATUS,
+  clinicLocale,
   DEFAULT_TIME_ZONE,
   instantFromLocal,
   LAB_ORDER_STATUS,
@@ -159,16 +160,36 @@ describe("Daily outbound automation (e2e)", () => {
     });
 
     it("finds money charged at least the threshold ago and still unpaid", async () => {
-      const found = await recipients.unpaid(clinic.id, 30, 50, "JOD");
+      const { locale } = await recipients.clinic(clinic.id);
+      const found = await recipients.unpaid(clinic.id, 30, 50, { ...locale, currency: "JOD" });
 
       expect(found.map((candidate) => candidate.patientId)).toEqual([patient.oldDebt]);
       expect(found[0]?.vars["balance"]).toBe(`100 ${currencySymbol("JOD")}`);
     });
 
-    it("finds tomorrow's confirmed appointments only", async () => {
-      const found = await recipients.tomorrow(clinic.id, DEFAULT_TIME_ZONE, 50);
+    it("writes the balance with the clinic's own currency", async () => {
+      const turkish = clinicLocale({ country: "TR", settings: { timezone: DEFAULT_TIME_ZONE } });
+      const found = await recipients.unpaid(clinic.id, 30, 50, turkish);
 
+      expect(found[0]?.vars["balance"]).toBe(`100 ${currencySymbol("TRY")}`);
+    });
+
+    it("finds tomorrow's confirmed appointments only, on the clinic's clock", async () => {
+      const own = await recipients.clinic(clinic.id);
+      const found = await recipients.tomorrow(clinic.id, own, 50);
+
+      expect(own.locale.clock).toBe("12h");
       expect(found.map((candidate) => candidate.patientId)).toEqual([patient.tomorrow]);
+      expect(found[0]?.vars["time"]).toBe("10:00 AM");
+      expect(found[0]?.vars["date"]).toBe(addDays(today(), 1).split("-").reverse().join("/"));
+    });
+
+    it("writes a 24-hour time for a clinic on a 24-hour clock", async () => {
+      const own = await recipients.clinic(clinic.id);
+      const turkish = clinicLocale({ country: "TR", settings: { timezone: DEFAULT_TIME_ZONE } });
+      const found = await recipients.tomorrow(clinic.id, { ...own, locale: turkish }, 50);
+
+      expect(turkish.clock).toBe("24h");
       expect(found[0]?.vars["time"]).toBe("10:00");
     });
   });
@@ -194,6 +215,12 @@ describe("Daily outbound automation (e2e)", () => {
             row.userId === null,
         ),
       ).toBe(true);
+
+      const reminder = drafted.find(
+        (row) => row.target === AI_OUTBOUND_TARGET.TOMORROW_APPOINTMENTS,
+      );
+
+      expect(reminder?.recipients[0]?.text).toContain("10:00 AM");
 
       const sent = await context.db
         .select()

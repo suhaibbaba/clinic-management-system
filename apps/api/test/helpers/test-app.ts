@@ -118,7 +118,7 @@ export async function createTestContext(): Promise<TestContext> {
         .values({
           clinicId: clinic.id,
           code: SPECIALTY_CODE.DENTAL,
-          name: "Dentistry",
+          name: { ar: "طب الأسنان", en: "Dentistry" },
           chartType: CHART_TYPE.TOOTH_FDI,
         })
         .returning({ id: specialties.id });

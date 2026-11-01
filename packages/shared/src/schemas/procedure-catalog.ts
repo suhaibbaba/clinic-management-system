@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { localizedTextInputSchema, localizedTextSchema } from "@shared/locale/localized-text";
 import { moneySchema, wholeMoneySchema } from "@shared/schemas/money";
 import { paginationQuerySchema } from "@shared/schemas/common";
 import { lookupCodeSchema } from "@shared/schemas/lookups";
@@ -8,7 +9,7 @@ export const procedureCatalogItemSchema = z.object({
   clinicId: z.uuid(),
   specialtyId: z.uuid(),
   code: z.string(),
-  name: z.string(),
+  name: localizedTextSchema,
   defaultPrice: moneySchema,
   chartOutcome: lookupCodeSchema.nullable(),
   taxExempt: z.boolean(),
@@ -31,7 +32,7 @@ export type ProcedureCatalogPriceView = z.infer<typeof procedureCatalogPriceView
 const catalogWritableFields = {
   specialtyId: z.uuid(),
   code: z.string().trim().min(1).max(32),
-  name: z.string().trim().min(1).max(160),
+  name: localizedTextInputSchema(1, 160),
   defaultPrice: wholeMoneySchema,
   chartOutcome: lookupCodeSchema.nullish(),
   taxExempt: z.boolean(),

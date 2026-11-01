@@ -1,8 +1,7 @@
 import { Inject, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import {
-  DEFAULT_TIME_ZONE,
   NOTIFICATION_TEMPLATE,
-  clinicScheduleSettings,
+  clinicLocale,
   type PortalAccount,
   type PortalCodeReceipt,
   type PortalPatientSummary,
@@ -160,7 +159,12 @@ export class PortalAuthService {
 
   async account(session: PortalSessionContext): Promise<PortalAccount> {
     const [clinic] = await this.db
-      .select({ slug: clinics.slug, currency: clinics.currency, settings: clinics.settings })
+      .select({
+        slug: clinics.slug,
+        country: clinics.country,
+        currency: clinics.currency,
+        settings: clinics.settings,
+      })
       .from(clinics)
       .where(eq(clinics.id, session.clinicId))
       .limit(1);
@@ -168,7 +172,7 @@ export class PortalAuthService {
     return {
       clinicSlug: clinic?.slug ?? "",
       currency: clinic?.currency ?? "",
-      timeZone: clinicScheduleSettings(clinic?.settings).timezone || DEFAULT_TIME_ZONE,
+      timeZone: clinicLocale(clinic).timeZone,
       expiresAt: session.expiresAt.toISOString(),
       patients: await this.patientsFor(session.clinicId, session.phone),
     };

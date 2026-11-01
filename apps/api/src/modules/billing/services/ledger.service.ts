@@ -23,6 +23,7 @@ import {
 } from "@api/database/schema";
 import { PeriodTotals, StatementOptions, LedgerLine } from "@api/modules/billing/lib/ledger";
 import { normalise } from "@api/common/lib/money";
+import { clinicDocumentLanguage, inLanguage } from "@api/common/database/clinic-language";
 
 @Injectable()
 export class LedgerService {
@@ -153,7 +154,7 @@ export class LedgerService {
     const from = query.from ? new Date(query.from) : null;
     const to = query.to ? new Date(query.to) : null;
 
-    const [chargeRows, paymentRows] = await Promise.all([
+    const [chargeRows, paymentRows, language] = await Promise.all([
       this.db
         .select({
           id: charges.id,
@@ -189,6 +190,7 @@ export class LedgerService {
             options.includeDeleted ? undefined : isNull(payments.deletedAt),
           ),
         ),
+      clinicDocumentLanguage(this.db, clinicId),
     ]);
 
     const lines: LedgerLine[] = [
@@ -197,7 +199,7 @@ export class LedgerService {
         kind: LEDGER_ENTRY_KIND.CHARGE,
         occurredAt: row.createdAt,
         amount: subtractMoney(row.amount, row.discount),
-        description: row.procedureName ?? row.note ?? "",
+        description: row.procedureName ? inLanguage(row.procedureName, language) : (row.note ?? ""),
         receiptNumber: null,
         isReversal: row.reversesId !== null,
         isReversed: row.reversedAt !== null,

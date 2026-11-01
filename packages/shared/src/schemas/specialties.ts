@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { localizedTextInputSchema, localizedTextSchema } from "@shared/locale/localized-text";
 import { CHART_TYPES } from "@shared/enums";
 import { paginationQuerySchema } from "@shared/schemas/common";
 
@@ -6,7 +7,7 @@ export const specialtySchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),
   code: z.string(),
-  name: z.string(),
+  name: localizedTextSchema,
   chartType: z.enum(CHART_TYPES),
   isActive: z.boolean(),
   createdAt: z.iso.datetime(),
@@ -28,6 +29,6 @@ export const listSpecialtiesQuerySchema = paginationQuerySchema.extend({
 export type ListSpecialtiesQuery = z.infer<typeof listSpecialtiesQuerySchema>;
 
 export const updateSpecialtySchema = z.object({
-  name: z.string().trim().min(1).max(80),
+  name: localizedTextInputSchema(1, 80),
 });
 export type UpdateSpecialtyInput = z.infer<typeof updateSpecialtySchema>;

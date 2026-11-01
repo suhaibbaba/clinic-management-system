@@ -9,8 +9,7 @@ import {
   AI_OUTBOUND_ERROR,
   AI_OUTBOUND_TARGET,
   aiAutomationSettings,
-  clinicScheduleSettings,
-  DEFAULT_TIME_ZONE,
+  clinicLocale,
   localDate,
   minutesFromLocalMidnight,
   type AiAutomationRule,
@@ -81,14 +80,14 @@ export class AutomationService {
 
     const hour = this.config.get("AI_AUTOMATION_HOUR", { infer: true });
     const rows = await this.db
-      .select({ id: clinics.id, settings: clinics.settings })
+      .select({ id: clinics.id, country: clinics.country, settings: clinics.settings })
       .from(clinics)
       .where(
         and(isNull(clinics.deletedAt), sql`${CLINIC_MODULE.ASSISTANT} = any(${clinics.modules})`),
       );
 
     for (const clinic of rows) {
-      const timeZone = clinicScheduleSettings(clinic.settings).timezone || DEFAULT_TIME_ZONE;
+      const timeZone = clinicLocale(clinic).timeZone;
       const now = new Date();
       const today = localDate(now, timeZone);
 

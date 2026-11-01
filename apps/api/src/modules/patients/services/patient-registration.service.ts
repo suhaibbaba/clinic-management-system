@@ -1,7 +1,10 @@
 import { BadRequestException, ConflictException, Inject, Injectable } from "@nestjs/common";
 import {
   AUDIT_ACTION,
+  hasNationalIdCheck,
+  isValidNationalId,
   joinPatientName,
+  PATIENT_ERROR,
   PATIENT_REF_MESSAGE,
   type CreatePatientInput,
 } from "@clinic/shared";
@@ -10,7 +13,7 @@ import { AuditService } from "@api/modules/audit/services/audit.service";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
-import { patients } from "@api/database/schema";
+import { clinics, patients } from "@api/database/schema";
 import { type PatientRow } from "@api/modules/patients/lib/patient-access";
 import { toPublicView } from "@api/modules/patients/lib/patient-view";
 import { PATIENTS_ENTITY } from "@api/common/constants/audit-entities";
@@ -76,6 +79,29 @@ export class PatientRegistrationService {
     return row;
   }
 
+  async requireValidNationalId(
+    executor: DatabaseExecutor,
+    clinicId: string,
+    nationalId: string | null | undefined,
+  ): Promise<void> {
+    const value = nationalId?.trim();
+
+    if (!value) {
+      return;
+    }
+
+    const [clinic] = await executor
+      .select({ country: clinics.country })
+      .from(clinics)
+      .where(eq(clinics.id, clinicId))
+      .limit(1);
+    const country = clinic?.country ?? "";
+
+    if (hasNationalIdCheck(country) && !isValidNationalId(value, country)) {
+      throw new BadRequestException(PATIENT_ERROR.NATIONAL_ID_INVALID);
+    }
+  }
+
   private async assertPhoneIsFree(
     executor: DatabaseExecutor,
     actor: AuthenticatedUser,
@@ -103,6 +129,7 @@ export class PatientRegistrationService {
     input: CreatePatientInput,
   ): Promise<PatientRow> {
     await this.access.requireDoctor(actor, input.assignedDoctorId);
+    await this.requireValidNationalId(executor, actor.clinicId, input.nationalId);
 
     for (let attempt = 0; attempt < FILE_NUMBER_ATTEMPTS; attempt += 1) {
       const fileNumber = await this.nextFileNumber(executor, actor.clinicId, attempt);

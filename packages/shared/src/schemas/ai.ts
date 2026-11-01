@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { languageCodeSchema } from "@shared/locale/languages";
 import {
   AI_ACTION_ERRORS,
   AI_ACTION_TOOLS,
@@ -37,6 +38,7 @@ export const AI_TITLE_MAX_LENGTH = 120;
 export const aiChatRequestSchema = z.object({
   conversationId: uuidSchema.optional(),
   message: z.string().trim().min(1).max(AI_MESSAGE_MAX_LENGTH),
+  language: languageCodeSchema.optional(),
 });
 export type AiChatRequest = z.infer<typeof aiChatRequestSchema>;
 

@@ -25,6 +25,7 @@ export interface Letterhead {
   readonly email: string;
   readonly currency: string;
   readonly language: DocumentLanguage;
+  readonly languages: readonly DocumentLanguage[];
   readonly timeZone: string;
   readonly clock: ClockFormat;
   readonly separators: NumberSeparators;
@@ -67,11 +68,12 @@ export class LetterheadService {
     return {
       name,
       otherName: otherName === name ? "" : otherName,
-      address: row.address ?? "",
+      address: localized(row.address, language, locale.languages),
       phone: row.phone ?? "",
       email: row.email ?? "",
       currency: row.currency,
       language,
+      languages: locale.languages,
       timeZone: locale.timeZone,
       clock: locale.clock,
       separators: numberSeparators(locale.numberLocale),

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { localizedTextSchema } from "@shared/locale/localized-text";
 import { clinicLocaleSchema } from "@shared/locale/profile";
 import { BOOKING_NAME_LENGTH } from "@shared/constants/booking";
 import {
@@ -46,7 +47,7 @@ export const publicClinicSchema = z.object({
   logoUrl: z.url().nullable(),
   phone: z.string().nullable(),
   country: z.string(),
-  address: z.string().nullable(),
+  address: localizedTextSchema.nullable(),
   bookingEnabled: z.boolean(),
   confirmationMode: z.enum(BOOKING_CONFIRMATION_MODES),
   maxDaysAhead: z.number().int(),
@@ -58,7 +59,7 @@ export type PublicClinic = z.infer<typeof publicClinicSchema>;
 export const publicDoctorSchema = z.object({
   id: uuidSchema,
   name: personNameSchema,
-  specialty: z.string(),
+  specialty: localizedTextSchema,
   photoUrl: z.url().nullable(),
 });
 export type PublicDoctor = z.infer<typeof publicDoctorSchema>;

@@ -46,7 +46,9 @@ export function AppointmentPanel({
               {name ?? t("board.pickDoctor")}
             </span>
             {doctor && (
-              <span className="truncate text-label text-ink-muted">{doctor.specialty}</span>
+              <span className="truncate text-label text-ink-muted">
+                {bookingName(doctor.specialty)}
+              </span>
             )}
           </span>
         </div>

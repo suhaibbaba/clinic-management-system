@@ -10,6 +10,7 @@ export * from "@shared/locale/countries";
 export * from "@shared/locale/currencies";
 export * from "@shared/locale/languages";
 export * from "@shared/locale/localized-text";
+export * from "@shared/locale/national-id";
 export * from "@shared/locale/numbers";
 export * from "@shared/locale/profile";
 export * from "@shared/schemas/ai";

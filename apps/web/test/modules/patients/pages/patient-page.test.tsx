@@ -1,4 +1,4 @@
-import { LOOKUP_LIST, SYSTEM_LOOKUPS, USER_ROLE, type UserRole } from "@clinic/shared";
+import { LOOKUP_LIST, SYSTEM_LOOKUPS, USER_ROLE, localized, type UserRole } from "@clinic/shared";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -25,6 +25,7 @@ import { mockApi, renderWithProviders, type MockResponse } from "@test/helpers/r
 import { choose } from "@test/select";
 
 const CATALOG = makeCatalogItem();
+const CATALOG_NAME = localized(CATALOG.name, "ar");
 
 function handlers(role: UserRole, overrides: Record<string, MockResponse | unknown> = {}) {
   return {
@@ -401,7 +402,7 @@ describe("Patient page", () => {
       await userEvent.click(toothButton(46));
 
       const panel = await screen.findByRole("dialog");
-      expect(within(panel).getByText(CATALOG.name)).toBeInTheDocument();
+      expect(within(panel).getByText(CATALOG_NAME)).toBeInTheDocument();
       expect(
         within(panel).getAllByText((_text, element) => /^60\s/.test(element?.textContent ?? ""))[0],
       ).toBeInTheDocument();
@@ -418,7 +419,7 @@ describe("Patient page", () => {
 
     async function submitProcedure() {
       const dialog = (await screen.findAllByRole("dialog")).at(-1) as HTMLElement;
-      await choose(within(dialog).getByLabelText(ar.chart.panel.procedure), CATALOG.name);
+      await choose(within(dialog).getByLabelText(ar.chart.panel.procedure), CATALOG_NAME);
       await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
     }
 
@@ -482,7 +483,7 @@ describe("Patient page", () => {
       await openAddForm();
 
       const dialog = screen.getByRole("dialog");
-      await choose(within(dialog).getByLabelText(ar.chart.panel.procedure), CATALOG.name);
+      await choose(within(dialog).getByLabelText(ar.chart.panel.procedure), CATALOG_NAME);
       await userEvent.type(
         within(dialog).getByLabelText(ar.chart.panel.discount, { exact: false }),
         "10.00",

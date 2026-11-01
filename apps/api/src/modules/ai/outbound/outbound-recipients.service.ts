@@ -4,6 +4,7 @@ import {
   addDays,
   APPOINTMENT_STATUS,
   clinicLocale,
+  clockTime,
   currencySymbol,
   documentLanguage,
   formatWholeMoney,
@@ -11,7 +12,11 @@ import {
   LAB_ORDER_AWAITING_STATUSES,
   localDate,
   minutesFromLocalMidnight,
+  numberSeparators,
+  shortDate,
   type AiOutboundTarget,
+  type ClinicLocale,
+  type LanguageCode,
 } from "@clinic/shared";
 import { and, asc, eq, gte, inArray, isNotNull, isNull, lt, sql } from "drizzle-orm";
 import { notificationName } from "@api/common/person-name";
@@ -28,6 +33,7 @@ export interface Candidate {
 export interface Resolved {
   readonly candidates: Candidate[];
   readonly overflow: boolean;
+  readonly language: LanguageCode;
 }
 
 export interface ResolveInput {
@@ -55,6 +61,7 @@ export class OutboundRecipientsService {
     return {
       candidates: withClinic.slice(0, input.limit),
       overflow: withClinic.length > input.limit,
+      language: clinic.language,
     };
   }
 
@@ -63,9 +70,9 @@ export class OutboundRecipientsService {
       case AI_OUTBOUND_TARGET.OVERDUE_LABS:
         return this.overdueLabs(input.clinicId, input.days, input.limit + 1);
       case AI_OUTBOUND_TARGET.UNPAID_INVOICES:
-        return this.unpaid(input.clinicId, input.days, input.limit + 1, clinic.currency);
+        return this.unpaid(input.clinicId, input.days, input.limit + 1, clinic.locale);
       case AI_OUTBOUND_TARGET.TOMORROW_APPOINTMENTS:
-        return this.tomorrow(input.clinicId, clinic.timeZone, input.limit + 1);
+        return this.tomorrow(input.clinicId, clinic, input.limit + 1);
       case AI_OUTBOUND_TARGET.PATIENT_IDS:
         return this.explicit(input.clinicId, input.patientIds ?? []);
     }
@@ -111,7 +118,7 @@ export class OutboundRecipientsService {
     clinicId: string,
     days: number,
     limit: number,
-    currency: string,
+    locale: ClinicLocale,
   ): Promise<Candidate[]> {
     const cutoff = sql`${new Date(Date.now() - days * DAY_MS).toISOString()}::timestamptz`;
 
@@ -150,12 +157,14 @@ export class OutboundRecipientsService {
       name: row.full_name,
       phone: row.phone,
       vars: {
-        balance: `${formatWholeMoney(row.balance)} ${currencySymbol(currency)}`.trim(),
+        balance:
+          `${formatWholeMoney(row.balance, numberSeparators(locale.numberLocale))} ${currencySymbol(locale.currency)}`.trim(),
       },
     }));
   }
 
-  async tomorrow(clinicId: string, timeZone: string, limit: number): Promise<Candidate[]> {
+  async tomorrow(clinicId: string, clinic: ClinicContext, limit: number): Promise<Candidate[]> {
+    const { timeZone, clock } = clinic.locale;
     const tomorrow = addDays(localDate(new Date(), timeZone), 1);
     const from = instantFromLocal(tomorrow, 0, timeZone);
     const to = instantFromLocal(addDays(tomorrow, 1), 0, timeZone);
@@ -167,11 +176,8 @@ export class OutboundRecipientsService {
         phone: patients.phone,
         startsAt: appointments.startsAt,
         doctorName: users.name,
-        country: clinics.country,
-        settings: clinics.settings,
       })
       .from(appointments)
-      .innerJoin(clinics, eq(clinics.id, appointments.clinicId))
       .innerJoin(patients, eq(patients.id, appointments.patientId))
       .innerJoin(doctors, eq(doctors.id, appointments.doctorId))
       .innerJoin(users, eq(users.id, doctors.userId))
@@ -201,8 +207,12 @@ export class OutboundRecipientsService {
         name: row.name,
         phone: row.phone,
         vars: {
-          time: clockTime(row.startsAt, tomorrow, timeZone),
-          doctor: notificationName(row.doctorName, documentLanguage(row)),
+          date: shortDate(tomorrow),
+          time: clockTime(
+            Math.round(minutesFromLocalMidnight(row.startsAt, tomorrow, timeZone)),
+            clock,
+          ),
+          doctor: notificationName(row.doctorName, clinic.language),
         },
       });
 
@@ -246,10 +256,15 @@ export class OutboundRecipientsService {
       .where(eq(clinics.id, clinicId))
       .limit(1);
 
+    const locale = clinicLocale(row);
+    const language = documentLanguage(row ?? {});
+
     return {
-      name: row ? notificationName(row.name, documentLanguage(row)) : "",
-      currency: row?.currency ?? "",
-      timeZone: clinicLocale(row).timeZone,
+      name: row ? notificationName(row.name, language) : "",
+      currency: locale.currency,
+      timeZone: locale.timeZone,
+      language,
+      locale,
       settings: row?.settings ?? {},
     };
   }
@@ -266,11 +281,7 @@ export interface ClinicContext {
   readonly name: string;
   readonly currency: string;
   readonly timeZone: string;
+  readonly language: LanguageCode;
+  readonly locale: ClinicLocale;
   readonly settings: Record<string, unknown>;
-}
-
-function clockTime(at: Date, isoDate: string, timeZone: string): string {
-  const minutes = Math.round(minutesFromLocalMidnight(at, isoDate, timeZone));
-
-  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
 }

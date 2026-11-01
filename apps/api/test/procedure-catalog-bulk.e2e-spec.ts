@@ -34,7 +34,7 @@ describe("Price list bulk actions (e2e)", () => {
       payload: {
         specialtyId: clinic.specialtyId,
         code: `BULK-${sequence}`,
-        name: `Bulk procedure ${sequence}`,
+        name: { en: `Bulk procedure ${sequence}` },
         defaultPrice: "100",
       },
     });
@@ -121,7 +121,7 @@ describe("Price list bulk actions (e2e)", () => {
       payload: {
         specialtyId: other.specialtyId,
         code: "THEIRS-1",
-        name: "Theirs",
+        name: { en: "Theirs" },
         defaultPrice: "100",
       },
     });

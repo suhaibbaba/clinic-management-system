@@ -11,13 +11,26 @@ import {
 
 const FONT_DIR = join(__dirname, "fonts");
 
-const FONTS = {
-  regular: "Tajawal-Regular.ttf",
-  medium: "Tajawal-Medium.ttf",
-  bold: "Tajawal-Bold.ttf",
-  fallbackRegular: "Alef-Regular.ttf",
-  fallbackBold: "Alef-Bold.ttf",
+const FAMILIES = {
+  tajawal: {
+    regular: "Tajawal-Regular.ttf",
+    medium: "Tajawal-Medium.ttf",
+    bold: "Tajawal-Bold.ttf",
+  },
+  noto: {
+    regular: "NotoSans-Regular.ttf",
+    medium: "NotoSans-Medium.ttf",
+    bold: "NotoSans-Bold.ttf",
+  },
+  alef: { regular: "Alef-Regular.ttf", medium: "Alef-Regular.ttf", bold: "Alef-Bold.ttf" },
 } as const;
+
+type Family = keyof typeof FAMILIES;
+
+const FAMILY_ORDER: Record<TextDirection, readonly [Family, ...Family[]]> = {
+  rtl: ["tajawal", "alef", "noto"],
+  ltr: ["noto", "tajawal", "alef"],
+};
 
 const EMBED_OPTIONS = { subset: true, features: { liga: false } } as const;
 
@@ -64,13 +77,7 @@ export interface InfoPair {
   readonly ltr?: boolean;
 }
 
-interface Fonts {
-  readonly regular: PDFFont;
-  readonly medium: PDFFont;
-  readonly bold: PDFFont;
-  readonly fallbackRegular: PDFFont;
-  readonly fallbackBold: PDFFont;
-}
+type Fonts = Readonly<Record<Weight, readonly [PDFFont, ...PDFFont[]]>>;
 
 interface TextOptions {
   size: number;
@@ -117,23 +124,38 @@ export class RtlPdf {
     const doc = await PDFDocument.create();
     doc.registerFontkit(fontkit);
 
-    const embed = (file: string): Promise<PDFFont> =>
-      doc.embedFont(readFileSync(join(FONT_DIR, file)), EMBED_OPTIONS);
-    const [regular, medium, bold, fallbackRegular, fallbackBold] = await Promise.all([
-      embed(FONTS.regular),
-      embed(FONTS.medium),
-      embed(FONTS.bold),
-      embed(FONTS.fallbackRegular),
-      embed(FONTS.fallbackBold),
+    const direction = options.direction ?? "rtl";
+    const embedded = new Map<string, Promise<PDFFont>>();
+    const embed = (file: string): Promise<PDFFont> => {
+      let font = embedded.get(file);
+      if (!font) {
+        font = doc.embedFont(readFileSync(join(FONT_DIR, file)), EMBED_OPTIONS);
+        embedded.set(file, font);
+      }
+
+      return font;
+    };
+    const chain = (weight: Weight): Promise<[PDFFont, ...PDFFont[]]> => {
+      const [head, ...tail] = FAMILY_ORDER[direction];
+
+      return Promise.all([
+        embed(FAMILIES[head][weight]),
+        ...tail.map((family) => embed(FAMILIES[family][weight])),
+      ]);
+    };
+    const [regular, medium, bold] = await Promise.all([
+      chain("regular"),
+      chain("medium"),
+      chain("bold"),
     ]);
     const page = doc.addPage([size.width, size.height]);
 
     return new RtlPdf(
       doc,
-      { regular, medium, bold, fallbackRegular, fallbackBold },
+      { regular, medium, bold },
       page,
       size.height - margin,
-      options.direction ?? "rtl",
+      direction,
       margin,
     );
   }
@@ -172,23 +194,25 @@ export class RtlPdf {
   }
 
   font(weight: Weight = "regular"): PDFFont {
-    return this.fonts[weight];
+    return this.fonts[weight][0];
   }
 
-  private fallback(weight: Weight): PDFFont {
-    return weight === "bold" ? this.fonts.fallbackBold : this.fonts.fallbackRegular;
-  }
+  private readonly coverage = new Map<PDFFont, Set<number>>();
 
-  private readonly coverage = new Map<Weight, Set<number>>();
-
-  private covers(weight: Weight, codePoint: number): boolean {
-    let set = this.coverage.get(weight);
+  private covers(font: PDFFont, codePoint: number): boolean {
+    let set = this.coverage.get(font);
     if (!set) {
-      set = new Set(this.font(weight).getCharacterSet());
-      this.coverage.set(weight, set);
+      set = new Set(font.getCharacterSet());
+      this.coverage.set(font, set);
     }
 
     return set.has(codePoint);
+  }
+
+  private fontFor(weight: Weight, codePoint: number): PDFFont {
+    const chain = this.fonts[weight];
+
+    return chain.find((font) => this.covers(font, codePoint)) ?? chain[0];
   }
 
   private pieces(
@@ -196,15 +220,13 @@ export class RtlPdf {
     weight: Weight,
     dir: TextDirection,
   ): { text: string; font: PDFFont }[] {
-    const primary = this.font(weight);
-    const spare = this.fallback(weight);
     const out: { text: string; font: PDFFont }[] = [];
 
     for (const run of visualRuns(text, dir)) {
       const segments: { text: string; font: PDFFont }[] = [];
 
       for (const char of run.text) {
-        const font = this.covers(weight, char.codePointAt(0) ?? 0) ? primary : spare;
+        const font = this.fontFor(weight, char.codePointAt(0) ?? 0);
         const last = segments.at(-1);
 
         if (last?.font === font) {

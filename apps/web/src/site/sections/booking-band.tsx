@@ -72,6 +72,7 @@ export function BookingBand(): JSX.Element {
   const { cta } = site.content.about;
   const bookable = useBookable();
   const image = imageOf(site, cta.image);
+  const address = pick(clinic.address, language, languages);
 
   return (
     <section
@@ -107,7 +108,7 @@ export function BookingBand(): JSX.Element {
                 <bdi dir="ltr">{clinic.phone}</bdi>
               </ContactChip>
             )}
-            {clinic.address && (
+            {address && (
               <ContactChip
                 icon="map-pin"
                 href={
@@ -120,7 +121,7 @@ export function BookingBand(): JSX.Element {
                 label={t("contact.address")}
                 data-testid="site-booking-band-address"
               >
-                {clinic.address}
+                {address}
               </ContactChip>
             )}
           </div>

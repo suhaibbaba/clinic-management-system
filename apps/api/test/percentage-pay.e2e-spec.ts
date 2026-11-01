@@ -124,7 +124,7 @@ describe("Percentage pay (e2e)", () => {
     const exempt = await send("POST", "/procedure-catalog", {
       specialtyId: clinic.specialtyId,
       code: `EX${Date.now() % 100000}`,
-      name: "Whitening",
+      name: { en: "Whitening" },
       defaultPrice: "1000",
       taxExempt: true,
     });

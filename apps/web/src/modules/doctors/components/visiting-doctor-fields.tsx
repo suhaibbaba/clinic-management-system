@@ -7,9 +7,11 @@ import { useSpecialties } from "@web/shared/queries/specialties";
 import { StaffNameFields, type StaffNameValues } from "@web/shared/components/staff-name-fields";
 import { VISITING_DOCTOR_FORM_ID } from "@web/modules/doctors/constants";
 import type { VisitingDoctorForm } from "@web/modules/doctors/hooks/use-visiting-doctor-form";
+import { useLocalized } from "@web/shared/hooks/use-localized";
 
 export function VisitingDoctorFields({ form, submit }: VisitingDoctorForm): JSX.Element {
   const { t } = useTranslation();
+  const text = useLocalized();
   const specialties = useSpecialties();
   const {
     register,
@@ -93,7 +95,7 @@ export function VisitingDoctorFields({ form, submit }: VisitingDoctorForm): JSX.
                 onChange={(event) => field.onChange(event.target.value)}
                 options={(specialties.data?.items ?? []).map((specialty) => ({
                   value: specialty.id,
-                  label: specialty.name,
+                  label: text(specialty.name),
                 }))}
               />
             </FormField>

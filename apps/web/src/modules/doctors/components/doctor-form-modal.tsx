@@ -45,6 +45,7 @@ import { useVisitingDoctorForm } from "@web/modules/doctors/hooks/use-visiting-d
 import { ellipsis } from "@web/i18n/ellipsis";
 import { STAFF_NAME_LABELS, STAFF_NAME_PARTS } from "@web/shared/constants/staff";
 import { useClinicLanguages } from "@web/shared/hooks/use-clinic-languages";
+import { useLocalized } from "@web/shared/hooks/use-localized";
 
 interface DoctorFormModalProps {
   "data-testid"?: string | undefined;
@@ -82,6 +83,7 @@ export function DoctorFormModal({
   "data-testid": testId = "doctor-form-modal",
 }: DoctorFormModalProps): JSX.Element {
   const { t, i18n } = useTranslation();
+  const text = useLocalized();
   const languages = useClinicLanguages();
   const toast = useToast();
   const createDoctor = useCreateDoctor();
@@ -128,7 +130,7 @@ export function DoctorFormModal({
 
   const specialtyOptions = (specialties.data?.items ?? []).map((specialty) => ({
     value: specialty.id,
-    label: specialty.name,
+    label: text(specialty.name),
   }));
 
   const durationMinutes = duration.trim() === "" ? undefined : Number(duration);

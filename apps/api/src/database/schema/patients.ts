@@ -3,6 +3,7 @@ import {
   PERFORMED_PROCEDURE_STATUSES,
   type AttachmentMime,
   type BodyRegionLocation,
+  type LocalizedText,
   type PrescriptionItem,
   type ShareSplitEntry,
   type ToothLocation,
@@ -57,7 +58,7 @@ export const procedureCatalog = pgTable(
       .notNull()
       .references(() => specialties.id),
     code: text("code").notNull(),
-    name: text("name").notNull(),
+    name: jsonb("name").$type<LocalizedText>().notNull(),
     defaultPrice: money("default_price").notNull(),
     chartOutcome: text("chart_outcome"),
     taxExempt: boolean("tax_exempt").notNull().default(false),

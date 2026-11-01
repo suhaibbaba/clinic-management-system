@@ -380,6 +380,7 @@ export class ProposalsService {
       input.request.target,
       input.request.intent,
       resolved.candidates,
+      resolved.language,
     );
 
     const [row] = await this.db

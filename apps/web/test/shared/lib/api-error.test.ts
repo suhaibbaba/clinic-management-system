@@ -1,4 +1,4 @@
-import { APPOINTMENT_ERROR, AUTH_ERROR } from "@clinic/shared";
+import { APPOINTMENT_ERROR, AUTH_ERROR, PATIENT_ERROR } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
 import {
   ApiError,
@@ -35,6 +35,12 @@ describe("errors read by code", () => {
   it("reads a refused sign-in code as its own message", () => {
     expect(errorMessageKey(new ApiError(401, { message: AUTH_ERROR.CODE_INVALID }))).toBe(
       "errors.auth.codeInvalid",
+    );
+  });
+
+  it("reads a national ID the clinic's country refuses as its own message", () => {
+    expect(errorMessageKey(new ApiError(400, { message: PATIENT_ERROR.NATIONAL_ID_INVALID }))).toBe(
+      "errors.patient.nationalIdInvalid",
     );
   });
 });

@@ -546,6 +546,7 @@ describe("Clinic logo (e2e)", () => {
       expect(Object.keys(response.json() as ClinicBranding).sort()).toEqual([
         "appName",
         "iconsAt",
+        "locale",
         "logoUrl",
         "name",
       ]);
@@ -554,7 +555,13 @@ describe("Clinic logo (e2e)", () => {
     it("names no clinic when the deployment serves several", async () => {
       const response = await context.app.inject({ method: "GET", url: "/clinic/branding" });
 
-      expect(response.json()).toEqual({ name: null, logoUrl: null, iconsAt: null, appName: "" });
+      expect(response.json()).toEqual({
+        name: null,
+        logoUrl: null,
+        iconsAt: null,
+        appName: "",
+        locale: null,
+      });
     });
   });
 

@@ -55,7 +55,7 @@ export const clinics = pgTable(
     logoIconsAt: timestamp("logo_icons_at", { withTimezone: true }),
     phone: text("phone"),
     email: text("email"),
-    address: text("address"),
+    address: jsonb("address").$type<LocalizedText>(),
     latitude: numeric("latitude", { precision: 9, scale: 6 }),
     longitude: numeric("longitude", { precision: 9, scale: 6 }),
     currency: varchar("currency", { length: 3 }).notNull().default("USD"),
@@ -84,7 +84,7 @@ export const specialties = pgTable(
       .notNull()
       .references(() => clinics.id),
     code: text("code").notNull(),
-    name: text("name").notNull(),
+    name: jsonb("name").$type<LocalizedText>().notNull(),
     chartType: chartTypeEnum("chart_type").notNull().default("none"),
     isActive: boolean("is_active").notNull().default(true),
     ...auditColumns,

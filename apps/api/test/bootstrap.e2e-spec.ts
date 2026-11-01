@@ -85,6 +85,49 @@ describe("Clinic bootstrap (e2e)", () => {
     ]);
   });
 
+  it("bootstraps a Turkish clinic from its country, with names in Turkish only", async () => {
+    const base = environment();
+    const env = bootstrapEnvSchema.parse({
+      BOOTSTRAP_CLINIC_SLUG: base.BOOTSTRAP_CLINIC_SLUG,
+      BOOTSTRAP_CLINIC_NAME_TR: "Nur Ortopedi Kliniği",
+      BOOTSTRAP_SPECIALTIES: "orthopedic",
+      BOOTSTRAP_COUNTRY: "TR",
+      BOOTSTRAP_ADMIN_FIRST_NAME_TR: "Ayşe",
+      BOOTSTRAP_ADMIN_LAST_NAME_TR: "Yılmaz",
+      BOOTSTRAP_ADMIN_PHONE: `+90532${randomInt(1_000_000, 9_999_999)}`,
+    });
+    const result = await bootstrapClinic(context.db, env, null);
+
+    const [clinic] = await context.db.select().from(clinics).where(eq(clinics.id, result.clinicId));
+    expect(clinic).toMatchObject({
+      name: { tr: "Nur Ortopedi Kliniği" },
+      country: "TR",
+      currency: "TRY",
+      settings: { timezone: "Europe/Istanbul" },
+    });
+
+    const [admin] = await context.db
+      .select({ name: users.name })
+      .from(users)
+      .where(eq(users.clinicId, result.clinicId));
+    expect(admin?.name).toEqual({ tr: "Ayşe Yılmaz" });
+  });
+
+  it("refuses a bootstrap with no clinic name in any language", () => {
+    const parsed = bootstrapEnvSchema.safeParse({
+      BOOTSTRAP_CLINIC_SLUG: "nameless",
+      BOOTSTRAP_SPECIALTIES: "dental",
+      BOOTSTRAP_ADMIN_FIRST_NAME_EN: "Sara",
+      BOOTSTRAP_ADMIN_LAST_NAME_EN: "Haddad",
+      BOOTSTRAP_ADMIN_PHONE: "+970599123456",
+    });
+
+    expect(parsed.success).toBe(false);
+    expect(parsed.error?.issues.map((issue) => issue.path.join("."))).toEqual([
+      "BOOTSTRAP_CLINIC_NAME_AR",
+    ]);
+  });
+
   it("lets the admin sign in with the bootstrap password and see an empty clinic", async () => {
     const env = environment();
     await bootstrapClinic(context.db, env, await passwordHash());
@@ -146,6 +189,7 @@ describe("Clinic bootstrap (e2e)", () => {
       const procedures = await context.db
         .select({
           code: procedureCatalog.code,
+          name: procedureCatalog.name,
           price: procedureCatalog.defaultPrice,
           isActive: procedureCatalog.isActive,
         })
@@ -162,9 +206,14 @@ describe("Clinic bootstrap (e2e)", () => {
         ]),
       );
       expect(procedures.every((row) => row.price === "0.00" && !row.isActive)).toBe(true);
+      expect(procedures.every((row) => !!row.name.en && !!row.name.tr)).toBe(true);
+      expect(procedures.find((row) => row.code === "TKR")?.name).toEqual({
+        en: "Total knee replacement",
+        tr: "Total diz protezi",
+      });
 
       const [drug] = await context.db
-        .select({ meta: lookupOptions.meta })
+        .select({ name: lookupOptions.name, meta: lookupOptions.meta })
         .from(lookupOptions)
         .where(
           and(
@@ -174,6 +223,11 @@ describe("Clinic bootstrap (e2e)", () => {
           ),
         );
       expect(drug?.meta).toMatchObject({ perDose: 1, timesPerDay: 3, days: 5 });
+      expect(drug?.name).toEqual({
+        ar: "Ibuprofen 400 mg",
+        en: "Ibuprofen 400 mg",
+        tr: "İbuprofen 400 mg",
+      });
 
       expect(await listCodes(result.clinicId, LOOKUP_LIST.ATTACHMENT_TYPE)).toEqual(
         expect.arrayContaining(["xray", "mri", "ct", "clinical_photo"]),

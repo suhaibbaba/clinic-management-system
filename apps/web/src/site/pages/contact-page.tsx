@@ -25,12 +25,9 @@ export function ContactPage(): JSX.Element {
       ? { lat: clinic.latitude, lng: clinic.longitude }
       : null;
   const note = pick(contact.note, language, languages);
-  const map = mapEmbed(pin, clinic.address, MAP_SPAN);
-  const directions = pin
-    ? mapsLink(pin.lat, pin.lng)
-    : clinic.address
-      ? mapsSearchLink(clinic.address)
-      : null;
+  const address = pick(clinic.address, language, languages);
+  const map = mapEmbed(pin, address || null, MAP_SPAN);
+  const directions = pin ? mapsLink(pin.lat, pin.lng) : address ? mapsSearchLink(address) : null;
 
   return (
     <>
@@ -81,7 +78,7 @@ export function ContactPage(): JSX.Element {
               />
               <div className="flex flex-col items-start gap-1 p-5">
                 <h2 className="text-heading font-bold text-primary-900">{t("contact.address")}</h2>
-                {clinic.address && <p className="text-label text-ink-muted">{clinic.address}</p>}
+                {address && <p className="text-label text-ink-muted">{address}</p>}
                 {directions && (
                   <a
                     href={directions}

@@ -85,7 +85,7 @@ export function ClinicPage(): JSX.Element {
   const [locale, setLocale] = useState<ClinicLocaleDraft>(() => localeDraftOf(clinicLocale(null)));
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [address, setAddress] = useState("");
+  const [address, setAddress] = useState<LocalizedText>({});
   const [location, setLocation] = useState("");
   const [currency, setCurrency] = useState<Currency>(CURRENCIES[0]);
   const [country, setCountry] = useState<PhoneCountry>(DEFAULT_PHONE_COUNTRY);
@@ -110,7 +110,7 @@ export function ClinicPage(): JSX.Element {
       name: data.name,
       phone: data.phone ?? "",
       email: data.email ?? "",
-      address: data.address ?? "",
+      address: data.address ?? {},
       location: stored ? `${stored.latitude}, ${stored.longitude}` : "",
       currency: isCurrency(data.currency) ? data.currency : CURRENCIES[0],
       country: isPhoneCountry(data.country) ? data.country : DEFAULT_PHONE_COUNTRY,
@@ -190,7 +190,9 @@ export function ClinicPage(): JSX.Element {
     name: Object.fromEntries(locale.languages.map((code) => [code, (name[code] ?? "").trim()])),
     phone: phone === "" ? null : phone,
     email: email.trim() === "" ? null : email.trim(),
-    address: address.trim() === "" ? null : address.trim(),
+    address: Object.fromEntries(
+      locale.languages.map((code) => [code, (address[code] ?? "").trim()]),
+    ),
     latitude: pin?.latitude ?? null,
     longitude: pin?.longitude ?? null,
     currency,
@@ -310,22 +312,29 @@ export function ClinicPage(): JSX.Element {
               </FormField>
             </div>
 
-            <div onBlur={form.leave("address")}>
-              <FormField
-                error={errors["address"]}
-                label="clinic.address"
-                htmlFor="clinic-address"
-                optional
-              >
-                <Input
-                  placeholder={t("common.placeholders.address")}
-                  id="clinic-address"
-                  data-testid="clinic-field-address"
-                  value={address}
-                  disabled={!canEdit}
-                  onChange={(event) => setAddress(event.target.value)}
-                />
-              </FormField>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {locale.languages.map((code) => (
+                <div key={code} onBlur={form.leave(`address.${code}`)}>
+                  <FormField
+                    error={errors[`address.${code}`] ?? errors["address"]}
+                    label="clinic.addressIn"
+                    labelValues={{ language: t(`languages.in.${code}`) }}
+                    htmlFor={`clinic-address-${code}`}
+                    optional
+                  >
+                    <Input
+                      placeholder={t("common.placeholders.address")}
+                      id={`clinic-address-${code}`}
+                      data-testid={`clinic-field-address-${code}`}
+                      lang={code}
+                      {...(!isRtlLanguage(code) && { dir: "ltr" })}
+                      value={address[code] ?? ""}
+                      disabled={!canEdit}
+                      onChange={(event) => setAddress({ ...address, [code]: event.target.value })}
+                    />
+                  </FormField>
+                </div>
+              ))}
             </div>
 
             <div onBlur={form.leave("location")}>

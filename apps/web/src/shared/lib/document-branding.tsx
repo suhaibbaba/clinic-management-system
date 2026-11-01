@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { adoptClinicLanguage } from "@web/i18n/language";
 import { useClinicBranding } from "@web/shared/queries/clinic";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
@@ -68,6 +69,7 @@ export function DocumentBranding(): null {
   const { data } = useClinicBranding();
   const iconsAt = data?.iconsAt ?? null;
   const appName = data?.appName ?? "";
+  const locale = data?.locale ?? null;
 
   useEffect(() => {
     applyDocumentIcon(iconsAt);
@@ -76,6 +78,12 @@ export function DocumentBranding(): null {
   useEffect(() => {
     applyAppTitle(appName);
   }, [appName]);
+
+  useEffect(() => {
+    if (locale) {
+      void adoptClinicLanguage(locale);
+    }
+  }, [locale]);
 
   return null;
 }

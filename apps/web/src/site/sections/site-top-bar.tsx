@@ -11,7 +11,7 @@ export function SiteTopBar(): JSX.Element {
   const { site, language, languages } = useSite();
   const tagline = pick(site.content.brand.tagline, language, languages);
   const hours = useHoursText();
-  const address = site.clinic.address;
+  const address = pick(site.clinic.address, language, languages);
 
   return (
     <div data-testid="site-top-bar" className="bg-primary-900 text-meta text-ink-inverse/85">

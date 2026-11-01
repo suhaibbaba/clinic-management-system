@@ -57,6 +57,7 @@ import { PurchasingService } from "@api/modules/inventory/services/purchasing.se
 import { UNIQUE_VIOLATION } from "@api/common/constants/postgres-errors";
 import { violatedConstraint } from "@api/common/lib/postgres-errors";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
+import { clinicDocumentLanguage, inLanguage } from "@api/common/database/clinic-language";
 
 @Injectable()
 export class StockMovementsService implements OnModuleInit {
@@ -168,6 +169,7 @@ export class StockMovementsService implements OnModuleInit {
     ]);
 
     const seesCosts = await this.seesCosts(actor);
+    const language = await clinicDocumentLanguage(this.db, actor.clinicId);
 
     return toPaginated(
       rows.map((row) => ({
@@ -175,7 +177,7 @@ export class StockMovementsService implements OnModuleInit {
         supplierName: row.supplierName,
         patientName: row.patientName,
         doctorName: toOptionalPersonName(row.doctorName),
-        procedureName: row.procedureName,
+        procedureName: row.procedureName && inLanguage(row.procedureName, language),
         createdByName: toOptionalPersonName(row.createdByName),
         runningQuantity: normalise(row.runningQuantity),
       })),

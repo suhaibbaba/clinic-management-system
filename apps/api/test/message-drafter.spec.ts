@@ -1,4 +1,4 @@
-import { AI_OUTBOUND_TARGET } from "@clinic/shared";
+import { AI_OUTBOUND_TARGET, LANGUAGE_CODES } from "@clinic/shared";
 import type { ChatProvider } from "@api/modules/ai/lib/chat-provider";
 import type { ChatProviderResolver } from "@api/modules/ai/services/chat-provider.resolver";
 import {
@@ -15,10 +15,11 @@ const CANDIDATE = {
   vars: { name: "سمير", clinic: "عيادة الابتسامة", balance: "120 ₪" },
 };
 
-function drafter(reply: string): MessageDrafterService {
+function drafter(reply: string, prompts: string[] = []): MessageDrafterService {
   const provider: ChatProvider = {
     name: "scripted",
-    async *stream() {
+    async *stream(request) {
+      prompts.push(request.messages[0]?.content ?? "");
       yield await Promise.resolve({
         type: "completed" as const,
         text: reply,
@@ -40,6 +41,7 @@ describe("drafting a patient message", () => {
       AI_OUTBOUND_TARGET.UNPAID_INVOICES,
       "ذكّرهم",
       [CANDIDATE],
+      "ar",
     );
 
     expect(message?.text).toBe("مرحباً سمير، عليك 120 ₪ لدى عيادة الابتسامة.");
@@ -56,14 +58,45 @@ describe("drafting a patient message", () => {
       AI_OUTBOUND_TARGET.UNPAID_INVOICES,
       "ذكّرهم",
       [CANDIDATE],
+      "ar",
     );
 
     expect(message?.text).toBe(
-      DEFAULT_TEMPLATES[AI_OUTBOUND_TARGET.UNPAID_INVOICES]
+      DEFAULT_TEMPLATES.ar[AI_OUTBOUND_TARGET.UNPAID_INVOICES]
         .replace("{name}", "سمير")
         .replace("{balance}", "120 ₪")
         .replace("{clinic}", "عيادة الابتسامة"),
     );
+  });
+
+  it("writes in the clinic's document language", async () => {
+    const prompts: string[] = [];
+    const [message] = await drafter("", prompts).draft(
+      "clinic",
+      AI_OUTBOUND_TARGET.UNPAID_INVOICES,
+      "remind them",
+      [CANDIDATE],
+      "tr",
+    );
+
+    expect(prompts[0]).toContain("Write in Türkçe (tr)");
+    expect(message?.text).toBe(
+      DEFAULT_TEMPLATES.tr[AI_OUTBOUND_TARGET.UNPAID_INVOICES]
+        .replace("{name}", "سمير")
+        .replace("{balance}", "120 ₪")
+        .replace("{clinic}", "عيادة الابتسامة"),
+    );
+    expect(message?.text).toMatch(/^Merhaba/);
+  });
+
+  it("has a default message for every language and target, using only its placeholders", () => {
+    for (const language of LANGUAGE_CODES) {
+      for (const target of Object.values(AI_OUTBOUND_TARGET)) {
+        expect(
+          isValidTemplate(DEFAULT_TEMPLATES[language][target], [...PLACEHOLDERS[target], "intent"]),
+        ).toBe(true);
+      }
+    }
   });
 
   it("accepts only its own target's placeholders", () => {

@@ -12,6 +12,7 @@ describe("the printed letterhead", () => {
     email: "info@alnour.test",
     currency: "ILS",
     language: "ar",
+    languages: ["ar", "en"],
     timeZone: "Asia/Damascus",
     clock: "12h",
     separators: { group: ",", decimal: "." },

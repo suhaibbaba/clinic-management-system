@@ -1,13 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  createPatientSchema,
   GENDERS,
   missingProfileFields,
   type ProfileCompletionField,
   type CreatePatientInput,
   type PatientClinicalView,
 } from "@clinic/shared";
-import { useEffect, type JSX } from "react";
+import { useEffect, useMemo, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { revealFirstError } from "@web/shared/lib/form-errors";
 import { WhatsAppPhoneInput } from "@web/shared/components/whatsapp-phone-input";
@@ -31,6 +30,8 @@ import { errorToast } from "@web/shared/lib/api-error";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { formatList } from "@web/shared/lib/format";
 import { todayIso } from "@web/shared/lib/dates";
+import { patientFormSchema } from "@web/modules/patients/lib/patient-form";
+import { useSession } from "@web/shared/providers/session";
 
 interface PatientFormModalProps {
   "data-testid"?: string | undefined;
@@ -53,6 +54,8 @@ export function PatientFormModal({
   const createPatient = useCreatePatient();
   const updatePatient = useUpdatePatient(patient?.id ?? "");
   const displayName = usePersonName();
+  const country = useSession().user?.clinic.country ?? "";
+  const schema = useMemo(() => patientFormSchema(country), [country]);
   const doctors = useDoctors({ limit: 100 });
   const doctorChoices = (doctors.data?.items ?? [])
     .filter((doctor) => doctor.user.isActive || doctor.id === patient?.assignedDoctorId)
@@ -70,7 +73,7 @@ export function PatientFormModal({
     watch,
   } = useForm<CreatePatientInput>({
     mode: "onTouched",
-    resolver: zodResolver(createPatientSchema),
+    resolver: zodResolver(schema),
   });
 
   const missing = editing
@@ -350,6 +353,23 @@ export function PatientFormModal({
             id="patient-address"
             data-testid="patient-field-address"
             {...register("address", { setValueAs: (value) => (value === "" ? null : value) })}
+          />
+        </FormField>
+
+        <FormField
+          label="patients.nationalId"
+          htmlFor="patient-national-id"
+          error={errors.nationalId}
+          errorKey={errors.nationalId ? "errors.validation.nationalIdInvalid" : undefined}
+          optional
+        >
+          <Input
+            id="patient-national-id"
+            data-testid="patient-field-national-id"
+            dir="ltr"
+            maxLength={64}
+            hasError={Boolean(errors.nationalId)}
+            {...register("nationalId", { setValueAs: (value) => (value === "" ? null : value) })}
           />
         </FormField>
 

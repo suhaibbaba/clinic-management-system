@@ -29,9 +29,11 @@ import { useDoctors } from "@web/shared/queries/doctors";
 import { errorToast } from "@web/shared/lib/api-error";
 import { formatList } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
+import { useLocalized } from "@web/shared/hooks/use-localized";
 
 export function DoctorsPage(): JSX.Element {
   const { t, i18n } = useTranslation();
+  const text = useLocalized();
   const { can, user: currentUser } = useSession();
   const toast = useToast();
   const removeDoctor = useDeleteDoctor();
@@ -91,7 +93,7 @@ export function DoctorsPage(): JSX.Element {
         header: "doctors.specialty",
         render: (row) => (
           <Badge tone="info" data-testid="doctor-specialty">
-            {row.specialty.name}
+            {text(row.specialty.name)}
           </Badge>
         ),
       },
@@ -150,7 +152,7 @@ export function DoctorsPage(): JSX.Element {
     });
 
     return base;
-  }, [t, mayEdit, mayDelete, navigate, currentUser?.id]);
+  }, [t, text, mayEdit, mayDelete, navigate, currentUser?.id]);
 
   const data = query.data;
 

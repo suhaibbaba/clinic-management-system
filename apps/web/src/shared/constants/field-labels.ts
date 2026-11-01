@@ -7,6 +7,7 @@ export const FIELD_LABELS: Readonly<Record<string, string>> = {
   dateOfBirth: "patients.dateOfBirth",
   gender: "patients.gender",
   address: "patients.address",
+  nationalId: "patients.nationalId",
   email: "users.email",
   patientId: "appointments.patient",
   newPatient: "appointments.patient",

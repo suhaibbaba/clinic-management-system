@@ -42,6 +42,7 @@ import { useCurrency } from "@web/shared/queries/clinic";
 import { useSpecialties } from "@web/shared/queries/specialties";
 import { useSession } from "@web/shared/providers/session";
 import { ellipsis } from "@web/i18n/ellipsis";
+import { useLocalized } from "@web/shared/hooks/use-localized";
 
 export type TreatmentFormValues = Omit<CreatePerformedProcedureInput, "patientId">;
 
@@ -78,6 +79,7 @@ export function TreatmentForm({
   onValidityChange,
 }: TreatmentFormProps): JSX.Element {
   const { t } = useTranslation();
+  const text = useLocalized();
   const currency = useCurrency();
   const doctorName = usePersonName();
   const fieldId = useId();
@@ -206,7 +208,7 @@ export function TreatmentForm({
                 value={procedureId}
                 onChange={(event) => setProcedureId(event.target.value)}
                 placeholder={t("chart.panel.selectProcedure")}
-                options={choices.map((item) => ({ value: item.id, label: item.name }))}
+                options={choices.map((item) => ({ value: item.id, label: text(item.name) }))}
               />
             </FormField>
           </div>

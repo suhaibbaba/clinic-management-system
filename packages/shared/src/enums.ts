@@ -1033,6 +1033,11 @@ export const PAYMENT_ERROR = {
 } as const satisfies Record<string, string>;
 export type PaymentError = EnumValue<typeof PAYMENT_ERROR>;
 
+export const PATIENT_ERROR = {
+  NATIONAL_ID_INVALID: "patient_national_id_invalid",
+} as const satisfies Record<string, string>;
+export type PatientError = EnumValue<typeof PATIENT_ERROR>;
+
 export const LAB_ORDER_ERROR = {
   EXPECTED_IN_PAST: "lab_order_expected_in_past",
   TEETH_NOT_CHARTED: "lab_order_teeth_not_charted",

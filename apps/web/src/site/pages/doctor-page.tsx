@@ -51,7 +51,8 @@ export function DoctorPage({ id }: { readonly id: string }): JSX.Element {
             {name}
           </h1>
           <p className="text-heading font-medium text-primary-600">
-            {(profile && pick(profile.title, language, languages)) || doctor.specialty}
+            {(profile && pick(profile.title, language, languages)) ||
+              pick(doctor.specialty, language, languages)}
           </p>
           <AccentRule />
           {bio && <p className="text-section whitespace-pre-line text-ink-muted">{bio}</p>}

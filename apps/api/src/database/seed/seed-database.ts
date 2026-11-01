@@ -63,6 +63,7 @@ import {
   waitingList,
 } from "@api/database/schema";
 import { ensureSystemLookups } from "@api/database/system-lookups";
+import { SPECIALTIES } from "@api/database/clinic-specialties";
 import {
   ACCOUNTS,
   CATALOG,
@@ -1176,7 +1177,7 @@ async function upsertSpecialty(db: Database, clinicId: string): Promise<string> 
     .values({
       clinicId,
       code: SPECIALTY_CODE.DENTAL,
-      name: "طب الأسنان",
+      name: SPECIALTIES[SPECIALTY_CODE.DENTAL].name,
       chartType: CHART_TYPE.TOOTH_FDI,
     })
     .returning({ id: specialties.id });

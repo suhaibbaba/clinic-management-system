@@ -2,7 +2,9 @@ import {
   CHART_TYPE,
   LOOKUP_LIST,
   createProcedureCatalogItemSchema,
+  isRtlLanguage,
   lookupLabel,
+  type LocalizedText,
   type ProcedureCatalogItem,
 } from "@clinic/shared";
 import { useEffect, useMemo, useState, type JSX } from "react";
@@ -10,7 +12,9 @@ import { useTranslation } from "react-i18next";
 import { Button, FormField, Input, Modal, MoneyInput, Select, Switch, useToast } from "@clinic/ui";
 import { procedureOutcomes, wholePrice } from "@web/modules/patients/lib/price-list";
 import { useCreateCatalogItem, useUpdateCatalogItem } from "@web/modules/patients/queries";
+import { useClinicLanguages } from "@web/shared/hooks/use-clinic-languages";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
+import { useLocalized } from "@web/shared/hooks/use-localized";
 import { errorToast } from "@web/shared/lib/api-error";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useCurrency } from "@web/shared/queries/clinic";
@@ -31,13 +35,15 @@ export function ProcedurePriceModal({
   const { t, i18n } = useTranslation();
   const toast = useToast();
   const currency = useCurrency();
+  const text = useLocalized();
+  const languages = useClinicLanguages();
 
   const create = useCreateCatalogItem();
   const update = useUpdateCatalogItem();
   const specialties = useSpecialties();
   const toothStates = useLookupList(LOOKUP_LIST.TOOTH_STATE);
 
-  const [name, setName] = useState("");
+  const [name, setName] = useState<LocalizedText>({});
   const [code, setCode] = useState("");
   const [price, setPrice] = useState("");
   const [specialtyId, setSpecialtyId] = useState("");
@@ -61,7 +67,9 @@ export function ProcedurePriceModal({
   const body = {
     specialtyId: chosenSpecialty,
     code: code.trim(),
-    name: name.trim(),
+    name: Object.fromEntries(
+      Object.entries(name).map(([language, value]) => [language, (value ?? "").trim()]),
+    ) as LocalizedText,
     defaultPrice: price,
     chartOutcome: charted && outcome !== "" ? outcome : null,
     taxExempt,
@@ -76,7 +84,7 @@ export function ProcedurePriceModal({
       return;
     }
 
-    setName(item?.name ?? "");
+    setName(item?.name ?? {});
     setCode(item?.code ?? "");
     setPrice(item ? wholePrice(item.defaultPrice) : "");
     setSpecialtyId(item?.specialtyId ?? "");
@@ -134,22 +142,30 @@ export function ProcedurePriceModal({
       }
     >
       <div ref={form.formRef} data-testid={`${testId}-form`} className="flex flex-col gap-4">
-        <div onBlur={form.leave("name")}>
-          <FormField
-            error={form.errors["name"]}
-            label="priceList.name"
-            htmlFor="price-name"
-            required
-          >
-            <Input
-              id="price-name"
-              data-testid="price-field-name"
-              dir="ltr"
-              maxLength={160}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
-          </FormField>
+        <div
+          className={languages.length === 1 ? "max-w-(--field-max)" : "grid gap-4 sm:grid-cols-2"}
+        >
+          {languages.map((code) => (
+            <div key={code} onBlur={form.leave(`name.${code}`)}>
+              <FormField
+                error={form.errors[`name.${code}`] ?? form.errors["name"]}
+                label="priceList.nameIn"
+                labelValues={{ language: t(`languages.in.${code}`) }}
+                htmlFor={`price-name-${code}`}
+                required={code === languages[0]}
+              >
+                <Input
+                  id={`price-name-${code}`}
+                  data-testid={`price-field-name-${code}`}
+                  lang={code}
+                  dir={isRtlLanguage(code) ? "auto" : "ltr"}
+                  maxLength={160}
+                  value={name[code] ?? ""}
+                  onChange={(event) => setName({ ...name, [code]: event.target.value })}
+                />
+              </FormField>
+            </div>
+          ))}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -204,7 +220,7 @@ export function ProcedurePriceModal({
                 placeholder={t("priceList.pickSpecialty")}
                 options={choices.map((specialty) => ({
                   value: specialty.id,
-                  label: specialty.name,
+                  label: text(specialty.name),
                 }))}
                 value={specialtyId}
                 onChange={(event) => setSpecialtyId(event.target.value)}

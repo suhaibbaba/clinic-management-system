@@ -6,12 +6,12 @@ import {
   AI_STREAM_EVENT,
   AI_TOOL,
   AI_TOOL_ERROR,
-  clinicScheduleSettings,
-  DEFAULT_TIME_ZONE,
+  clinicLocale,
   localDate,
   type AiChatRequest,
   type AiStreamEvent,
   type PersonName,
+  type LanguageCode,
 } from "@clinic/shared";
 import { and, eq, isNull } from "drizzle-orm";
 import {
@@ -58,7 +58,7 @@ export class AgentService {
     const spent = { inputTokens: 0, outputTokens: 0 };
 
     try {
-      yield* this.turn(actor, conversation.id, request.message, spent);
+      yield* this.turn(actor, conversation.id, request.message, spent, request.language);
     } catch (error) {
       this.logger.error(`The agent loop failed: ${String(error)}`);
       await this.record(actor, conversation.id, "", spent).catch(() => undefined);
@@ -71,6 +71,7 @@ export class AgentService {
     conversationId: string,
     question: string,
     spent: { inputTokens: number; outputTokens: number },
+    language?: LanguageCode,
   ): AsyncGenerator<AiStreamEvent> {
     const history = await this.conversations.history(
       conversationId,
@@ -83,7 +84,7 @@ export class AgentService {
     });
 
     const messages: ChatMessage[] = [
-      { role: "system", content: systemPrompt(await this.context(actor)) },
+      { role: "system", content: systemPrompt(await this.context(actor, language)) },
       ...history,
       { role: "user", content: question },
     ];
@@ -242,10 +243,10 @@ export class AgentService {
     });
   }
 
-  async context(actor: AuthenticatedUser): Promise<SystemPromptInput> {
+  async context(actor: AuthenticatedUser, language?: LanguageCode): Promise<SystemPromptInput> {
     const [[clinic], [user], [doctor]] = await Promise.all([
       this.db
-        .select({ name: clinics.name, settings: clinics.settings })
+        .select({ name: clinics.name, country: clinics.country, settings: clinics.settings })
         .from(clinics)
         .where(eq(clinics.id, actor.clinicId))
         .limit(1),
@@ -267,7 +268,8 @@ export class AgentService {
         .limit(1),
     ]);
 
-    const timeZone = clinicScheduleSettings(clinic?.settings).timezone || DEFAULT_TIME_ZONE;
+    const locale = clinicLocale(clinic);
+    const timeZone = locale.timeZone;
     const name: PersonName = user?.name ?? {};
 
     return {
@@ -276,6 +278,8 @@ export class AgentService {
       doctor: doctor ? { id: doctor.id, name } : null,
       today: localDate(new Date(), timeZone),
       ...clock(timeZone),
+      language: language ?? locale.primaryLanguage,
+      clock: locale.clock,
     };
   }
 }

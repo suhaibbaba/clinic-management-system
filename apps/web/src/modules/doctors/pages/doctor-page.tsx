@@ -18,9 +18,11 @@ import { setClinicTimeZone } from "@web/shared/lib/clinic-locale";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { UnsavedChanges } from "@web/shared/components/unsaved-changes";
 import { countChanges } from "@web/shared/lib/changes";
+import { useLocalized } from "@web/shared/hooks/use-localized";
 
 export function DoctorPage(): JSX.Element {
   const { t } = useTranslation();
+  const text = useLocalized();
   const toast = useToast();
   const { id } = useParams<{ id: string }>();
   const { user, can } = useSession();
@@ -85,7 +87,7 @@ export function DoctorPage(): JSX.Element {
           className="text-section font-medium text-ink"
         />
         <Badge tone="info" data-testid="doctor-specialty">
-          {doctor.data.specialty.name}
+          {text(doctor.data.specialty.name)}
         </Badge>
         <span className="text-label text-ink-muted">
           {doctor.data.defaultAppointmentDurationMinutes} {t("doctors.durationUnit")}

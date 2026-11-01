@@ -71,7 +71,11 @@ describe("Orthopedics: specialties and body-region chart marks (e2e)", () => {
         method: "POST",
         url: "/specialties",
         headers: auth(tokens[USER_ROLE.ADMIN]),
-        payload: { code: "orthopedic", name: "Orthopedics", chartType: CHART_TYPE.BODY_REGION },
+        payload: {
+          code: "orthopedic",
+          name: { en: "Orthopedics" },
+          chartType: CHART_TYPE.BODY_REGION,
+        },
       });
       expect(added.statusCode).toBe(404);
 
@@ -86,7 +90,11 @@ describe("Orthopedics: specialties and body-region chart marks (e2e)", () => {
       const orthopedic = (list.json() as Paginated<Specialty>).items.find(
         (item) => item.code === SPECIALTY_CODE.ORTHOPEDIC,
       );
-      expect(orthopedic).toMatchObject({ chartType: CHART_TYPE.BODY_REGION, isActive: true });
+      expect(orthopedic).toMatchObject({
+        name: { ar: "جراحة العظام", en: "Orthopedic surgery", tr: "Ortopedi" },
+        chartType: CHART_TYPE.BODY_REGION,
+        isActive: true,
+      });
       specialtyId = orthopedic?.id ?? "";
     });
 
@@ -96,7 +104,7 @@ describe("Orthopedics: specialties and body-region chart marks (e2e)", () => {
         url: `/specialties/${specialtyId}`,
         headers: auth(tokens[USER_ROLE.ADMIN]),
         payload: {
-          name: "Orthopedic surgery",
+          name: { en: "Orthopedic surgery", tr: "Ortopedi cerrahisi" },
           code: "bones",
           chartType: CHART_TYPE.NONE,
           isActive: false,
@@ -105,7 +113,7 @@ describe("Orthopedics: specialties and body-region chart marks (e2e)", () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.json()).toMatchObject({
-        name: "Orthopedic surgery",
+        name: { en: "Orthopedic surgery", tr: "Ortopedi cerrahisi" },
         code: "orthopedic",
         chartType: CHART_TYPE.BODY_REGION,
         isActive: true,
@@ -119,7 +127,7 @@ describe("Orthopedics: specialties and body-region chart marks (e2e)", () => {
           method: "PATCH",
           url: `/specialties/${specialtyId}`,
           headers: auth(tokens[role]),
-          payload: { name: "Bones" },
+          payload: { name: { en: "Bones" } },
         });
 
         expect(response.statusCode).toBe(403);
@@ -144,7 +152,7 @@ describe("Orthopedics: specialties and body-region chart marks (e2e)", () => {
         method: "PATCH",
         url: `/specialties/${specialtyId}`,
         headers: auth(otherAdminToken),
-        payload: { name: "Taken over" },
+        payload: { name: { en: "Taken over" } },
       });
 
       expect(response.statusCode).toBe(404);
@@ -173,7 +181,7 @@ describe("Orthopedics: specialties and body-region chart marks (e2e)", () => {
         payload: {
           specialtyId,
           code: `ORTHO-${randomUUID().slice(0, 8)}`,
-          name: "Cast application",
+          name: { en: "Cast application" },
           defaultPrice: "80.00",
         },
       });

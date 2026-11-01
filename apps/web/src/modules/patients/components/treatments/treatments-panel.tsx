@@ -50,6 +50,7 @@ import { useSession } from "@web/shared/providers/session";
 import { procedureIcon } from "@web/modules/patients/lib/chart/charts";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { useDoctors } from "@web/shared/queries/doctors";
+import { useLocalized } from "@web/shared/hooks/use-localized";
 
 export interface TreatmentsPanelProps {
   readonly patientId: string;
@@ -77,6 +78,7 @@ export function TreatmentsPanel({
   "data-testid": testId,
 }: TreatmentsPanelProps): JSX.Element {
   const { t } = useTranslation();
+  const text = useLocalized();
   const { user, can } = useSession();
   const toast = useToast();
   const currency = useCurrency();
@@ -101,7 +103,7 @@ export function TreatmentsPanel({
   const ordered = newestTreatmentsFirst(treatments);
 
   const nameOf = (procedureId: string): string =>
-    catalog.data?.find((item) => item.id === procedureId)?.name ?? t("chart.panel.procedure");
+    text(catalog.data?.find((item) => item.id === procedureId)?.name) || t("chart.panel.procedure");
 
   const waiting =
     defaults.visitId === undefined
