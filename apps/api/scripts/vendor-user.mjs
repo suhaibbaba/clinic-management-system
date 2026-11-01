@@ -22,11 +22,15 @@ if (!databaseUrl) {
 
 const needsPassword = action === "create" || action === "password";
 
+if (needsPassword && password.length < 12) {
+  console.error(`VENDOR_PASSWORD must be at least 12 characters (it has ${password.length}).`);
+  process.exit(1);
+}
+
 if (
   !["list", "create", "password", "disable"].includes(action ?? "") ||
   (action !== "list" && !email) ||
-  (action === "create" && !name) ||
-  (needsPassword && password.length < 12)
+  (action === "create" && !name)
 ) {
   console.error(usage);
   process.exit(1);
