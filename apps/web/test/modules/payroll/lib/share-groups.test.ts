@@ -1,6 +1,14 @@
 import type { SettlementTotals, SettlementTreatment } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
-import { groupByCollection, shareSplit, sumMoney } from "@web/modules/payroll/lib/share-groups";
+import {
+  groupByCollection,
+  matchesDoctorPaid,
+  matchesPatientPaid,
+  matchesSearch,
+  pageOf,
+  shareSplit,
+  sumMoney,
+} from "@web/modules/payroll/lib/share-groups";
 import { DOCTOR_ID } from "@test/helpers/fixtures";
 
 function treatment(
@@ -93,5 +101,44 @@ describe("sumMoney", () => {
     const rows = [treatment("a", "0.20", 0), treatment("b", "0.40", 0)];
 
     expect(sumMoney(rows, (row) => row.doctorShare)).toBe("0.30");
+  });
+});
+
+describe("filtering a doctor's treatments", () => {
+  const row = treatment("a", "100.00", 40, {
+    patientName: "أحمد يوسف",
+    fileNumber: "00057",
+    procedureName: "Simple Extraction",
+    status: "paid",
+  });
+
+  it("finds a treatment by patient, file number or treatment, ignoring hamza and case", () => {
+    expect(matchesSearch(row, "احمد")).toBe(true);
+    expect(matchesSearch(row, "0005")).toBe(true);
+    expect(matchesSearch(row, "extraction")).toBe(true);
+    expect(matchesSearch(row, "  ")).toBe(true);
+    expect(matchesSearch(row, "سارة")).toBe(false);
+  });
+
+  it("keeps what the doctor was paid for, and what the patient paid part of or nothing", () => {
+    expect(matchesDoctorPaid(row, null)).toBe(true);
+    expect(matchesDoctorPaid(row, "paid")).toBe(true);
+    expect(matchesDoctorPaid(row, "unpaid")).toBe(false);
+    expect(matchesPatientPaid(row, "partly")).toBe(true);
+    expect(matchesPatientPaid(row, "none")).toBe(false);
+    expect(matchesPatientPaid({ ...row, collectedPercent: 0 }, "none")).toBe(true);
+  });
+});
+
+describe("pageOf", () => {
+  const rows = Array.from({ length: 23 }, (_, index) => index);
+
+  it("cuts one page and counts the pages", () => {
+    expect(pageOf(rows, 3, 10)).toEqual({ rows: [20, 21, 22], totalPages: 3 });
+  });
+
+  it("falls back to the last page when the filter left fewer rows", () => {
+    expect(pageOf(rows, 9, 10).rows).toEqual([20, 21, 22]);
+    expect(pageOf([], 1, 10)).toEqual({ rows: [], totalPages: 1 });
   });
 });

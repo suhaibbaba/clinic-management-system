@@ -3269,7 +3269,13 @@
       "shareWhenPaid": "Share once paid",
       "readySoFar": "Ready so far",
       "noneCollected": "No patient has paid yet this month",
-      "paidInFull": "Paid in full"
+      "paidInFull": "Paid in full",
+      "searchPlaceholder": "Patient, file number or treatment",
+      "noMatch": "No treatment matches this search",
+      "paidFilters": {
+        "partly": "Paid part",
+        "none": "Not paid yet"
+      }
     },
     "entryKinds": {
       "extra": "Bonus",

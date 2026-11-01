@@ -1,14 +1,44 @@
-import type { SettlementTreatment } from "@clinic/shared";
+import {
+  SETTLEMENT_LINE_STATUSES,
+  type SettlementLineStatus,
+  type SettlementTreatment,
+} from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { Badge, Button, EmptyState, Icon, Ltr, Money, Table, type Column } from "@clinic/ui";
-import { groupByCollection, sumMoney } from "@web/modules/payroll/lib/share-groups";
+import {
+  Badge,
+  Button,
+  EmptyState,
+  Icon,
+  Ltr,
+  Money,
+  SearchField,
+  Select,
+  Table,
+  type Column,
+} from "@clinic/ui";
+import { PATIENT_PAID_FILTERS } from "@web/modules/payroll/constants";
+import {
+  useShareTableParams,
+  type ShareTableParams,
+} from "@web/modules/payroll/hooks/use-share-table-params";
+import {
+  groupByCollection,
+  matchesDoctorPaid,
+  matchesPatientPaid,
+  matchesSearch,
+  pageOf,
+  sumMoney,
+  type PatientPaidFilter,
+} from "@web/modules/payroll/lib/share-groups";
 import { SETTLEMENT_STATUS_TONES } from "@web/shared/constants/settlement";
 import { formatDate } from "@web/shared/lib/format";
 import { canOpenPatientFile } from "@web/shared/permissions/patients";
 import { useSession } from "@web/shared/providers/session";
 import { useCurrency } from "@web/shared/queries/clinic";
+
+const ALL = "all";
 
 const FIGURE = "w-28";
 const STATUS = "w-36";
@@ -29,6 +59,14 @@ export function SharePatients({
   const currency = useCurrency();
   const groups = groupByCollection(treatments);
   const opensFile = canOpenPatientFile(can);
+  const paid = useShareTableParams<SettlementLineStatus>("paid", SETTLEMENT_LINE_STATUSES);
+  const waiting = useShareTableParams<PatientPaidFilter>("waiting", PATIENT_PAID_FILTERS);
+  const paidRows = groups.collected.filter(
+    (row) => matchesSearch(row, paid.query) && matchesDoctorPaid(row, paid.filter),
+  );
+  const waitingRows = groups.waiting.filter(
+    (row) => matchesSearch(row, waiting.query) && matchesPatientPaid(row, waiting.filter),
+  );
 
   const columns = (waiting: boolean): Column<SettlementTreatment>[] => [
     {
@@ -166,20 +204,41 @@ export function SharePatients({
         count={groups.collected.length}
         total={sumMoney(groups.collected, (row) => row.payable)}
       >
-        <Table
-          data-testid="share-patients-collected-table"
-          columns={columns(false)}
-          rows={groups.collected}
-          rowKey={(row) => `${row.id}:${row.doctorId}`}
-          isLoading={isLoading}
-          empty={
-            <EmptyState
-              icon="clock"
-              data-testid="share-patients-collected-empty"
-              title="payroll.patients.noneCollected"
+        <>
+          {groups.collected.length > 0 && (
+            <ShareToolbar
+              data-testid="share-patients-collected"
+              params={paid}
+              filterLabel={t("payroll.patients.doctorPaid")}
+              filters={SETTLEMENT_LINE_STATUSES.map((value) => ({
+                value,
+                label: t(`doctors.settlement.statuses.${value}`),
+              }))}
             />
-          }
-        />
+          )}
+          <PagedTable
+            data-testid="share-patients-collected-table"
+            columns={columns(false)}
+            rows={paidRows}
+            params={paid}
+            isLoading={isLoading}
+            empty={
+              groups.collected.length === 0 ? (
+                <EmptyState
+                  icon="clock"
+                  data-testid="share-patients-collected-empty"
+                  title="payroll.patients.noneCollected"
+                />
+              ) : (
+                <EmptyState
+                  icon="search"
+                  data-testid="share-patients-collected-no-match"
+                  title="payroll.patients.noMatch"
+                />
+              )
+            }
+          />
+        </>
       </ShareGroup>
 
       {groups.waiting.length > 0 && (
@@ -191,12 +250,30 @@ export function SharePatients({
           total={sumMoney(groups.waiting, (row) => row.doctorShare)}
           hint={t("payroll.patients.waitingHint")}
         >
-          <Table
-            data-testid="share-patients-waiting-table"
-            columns={columns(true)}
-            rows={groups.waiting}
-            rowKey={(row) => `${row.id}:${row.doctorId}`}
-          />
+          <>
+            <ShareToolbar
+              data-testid="share-patients-waiting"
+              params={waiting}
+              filterLabel={t("payroll.patients.patientPaid")}
+              filters={PATIENT_PAID_FILTERS.map((value) => ({
+                value,
+                label: t(`payroll.patients.paidFilters.${value}`),
+              }))}
+            />
+            <PagedTable
+              data-testid="share-patients-waiting-table"
+              columns={columns(true)}
+              rows={waitingRows}
+              params={waiting}
+              empty={
+                <EmptyState
+                  icon="search"
+                  data-testid="share-patients-waiting-no-match"
+                  title="payroll.patients.noMatch"
+                />
+              }
+            />
+          </>
         </ShareGroup>
       )}
     </section>
@@ -238,5 +315,82 @@ function ShareGroup({
       {hint && <p className="text-meta text-ink-muted">{hint}</p>}
       {children}
     </div>
+  );
+}
+
+function ShareToolbar<TFilter extends string>({
+  params,
+  filterLabel,
+  filters,
+  "data-testid": testId,
+}: {
+  readonly params: ShareTableParams<TFilter>;
+  readonly filterLabel: string;
+  readonly filters: readonly { readonly value: TFilter; readonly label: string }[];
+  readonly "data-testid": string;
+}): JSX.Element {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <SearchField
+        data-testid={`${testId}-search`}
+        className="w-full min-w-0 sm:max-w-md sm:flex-1"
+        label={t("common.search")}
+        placeholder={t("payroll.patients.searchPlaceholder")}
+        value={params.search}
+        onChange={(event) => params.setSearch(event.target.value)}
+        onClear={() => params.setSearch("")}
+        clearLabel={t("common.clear")}
+      />
+      <Select
+        data-testid={`${testId}-filter`}
+        aria-label={filterLabel}
+        className="sm:w-48"
+        value={params.filter ?? ALL}
+        onChange={(event) =>
+          params.setFilter(
+            filters.find((option) => option.value === event.target.value)?.value ?? null,
+          )
+        }
+        options={[{ value: ALL, label: t("common.all") }, ...filters]}
+      />
+    </div>
+  );
+}
+
+function PagedTable<TFilter extends string>({
+  columns,
+  rows,
+  params,
+  isLoading,
+  empty,
+  "data-testid": testId,
+}: {
+  readonly columns: Column<SettlementTreatment>[];
+  readonly rows: readonly SettlementTreatment[];
+  readonly params: ShareTableParams<TFilter>;
+  readonly isLoading?: boolean;
+  readonly empty: JSX.Element;
+  readonly "data-testid": string;
+}): JSX.Element {
+  const page = pageOf(rows, params.page, params.perPage);
+
+  return (
+    <Table
+      data-testid={testId}
+      columns={columns}
+      rows={page.rows}
+      rowKey={(row) => `${row.id}:${row.doctorId}`}
+      isLoading={isLoading}
+      empty={empty}
+      pagination={{
+        page: Math.min(params.page, page.totalPages),
+        totalPages: page.totalPages,
+        onPageChange: params.setPage,
+        perPage: params.perPage,
+        onPerPageChange: params.setPerPage,
+      }}
+    />
   );
 }
