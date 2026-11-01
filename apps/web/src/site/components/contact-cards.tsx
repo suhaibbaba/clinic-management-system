@@ -3,7 +3,7 @@ import { CardFill } from "@web/site/components/card-fill";
 import { SiteIcon } from "@web/site/components/site-icon";
 import { useHoursText } from "@web/site/hooks/use-hours-text";
 import { useSite } from "@web/site/hooks/use-site";
-import { mapsLink } from "@web/site/lib/text";
+import { mapsLink, pick } from "@web/site/lib/text";
 
 function ContactCard({
   icon,
@@ -34,8 +34,9 @@ function ContactCard({
 }
 
 export function ContactCards(): JSX.Element {
-  const { site, t } = useSite();
+  const { site, language, languages, t } = useSite();
   const { clinic } = site;
+  const address = pick(clinic.address, language, languages);
   const hours = useHoursText();
   const pin =
     clinic.latitude !== null && clinic.longitude !== null
@@ -48,9 +49,9 @@ export function ContactCards(): JSX.Element {
       data-reveal-group
       className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-3"
     >
-      {clinic.address && (
+      {address && (
         <ContactCard icon="map-pin" title={t("contact.address")} testId="site-contact-address">
-          <span className="site-fill-ink max-w-full text-ink wrap-anywhere">{clinic.address}</span>
+          <span className="site-fill-ink max-w-full text-ink wrap-anywhere">{address}</span>
           {pin && (
             <a
               href={pin}

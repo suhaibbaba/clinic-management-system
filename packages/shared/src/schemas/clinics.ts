@@ -1,11 +1,15 @@
 import { z } from "zod";
+import {
+  localizedTextSchema,
+  optionalLocalizedTextInputSchema,
+} from "@shared/locale/localized-text";
 import { settingsSchema, weeklyScheduleSchema, optionalPhoneSchema } from "@shared/schemas/common";
 import { personNameInputSchema, personNameSchema } from "@shared/schemas/person-name";
 import { DEFAULT_TIME_ZONE } from "@shared/time/zone";
 import { PHONE_COUNTRY_CODES } from "@shared/constants/phone";
 import { CURRENCIES } from "@shared/locale/currencies";
 import { languageCodeSchema, type LanguageCode } from "@shared/locale/languages";
-import { clinicLocale, type ClinicLocaleSource } from "@shared/locale/profile";
+import { clinicLocale, clinicLocaleSchema, type ClinicLocaleSource } from "@shared/locale/profile";
 
 export const clinicScheduleSettingsSchema = z.object({
   timezone: z.string().min(1).default(DEFAULT_TIME_ZONE),
@@ -148,6 +152,7 @@ export const clinicBrandingSchema = z.object({
   logoUrl: z.url().nullable(),
   iconsAt: z.iso.datetime().nullable(),
   appName: z.string(),
+  locale: clinicLocaleSchema.nullable(),
 });
 export type ClinicBranding = z.infer<typeof clinicBrandingSchema>;
 
@@ -179,7 +184,7 @@ export const clinicSchema = z.object({
   logoIconsAt: z.iso.datetime().nullable(),
   phone: z.string().nullable(),
   email: z.string().nullable(),
-  address: z.string().nullable(),
+  address: localizedTextSchema.nullable(),
   latitude: z.string().nullable(),
   longitude: z.string().nullable(),
   currency: z.string(),
@@ -196,7 +201,7 @@ export const updateClinicSchema = z
     name: personNameInputSchema,
     phone: optionalPhoneSchema,
     email: z.email().max(255).nullish(),
-    address: z.string().trim().max(500).nullish(),
+    address: optionalLocalizedTextInputSchema(500).nullish(),
     latitude: latitudeSchema.nullish(),
     longitude: longitudeSchema.nullish(),
     currency: z.enum(CURRENCIES),

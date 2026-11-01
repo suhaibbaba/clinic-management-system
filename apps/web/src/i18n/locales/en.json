@@ -438,7 +438,6 @@
     "subtitle": "Clinic details and opening hours",
     "phone": "Phone",
     "email": "Email",
-    "address": "Address",
     "location": "Clinic Location",
     "locationHint": "Paste a Google Maps link, or type the coordinates separated by a comma",
     "locationUnreadable": "No coordinates could be read from this",
@@ -498,7 +497,8 @@
         "24h": "24-hour (22:30)"
       },
       "weekStart": "First Day of the Week"
-    }
+    },
+    "addressIn": "Address {{language}}"
   },
   "audit": {
     "title": "Audit Log",
@@ -579,7 +579,8 @@
       "passwordMin": "Password must be at least 8 characters",
       "yearOutOfRange": "That year is not right — use a date between 1900 and 2100",
       "dateInFuture": "This date cannot be in the future",
-      "dateInPast": "This date cannot be in the past"
+      "dateInPast": "This date cannot be in the past",
+      "nationalIdInvalid": "Not a valid national ID"
     },
     "clinicalDelete": {
       "hasPayments": "Cannot delete — payments cover it. Reverse the payments first, or record a correction."
@@ -673,6 +674,9 @@
     },
     "clinic": {
       "currencyLocked": "The currency cannot change once the clinic has recorded an amount."
+    },
+    "patient": {
+      "nationalIdInvalid": "The national ID is not valid for the clinic's country"
     }
   },
   "patients": {
@@ -769,7 +773,8 @@
     "assignedDoctor": "Treating Doctor",
     "assignedDoctorHint": "The doctor who follows this patient. It can be changed later.",
     "doctorFilter": "Doctor",
-    "allDoctors": "All doctors"
+    "allDoctors": "All doctors",
+    "nationalId": "National ID"
   },
   "chart": {
     "title": "Tooth Chart",
@@ -2149,7 +2154,8 @@
       "title": "Delete “{{name}}” from the price list?",
       "consequence": "It will no longer be offered when recording a treatment. Treatments already recorded keep their prices."
     },
-    "taxExempt": "Tax-exempt when working out the doctor's share"
+    "taxExempt": "Tax-exempt when working out the doctor's share",
+    "nameIn": "Procedure Name {{language}}"
   },
   "documents": {
     "print": "Print",
@@ -3696,7 +3702,11 @@
       "tooth_fdi": "Tooth chart",
       "body_region": "Body chart",
       "none": "No chart"
-    }
+    },
+    "nameIn": "Specialty Name {{language}}",
+    "rename": "Rename",
+    "renameOne": "Rename {{name}}",
+    "renamed": "Specialty renamed"
   },
   "languages": {
     "in": {

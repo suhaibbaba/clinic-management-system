@@ -26,6 +26,7 @@ import {
 } from "@api/modules/portal/lib/portal-record";
 import { type PortalSessionContext } from "@api/modules/portal/lib/portal-session";
 import { phoneMatches } from "@api/common/lib/phone";
+import { clinicDocumentLanguage, inLanguage } from "@api/common/database/clinic-language";
 
 @Injectable()
 export class PortalRecordsService {
@@ -38,6 +39,7 @@ export class PortalRecordsService {
   async record(session: PortalSessionContext, patientId: string): Promise<PortalRecord> {
     const patient = await this.requirePatient(session, patientId);
     const { clinicId } = session;
+    const language = await clinicDocumentLanguage(this.db, clinicId);
 
     const [history, balance, statement, appointmentRows, procedureRows, visitRows, rxRows, files] =
       await Promise.all([
@@ -200,7 +202,7 @@ export class PortalRecordsService {
       })),
       treatments: procedureRows.map((row) => ({
         id: row.id,
-        name: row.name,
+        name: inLanguage(row.name, language),
         status: row.status,
         performedAt: toIso(row.performedAt),
         doctor: row.doctorName,

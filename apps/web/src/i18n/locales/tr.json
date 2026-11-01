@@ -438,7 +438,6 @@
     "subtitle": "Klinik bilgileri ve çalışma saatleri",
     "phone": "Telefon",
     "email": "E-posta",
-    "address": "Adres",
     "location": "Klinik konumu",
     "locationHint": "Bir Google Haritalar bağlantısı yapıştırın veya koordinatları virgülle ayırarak yazın",
     "locationUnreadable": "Bundan koordinat okunamadı",
@@ -498,7 +497,8 @@
         "24h": "24 saat (22:30)"
       },
       "weekStart": "Haftanın ilk günü"
-    }
+    },
+    "addressIn": "{{language}} adres"
   },
   "audit": {
     "title": "Denetim kaydı",
@@ -579,7 +579,8 @@
       "passwordMin": "Şifre en az 8 karakter olmalıdır",
       "yearOutOfRange": "Bu yıl doğru değil; 1900 ile 2100 arasında bir tarih girin",
       "dateInFuture": "Bu tarih gelecekte olamaz",
-      "dateInPast": "Bu tarih geçmişte olamaz"
+      "dateInPast": "Bu tarih geçmişte olamaz",
+      "nationalIdInvalid": "Geçerli bir kimlik numarası değil"
     },
     "clinicalDelete": {
       "hasPayments": "Silinemez; ödemeler bunu kapsıyor. Önce ödemelerin ters kaydını oluşturun veya bir düzeltme kaydedin."
@@ -673,6 +674,9 @@
     },
     "clinic": {
       "currencyLocked": "Klinikte bir tutar kaydedildikten sonra para birimi değiştirilemez."
+    },
+    "patient": {
+      "nationalIdInvalid": "Kimlik numarası kliniğin ülkesi için geçerli değil"
     }
   },
   "patients": {
@@ -769,7 +773,8 @@
     "assignedDoctor": "Sorumlu doktor",
     "assignedDoctorHint": "Bu hastayı takip eden doktor. Sonradan değiştirilebilir.",
     "doctorFilter": "Doktor",
-    "allDoctors": "Tüm doktorlar"
+    "allDoctors": "Tüm doktorlar",
+    "nationalId": "Kimlik numarası"
   },
   "chart": {
     "title": "Diş şeması",
@@ -2149,7 +2154,8 @@
       "title": "“{{name}}” fiyat listesinden silinsin mi?",
       "consequence": "Tedavi kaydederken artık sunulmaz. Önceden kaydedilmiş tedaviler fiyatlarını korur."
     },
-    "taxExempt": "Doktor payı hesaplanırken vergiden muaf"
+    "taxExempt": "Doktor payı hesaplanırken vergiden muaf",
+    "nameIn": "{{language}} işlem adı"
   },
   "documents": {
     "print": "Yazdır",
@@ -3696,7 +3702,11 @@
       "tooth_fdi": "Diş şeması",
       "body_region": "Vücut şeması",
       "none": "Şema yok"
-    }
+    },
+    "nameIn": "{{language}} uzmanlık adı",
+    "rename": "Yeniden adlandır",
+    "renameOne": "{{name}} adını değiştir",
+    "renamed": "Uzmanlığın adı değiştirildi"
   },
   "languages": {
     "in": {

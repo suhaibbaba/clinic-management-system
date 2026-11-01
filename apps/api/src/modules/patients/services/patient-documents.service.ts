@@ -1,8 +1,8 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { addMoney, personName, subtractMoney, type Money } from "@clinic/shared";
+import { addMoney, localized, personName, subtractMoney, type Money } from "@clinic/shared";
 import { and, eq, inArray } from "drizzle-orm";
 import { documentDirection, documentStrings } from "@api/modules/billing/pdf/document-strings";
-import { LetterheadService } from "@api/modules/billing/pdf/letterhead.service";
+import { LetterheadService, type Letterhead } from "@api/modules/billing/pdf/letterhead.service";
 import {
   documentDate,
   documentDateTime,
@@ -105,6 +105,7 @@ export class PatientDocumentsService {
     const names = await this.procedureNames(
       actor.clinicId,
       plan.map((item) => item.procedureId),
+      clinic,
     );
 
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
@@ -177,6 +178,7 @@ export class PatientDocumentsService {
   private async procedureNames(
     clinicId: string,
     ids: readonly string[],
+    clinic: Letterhead,
   ): Promise<Map<string, string>> {
     if (ids.length === 0) {
       return new Map();
@@ -187,6 +189,8 @@ export class PatientDocumentsService {
       .from(procedureCatalog)
       .where(and(eq(procedureCatalog.clinicId, clinicId), inArray(procedureCatalog.id, [...ids])));
 
-    return new Map(rows.map((row) => [row.id, row.name]));
+    return new Map(
+      rows.map((row) => [row.id, localized(row.name, clinic.language, clinic.languages)]),
+    );
   }
 }

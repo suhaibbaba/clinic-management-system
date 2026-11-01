@@ -85,6 +85,7 @@ function harness(
     view?: AiView;
     loadedStore?: Map<string, string[]>;
     newConversationId?: string;
+    clinic?: { country?: string; settings?: Record<string, unknown> };
   } = {},
 ): {
   agent: AgentService;
@@ -154,7 +155,7 @@ function harness(
   } as unknown as ConfigService<Env, true>;
 
   const rows = new Map<unknown, unknown[]>([
-    [clinics, [{ name: { ar: "عيادة", en: "Clinic" }, settings: {} }]],
+    [clinics, [{ name: { ar: "عيادة", en: "Clinic" }, settings: {}, ...options.clinic }]],
     [users, [{ name: { ar: "سارة", en: "Sara" } }]],
     [doctors, options.doctorId ? [{ id: options.doctorId }] : []],
   ]);
@@ -441,6 +442,32 @@ describe("who the assistant is speaking to", () => {
     });
   });
 
+  it("replies in the clinic's primary language and writes its clock", async () => {
+    const { agent } = harness(scripted([]).provider);
+
+    await expect(agent.context(ACTOR)).resolves.toMatchObject({ language: "ar", clock: "12h" });
+  });
+
+  it("follows the clinic's locale profile, never a fixed Arabic", async () => {
+    const { provider, requests } = scripted([[completed("Tamam")]]);
+    const { agent } = harness(provider, { clinic: { country: "TR" } });
+
+    await expect(agent.context(ACTOR)).resolves.toMatchObject({ language: "tr", clock: "24h" });
+
+    await collect(agent, "bugün kaç randevu var?");
+
+    expect(requests[0]?.messages[0]?.content).toContain("The reply language is Türkçe (tr).");
+    expect(requests[0]?.messages[0]?.content).toContain("on a 24-hour clock");
+  });
+
+  it("follows a language the clinic chose over its country's", async () => {
+    const { agent } = harness(scripted([]).provider, {
+      clinic: { country: "TR", settings: { locale: { languages: ["en", "tr"] } } },
+    });
+
+    await expect(agent.context(ACTOR)).resolves.toMatchObject({ language: "en" });
+  });
+
   it("tells the model the speaker's doctor_id", async () => {
     const { provider, requests } = scripted([[completed("تمام")]]);
     const { agent } = harness(provider, { doctorId: DOCTOR_ID });
@@ -604,6 +631,8 @@ describe("the system prompt", () => {
     today: "2026-09-22",
     now: "23:57",
     weekday: "Tuesday",
+    language: "ar",
+    clock: "12h",
   } as const;
 
   it("reads for a doctor", () => {
@@ -618,7 +647,8 @@ describe("the system prompt", () => {
     ).toMatchInlineSnapshot(`
       "The clinic is عيادة النور (Al Noor Clinic). In its own time zone it is now Tuesday 2026-09-22, 23:57.
       You are speaking to سارة (Sara), whose role is "doctor".
-      They are the doctor "سارة (Sara)" (doctor_id 66666666-6666-4666-8666-666666666666)."
+      They are the doctor "سارة (Sara)" (doctor_id 66666666-6666-4666-8666-666666666666).
+      The reply language is العربية (ar). Write dates as DD/MM/YYYY and times on a 12-hour clock (2:30 PM)."
     `);
   });
 
@@ -634,7 +664,8 @@ describe("the system prompt", () => {
     ).toMatchInlineSnapshot(`
       "The clinic is عيادة النور (Al Noor Clinic). In its own time zone it is now Tuesday 2026-09-22, 23:57.
       You are speaking to منى (Mona), whose role is "admin".
-      They are not a doctor: they have no appointments, patients or schedule of their own."
+      They are not a doctor: they have no appointments, patients or schedule of their own.
+      The reply language is العربية (ar). Write dates as DD/MM/YYYY and times on a 12-hour clock (2:30 PM)."
     `);
   });
 

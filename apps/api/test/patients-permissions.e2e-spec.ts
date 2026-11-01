@@ -288,7 +288,7 @@ describe("Patients permission boundaries (e2e)", () => {
         payload: {
           specialtyId: clinic.specialtyId,
           code: `X-${role}`,
-          name: "Procedure",
+          name: { en: "Procedure" },
           defaultPrice: "10.00",
         },
       });

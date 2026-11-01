@@ -1,6 +1,9 @@
-import type { JSX } from "react";
+import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Ltr, Modal } from "@clinic/ui";
+import { Button, Icon, Ltr, Modal } from "@clinic/ui";
+import { SpecialtyNameForm } from "@web/modules/patients/components/price-list/specialty-name-form";
+import { useLocalized } from "@web/shared/hooks/use-localized";
+import { useSession } from "@web/shared/providers/session";
 import { useSpecialties } from "@web/shared/queries/specialties";
 
 export function SpecialtiesModal({
@@ -11,7 +14,16 @@ export function SpecialtiesModal({
   readonly onClose: () => void;
 }): JSX.Element {
   const { t } = useTranslation();
+  const text = useLocalized();
+  const { can } = useSession();
   const specialties = useSpecialties();
+  const mayRename = can("specialties.update");
+  const [renaming, setRenaming] = useState<string | null>(null);
+
+  const close = (): void => {
+    setRenaming(null);
+    onClose();
+  };
 
   return (
     <Modal
@@ -20,13 +32,13 @@ export function SpecialtiesModal({
       size="form"
       onOpenChange={(next) => {
         if (!next) {
-          onClose();
+          close();
         }
       }}
       title={t("specialties.title")}
       description="specialties.subscription"
       footer={
-        <Button variant="secondary" data-testid="specialties-modal-close" onClick={onClose}>
+        <Button variant="secondary" data-testid="specialties-modal-close" onClick={close}>
           {t("common.close")}
         </Button>
       }
@@ -38,12 +50,37 @@ export function SpecialtiesModal({
             <li
               key={specialty.id}
               data-testid={`specialty-${specialty.id}`}
-              className="flex min-w-0 flex-col py-2"
+              className="flex min-w-0 flex-col gap-2 py-2"
             >
-              <span className="truncate text-value font-medium text-ink">{specialty.name}</span>
-              <span className="text-label text-ink-subtle">
-                <Ltr>{specialty.code}</Ltr> · {t(`specialties.charts.${specialty.chartType}`)}
-              </span>
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span dir="auto" className="truncate text-value font-medium text-ink">
+                    {text(specialty.name)}
+                  </span>
+                  <span className="text-label text-ink-subtle">
+                    <Ltr>{specialty.code}</Ltr> · {t(`specialties.charts.${specialty.chartType}`)}
+                  </span>
+                </span>
+                {mayRename && renaming !== specialty.id && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    icon={<Icon name="edit" />}
+                    data-testid={`specialty-${specialty.id}-rename`}
+                    aria-label={t("specialties.renameOne", { name: text(specialty.name) })}
+                    onClick={() => setRenaming(specialty.id)}
+                  >
+                    {t("specialties.rename")}
+                  </Button>
+                )}
+              </div>
+              {renaming === specialty.id && (
+                <SpecialtyNameForm
+                  data-testid={`specialty-${specialty.id}-name-form`}
+                  specialty={specialty}
+                  onDone={() => setRenaming(null)}
+                />
+              )}
             </li>
           ))}
       </ul>

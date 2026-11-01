@@ -1,8 +1,8 @@
 import { and, eq, isNull } from "drizzle-orm";
-import { USER_ROLE, joinPersonName } from "@clinic/shared";
+import { USER_ROLE, countryPreset, joinPersonName } from "@clinic/shared";
 import type { Database, DatabaseExecutor } from "@api/database/database.module";
 import { clinics, users } from "@api/database/schema";
-import type { BootstrapEnv } from "@api/database/bootstrap/bootstrap-env";
+import { languageText, type BootstrapEnv } from "@api/database/bootstrap/bootstrap-env";
 import { grantSpecialty } from "@api/database/clinic-specialties";
 
 export interface BootstrapResult {
@@ -62,12 +62,14 @@ async function createClinic(db: DatabaseExecutor, env: BootstrapEnv): Promise<st
     .insert(clinics)
     .values({
       slug: env.BOOTSTRAP_CLINIC_SLUG,
-      name: { ar: env.BOOTSTRAP_CLINIC_NAME_AR, en: env.BOOTSTRAP_CLINIC_NAME_EN },
+      name: languageText(env, "BOOTSTRAP_CLINIC_NAME"),
       siteDomain: env.BOOTSTRAP_SITE_DOMAIN ?? null,
-      currency: env.BOOTSTRAP_CURRENCY,
+      currency: env.BOOTSTRAP_CURRENCY ?? countryPreset(env.BOOTSTRAP_COUNTRY).currency,
       country: env.BOOTSTRAP_COUNTRY,
       modules: env.BOOTSTRAP_MODULES,
-      settings: { timezone: env.BOOTSTRAP_TIMEZONE },
+      settings: {
+        timezone: env.BOOTSTRAP_TIMEZONE ?? countryPreset(env.BOOTSTRAP_COUNTRY).timeZone,
+      },
     })
     .returning({ id: clinics.id });
 
@@ -96,11 +98,8 @@ async function ensureAdmin(
     return false;
   }
 
-  const firstName = {
-    ar: env.BOOTSTRAP_ADMIN_FIRST_NAME_AR,
-    en: env.BOOTSTRAP_ADMIN_FIRST_NAME_EN,
-  };
-  const lastName = { ar: env.BOOTSTRAP_ADMIN_LAST_NAME_AR, en: env.BOOTSTRAP_ADMIN_LAST_NAME_EN };
+  const firstName = languageText(env, "BOOTSTRAP_ADMIN_FIRST_NAME");
+  const lastName = languageText(env, "BOOTSTRAP_ADMIN_LAST_NAME");
 
   await db.insert(users).values({
     clinicId,

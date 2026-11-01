@@ -11,7 +11,7 @@ import {
 import { clockTime } from "@shared/time/zone";
 
 export const pick = (
-  text: SiteText,
+  text: SiteText | null | undefined,
   language: SiteLanguage,
   languages: readonly SiteLanguage[] = [],
 ): string => localized(text, language, languages);

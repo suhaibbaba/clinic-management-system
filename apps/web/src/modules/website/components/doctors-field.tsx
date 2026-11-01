@@ -66,7 +66,7 @@ export function DoctorsField({
                 <span className="min-w-0">
                   <PersonName name={doctor.name} className="block truncate text-value text-ink" />
                   <span className="block truncate text-label text-ink-muted">
-                    {doctor.specialty}
+                    <PersonName name={doctor.specialty} fallback="" />
                     {!doctor.photoUrl && ` · ${t("website.doctors.noPhoto")}`}
                   </span>
                 </span>

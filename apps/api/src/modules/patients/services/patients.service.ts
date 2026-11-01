@@ -162,6 +162,7 @@ export class PatientsService implements OnModuleInit {
   ): Promise<PatientView> {
     const current = await this.scope.findOneOrFail<PatientRow>(patients, actor.clinicId, id);
     await this.access.requireDoctor(actor, input.assignedDoctorId);
+    await this.registration.requireValidNationalId(this.db, actor.clinicId, input.nationalId);
     const name = {
       firstName: input.firstName ?? current.firstName,
       middleName: input.middleName === undefined ? current.middleName : input.middleName || null,

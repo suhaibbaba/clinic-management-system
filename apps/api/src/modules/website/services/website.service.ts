@@ -286,6 +286,8 @@ export class WebsiteService implements OnModuleInit {
       keys.map(async (key) => [key, (await this.storage.createBrandingUrl(key)).url] as const),
     );
 
+    const locale = clinicLocale(clinic);
+
     return {
       clinic: {
         name: clinic.name,
@@ -300,7 +302,7 @@ export class WebsiteService implements OnModuleInit {
         workingHours: clinic.workingHours,
         bookingEnabled: bookingSettings(clinic.settings).enabled,
         chartTypes: await clinicChartTypes(this.db, clinic.id),
-        locale: clinicLocale(clinic),
+        locale,
       },
       doctors: await this.doctors(clinic.id),
       content,

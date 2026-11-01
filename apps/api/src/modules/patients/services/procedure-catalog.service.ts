@@ -68,7 +68,7 @@ export class ProcedureCatalogService implements OnModuleInit {
       const pattern = `%${query.search}%`;
       filters.push(
         or(
-          sql`${procedureCatalog.name} ilike ${pattern}`,
+          sql`localized_text_values(${procedureCatalog.name}) ilike ${pattern}`,
           sql`${procedureCatalog.code} ilike ${pattern}`,
         ),
       );

@@ -9,8 +9,12 @@ import { makeCatalogItem, makeLookupBundle } from "@test/helpers/fixtures";
 
 describe("the price list", () => {
   const items = [
-    makeCatalogItem({ id: "a", code: "RCT", name: "Root canal treatment" }),
-    makeCatalogItem({ id: "b", code: "FILL-C", name: "Composite filling" }),
+    makeCatalogItem({
+      id: "a",
+      code: "RCT",
+      name: { ar: "علاج عصب", en: "Root canal treatment", tr: "Kanal tedavisi" },
+    }),
+    makeCatalogItem({ id: "b", code: "FILL-C", name: { en: "Composite filling" } }),
   ];
 
   it("finds a procedure by its name or its code, ignoring case", () => {
@@ -18,6 +22,12 @@ describe("the price list", () => {
     expect(searchPriceList(items, "fill-c").map((item) => item.id)).toEqual(["b"]);
     expect(searchPriceList(items, "  ")).toEqual(items);
     expect(searchPriceList(items, "implant")).toEqual([]);
+  });
+
+  it("finds a procedure by its name in any of the clinic's languages", () => {
+    expect(searchPriceList(items, "عصب").map((item) => item.id)).toEqual(["a"]);
+    expect(searchPriceList(items, "kanal").map((item) => item.id)).toEqual(["a"]);
+    expect(searchPriceList(items, "dolgu")).toEqual([]);
   });
 
   it("offers as an outcome only the states a procedure can leave on a tooth", () => {

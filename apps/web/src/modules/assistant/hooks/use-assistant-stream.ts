@@ -1,5 +1,6 @@
 import {
   AI_ERROR_CODE,
+  toLanguageCode,
   AI_STREAM_EVENT,
   aiStreamEventSchema,
   type AiErrorCode,
@@ -10,6 +11,7 @@ import {
   type AiView,
 } from "@clinic/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
+import i18n from "@web/i18n";
 import { assistantApi } from "@web/modules/assistant/api";
 import { isAiErrorCode } from "@web/modules/assistant/lib/messages";
 import { ApiError } from "@web/shared/lib/api-error";
@@ -174,7 +176,11 @@ export function useAssistantStream({
 
       try {
         const response = await assistantApi.chat(
-          { message, ...(opened !== undefined && { conversationId: opened }) },
+          {
+            message,
+            language: toLanguageCode(i18n.language),
+            ...(opened !== undefined && { conversationId: opened }),
+          },
           controller.signal,
         );
 

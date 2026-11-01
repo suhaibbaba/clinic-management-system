@@ -35,6 +35,8 @@ const prompt = systemPrompt({
   today: "2026-09-24",
   now: "10:00",
   weekday: "Thursday",
+  language: "ar",
+  clock: "12h",
 });
 
 const tokens = (text: string): number => Math.ceil(text.length / 4);

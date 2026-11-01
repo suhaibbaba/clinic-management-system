@@ -63,6 +63,7 @@ import { doctorCollects, includesShare } from "@api/modules/payroll/lib/pay-term
 import { monthStart, toStaffPayment, type StaffPaymentRow } from "@api/modules/payroll/lib/payroll";
 import { PayTermsService } from "@api/modules/payroll/services/pay-terms.service";
 import { StaffPaymentsService } from "@api/modules/payroll/services/staff-payments.service";
+import { clinicDocumentLanguage } from "@api/common/database/clinic-language";
 
 const ZERO = "0.00";
 
@@ -567,11 +568,14 @@ export class DoctorSettlementsService implements OnModuleInit {
     scope: SettlementScope,
     executor: DatabaseExecutor = this.db,
   ): Promise<SettlementTreatment[]> {
-    const rows = await executor.execute<SettlementRow & Record<string, unknown>>(
-      sql`${settlementLines(scope)} order by performed_at desc`,
-    );
+    const [rows, language] = await Promise.all([
+      executor.execute<SettlementRow & Record<string, unknown>>(
+        sql`${settlementLines(scope)} order by performed_at desc`,
+      ),
+      clinicDocumentLanguage(executor, scope.clinicId),
+    ]);
 
-    return [...rows].map(toSettlementTreatment);
+    return [...rows].map((row) => toSettlementTreatment(row, language));
   }
 
   private async withItems(
@@ -590,9 +594,13 @@ export class DoctorSettlementsService implements OnModuleInit {
             )),
           ];
 
+    const language = await clinicDocumentLanguage(this.db, clinicId);
+
     return rows.map((row) => ({
       ...toStaffPayment(row),
-      items: items.filter((item) => item.payout_id === row.id).map(toSettlementItem),
+      items: items
+        .filter((item) => item.payout_id === row.id)
+        .map((item) => toSettlementItem(item, language)),
     }));
   }
 

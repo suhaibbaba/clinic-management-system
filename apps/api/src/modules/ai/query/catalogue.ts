@@ -120,7 +120,7 @@ export const READ_VIEWS: readonly ReadView[] = [
       { name: "patient_id" },
       { name: "visit_id" },
       { name: "doctor_id" },
-      { name: "procedure_name", sql: "p.name" },
+      { name: "procedure_name", sql: "localized_text_values(p.name)" },
       { name: "status" },
       { name: "performed_at" },
       { name: "price" },

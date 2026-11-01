@@ -25,6 +25,7 @@ import {
   type PresignClinicLogoInput,
   type PresignClinicLogoResponse,
   type UpdateClinicInput,
+  clinicLocale,
   documentLanguage,
   DEFAULT_LANGUAGE,
   languageDirection,
@@ -83,6 +84,7 @@ export class ClinicsService implements OnModuleInit {
       .select({
         name: clinics.name,
         country: clinics.country,
+        currency: clinics.currency,
         settings: clinics.settings,
         logoKey: clinics.logoKey,
         logoIconsAt: clinics.logoIconsAt,
@@ -94,7 +96,7 @@ export class ClinicsService implements OnModuleInit {
     const [only] = rows;
 
     if (rows.length !== 1 || !only) {
-      return { name: null, logoUrl: null, iconsAt: null, appName: "" };
+      return { name: null, logoUrl: null, iconsAt: null, appName: "", locale: null };
     }
 
     return {
@@ -102,6 +104,7 @@ export class ClinicsService implements OnModuleInit {
       logoUrl: await this.signLogo(only.logoKey),
       iconsAt: only.logoIconsAt?.toISOString() ?? null,
       appName: appName(only),
+      locale: clinicLocale(only),
     };
   }
 

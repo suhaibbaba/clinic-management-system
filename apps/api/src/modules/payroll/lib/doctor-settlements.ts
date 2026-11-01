@@ -9,7 +9,9 @@ import {
   type SettlementItem,
   addMoney,
   formatMinorUnits,
+  localized,
   toMinorUnits,
+  type LocalizedText,
   type Money,
   type SettlementLineStatus,
   type SettlementTotals,
@@ -17,6 +19,7 @@ import {
   type ShareSplitEntry,
 } from "@clinic/shared";
 import { sql, type SQL } from "drizzle-orm";
+import { type ClinicLanguage } from "@api/common/database/clinic-language";
 
 export interface SettlementRow {
   readonly id: string;
@@ -25,7 +28,7 @@ export interface SettlementRow {
   readonly patient_id: string;
   readonly patient_name: string;
   readonly file_number: string | null;
-  readonly procedure_name: string;
+  readonly procedure_name: LocalizedText;
   readonly price: string;
   readonly discount: string;
   readonly revenue: string;
@@ -58,7 +61,7 @@ export interface SettlementItemRow {
   readonly patient_id: string;
   readonly patient_name: string;
   readonly file_number: string | null;
-  readonly procedure_name: string;
+  readonly procedure_name: LocalizedText;
   readonly performed_at: Date | string;
   readonly amount: string;
 }
@@ -78,7 +81,10 @@ export interface SettlementScope {
   readonly onPercentageOnly?: boolean;
 }
 
-export function toSettlementTreatment(row: SettlementRow): SettlementTreatment {
+export function toSettlementTreatment(
+  row: SettlementRow,
+  { language, languages }: ClinicLanguage,
+): SettlementTreatment {
   return {
     id: row.id,
     doctorId: row.doctor_id,
@@ -86,7 +92,7 @@ export function toSettlementTreatment(row: SettlementRow): SettlementTreatment {
     patientId: row.patient_id,
     patientName: row.patient_name,
     fileNumber: row.file_number,
-    procedureName: row.procedure_name,
+    procedureName: localized(row.procedure_name, language, languages),
     price: row.price,
     discount: row.discount,
     revenue: row.revenue,
@@ -113,13 +119,16 @@ export function toSettlementTreatment(row: SettlementRow): SettlementTreatment {
   };
 }
 
-export function toSettlementItem(row: SettlementItemRow): SettlementItem {
+export function toSettlementItem(
+  row: SettlementItemRow,
+  { language, languages }: ClinicLanguage,
+): SettlementItem {
   return {
     treatmentId: row.treatment_id,
     patientId: row.patient_id,
     patientName: row.patient_name,
     fileNumber: row.file_number,
-    procedureName: row.procedure_name,
+    procedureName: localized(row.procedure_name, language, languages),
     performedAt: new Date(row.performed_at).toISOString(),
     amount: row.amount,
   };

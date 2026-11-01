@@ -7,6 +7,11 @@ import {
   type TimelineEntryType,
 } from "@clinic/shared";
 import { sql, type SQL } from "drizzle-orm";
+import {
+  clinicDocumentLanguage,
+  localizedSql,
+  type ClinicLanguage,
+} from "@api/common/database/clinic-language";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
@@ -47,8 +52,9 @@ export class TimelineService {
       return toPaginated<TimelineEntry>([], 0, query);
     }
 
+    const language = await clinicDocumentLanguage(this.db, actor.clinicId);
     const sources = allowed
-      .map((type) => this.source(type, actor.clinicId, patientId))
+      .map((type) => this.source(type, actor.clinicId, patientId, language))
       .filter((source): source is SQL => source !== null);
 
     if (sources.length === 0) {
@@ -74,7 +80,12 @@ export class TimelineService {
     return toPaginated([...rows].map(toTimelineEntry), totals[0]?.value ?? 0, query);
   }
 
-  private source(type: TimelineEntryType, clinicId: string, patientId: string): SQL | null {
+  private source(
+    type: TimelineEntryType,
+    clinicId: string,
+    patientId: string,
+    language: ClinicLanguage,
+  ): SQL | null {
     switch (type) {
       case TIMELINE_ENTRY_TYPE.VISIT:
         return sql`
@@ -96,7 +107,7 @@ export class TimelineService {
           select pp.id,
                  ${TIMELINE_ENTRY_TYPE.PROCEDURE}::text as type,
                  pp.performed_at as occurred_at,
-                 pc.name as title,
+                 ${localizedSql(sql.raw("pc.name"), language)} as title,
                  jsonb_build_object(
                    'performedProcedureId', pp.id,
                    'procedureId', pp.procedure_id,

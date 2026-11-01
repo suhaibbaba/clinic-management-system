@@ -5,6 +5,7 @@ import {
   NOTIFICATION_CHANNEL,
   PROCEDURE_OUTCOME,
   USER_ROLE,
+  type LocalizedText,
   type PersonName,
   type ProcedureOutcome,
   type WeeklySchedule,
@@ -99,7 +100,10 @@ export const ACCOUNTS: readonly SeedAccount[] = [
 export const CLINIC_DEFAULTS = {
   phone: "+97092345600",
   email: "info@abuobeid.ps",
-  address: "نابلس، رفيديا، شارع تونس، عمارة الرؤية، الطابق الثاني",
+  address: {
+    ar: "نابلس، رفيديا، شارع تونس، عمارة الرؤية، الطابق الثاني",
+    en: "Nablus, Rafidia, Tunis Street, Al-Ruya Building, second floor",
+  },
   currency: "ILS",
   workingHours: CLINIC_HOURS,
   modules: [CLINIC_MODULE.WEBSITE],
@@ -125,7 +129,7 @@ export const CLINIC_DEFAULTS = {
 
 export interface CatalogEntry {
   readonly code: string;
-  readonly name: string;
+  readonly name: LocalizedText;
   readonly defaultPrice: string;
   readonly chartOutcome: ProcedureOutcome | null;
   readonly minutes: number;
@@ -136,7 +140,7 @@ export interface CatalogEntry {
 export const CATALOG: readonly CatalogEntry[] = [
   {
     code: "EXAM",
-    name: "Examination",
+    name: { ar: "فحص", en: "Examination", tr: "Muayene" },
     defaultPrice: "50.00",
     chartOutcome: null,
     minutes: 20,
@@ -144,7 +148,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "CLEAN",
-    name: "Scaling & polishing",
+    name: { ar: "تنظيف وتلميع", en: "Scaling & polishing", tr: "Diş taşı temizliği ve cila" },
     defaultPrice: "150.00",
     chartOutcome: null,
     minutes: 30,
@@ -152,7 +156,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "FILL-C",
-    name: "Composite filling",
+    name: { ar: "حشوة تجميلية", en: "Composite filling", tr: "Kompozit dolgu" },
     defaultPrice: "200.00",
     chartOutcome: PROCEDURE_OUTCOME.FILLING,
     minutes: 40,
@@ -160,7 +164,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "FILL-A",
-    name: "Amalgam filling",
+    name: { ar: "حشوة أملغم", en: "Amalgam filling", tr: "Amalgam dolgu" },
     defaultPrice: "150.00",
     chartOutcome: PROCEDURE_OUTCOME.FILLING,
     minutes: 40,
@@ -168,7 +172,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "RCT",
-    name: "Root canal treatment",
+    name: { ar: "علاج عصب", en: "Root canal treatment", tr: "Kanal tedavisi" },
     defaultPrice: "600.00",
     chartOutcome: PROCEDURE_OUTCOME.ROOT_CANAL,
     minutes: 60,
@@ -176,7 +180,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "CROWN-Z",
-    name: "Zirconia crown",
+    name: { ar: "تاج زيركون", en: "Zirconia crown", tr: "Zirkonyum kron" },
     defaultPrice: "900.00",
     chartOutcome: PROCEDURE_OUTCOME.CROWN,
     minutes: 45,
@@ -185,7 +189,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "CROWN-P",
-    name: "PFM crown",
+    name: { ar: "تاج خزف على معدن", en: "PFM crown", tr: "Metal destekli porselen kron" },
     defaultPrice: "650.00",
     chartOutcome: PROCEDURE_OUTCOME.CROWN,
     minutes: 45,
@@ -194,7 +198,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "BRIDGE-3",
-    name: "Three-unit bridge",
+    name: { ar: "جسر من ثلاث وحدات", en: "Three-unit bridge", tr: "Üç üyeli köprü" },
     defaultPrice: "2200.00",
     chartOutcome: PROCEDURE_OUTCOME.BRIDGE,
     minutes: 60,
@@ -203,7 +207,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "IMPL",
-    name: "Dental implant",
+    name: { ar: "زراعة سن", en: "Dental implant", tr: "Diş implantı" },
     defaultPrice: "2800.00",
     chartOutcome: PROCEDURE_OUTCOME.IMPLANT,
     minutes: 90,
@@ -212,7 +216,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "EXT",
-    name: "Simple extraction",
+    name: { ar: "خلع بسيط", en: "Simple extraction", tr: "Basit diş çekimi" },
     defaultPrice: "150.00",
     chartOutcome: PROCEDURE_OUTCOME.MISSING,
     minutes: 30,
@@ -220,7 +224,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "EXT-S",
-    name: "Surgical extraction",
+    name: { ar: "خلع جراحي", en: "Surgical extraction", tr: "Cerrahi diş çekimi" },
     defaultPrice: "400.00",
     chartOutcome: PROCEDURE_OUTCOME.MISSING,
     minutes: 45,
@@ -228,7 +232,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "ORTHO",
-    name: "Orthodontic treatment",
+    name: { ar: "تقويم أسنان", en: "Orthodontic treatment", tr: "Ortodontik tedavi" },
     defaultPrice: "4500.00",
     chartOutcome: null,
     minutes: 45,
@@ -237,7 +241,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "XRAY-P",
-    name: "Panoramic X-ray",
+    name: { ar: "صورة بانوراما", en: "Panoramic X-ray", tr: "Panoramik röntgen" },
     defaultPrice: "80.00",
     chartOutcome: null,
     minutes: 15,
@@ -245,7 +249,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "WHITEN",
-    name: "Teeth whitening",
+    name: { ar: "تبييض أسنان", en: "Teeth whitening", tr: "Diş beyazlatma" },
     defaultPrice: "700.00",
     chartOutcome: null,
     minutes: 60,

@@ -121,4 +121,14 @@ describe("language", () => {
 
     expect(i18n.language).toBe("tr");
   });
+
+  it("opens in the clinic's language on the next visit, before anyone signs in", async () => {
+    window.localStorage.clear();
+    await adoptClinicLanguage(clinicLocale({ country: "TR" }));
+    await i18n.changeLanguage("ar");
+    await initLanguage();
+
+    expect(i18n.language).toBe("tr");
+    expect(document.documentElement.dir).toBe("ltr");
+  });
 });

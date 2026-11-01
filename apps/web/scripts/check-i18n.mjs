@@ -42,6 +42,12 @@ function withoutComments(source) {
     .replace(/\/\/[^\n]*/g, "");
 }
 
+const LANGUAGE_CODES = [
+  ...readFileSync(join(SHARED_SRC, "locale", "languages.ts"), "utf8").matchAll(
+    /code: "([a-z]{2,3})"/g,
+  ),
+].map((match) => match[1]);
+
 const pluralCategories = (language) =>
   new Set(new Intl.PluralRules(language).resolvedOptions().pluralCategories);
 
@@ -86,8 +92,12 @@ function checkParity(locales) {
     .filter((entry) => entry.endsWith(".json"))
     .map((entry) => entry.replace(/\.json$/, ""));
 
-  if (languages.length < 2) {
-    return;
+  for (const language of LANGUAGE_CODES) {
+    if (!languages.includes(language)) {
+      failures.push(
+        `${where}/${language}.json  missing — every language in LANGUAGE_DEFINITIONS needs one`,
+      );
+    }
   }
 
   const read = (language) => JSON.parse(readFileSync(join(locales, `${language}.json`), "utf8"));

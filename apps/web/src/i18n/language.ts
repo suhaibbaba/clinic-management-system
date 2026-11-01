@@ -6,12 +6,23 @@ export type Language = LanguageCode;
 
 const STORAGE_KEY = "clinic.language";
 
+const CLINIC_LANGUAGE_KEY = "clinic.language.default";
+
 const isLanguage = (value: string | null): value is Language =>
   value !== null && (LANGUAGES as readonly string[]).includes(value);
 
 export function storedLanguage(): Language | null {
   try {
     const value = window.localStorage.getItem(STORAGE_KEY);
+    return isLanguage(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function clinicLanguage(): Language | null {
+  try {
+    const value = window.localStorage.getItem(CLINIC_LANGUAGE_KEY);
     return isLanguage(value) ? value : null;
   } catch {
     return null;
@@ -36,7 +47,7 @@ export async function changeLanguage(language: Language): Promise<void> {
 }
 
 export async function initLanguage(): Promise<void> {
-  const stored = storedLanguage() ?? DEFAULT_LANGUAGE;
+  const stored = storedLanguage() ?? clinicLanguage() ?? DEFAULT_LANGUAGE;
   const language = await loadLanguage(stored).then(
     () => stored,
     () => DEFAULT_LANGUAGE,
@@ -54,6 +65,10 @@ export async function adoptClinicLanguage(
 ) {
   const stored = storedLanguage();
   const offered: readonly string[] = locale.languages;
+
+  try {
+    window.localStorage.setItem(CLINIC_LANGUAGE_KEY, locale.primaryLanguage);
+  } catch {}
 
   if (stored !== null && offered.includes(stored)) {
     return;

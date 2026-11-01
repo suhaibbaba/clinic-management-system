@@ -67,7 +67,8 @@ export function DoctorsTeaser(): JSX.Element | null {
                       {name}
                     </span>
                     <span className="site-fill-soft text-label text-ink-muted">
-                      {(profile && pick(profile.title, language, languages)) || doctor.specialty}
+                      {(profile && pick(profile.title, language, languages)) ||
+                        pick(doctor.specialty, language, languages)}
                     </span>
                   </span>
                   <span

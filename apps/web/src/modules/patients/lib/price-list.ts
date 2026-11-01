@@ -1,4 +1,4 @@
-import type { LookupOption, ProcedureCatalogItem } from "@clinic/shared";
+import { localizedValues, type LookupOption, type ProcedureCatalogItem } from "@clinic/shared";
 
 export function procedureOutcomes(states: readonly LookupOption[]): LookupOption[] {
   return states.filter((state) => {
@@ -20,7 +20,9 @@ export function searchPriceList(
   }
 
   return items.filter(
-    (item) => item.name.toLowerCase().includes(needle) || item.code.toLowerCase().includes(needle),
+    (item) =>
+      localizedValues(item.name).some((name) => name.toLowerCase().includes(needle)) ||
+      item.code.toLowerCase().includes(needle),
   );
 }
 

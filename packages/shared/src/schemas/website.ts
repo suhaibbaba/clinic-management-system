@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { localizedTextSchema } from "@shared/locale/localized-text";
 import { clinicLocaleSchema } from "@shared/locale/profile";
 import { LANGUAGE_CODES, languageCodeSchema, type LanguageCode } from "@shared/locale/languages";
 import type { LocalizedText } from "@shared/locale/localized-text";
@@ -346,7 +347,7 @@ export function siteImageKeys(content: SiteContent): string[] {
 export const publicSiteDoctorSchema = z.object({
   id: uuidSchema,
   name: personNameSchema,
-  specialty: z.string(),
+  specialty: localizedTextSchema,
   photoUrl: z.url().nullable(),
 });
 export type PublicSiteDoctor = z.infer<typeof publicSiteDoctorSchema>;
@@ -358,7 +359,7 @@ export const publicSiteClinicSchema = z.object({
   phone: z.string().nullable(),
   country: z.string(),
   email: z.string().nullable(),
-  address: z.string().nullable(),
+  address: localizedTextSchema.nullable(),
   latitude: z.number().nullable(),
   longitude: z.number().nullable(),
   workingHours: z.array(dayScheduleSchema),

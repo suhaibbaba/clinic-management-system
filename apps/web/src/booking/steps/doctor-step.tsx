@@ -95,7 +95,9 @@ export function DoctorStep({
               </span>
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="truncate text-section font-bold text-primary-900">{name}</span>
-                <span className="truncate text-label text-ink-muted">{doctor.specialty}</span>
+                <span className="truncate text-label text-ink-muted">
+                  {bookingName(doctor.specialty)}
+                </span>
               </span>
               {selected && (
                 <span

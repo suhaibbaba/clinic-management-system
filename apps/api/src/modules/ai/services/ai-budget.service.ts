@@ -3,8 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import {
   AI_ERROR_CODE,
   AI_MESSAGE_ROLE,
-  clinicScheduleSettings,
-  DEFAULT_TIME_ZONE,
+  clinicLocale,
   instantFromLocal,
   localDate,
 } from "@clinic/shared";
@@ -58,12 +57,12 @@ export class AiBudgetService {
 
   private async tokensToday(clinicId: string): Promise<number> {
     const [clinic] = await this.db
-      .select({ settings: clinics.settings })
+      .select({ country: clinics.country, settings: clinics.settings })
       .from(clinics)
       .where(eq(clinics.id, clinicId))
       .limit(1);
 
-    const timeZone = clinicScheduleSettings(clinic?.settings).timezone || DEFAULT_TIME_ZONE;
+    const timeZone = clinicLocale(clinic).timeZone;
     const midnight = instantFromLocal(localDate(new Date(), timeZone), 0, timeZone);
 
     const [row] = await this.db

@@ -76,7 +76,7 @@ describe("the seeded clinic", () => {
 
     expect(row?.name.ar).toContain(CLINIC_NAME.ar);
     expect(row?.currency).toBe("ILS");
-    expect(row?.address).toContain("نابلس");
+    expect(row?.address?.ar).toContain("نابلس");
     expect(row?.workingHours.map((day) => day.weekday).sort()).toEqual([0, 1, 2, 3, 4, 6]);
   });
 

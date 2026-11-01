@@ -2,8 +2,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { READ_VIEWS, renderReadSchemaReplacement } from "@api/modules/ai/query/catalogue";
 
-const MIGRATION = join(__dirname, "..", "drizzle", "0084_ai_read_localized_names.sql");
-const SNAPSHOT = join(__dirname, "..", "drizzle", "meta", "0084_snapshot.json");
+const MIGRATION = join(__dirname, "..", "drizzle", "0086_ai_read_localized_catalog.sql");
+const SNAPSHOT = join(__dirname, "..", "drizzle", "meta", "0086_snapshot.json");
 
 interface Snapshot {
   readonly tables: Record<string, { name: string; columns: Record<string, unknown> }>;

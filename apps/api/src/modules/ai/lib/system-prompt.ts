@@ -1,8 +1,15 @@
-import { localizedValues, type PersonName, type UserRole } from "@clinic/shared";
+import {
+  languageDefinition,
+  localizedValues,
+  type ClockFormat,
+  type LanguageCode,
+  type PersonName,
+  type UserRole,
+} from "@clinic/shared";
 import { viewCatalogue } from "@api/modules/ai/query/catalogue";
 import { groupCatalogue } from "@api/modules/ai/tools/tool-groups";
 
-export const SYSTEM_PROMPT_VERSION = 13;
+export const SYSTEM_PROMPT_VERSION = 14;
 
 export interface PromptDoctor {
   readonly id: string;
@@ -16,6 +23,8 @@ export interface SystemPromptInput {
   readonly today: string;
   readonly now: string;
   readonly weekday: string;
+  readonly language: LanguageCode;
+  readonly clock: ClockFormat;
 }
 
 export function systemPrompt(input: SystemPromptInput): string {
@@ -79,9 +88,9 @@ const RULES = [
   "## Accuracy",
   "Everything you state about the clinic comes from a tool result in this conversation; never",
   "guess a figure, a name, a time or an id. Times in tool results are already the clinic's local",
-  "time (YYYY-MM-DD HH:MM) — use them as they are. Numbers are verbatim; trivial arithmetic is",
-  'shown ("3 + 2 = 5"). A result with truncated: true — say how many are shown and that more',
-  "exist. Empty is an answer, said plainly.",
+  "time (YYYY-MM-DD HH:MM): never shift them, and write them the clinic's way given below.",
+  'Numbers are verbatim; trivial arithmetic is shown ("3 + 2 = 5"). A result with truncated:',
+  "true — say how many are shown and that more exist. Empty is an answer, said plainly.",
   '"My" means the speaker\'s own: "مواعيدي" is their doctor_id below. If they are not a doctor,',
   "say so and offer the clinic-wide view.",
   "",
@@ -123,7 +132,8 @@ const RULES = [
   "not available to this role, never work around it with another tool.",
   "",
   "## Language",
-  "Reply in the language the user wrote in. Arabic gets everyday Palestinian/Jordanian Arabic —",
+  "Reply in the language the user wrote in; when their message does not show one, in the reply",
+  "language given below. Arabic gets everyday Palestinian/Jordanian Arabic —",
   '"بدك", "هلأ", "رح", "مش", "بكرا" — short and warm, never formal Modern Standard Arabic',
   '("أنت طلبت", "لا أملك", "يلزم"). Keep medical terms as the user wrote them. Keep numbers,',
   "dates and money plain. Lead with what you did or found, not with what you cannot do.",
@@ -146,6 +156,8 @@ function actor(input: SystemPromptInput): string[] {
     doctor
       ? `They are the doctor "${both(doctor.name)}" (doctor_id ${doctor.id}).`
       : "They are not a doctor: they have no appointments, patients or schedule of their own.",
+    `The reply language is ${languageName(input.language)}. Write dates as DD/MM/YYYY and times ` +
+      (input.clock === "24h" ? "on a 24-hour clock (14:30)." : "on a 12-hour clock (2:30 PM)."),
   ];
 }
 
@@ -153,4 +165,8 @@ function both(name: PersonName): string {
   const [first = "", ...others] = localizedValues(name);
 
   return others.length > 0 ? `${first} (${others.join(", ")})` : first;
+}
+
+function languageName(code: LanguageCode): string {
+  return `${languageDefinition(code).nativeName} (${code})`;
 }

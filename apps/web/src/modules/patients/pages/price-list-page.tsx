@@ -33,12 +33,14 @@ import {
   useUpdateCatalogItem,
 } from "@web/modules/patients/queries";
 import { errorToast } from "@web/shared/lib/api-error";
+import { useLocalized } from "@web/shared/hooks/use-localized";
 import { useSession } from "@web/shared/providers/session";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { useLookupLabels } from "@web/shared/queries/lookups";
 
 export function PriceListPage(): JSX.Element {
   const { t } = useTranslation();
+  const text = useLocalized();
   const toast = useToast();
   const { can } = useSession();
   const currency = useCurrency();
@@ -140,7 +142,7 @@ export function PriceListPage(): JSX.Element {
   const destroy = (item: ProcedureCatalogItem): void => {
     confirm({
       title: "priceList.confirmDelete.title",
-      titleValues: { name: item.name },
+      titleValues: { name: text(item.name) },
       consequences: [t("priceList.confirmDelete.consequence")],
       onConfirm: async () => {
         try {
@@ -172,14 +174,18 @@ export function PriceListPage(): JSX.Element {
               data-testid="price-row-pick"
               checked={picked.has(item.id)}
               onCheckedChange={(on) => pick(item.id, on)}
-              label={t("priceList.selectOne", { name: item.name })}
+              label={t("priceList.selectOne", { name: text(item.name) })}
               hideLabel
             />
           )}
           <span className="flex min-w-0 flex-col leading-label">
-            <Ltr data-testid="price-row-name" className="break-words font-medium text-ink">
-              {item.name}
-            </Ltr>
+            <span
+              dir="auto"
+              data-testid="price-row-name"
+              className="break-words font-medium text-ink"
+            >
+              {text(item.name)}
+            </span>
             <Ltr data-testid="price-row-code" className="text-label text-ink-subtle">
               {item.code}
             </Ltr>

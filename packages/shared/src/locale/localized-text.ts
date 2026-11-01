@@ -70,3 +70,12 @@ export const localizedValues = (text: LocalizedText | null | undefined): string[
 
 export const sameText = (text: string): LocalizedText =>
   Object.fromEntries(LANGUAGE_CODES.map((code) => [code, text])) as LocalizedText;
+
+export const optionalLocalizedTextInputSchema = (max: number) =>
+  z.partialRecord(languageCodeSchema, z.string().trim().max(max)).transform((text) => {
+    const kept = Object.fromEntries(
+      Object.entries(text).filter(([, value]) => typeof value === "string" && value !== ""),
+    ) as LocalizedText;
+
+    return Object.keys(kept).length > 0 ? kept : null;
+  });

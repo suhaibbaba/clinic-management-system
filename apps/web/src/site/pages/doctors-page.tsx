@@ -15,10 +15,12 @@ export function DoctorsPage(): JSX.Element {
   const { site, language, languages, t, params, setParams } = useSite();
   const { doctors: copy } = site.content;
   const doctors = visibleDoctors(site);
-  const specialties = [...new Set(doctors.map((doctor) => doctor.specialty))];
+  const specialtyOf = (doctor: (typeof doctors)[number]): string =>
+    pick(doctor.specialty, language, languages);
+  const specialties = [...new Set(doctors.map(specialtyOf))];
   const chosen = params.get(SITE_PARAM.SPECIALTY);
   const specialty = chosen !== null && specialties.includes(chosen) ? chosen : null;
-  const shown = specialty ? doctors.filter((doctor) => doctor.specialty === specialty) : doctors;
+  const shown = specialty ? doctors.filter((doctor) => specialtyOf(doctor) === specialty) : doctors;
   const bookable = useBookable();
 
   return (

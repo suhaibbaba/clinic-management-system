@@ -1,6 +1,7 @@
 import { and, eq, isNull, max } from "drizzle-orm";
 import {
   SPECIALTY_CODE,
+  type LocalizedText,
   type LookupListKey,
   type SpecialtyCode,
   type SystemLookupRow,
@@ -10,7 +11,7 @@ import { lookupOptions, procedureCatalog, specialties } from "@api/database/sche
 import { ORTHOPEDIC_PACK } from "@api/database/specialty-packs/orthopedic";
 
 export interface SpecialtyPack {
-  readonly procedures: readonly { readonly code: string; readonly name: string }[];
+  readonly procedures: readonly { readonly code: string; readonly name: LocalizedText }[];
   readonly lookups: Partial<Record<LookupListKey, readonly SystemLookupRow[]>>;
 }
 

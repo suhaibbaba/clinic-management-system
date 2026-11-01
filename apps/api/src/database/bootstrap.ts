@@ -1,10 +1,11 @@
+import { bothNames } from "@clinic/shared";
 import { hash } from "@node-rs/argon2";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { validateEnv } from "@api/config/env.schema";
 import * as schema from "@api/database/schema";
 import { bootstrapClinic } from "@api/database/bootstrap/bootstrap-clinic";
-import { bootstrapEnvSchema } from "@api/database/bootstrap/bootstrap-env";
+import { bootstrapEnvSchema, languageText } from "@api/database/bootstrap/bootstrap-env";
 
 async function main(): Promise<void> {
   const env = validateEnv(process.env);
@@ -34,7 +35,7 @@ async function main(): Promise<void> {
     console.log(
       [
         "",
-        `Clinic: ${bootstrap.BOOTSTRAP_CLINIC_NAME_EN} (${bootstrap.BOOTSTRAP_CLINIC_SLUG})`,
+        `Clinic: ${bothNames(languageText(bootstrap, "BOOTSTRAP_CLINIC_NAME"))} (${bootstrap.BOOTSTRAP_CLINIC_SLUG})`,
         result.createdClinic ? "  created" : "  already there",
         result.createdAdmin
           ? `  admin created — signs in as ${bootstrap.BOOTSTRAP_ADMIN_PHONE}${passwordHash ? " with BOOTSTRAP_ADMIN_PASSWORD" : " with a one-time code"}`

@@ -4,6 +4,7 @@ import {
   type UserRole,
   type ChartType,
   type Doctor,
+  type LocalizedText,
   type PersonName,
   USER_ROLE,
 } from "@clinic/shared";
@@ -46,7 +47,7 @@ export interface DoctorJoinedRow {
   userPhotoKey: string | null;
   userRole: UserRole;
   specialtyCode: string;
-  specialtyName: string;
+  specialtyName: LocalizedText;
   specialtyChartType: ChartType;
 }
 
