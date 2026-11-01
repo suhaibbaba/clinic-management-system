@@ -8,6 +8,7 @@ import { SubscriptionExpiryScheduler } from "@api/modules/vendor/services/subscr
 import { SubscriptionsService } from "@api/modules/vendor/services/subscriptions.service";
 import { VendorAuthService } from "@api/modules/vendor/services/vendor-auth.service";
 import { VendorClinicsService } from "@api/modules/vendor/services/vendor-clinics.service";
+import { ClinicLifecycleService } from "@api/modules/vendor/services/clinic-lifecycle.service";
 import { VendorSessionGuard } from "@api/modules/vendor/services/vendor-session.guard";
 
 @Module({
@@ -19,6 +20,7 @@ import { VendorSessionGuard } from "@api/modules/vendor/services/vendor-session.
     SubscriptionsService,
     PlansService,
     VendorClinicsService,
+    ClinicLifecycleService,
     SubscriptionExpiryScheduler,
   ],
 })

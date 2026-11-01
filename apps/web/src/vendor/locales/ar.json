@@ -117,7 +117,10 @@
     "nav": {
       "clinics": "العيادات",
       "plans": "الباقات",
-      "signOut": "خروج"
+      "signOut": "خروج",
+      "label": "أقسام اللوحة",
+      "language": "اللغة",
+      "skip": "انتقل إلى المحتوى"
     },
     "overview": {
       "clinics": "العيادات",
@@ -139,8 +142,31 @@
         "modules": "الوحدات",
         "users": "المستخدمون",
         "endsOn": "ينتهي",
-        "status": "الحالة"
-      }
+        "status": "الحالة",
+        "actions": "إجراءات"
+      },
+      "summary_zero": "لا عيادات بعد",
+      "summary_one": "عيادة واحدة",
+      "summary_two": "عيادتان",
+      "summary_few": "{{count}} عيادات",
+      "summary_many": "{{count}} عيادة",
+      "summary_other": "{{count}} عيادة",
+      "endingSoon_zero": "لا اشتراكات تنتهي قريبًا",
+      "endingSoon_one": "اشتراك ينتهي خلال 30 يومًا",
+      "endingSoon_two": "اشتراكان ينتهيان خلال 30 يومًا",
+      "endingSoon_few": "{{count}} اشتراكات تنتهي خلال 30 يومًا",
+      "endingSoon_many": "{{count}} اشتراكًا ينتهي خلال 30 يومًا",
+      "endingSoon_other": "{{count}} اشتراك ينتهي خلال 30 يومًا",
+      "moduleCount_zero": "بلا وحدات",
+      "moduleCount_one": "وحدة واحدة",
+      "moduleCount_two": "وحدتان",
+      "moduleCount_few": "{{count}} وحدات",
+      "moduleCount_many": "{{count}} وحدة",
+      "moduleCount_other": "{{count}} وحدة",
+      "removed": "محذوفة",
+      "noneRemoved": "لا عيادات محذوفة",
+      "searching": "نتائج البحث عن «{{search}}»",
+      "clearSearch": "إلغاء البحث"
     },
     "clinic": {
       "back": "العيادات",
@@ -178,7 +204,21 @@
       "noDomain": "بلا نطاق: الموقع على /site/{{slug}}",
       "saveDomain": "حفظ النطاق",
       "domainSaved": "حُفظ النطاق",
-      "domainInvalid": "اكتب نطاقًا صحيحًا مثل clinic.ps"
+      "domainInvalid": "اكتب نطاقًا صحيحًا مثل clinic.ps",
+      "until": "حتى {{date}}",
+      "createdOn": "أُنشئت {{date}}",
+      "ofLimit": "من {{limit}}",
+      "sections": "أقسام العيادة",
+      "tabs": {
+        "subscription": "الاشتراك",
+        "domain": "النطاق",
+        "specialties": "التخصصات",
+        "history": "السجل"
+      },
+      "onNow": "المفعّل الآن",
+      "recent": "آخر التغييرات",
+      "allHistory": "السجل كاملًا",
+      "removedNote": "حُذفت هذه العيادة في {{date}}. موظفوها لا يستطيعون الدخول وموقعها متوقف."
     },
     "plans": {
       "new": "باقة جديدة",
@@ -209,7 +249,10 @@
       "status_advanced": "تغيّرت الحالة تلقائيًا",
       "specialty_granted": "فُعّل تخصص",
       "plan_changed": "تغيّرت الباقة",
-      "domain_changed": "تغيّر النطاق"
+      "domain_changed": "تغيّر النطاق",
+      "clinic_created": "أُنشئت العيادة",
+      "clinic_removed": "حُذفت العيادة",
+      "clinic_restored": "استُعيدت العيادة"
     },
     "modules": {
       "appointments": "المواعيد",
@@ -230,7 +273,83 @@
       "duplicateCode": "يوجد باقة بهذا الرمز",
       "unknown": "حدث خطأ، حاول مجددًا",
       "notFound": "الصفحة غير موجودة",
-      "domainTaken": "هذا النطاق مستخدم لعيادة أخرى"
+      "domainTaken": "هذا النطاق مستخدم لعيادة أخرى",
+      "slugTaken": "هذا الرابط المختصر مستخدم لعيادة أخرى",
+      "phoneTaken": "هذا الجوال مسجل لمستخدم آخر",
+      "emailTaken": "هذا البريد مسجل لمستخدم آخر"
+    },
+    "brandMark": "م",
+    "tagline": "إدارة العيادات والاشتراكات",
+    "filters": {
+      "all": "الكل",
+      "active": "فعّال",
+      "trial": "تجريبي",
+      "grace": "فترة سماح",
+      "suspended": "موقوف",
+      "cancelled": "ملغى",
+      "none": "بلا اشتراك",
+      "removed": "المحذوفة"
+    },
+    "actions": {
+      "label": "إجراءات العيادة",
+      "open": "فتح العيادة",
+      "extend": "تمديد شهرًا",
+      "openDashboard": "فتح لوحة التحكم",
+      "suspend": "إيقاف الاشتراك",
+      "remove": "حذف العيادة",
+      "restore": "استعادة العيادة",
+      "suspendTitle": "إيقاف اشتراك «{{name}}»؟",
+      "suspendBody": "تصبح العيادة للقراءة فقط: يرى موظفوها السجلات ولا يستطيعون التعديل حتى تعيد تفعيل الاشتراك."
+    },
+    "remove": {
+      "title": "حذف «{{name}}»؟",
+      "confirm": "حذف العيادة",
+      "signsOut_zero": "لا موظفين لتسجيل خروجهم.",
+      "signsOut_one": "يُسجَّل خروج الموظف الوحيد فورًا ولا يستطيع الدخول.",
+      "signsOut_two": "يُسجَّل خروج الموظفَين فورًا ولا يستطيعان الدخول.",
+      "signsOut_few": "يُسجَّل خروج {{count}} موظفين فورًا ولا يستطيعون الدخول.",
+      "signsOut_many": "يُسجَّل خروج {{count}} موظفًا فورًا ولا يستطيعون الدخول.",
+      "signsOut_other": "يُسجَّل خروج {{count}} موظف فورًا ولا يستطيعون الدخول.",
+      "stopsSite": "يتوقف موقعها والحجز الإلكتروني ويتحرر نطاقها.",
+      "keepsData": "لا يُمسح شيء: المرضى والزيارات والمدفوعات تبقى محفوظة، ويمكن استعادة العيادة من «المحذوفة»."
+    },
+    "newClinic": {
+      "open": "عيادة جديدة",
+      "title": "عيادة جديدة",
+      "subtitle": "تُنشأ العيادة ومديرها واشتراكها مرة واحدة.",
+      "submit": "إنشاء العيادة",
+      "clinic": "١ · العيادة",
+      "admin": "٣ · مدير العيادة",
+      "nameAr": "الاسم بالعربية",
+      "nameEn": "الاسم بالإنجليزية",
+      "slug": "الرابط المختصر",
+      "slugHint": "أحرف إنجليزية صغيرة وأرقام وشرطات؛ يظهر في /site/ و/book/ ولا يتغير لاحقًا.",
+      "country": "الدولة",
+      "specialty": "التخصص",
+      "trial": "الفترة التجريبية",
+      "noTrial": "بلا فترة تجريبية — فعّال فورًا",
+      "trialDays_zero": "بلا فترة تجريبية",
+      "trialDays_one": "يوم واحد",
+      "trialDays_two": "يومان",
+      "trialDays_few": "{{count}} أيام",
+      "trialDays_many": "{{count}} يومًا",
+      "trialDays_other": "{{count}} يوم",
+      "firstName": "الاسم الأول",
+      "lastName": "اسم العائلة",
+      "phone": "الجوال",
+      "phoneHint": "يدخل المدير برمز يصله على هذا الرقم، فلا كلمة مرور تُرسل يدويًا.",
+      "email": "البريد",
+      "problems": {
+        "name": "اكتب اسم العيادة بلغة واحدة على الأقل.",
+        "slug": "الرابط المختصر من 3 إلى 40 حرفًا إنجليزيًا صغيرًا وأرقامًا وشرطات.",
+        "domain": "اكتب نطاقًا صحيحًا مثل clinic.ps أو اتركه فارغًا.",
+        "specialty": "اختر تخصصًا واحدًا على الأقل.",
+        "plan": "اختر باقة.",
+        "admin": "اكتب الاسم الأول واسم العائلة للمدير.",
+        "phone": "اكتب جوال المدير مع رمز الدولة.",
+        "email": "البريد غير صحيح."
+      },
+      "subscription": "٢ · الاشتراك"
     }
   }
 }

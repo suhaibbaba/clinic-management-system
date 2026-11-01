@@ -24,6 +24,11 @@ import { useTranslation } from "react-i18next";
 import { ModuleList } from "@web/vendor/components/module-list";
 import { ModulePicker } from "@web/vendor/components/module-picker";
 import { StatusBadge } from "@web/vendor/components/status-badge";
+import { ClinicMark } from "@web/vendor/components/clinic-mark";
+import { useClinicActions } from "@web/vendor/hooks/use-clinic-actions";
+import type { VendorLocation } from "@web/vendor/hooks/use-location";
+import { Icon } from "@clinic/ui/components/icon";
+import { Tabs } from "@clinic/ui/components/tabs";
 import { VendorLink } from "@web/vendor/components/vendor-link";
 import { vendorPath } from "@web/vendor/lib/route";
 import {
@@ -32,7 +37,7 @@ import {
   lacksDependency,
   resultingModules,
 } from "@web/vendor/lib/subscription";
-import { VENDOR_TRIAL_DAYS } from "@web/vendor/constants";
+import { VENDOR_CLINIC_TABS, VENDOR_PARAM, VENDOR_TRIAL_DAYS } from "@web/vendor/constants";
 import { vendorErrorKey } from "@web/vendor/lib/vendor-api-error";
 import {
   useClinic,
@@ -43,16 +48,27 @@ import {
 } from "@web/vendor/queries";
 import { clinicAddresses, parseDomain } from "@web/vendor/lib/domain";
 
+type ClinicTab = (typeof VENDOR_CLINIC_TABS)[number];
+
 export function ClinicPage({
   id,
-  navigate,
+  location,
 }: {
   readonly id: string;
-  readonly navigate: (to: string) => void;
+  readonly location: VendorLocation;
 }): JSX.Element {
   const { t, i18n } = useTranslation();
+  const { navigate, params } = location;
   const clinic = useClinic(id);
   const plans = usePlans();
+  const { actionsFor, dialog } = useClinicActions(() => navigate(vendorPath({ kind: "clinics" })));
+  const tab: ClinicTab =
+    VENDOR_CLINIC_TABS.find((entry) => entry === params.get(VENDOR_PARAM.TAB)) ?? "subscription";
+  const openTab = (next: ClinicTab): void =>
+    navigate(
+      `${vendorPath({ kind: "clinic", id })}${next === "subscription" ? "" : `?${VENDOR_PARAM.TAB}=${next}`}`,
+      { replace: true },
+    );
 
   if (clinic.isError) {
     return <p className="text-ink-muted">{t(vendorErrorKey(clinic.error))}</p>;
@@ -63,41 +79,200 @@ export function ClinicPage({
   }
 
   const detail = clinic.data;
+  const act = actionsFor(detail);
+  const subscription = detail.subscription;
+  const plan = plans.data.items.find((entry) => entry.id === subscription?.planId);
+  const addresses = detail.domain ? clinicAddresses(detail.domain) : null;
 
   return (
-    <div className="flex flex-col gap-6" data-testid="vendor-clinic">
-      <div className="flex flex-col gap-1">
-        <VendorLink
-          to={vendorPath({ kind: "clinics" })}
-          navigate={navigate}
-          className="text-label text-primary-700"
-        >
-          {t("vendor.clinic.back")}
-        </VendorLink>
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-headline font-semibold text-ink">
-            {localized(detail.name, i18n.language)}
-          </h1>
-          <StatusBadge status={detail.subscription?.status ?? null} />
-        </div>
-        <p className="text-meta text-ink-muted">
-          <span dir="ltr">{detail.slug}</span> · {t("vendor.clinic.users")} {detail.users} ·{" "}
-          {t("vendor.clinic.doctors")} {detail.doctors} · {t("vendor.clinic.created")}{" "}
-          <span dir="ltr">{shortDate(detail.createdAt.slice(0, 10))}</span>
-        </p>
-        <ModuleList modules={detail.modules} />
-      </div>
+    <div className="flex flex-col gap-5" data-testid="vendor-clinic">
+      <VendorLink
+        to={vendorPath({ kind: "clinics" })}
+        navigate={navigate}
+        className="self-start text-label text-primary-700"
+      >
+        {t("vendor.clinic.back")}
+      </VendorLink>
 
-      {isReadOnly(detail.subscription?.status ?? null) && (
+      {detail.removedAt && (
+        <div
+          role="status"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-panel bg-sunken p-4 text-label text-ink"
+        >
+          {t("vendor.clinic.removedNote", { date: shortDate(detail.removedAt.slice(0, 10)) })}
+          <Button
+            variant="secondary"
+            icon={<Icon name="reset" />}
+            onClick={act.restore}
+            data-testid="vendor-restore"
+          >
+            {t("vendor.actions.restore")}
+          </Button>
+        </div>
+      )}
+
+      <section
+        className="flex flex-col gap-5 rounded-card border border-line bg-surface p-5"
+        data-testid="vendor-clinic-header"
+      >
+        <div className="flex flex-wrap items-start gap-4">
+          <ClinicMark clinic={detail} size="page" />
+          <div className="flex min-w-0 flex-1 basis-80 flex-col gap-1.5">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-headline font-extrabold text-ink">
+                {localized(detail.name, i18n.language)}
+              </h1>
+              <StatusBadge status={subscription?.status ?? null} />
+              {subscription?.endsOn && (
+                <span className="text-meta text-ink-muted">
+                  {t("vendor.clinic.until", { date: shortDate(subscription.endsOn) })}
+                </span>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-label text-ink-muted">
+              {addresses ? (
+                <>
+                  <a
+                    href={addresses.website}
+                    target="_blank"
+                    rel="noreferrer"
+                    dir="ltr"
+                    className="text-primary-700 underline"
+                  >
+                    {detail.domain}
+                  </a>
+                  <a
+                    href={addresses.dashboard}
+                    target="_blank"
+                    rel="noreferrer"
+                    dir="ltr"
+                    className="text-primary-700 underline"
+                  >
+                    {`admin.${detail.domain ?? ""}`}
+                  </a>
+                </>
+              ) : (
+                <span dir="ltr">{detail.slug}</span>
+              )}
+              <span>
+                {detail.specialties.length === 0
+                  ? "—"
+                  : new Intl.ListFormat(i18n.language).format(
+                      detail.specialties.map((code) => t(`vendor.specialtyNames.${code}`, code)),
+                    )}
+              </span>
+              <span>
+                {t("vendor.clinic.createdOn", { date: shortDate(detail.createdAt.slice(0, 10)) })}
+              </span>
+            </div>
+          </div>
+          {!detail.removedAt && (
+            <div className="flex flex-wrap gap-2">
+              {act.extend && (
+                <Button
+                  variant="secondary"
+                  icon={<Icon name="calendar" />}
+                  onClick={act.extend}
+                  data-testid="vendor-extend"
+                >
+                  {t("vendor.actions.extend")}
+                </Button>
+              )}
+              <Button
+                variant="secondary"
+                icon={<Icon name="trash" />}
+                className="text-danger-700"
+                onClick={act.remove}
+                data-testid="vendor-remove"
+              >
+                {t("vendor.actions.remove")}
+              </Button>
+            </div>
+          )}
+        </div>
+        <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Stat label={t("vendor.clinic.plan")} value={subscription?.planName ?? "—"} />
+          <Stat
+            label={t("vendor.clinic.users")}
+            value={String(detail.users)}
+            {...(plan?.maxUsers != null && {
+              extra: t("vendor.clinic.ofLimit", { limit: plan.maxUsers }),
+            })}
+          />
+          <Stat
+            label={t("vendor.clinic.doctors")}
+            value={String(detail.doctors)}
+            {...(plan?.maxDoctors != null && {
+              extra: t("vendor.clinic.ofLimit", { limit: plan.maxDoctors }),
+            })}
+          />
+          <Stat label={t("vendor.clinics.columns.modules")} value={String(detail.modules.length)} />
+        </dl>
+      </section>
+
+      {isReadOnly(subscription?.status ?? null) && !detail.removedAt && (
         <p role="status" className="rounded-panel bg-danger-50 p-3 text-label text-danger-700">
           {t("vendor.clinic.readOnlyNote")}
         </p>
       )}
 
-      <DomainForm key={`domain-${detail.id}`} detail={detail} />
-      <SubscriptionForm key={detail.id} detail={detail} plans={plans.data.items} />
-      <Specialties detail={detail} />
-      <History detail={detail} />
+      <Tabs
+        label={t("vendor.clinic.sections")}
+        value={tab}
+        onChange={openTab}
+        tabs={VENDOR_CLINIC_TABS.map((entry) => ({
+          id: entry,
+          label: t(`vendor.clinic.tabs.${entry}`),
+        }))}
+        data-testid="vendor-clinic-tabs"
+      />
+
+      {tab === "subscription" && (
+        <div className="flex flex-wrap items-start gap-5">
+          <div className="min-w-0 flex-[999_1_560px]">
+            <SubscriptionForm key={detail.id} detail={detail} plans={plans.data.items} />
+          </div>
+          <aside className="flex flex-[1_1_280px] flex-col gap-3 rounded-card border border-line bg-surface p-5">
+            <h2 className="text-value font-bold text-ink">{t("vendor.clinic.onNow")}</h2>
+            <ModuleList modules={detail.modules} />
+            <h2 className="mt-2 text-value font-bold text-ink">{t("vendor.clinic.recent")}</h2>
+            <EventList events={detail.events.slice(0, 5)} />
+            {detail.events.length > 5 && (
+              <button
+                type="button"
+                className="cursor-pointer self-start text-label text-primary-700 underline"
+                onClick={() => openTab("history")}
+              >
+                {t("vendor.clinic.allHistory")}
+              </button>
+            )}
+          </aside>
+        </div>
+      )}
+      {tab === "domain" && <DomainForm key={`domain-${detail.id}`} detail={detail} />}
+      {tab === "specialties" && <Specialties detail={detail} />}
+      {tab === "history" && <History detail={detail} />}
+
+      {dialog}
+    </div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  extra,
+}: {
+  readonly label: string;
+  readonly value: string;
+  readonly extra?: string;
+}): JSX.Element {
+  return (
+    <div className="rounded-panel bg-canvas px-4 py-3">
+      <dt className="text-meta text-ink-muted">{label}</dt>
+      <dd className="text-title font-extrabold text-ink">
+        {value} {extra && <span className="text-meta font-normal text-ink-muted">{extra}</span>}
+      </dd>
     </div>
   );
 }
@@ -419,18 +594,26 @@ function History({ detail }: { readonly detail: VendorClinicDetail }): JSX.Eleme
       {detail.events.length === 0 ? (
         <p className="text-ink-muted">{t("vendor.clinic.noHistory")}</p>
       ) : (
-        <ol className="flex flex-col gap-2">
-          {detail.events.map((event) => (
-            <li key={event.id} className="flex flex-wrap gap-x-3 text-label">
-              <span className="text-ink-muted tabular-nums" dir="ltr">
-                {shortDate(event.createdAt.slice(0, 10))}
-              </span>
-              <span className="text-ink">{t(`vendor.events.${event.action}`, event.action)}</span>
-              <span className="text-ink-muted">{event.actor ?? t("vendor.clinic.system")}</span>
-            </li>
-          ))}
-        </ol>
+        <EventList events={detail.events} />
       )}
     </section>
+  );
+}
+
+function EventList({ events }: { readonly events: VendorClinicDetail["events"] }): JSX.Element {
+  const { t } = useTranslation();
+
+  return (
+    <ol className="flex flex-col gap-2">
+      {events.map((event) => (
+        <li key={event.id} className="flex flex-wrap gap-x-3 text-label">
+          <span className="text-ink-muted tabular-nums" dir="ltr">
+            {shortDate(event.createdAt.slice(0, 10))}
+          </span>
+          <span className="text-ink">{t(`vendor.events.${event.action}`, event.action)}</span>
+          <span className="text-ink-muted">{event.actor ?? t("vendor.clinic.system")}</span>
+        </li>
+      ))}
+    </ol>
   );
 }

@@ -1,4 +1,5 @@
 import type {
+  CreateClinicInput,
   SavePlanInput,
   SaveSubscriptionInput,
   SpecialtyCode,
@@ -65,6 +66,48 @@ export function useSaveSubscription(clinicId: string) {
 
   return useMutation({
     mutationFn: (input: SaveSubscriptionInput) => vendorApi.saveSubscription(clinicId, input),
+    onSuccess: refresh,
+  });
+}
+
+export function useCreateClinic() {
+  const refresh = useRefreshAll();
+
+  return useMutation({
+    mutationFn: (input: CreateClinicInput) => vendorApi.createClinic(input),
+    onSuccess: refresh,
+  });
+}
+
+export function useRemoveClinic() {
+  const refresh = useRefreshAll();
+
+  return useMutation({
+    mutationFn: (clinicId: string) => vendorApi.removeClinic(clinicId),
+    onSuccess: refresh,
+  });
+}
+
+export function useRestoreClinic() {
+  const refresh = useRefreshAll();
+
+  return useMutation({
+    mutationFn: (clinicId: string) => vendorApi.restoreClinic(clinicId),
+    onSuccess: refresh,
+  });
+}
+
+export function useSaveSubscriptionFor() {
+  const refresh = useRefreshAll();
+
+  return useMutation({
+    mutationFn: ({
+      clinicId,
+      input,
+    }: {
+      readonly clinicId: string;
+      readonly input: SaveSubscriptionInput;
+    }) => vendorApi.saveSubscription(clinicId, input),
     onSuccess: refresh,
   });
 }

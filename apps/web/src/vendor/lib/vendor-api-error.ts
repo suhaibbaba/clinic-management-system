@@ -1,4 +1,20 @@
-import { AUTH_ERROR, VENDOR_DOMAIN_TAKEN, VENDOR_MISSING_MODULES } from "@clinic/shared";
+import {
+  AUTH_ERROR,
+  VENDOR_DOMAIN_TAKEN,
+  VENDOR_EMAIL_TAKEN,
+  VENDOR_MISSING_MODULES,
+  VENDOR_PHONE_TAKEN,
+  VENDOR_SLUG_TAKEN,
+} from "@clinic/shared";
+
+const CODED: Readonly<Record<string, string>> = {
+  [VENDOR_MISSING_MODULES]: "vendor.errors.missingModules",
+  [VENDOR_DOMAIN_TAKEN]: "vendor.errors.domainTaken",
+  [VENDOR_SLUG_TAKEN]: "vendor.errors.slugTaken",
+  [VENDOR_PHONE_TAKEN]: "vendor.errors.phoneTaken",
+  [VENDOR_EMAIL_TAKEN]: "vendor.errors.emailTaken",
+  [AUTH_ERROR.LOCKED]: "vendor.signIn.locked",
+};
 
 export class VendorApiError extends Error {
   constructor(
@@ -15,16 +31,10 @@ export const vendorErrorKey = (error: unknown): string => {
     return "vendor.errors.unknown";
   }
 
-  if (error.code === VENDOR_MISSING_MODULES) {
-    return "vendor.errors.missingModules";
-  }
+  const coded = error.code === undefined ? undefined : CODED[error.code];
 
-  if (error.code === VENDOR_DOMAIN_TAKEN) {
-    return "vendor.errors.domainTaken";
-  }
-
-  if (error.code === AUTH_ERROR.LOCKED) {
-    return "vendor.signIn.locked";
+  if (coded !== undefined) {
+    return coded;
   }
 
   if (error.status === 401) {

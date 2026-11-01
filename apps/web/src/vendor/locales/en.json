@@ -109,7 +109,10 @@
     "nav": {
       "clinics": "Clinics",
       "plans": "Plans",
-      "signOut": "Sign out"
+      "signOut": "Sign out",
+      "label": "Console sections",
+      "language": "Language",
+      "skip": "Skip to content"
     },
     "overview": {
       "clinics": "Clinics",
@@ -131,8 +134,19 @@
         "modules": "Modules",
         "users": "Users",
         "endsOn": "Ends",
-        "status": "Status"
-      }
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "summary_one": "{{count}} clinic",
+      "summary_other": "{{count}} clinics",
+      "endingSoon_one": "{{count}} ends within 30 days",
+      "endingSoon_other": "{{count}} end within 30 days",
+      "moduleCount_one": "{{count}} module",
+      "moduleCount_other": "{{count}} modules",
+      "removed": "Removed",
+      "noneRemoved": "No removed clinics",
+      "searching": "Results for “{{search}}”",
+      "clearSearch": "Clear search"
     },
     "clinic": {
       "back": "Clinics",
@@ -170,7 +184,21 @@
       "noDomain": "No domain: the website answers at /site/{{slug}}",
       "saveDomain": "Save domain",
       "domainSaved": "Domain saved",
-      "domainInvalid": "Enter a domain such as clinic.ps"
+      "domainInvalid": "Enter a domain such as clinic.ps",
+      "until": "until {{date}}",
+      "createdOn": "Created {{date}}",
+      "ofLimit": "of {{limit}}",
+      "sections": "Clinic sections",
+      "tabs": {
+        "subscription": "Subscription",
+        "domain": "Domain",
+        "specialties": "Specialties",
+        "history": "History"
+      },
+      "onNow": "On now",
+      "recent": "Recent changes",
+      "allHistory": "Full history",
+      "removedNote": "This clinic was removed on {{date}}. Its staff cannot sign in and its website is off."
     },
     "plans": {
       "new": "New plan",
@@ -201,7 +229,10 @@
       "status_advanced": "Status moved on automatically",
       "specialty_granted": "Specialty granted",
       "plan_changed": "Plan changed",
-      "domain_changed": "Domain changed"
+      "domain_changed": "Domain changed",
+      "clinic_created": "Clinic created",
+      "clinic_removed": "Clinic removed",
+      "clinic_restored": "Clinic restored"
     },
     "modules": {
       "appointments": "Appointments",
@@ -222,7 +253,75 @@
       "duplicateCode": "A plan already has this code",
       "unknown": "Something went wrong, try again",
       "notFound": "Page not found",
-      "domainTaken": "Another clinic already uses this domain"
+      "domainTaken": "Another clinic already uses this domain",
+      "slugTaken": "Another clinic already uses this short link",
+      "phoneTaken": "Another user already has this mobile",
+      "emailTaken": "Another user already has this email"
+    },
+    "brandMark": "V",
+    "tagline": "Clinics and subscriptions",
+    "filters": {
+      "all": "All",
+      "active": "Active",
+      "trial": "Trial",
+      "grace": "Grace",
+      "suspended": "Suspended",
+      "cancelled": "Cancelled",
+      "none": "No subscription",
+      "removed": "Removed"
+    },
+    "actions": {
+      "label": "Clinic actions",
+      "open": "Open clinic",
+      "extend": "Extend a month",
+      "openDashboard": "Open dashboard",
+      "suspend": "Suspend subscription",
+      "remove": "Remove clinic",
+      "restore": "Restore clinic",
+      "suspendTitle": "Suspend {{name}}?",
+      "suspendBody": "The clinic becomes read-only: its staff can open records but cannot change anything until you reactivate the subscription."
+    },
+    "remove": {
+      "title": "Remove {{name}}?",
+      "confirm": "Remove clinic",
+      "signsOut_one": "Its one staff member is signed out at once and cannot sign in.",
+      "signsOut_other": "Its {{count}} staff members are signed out at once and cannot sign in.",
+      "stopsSite": "Its website and online booking stop, and its domain is freed.",
+      "keepsData": "Nothing is erased: patients, visits and payments stay, and the clinic can be restored from Removed."
+    },
+    "newClinic": {
+      "open": "New clinic",
+      "title": "New clinic",
+      "subtitle": "Creates the clinic, its admin and its subscription in one go.",
+      "submit": "Create clinic",
+      "clinic": "1 · Clinic",
+      "admin": "3 · Clinic admin",
+      "nameAr": "Name in Arabic",
+      "nameEn": "Name in English",
+      "slug": "Short link",
+      "slugHint": "Lower-case English letters, digits and dashes; used in /site/ and /book/ and never changes.",
+      "country": "Country",
+      "specialty": "Specialty",
+      "trial": "Trial",
+      "noTrial": "No trial — active at once",
+      "trialDays_one": "{{count}} day",
+      "trialDays_other": "{{count}} days",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phone": "Mobile",
+      "phoneHint": "The admin signs in with a code sent to this number, so no password is handed over.",
+      "email": "Email",
+      "problems": {
+        "name": "Enter the clinic's name in at least one language.",
+        "slug": "The short link is 3 to 40 lower-case letters, digits and dashes.",
+        "domain": "Enter a domain such as clinic.ps, or leave it empty.",
+        "specialty": "Choose at least one specialty.",
+        "plan": "Choose a plan.",
+        "admin": "Enter the admin's first and last name.",
+        "phone": "Enter the admin's mobile with its country code.",
+        "email": "The email is not valid."
+      },
+      "subscription": "2 · Subscription"
     }
   }
 }

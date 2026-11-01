@@ -1,5 +1,7 @@
 import { z } from "zod";
-import { localizedTextSchema } from "@shared/locale/localized-text";
+import { localizedTextInputSchema, localizedTextSchema } from "@shared/locale/localized-text";
+import { COUNTRY_PRESETS } from "@shared/locale/countries";
+import { phoneSchema } from "@shared/schemas/common";
 import { CLINIC_MODULES, missingModules } from "@shared/constants/permissions";
 import { SPECIALTY_CODE, SUBSCRIPTION_STATUSES } from "@shared/enums";
 import { paginationQuerySchema } from "@shared/schemas/common";
@@ -84,6 +86,12 @@ export type SaveSubscriptionInput = z.infer<typeof saveSubscriptionSchema>;
 
 export const VENDOR_DOMAIN_TAKEN = "vendor_domain_taken";
 
+export const VENDOR_SLUG_TAKEN = "vendor_slug_taken";
+
+export const VENDOR_PHONE_TAKEN = "vendor_phone_taken";
+
+export const VENDOR_EMAIL_TAKEN = "vendor_email_taken";
+
 export const clinicDomainSchema = z
   .string()
   .trim()
@@ -106,6 +114,7 @@ export const vendorClinicSummarySchema = z.object({
   slug: z.string(),
   name: localizedTextSchema,
   domain: z.string().nullable(),
+  removedAt: z.iso.datetime().nullable(),
   modules: z.array(z.enum(CLINIC_MODULES)),
   specialties: z.array(z.string()),
   users: z.number().int().min(0),
@@ -114,11 +123,13 @@ export const vendorClinicSummarySchema = z.object({
 });
 export type VendorClinicSummary = z.infer<typeof vendorClinicSummarySchema>;
 
-export const VENDOR_CLINIC_FILTER = { NONE: "none" } as const;
+export const VENDOR_CLINIC_FILTER = { NONE: "none", REMOVED: "removed" } as const;
 
 export const vendorClinicsQuerySchema = paginationQuerySchema.extend({
   search: z.string().trim().max(80).optional(),
-  status: z.enum([...SUBSCRIPTION_STATUSES, VENDOR_CLINIC_FILTER.NONE]).optional(),
+  status: z
+    .enum([...SUBSCRIPTION_STATUSES, VENDOR_CLINIC_FILTER.NONE, VENDOR_CLINIC_FILTER.REMOVED])
+    .optional(),
 });
 export type VendorClinicsQuery = z.infer<typeof vendorClinicsQuerySchema>;
 
@@ -142,9 +153,13 @@ export const vendorOverviewSchema = z.object({
   clinics: z.number().int().min(0),
   active: z.number().int().min(0),
   trial: z.number().int().min(0),
+  grace: z.number().int().min(0),
+  suspended: z.number().int().min(0),
+  cancelled: z.number().int().min(0),
   endingSoon: z.number().int().min(0),
   readOnly: z.number().int().min(0),
   unmanaged: z.number().int().min(0),
+  removed: z.number().int().min(0),
 });
 export type VendorOverview = z.infer<typeof vendorOverviewSchema>;
 
@@ -152,3 +167,34 @@ export const grantSpecialtySchema = z.object({
   code: z.enum(Object.values(SPECIALTY_CODE)),
 });
 export type GrantSpecialtyInput = z.infer<typeof grantSpecialtySchema>;
+
+export const createClinicSchema = z.object({
+  name: localizedTextInputSchema(2, 120),
+  slug: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$/),
+  country: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .refine((code) => code in COUNTRY_PRESETS, "Unknown country"),
+  domain: clinicDomainSchema.nullable(),
+  specialties: z
+    .array(z.enum(Object.values(SPECIALTY_CODE)))
+    .min(1)
+    .refine((codes) => new Set(codes).size === codes.length, "A specialty is listed twice"),
+  planId: z.uuid(),
+  trialDays: z.number().int().min(0).max(365),
+  admin: z.object({
+    firstName: z.string().trim().min(1).max(60),
+    lastName: z.string().trim().min(1).max(60),
+    phone: phoneSchema,
+    email: z.email().max(200).nullable(),
+  }),
+});
+export type CreateClinicInput = z.infer<typeof createClinicSchema>;
+
+export const createdClinicSchema = z.object({ id: z.uuid() });
+export type CreatedClinic = z.infer<typeof createdClinicSchema>;

@@ -7,6 +7,7 @@ import {
   SUBSCRIPTION_STATUS,
   USER_ROLE,
   VENDOR_DOMAIN_TAKEN,
+  VENDOR_SLUG_TAKEN,
   VENDOR_MISSING_MODULES,
   addDays,
   type Paginated,
@@ -15,10 +16,16 @@ import {
   type VendorClinicDetail,
   type VendorClinicSummary,
 } from "@clinic/shared";
-import { clinics, subscriptionEvents, vendorUsers } from "@api/database/schema";
+import { clinics, subscriptionEvents, users, vendorUsers } from "@api/database/schema";
 import { PasswordService } from "@api/modules/auth/services/password.service";
 import { SubscriptionsService } from "@api/modules/vendor/services/subscriptions.service";
-import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
+import {
+  auth,
+  createTestContext,
+  TEST_PASSWORD,
+  type TestClinic,
+  type TestContext,
+} from "@test/helpers/test-app";
 
 const PASSWORD = "VendorPassword123!";
 
@@ -381,6 +388,122 @@ describe("Vendor console (e2e)", () => {
       expect(
         (await call("GET", `/vendor/clinics/${clinic.id}`)).json<VendorClinicDetail>().domain,
       ).toBeNull();
+    });
+  });
+
+  describe("creating and removing a clinic", () => {
+    const newClinic = (planId: string) => {
+      const suffix = randomUUID().slice(0, 8);
+
+      return {
+        name: { ar: `عيادة ${suffix}`, en: `Clinic ${suffix}` },
+        slug: `new-${suffix}`,
+        country: "PS",
+        domain: `new-${suffix}.example.ps`,
+        specialties: ["orthopedic"],
+        planId,
+        trialDays: 30,
+        admin: {
+          firstName: "سامر",
+          lastName: "نصار",
+          phone: `+97059${String(Date.now()).slice(-7)}`,
+          email: null,
+        },
+      };
+    };
+
+    it("creates the clinic, its admin, its specialty and a trial on the plan", async () => {
+      const plan = await createPlan([CLINIC_MODULE.APPOINTMENTS, CLINIC_MODULE.LABS]);
+      const input = newClinic(plan.id);
+
+      const created = await call("POST", "/vendor/clinics", input);
+
+      expect(created.statusCode).toBe(201);
+
+      const id = created.json<{ id: string }>().id;
+      const detail = (await call("GET", `/vendor/clinics/${id}`)).json<VendorClinicDetail>();
+      const [admin] = await context.db
+        .select({ role: users.role, phone: users.phone })
+        .from(users)
+        .where(eq(users.clinicId, id));
+
+      expect(detail).toMatchObject({
+        slug: input.slug,
+        domain: input.domain,
+        modules: [CLINIC_MODULE.APPOINTMENTS, CLINIC_MODULE.LABS],
+        specialties: ["orthopedic"],
+        users: 1,
+        subscription: {
+          planId: plan.id,
+          status: SUBSCRIPTION_STATUS.TRIAL,
+          startsOn: today(),
+          endsOn: addDays(today(), 30),
+        },
+      });
+      expect(admin).toMatchObject({ role: USER_ROLE.ADMIN, phone: input.admin.phone });
+      expect(detail.events[0]?.action).toBe(SUBSCRIPTION_EVENT.CLINIC_CREATED);
+    });
+
+    it("refuses a slug another clinic has", async () => {
+      const plan = await createPlan([]);
+      const first = newClinic(plan.id);
+
+      await call("POST", "/vendor/clinics", first);
+      const again = await call("POST", "/vendor/clinics", {
+        ...newClinic(plan.id),
+        slug: first.slug,
+      });
+
+      expect(again.statusCode).toBe(409);
+      expect(again.json()).toMatchObject({ message: VENDOR_SLUG_TAKEN });
+    });
+
+    it("signs a removed clinic's staff out and keeps them out, until it is restored", async () => {
+      const clinic = await context.createClinic({ modules: [] });
+      const token = await context.login(clinic.phones[USER_ROLE.ADMIN]);
+      const signIn = () =>
+        context.app.inject({
+          method: "POST",
+          url: "/auth/login",
+          payload: { identifier: clinic.phones[USER_ROLE.ADMIN], password: TEST_PASSWORD },
+        });
+
+      const removed = await context.app.inject({
+        method: "DELETE",
+        url: `/vendor/clinics/${clinic.id}`,
+        headers: { cookie },
+      });
+
+      expect(removed.statusCode).toBe(204);
+      expect(
+        (await context.app.inject({ method: "GET", url: "/patients", headers: auth(token) }))
+          .statusCode,
+      ).toBe(401);
+      context.resetThrottle();
+      expect((await signIn()).statusCode).toBe(401);
+
+      const listed = (
+        await call("GET", `/vendor/clinics?status=removed&search=${clinic.slug}`)
+      ).json<Paginated<VendorClinicSummary>>();
+      const live = (await call("GET", `/vendor/clinics?search=${clinic.slug}`)).json<
+        Paginated<VendorClinicSummary>
+      >();
+
+      expect(listed.items[0]?.removedAt).toEqual(expect.any(String));
+      expect(live.items).toEqual([]);
+
+      expect((await call("POST", `/vendor/clinics/${clinic.id}/restore`)).statusCode).toBe(204);
+      context.resetThrottle();
+      expect((await signIn()).statusCode).toBe(200);
+
+      const history = (
+        await call("GET", `/vendor/clinics/${clinic.id}`)
+      ).json<VendorClinicDetail>();
+
+      expect(history.events.slice(0, 2).map((event) => event.action)).toEqual([
+        SUBSCRIPTION_EVENT.CLINIC_RESTORED,
+        SUBSCRIPTION_EVENT.CLINIC_REMOVED,
+      ]);
     });
   });
 

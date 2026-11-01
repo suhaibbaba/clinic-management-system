@@ -1,12 +1,23 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { and, count, desc, eq, ilike, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  isNotNull,
+  isNull,
+  or,
+  sql,
+  type SQL,
+} from "drizzle-orm";
 import {
   addDays,
   READ_ONLY_SUBSCRIPTION_STATUSES,
   SUBSCRIPTION_EVENT,
   SUBSCRIPTION_STATUS,
   VENDOR_CLINIC_FILTER,
-  VENDOR_DOMAIN_TAKEN,
   type Paginated,
   type SpecialtyCode,
   type VendorClinicDetail,
@@ -31,8 +42,7 @@ import {
   type SummaryRow,
 } from "@api/modules/vendor/lib/vendor-clinic-row";
 import { grantSpecialty } from "@api/database/clinic-specialties";
-import { violatedConstraint } from "@api/common/lib/postgres-errors";
-import { UNIQUE_VIOLATION } from "@api/common/constants/postgres-errors";
+import { conflictFor } from "@api/modules/vendor/lib/vendor-conflicts";
 import { VENDOR_ENDING_SOON_DAYS, VENDOR_EVENT_LIMIT } from "@api/modules/vendor/constants";
 import { SubscriptionsService } from "@api/modules/vendor/services/subscriptions.service";
 
@@ -45,7 +55,9 @@ export class VendorClinicsService {
 
   async list(query: VendorClinicsQuery): Promise<Paginated<VendorClinicSummary>> {
     const where = and(
-      isNull(clinics.deletedAt),
+      query.status === VENDOR_CLINIC_FILTER.REMOVED
+        ? isNotNull(clinics.deletedAt)
+        : isNull(clinics.deletedAt),
       this.searchFilter(query),
       this.statusFilter(query),
     );
@@ -78,34 +90,40 @@ export class VendorClinicsService {
 
   async overview(today: string = new Date().toISOString().slice(0, 10)): Promise<VendorOverview> {
     const soon = addDays(today, VENDOR_ENDING_SOON_DAYS);
+    const live = sql`${clinics.deletedAt} is null`;
+    const status = (value: string) =>
+      count(sql`case when ${live} and ${subscriptions.status} = ${value} then 1 end`);
     const [row] = await this.db
       .select({
-        clinics: count(clinics.id),
-        active: count(
-          sql`case when ${subscriptions.status} = ${SUBSCRIPTION_STATUS.ACTIVE} then 1 end`,
-        ),
-        trial: count(
-          sql`case when ${subscriptions.status} = ${SUBSCRIPTION_STATUS.TRIAL} then 1 end`,
-        ),
+        clinics: count(sql`case when ${live} then 1 end`),
+        active: status(SUBSCRIPTION_STATUS.ACTIVE),
+        trial: status(SUBSCRIPTION_STATUS.TRIAL),
+        grace: status(SUBSCRIPTION_STATUS.GRACE),
+        suspended: status(SUBSCRIPTION_STATUS.SUSPENDED),
+        cancelled: status(SUBSCRIPTION_STATUS.CANCELLED),
         endingSoon: count(
-          sql`case when ${subscriptions.status} in (${SUBSCRIPTION_STATUS.TRIAL}, ${SUBSCRIPTION_STATUS.ACTIVE}, ${SUBSCRIPTION_STATUS.GRACE}) and ${subscriptions.endsOn} <= ${soon} then 1 end`,
+          sql`case when ${live} and ${subscriptions.status} in (${SUBSCRIPTION_STATUS.TRIAL}, ${SUBSCRIPTION_STATUS.ACTIVE}, ${SUBSCRIPTION_STATUS.GRACE}) and ${subscriptions.endsOn} <= ${soon} then 1 end`,
         ),
         readOnly: count(
-          sql`case when ${inArray(subscriptions.status, [...READ_ONLY_SUBSCRIPTION_STATUSES])} then 1 end`,
+          sql`case when ${live} and ${inArray(subscriptions.status, [...READ_ONLY_SUBSCRIPTION_STATUSES])} then 1 end`,
         ),
-        unmanaged: count(sql`case when ${subscriptions.id} is null then 1 end`),
+        unmanaged: count(sql`case when ${live} and ${subscriptions.id} is null then 1 end`),
+        removed: count(sql`case when ${clinics.deletedAt} is not null then 1 end`),
       })
       .from(clinics)
-      .leftJoin(subscriptions, eq(subscriptions.clinicId, clinics.id))
-      .where(isNull(clinics.deletedAt));
+      .leftJoin(subscriptions, eq(subscriptions.clinicId, clinics.id));
 
     return {
       clinics: row?.clinics ?? 0,
       active: row?.active ?? 0,
       trial: row?.trial ?? 0,
+      grace: row?.grace ?? 0,
+      suspended: row?.suspended ?? 0,
+      cancelled: row?.cancelled ?? 0,
       endingSoon: row?.endingSoon ?? 0,
       readOnly: row?.readOnly ?? 0,
       unmanaged: row?.unmanaged ?? 0,
+      removed: row?.removed ?? 0,
     };
   }
 
@@ -115,7 +133,7 @@ export class VendorClinicsService {
       .from(clinics)
       .leftJoin(subscriptions, eq(subscriptions.clinicId, clinics.id))
       .leftJoin(plans, eq(plans.id, subscriptions.planId))
-      .where(and(eq(clinics.id, id), isNull(clinics.deletedAt)))
+      .where(eq(clinics.id, id))
       .limit(1);
 
     if (!row) {
@@ -210,9 +228,7 @@ export class VendorClinicsService {
         );
       });
     } catch (error) {
-      throw violatedConstraint(error, UNIQUE_VIOLATION)
-        ? new ConflictException(VENDOR_DOMAIN_TAKEN)
-        : error;
+      throw conflictFor(error) ?? error;
     }
   }
 
@@ -247,6 +263,7 @@ export class VendorClinicsService {
       slug: row.slug,
       name: row.name,
       domain: row.domain,
+      removedAt: row.removedAt?.toISOString() ?? null,
       modules: row.modules,
       specialties: specialtyRows
         .filter((entry) => entry.clinicId === row.id)
@@ -273,7 +290,7 @@ export class VendorClinicsService {
   }
 
   private statusFilter(query: VendorClinicsQuery): SQL | undefined {
-    if (!query.status) {
+    if (!query.status || query.status === VENDOR_CLINIC_FILTER.REMOVED) {
       return undefined;
     }
 

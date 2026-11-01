@@ -116,6 +116,10 @@ a code, a chart type if it needs one, and its starter pack — never a branch in
   every non-GET request from the clinic's staff with `clinic_suspended`. Nothing is deleted.
 - **A clinic without a subscription** keeps its modules exactly as set; the vendor takes it over by
   saving one.
+- **Creating and removing a clinic** is the console's too. Creating writes the clinic, its specialty
+  grants, its admin (signs in by phone code, no password) and a trial or active subscription in one
+  transaction. Removing sets `clinics.deleted_at` and nothing else: sessions and sign-in require a live
+  clinic, its refresh tokens are revoked, its slug and domain are freed, and restoring brings it back.
 - **The vendor console** — `/vendor`, its own bundle (`src/vendor`) and its own sign-in
   (`vendor_users`, an opaque session in the `clinic_vendor_session` httpOnly cookie), never a clinic
   role or a staff token. It sees business data only (plan, modules, specialties, user counts, dates,

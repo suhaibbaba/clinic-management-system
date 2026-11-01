@@ -109,7 +109,10 @@
     "nav": {
       "clinics": "Klinikler",
       "plans": "Paketler",
-      "signOut": "Çıkış"
+      "signOut": "Çıkış",
+      "label": "Panel bölümleri",
+      "language": "Dil",
+      "skip": "İçeriğe geç"
     },
     "overview": {
       "clinics": "Klinikler",
@@ -131,8 +134,19 @@
         "modules": "Modüller",
         "users": "Kullanıcılar",
         "endsOn": "Bitiş",
-        "status": "Durum"
-      }
+        "status": "Durum",
+        "actions": "İşlemler"
+      },
+      "summary_one": "{{count}} klinik",
+      "summary_other": "{{count}} klinik",
+      "endingSoon_one": "{{count}} abonelik 30 gün içinde bitiyor",
+      "endingSoon_other": "{{count}} abonelik 30 gün içinde bitiyor",
+      "moduleCount_one": "{{count}} modül",
+      "moduleCount_other": "{{count}} modül",
+      "removed": "Silindi",
+      "noneRemoved": "Silinen klinik yok",
+      "searching": "“{{search}}” için sonuçlar",
+      "clearSearch": "Aramayı temizle"
     },
     "clinic": {
       "back": "Klinikler",
@@ -170,7 +184,21 @@
       "noDomain": "Alan adı yok: web sitesi /site/{{slug}} adresinde",
       "saveDomain": "Alan adını kaydet",
       "domainSaved": "Alan adı kaydedildi",
-      "domainInvalid": "clinic.ps gibi bir alan adı yazın"
+      "domainInvalid": "clinic.ps gibi bir alan adı yazın",
+      "until": "{{date}} tarihine kadar",
+      "createdOn": "{{date}} tarihinde oluşturuldu",
+      "ofLimit": "/ {{limit}}",
+      "sections": "Klinik bölümleri",
+      "tabs": {
+        "subscription": "Abonelik",
+        "domain": "Alan adı",
+        "specialties": "Uzmanlıklar",
+        "history": "Geçmiş"
+      },
+      "onNow": "Şu an açık",
+      "recent": "Son değişiklikler",
+      "allHistory": "Tüm geçmiş",
+      "removedNote": "Bu klinik {{date}} tarihinde silindi. Personeli giriş yapamaz, web sitesi kapalı."
     },
     "plans": {
       "new": "Yeni paket",
@@ -201,7 +229,10 @@
       "status_advanced": "Durum otomatik değişti",
       "specialty_granted": "Uzmanlık etkinleştirildi",
       "plan_changed": "Paket değişti",
-      "domain_changed": "Alan adı değişti"
+      "domain_changed": "Alan adı değişti",
+      "clinic_created": "Klinik oluşturuldu",
+      "clinic_removed": "Klinik silindi",
+      "clinic_restored": "Klinik geri yüklendi"
     },
     "modules": {
       "appointments": "Randevular",
@@ -222,7 +253,75 @@
       "duplicateCode": "Bu kodla bir paket zaten var",
       "unknown": "Bir hata oldu, tekrar deneyin",
       "notFound": "Sayfa bulunamadı",
-      "domainTaken": "Bu alan adını başka bir klinik kullanıyor"
+      "domainTaken": "Bu alan adını başka bir klinik kullanıyor",
+      "slugTaken": "Bu kısa bağlantıyı başka bir klinik kullanıyor",
+      "phoneTaken": "Bu cep telefonu başka bir kullanıcıya ait",
+      "emailTaken": "Bu e-posta başka bir kullanıcıya ait"
+    },
+    "brandMark": "S",
+    "tagline": "Klinikler ve abonelikler",
+    "filters": {
+      "all": "Tümü",
+      "active": "Aktif",
+      "trial": "Deneme",
+      "grace": "Ek süre",
+      "suspended": "Askıda",
+      "cancelled": "İptal",
+      "none": "Abonelik yok",
+      "removed": "Silinenler"
+    },
+    "actions": {
+      "label": "Klinik işlemleri",
+      "open": "Kliniği aç",
+      "extend": "Bir ay uzat",
+      "openDashboard": "Paneli aç",
+      "suspend": "Aboneliği askıya al",
+      "remove": "Kliniği sil",
+      "restore": "Kliniği geri yükle",
+      "suspendTitle": "{{name}} askıya alınsın mı?",
+      "suspendBody": "Klinik salt okunur olur: personel kayıtları açabilir ama aboneliği yeniden etkinleştirene kadar değişiklik yapamaz."
+    },
+    "remove": {
+      "title": "{{name}} silinsin mi?",
+      "confirm": "Kliniği sil",
+      "signsOut_one": "Tek personeli hemen çıkış yapar ve giriş yapamaz.",
+      "signsOut_other": "{{count}} personeli hemen çıkış yapar ve giriş yapamaz.",
+      "stopsSite": "Web sitesi ve çevrimiçi randevu durur, alan adı serbest kalır.",
+      "keepsData": "Hiçbir şey silinmez: hastalar, ziyaretler ve ödemeler kalır; klinik Silinenler'den geri yüklenebilir."
+    },
+    "newClinic": {
+      "open": "Yeni klinik",
+      "title": "Yeni klinik",
+      "subtitle": "Kliniği, yöneticisini ve aboneliğini tek seferde oluşturur.",
+      "submit": "Kliniği oluştur",
+      "clinic": "1 · Klinik",
+      "admin": "3 · Klinik yöneticisi",
+      "nameAr": "Arapça ad",
+      "nameEn": "İngilizce ad",
+      "slug": "Kısa bağlantı",
+      "slugHint": "Küçük İngilizce harfler, rakamlar ve tireler; /site/ ve /book/ içinde kullanılır, değişmez.",
+      "country": "Ülke",
+      "specialty": "Uzmanlık",
+      "trial": "Deneme süresi",
+      "noTrial": "Deneme yok — hemen aktif",
+      "trialDays_one": "{{count}} gün",
+      "trialDays_other": "{{count}} gün",
+      "firstName": "Ad",
+      "lastName": "Soyad",
+      "phone": "Cep telefonu",
+      "phoneHint": "Yönetici bu numaraya gelen kodla giriş yapar; şifre verilmez.",
+      "email": "E-posta",
+      "problems": {
+        "name": "Kliniğin adını en az bir dilde yazın.",
+        "slug": "Kısa bağlantı 3–40 küçük harf, rakam ve tireden oluşur.",
+        "domain": "clinic.ps gibi bir alan adı yazın veya boş bırakın.",
+        "specialty": "En az bir uzmanlık seçin.",
+        "plan": "Bir paket seçin.",
+        "admin": "Yöneticinin adını ve soyadını yazın.",
+        "phone": "Yöneticinin cep telefonunu ülke koduyla yazın.",
+        "email": "E-posta geçerli değil."
+      },
+      "subscription": "2 · Abonelik"
     }
   }
 }

@@ -11,7 +11,11 @@ export const VENDOR_PARAM = {
   STATUS: "status",
   PAGE: "page",
   PLAN: "plan",
+  NEW: "new",
+  TAB: "tab",
 } as const;
+
+export const VENDOR_CLINIC_TABS = ["subscription", "domain", "specialties", "history"] as const;
 
 export const VENDOR_QUERY_KEY = {
   SESSION: ["vendor", "session"],

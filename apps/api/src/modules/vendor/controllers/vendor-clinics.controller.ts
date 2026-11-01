@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -15,9 +16,11 @@ import type {
   VendorClinicDetail,
   VendorClinicSummary,
   VendorOverview,
+  CreatedClinic,
 } from "@clinic/shared";
 import { Public } from "@api/common/decorators/public.decorator";
 import {
+  CreateClinicDto,
   GrantSpecialtyDto,
   SaveClinicDomainDto,
   VendorIdParamDto,
@@ -26,6 +29,7 @@ import {
 } from "@api/modules/vendor/dto/vendor.dto";
 import { VendorSession, type VendorSessionContext } from "@api/modules/vendor/lib/vendor-session";
 import { SubscriptionsService } from "@api/modules/vendor/services/subscriptions.service";
+import { ClinicLifecycleService } from "@api/modules/vendor/services/clinic-lifecycle.service";
 import { VendorClinicsService } from "@api/modules/vendor/services/vendor-clinics.service";
 import { VendorSessionGuard } from "@api/modules/vendor/services/vendor-session.guard";
 
@@ -36,6 +40,7 @@ export class VendorClinicsController {
   constructor(
     private readonly clinics: VendorClinicsService,
     private readonly subscriptions: SubscriptionsService,
+    private readonly lifecycle: ClinicLifecycleService,
   ) {}
 
   @Get("overview")
@@ -46,6 +51,32 @@ export class VendorClinicsController {
   @Get("clinics")
   list(@Query() query: VendorClinicsQueryDto): Promise<Paginated<VendorClinicSummary>> {
     return this.clinics.list(query);
+  }
+
+  @Post("clinics")
+  create(
+    @Body() body: CreateClinicDto,
+    @VendorSession() session: VendorSessionContext,
+  ): Promise<CreatedClinic> {
+    return this.lifecycle.create(body, session.vendorUserId);
+  }
+
+  @Delete("clinics/:id")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  remove(
+    @Param() params: VendorIdParamDto,
+    @VendorSession() session: VendorSessionContext,
+  ): Promise<void> {
+    return this.lifecycle.remove(params.id, session.vendorUserId);
+  }
+
+  @Post("clinics/:id/restore")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  restore(
+    @Param() params: VendorIdParamDto,
+    @VendorSession() session: VendorSessionContext,
+  ): Promise<void> {
+    return this.lifecycle.restore(params.id, session.vendorUserId);
   }
 
   @Get("clinics/:id")

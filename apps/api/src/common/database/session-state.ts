@@ -1,7 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 import type { UserRole } from "@clinic/shared";
 import { type Database } from "@api/database/database.module";
-import { users } from "@api/database/schema";
+import { clinics, users } from "@api/database/schema";
 
 export interface SessionState {
   readonly clinicId: string;
@@ -23,6 +23,7 @@ export async function sessionState(db: Database, userId: string): Promise<Sessio
   const [row] = await db
     .select({ clinicId: users.clinicId, role: users.role, isActive: users.isActive })
     .from(users)
+    .innerJoin(clinics, and(eq(clinics.id, users.clinicId), isNull(clinics.deletedAt)))
     .where(and(eq(users.id, userId), isNull(users.deletedAt)))
     .limit(1);
 

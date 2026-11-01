@@ -32,6 +32,7 @@ const clinic = (overrides: Partial<VendorClinicDetail> = {}): VendorClinicDetail
   slug: "clinic",
   name: { en: "Clinic" },
   domain: null,
+  removedAt: null,
   modules: [],
   specialties: [],
   users: 1,

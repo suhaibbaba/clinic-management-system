@@ -1,4 +1,6 @@
 import type {
+  CreateClinicInput,
+  CreatedClinic,
   GrantSpecialtyInput,
   Paginated,
   Plan,
@@ -65,6 +67,9 @@ export const vendorApi = {
   clinics: (params: Partial<VendorClinicsQuery>) =>
     request<Paginated<VendorClinicSummary>>("GET", `/clinics${query(params)}`),
   clinic: (id: string) => request<VendorClinicDetail>("GET", `/clinics/${id}`),
+  createClinic: (input: CreateClinicInput) => request<CreatedClinic>("POST", "/clinics", input),
+  removeClinic: (id: string) => request<void>("DELETE", `/clinics/${id}`),
+  restoreClinic: (id: string) => request<void>("POST", `/clinics/${id}/restore`),
   saveSubscription: (id: string, input: SaveSubscriptionInput) =>
     request<void>("PUT", `/clinics/${id}/subscription`, input),
   saveDomain: (id: string, input: SaveClinicDomainInput) =>

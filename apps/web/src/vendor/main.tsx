@@ -7,6 +7,7 @@ import "@web/vendor/i18n";
 import { Shell } from "@web/vendor/components/shell";
 import { useLocation } from "@web/vendor/hooks/use-location";
 import { parseVendorRoute, vendorPath } from "@web/vendor/lib/route";
+import { VENDOR_PARAM } from "@web/vendor/constants";
 import { ClinicPage } from "@web/vendor/pages/clinic-page";
 import { ClinicsPage } from "@web/vendor/pages/clinics-page";
 import { LoginPage } from "@web/vendor/pages/login-page";
@@ -48,14 +49,19 @@ function VendorApp(): JSX.Element | null {
   switch (route.kind) {
     case "clinics":
       return (
-        <Shell section="clinics" navigate={navigate}>
+        <Shell
+          section="clinics"
+          navigate={navigate}
+          search={location.params.get(VENDOR_PARAM.SEARCH) ?? ""}
+          key={location.params.get(VENDOR_PARAM.SEARCH) ?? ""}
+        >
           <ClinicsPage location={location} />
         </Shell>
       );
     case "clinic":
       return (
         <Shell section="clinics" navigate={navigate}>
-          <ClinicPage id={route.id} navigate={navigate} />
+          <ClinicPage id={route.id} location={location} />
         </Shell>
       );
     case "plans":
