@@ -2837,6 +2837,7 @@
     "saved": "تم حفظ الصلاحيات"
   },
   "notifications": {
+    "markAllRead": "تعليم الكل كمقروء",
     "pendingBookings": "حجوزات إلكترونية بانتظار الرد",
     "urgentRequests": "طلبات عاجلة في قائمة الانتظار",
     "overdueLabs": "طلبات مختبر متأخرة",

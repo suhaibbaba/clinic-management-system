@@ -2705,6 +2705,7 @@
     "saved": "Permissions saved"
   },
   "notifications": {
+    "markAllRead": "Mark All as Read",
     "pendingBookings": "Online Bookings Awaiting an Answer",
     "urgentRequests": "Urgent Requests on the Waiting List",
     "overdueLabs": "Overdue Lab Orders",

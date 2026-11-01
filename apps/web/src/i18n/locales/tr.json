@@ -2705,6 +2705,7 @@
     "saved": "Yetkiler kaydedildi"
   },
   "notifications": {
+    "markAllRead": "Tümünü Okundu İşaretle",
     "pendingBookings": "Yanıt bekleyen online randevular",
     "urgentRequests": "Bekleme listesindeki acil talepler",
     "overdueLabs": "Geciken laboratuvar siparişleri",
