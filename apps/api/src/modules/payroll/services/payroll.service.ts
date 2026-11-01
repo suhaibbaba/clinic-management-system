@@ -125,7 +125,14 @@ export class PayrollService implements OnModuleInit {
         .where(and(eq(payrollMonths.clinicId, clinicId), eq(payrollMonths.id, id)))
         .limit(1);
 
-      return row ? { month: monthOf(row.month), lines: row.lines } : null;
+      return row
+        ? {
+            month: monthOf(row.month),
+            lines: row.lines,
+            reversedAt: row.reversedAt?.toISOString() ?? null,
+            reversalReason: row.reversalReason,
+          }
+        : null;
     });
   }
 
@@ -188,7 +195,7 @@ export class PayrollService implements OnModuleInit {
     const rows = await this.db
       .select()
       .from(ownerDraws)
-      .where(eq(ownerDraws.clinicId, actor.clinicId))
+      .where(and(eq(ownerDraws.clinicId, actor.clinicId), isNull(ownerDraws.reversedAt)))
       .orderBy(desc(ownerDraws.month));
 
     return rows.map(toOwnerDraw);
@@ -334,7 +341,7 @@ export class PayrollService implements OnModuleInit {
     }
 
     const today = localDate(new Date(), await clinicTimeZone(this.db, actor.clinicId));
-    if (monthStart(month) > today) {
+    if (nextMonthStart(month) > today) {
       throw new BadRequestException(PAYROLL_ERROR.FUTURE_MONTH);
     }
 
@@ -384,6 +391,44 @@ export class PayrollService implements OnModuleInit {
     });
 
     return this.payroll(actor, month);
+  }
+
+  async reopen(
+    actor: AuthenticatedUser,
+    month: PayrollMonth,
+    reason: string,
+  ): Promise<{ id: string }> {
+    return this.db.transaction(async (tx) => {
+      const now = new Date();
+      const [row] = await tx
+        .update(payrollMonths)
+        .set({ reversedAt: now, reversedBy: actor.id, reversalReason: reason })
+        .where(
+          and(
+            eq(payrollMonths.clinicId, actor.clinicId),
+            eq(payrollMonths.month, monthStart(month)),
+            isNull(payrollMonths.reversedAt),
+          ),
+        )
+        .returning({ id: payrollMonths.id });
+
+      if (!row) {
+        throw new ConflictException(PAYROLL_ERROR.NOT_CLOSED);
+      }
+
+      await tx
+        .update(ownerDraws)
+        .set({ reversedAt: now, reversedBy: actor.id })
+        .where(
+          and(
+            eq(ownerDraws.clinicId, actor.clinicId),
+            eq(ownerDraws.month, monthStart(month)),
+            isNull(ownerDraws.reversedAt),
+          ),
+        );
+
+      return row;
+    });
   }
 
   private async monthFor(
@@ -499,7 +544,13 @@ export class PayrollService implements OnModuleInit {
     const [row] = await this.db
       .select()
       .from(ownerDraws)
-      .where(and(eq(ownerDraws.clinicId, clinicId), eq(ownerDraws.month, monthStart(month))))
+      .where(
+        and(
+          eq(ownerDraws.clinicId, clinicId),
+          eq(ownerDraws.month, monthStart(month)),
+          isNull(ownerDraws.reversedAt),
+        ),
+      )
       .limit(1);
 
     return row ? toOwnerDraw(row) : null;
@@ -666,7 +717,13 @@ export class PayrollService implements OnModuleInit {
     const [row] = await this.db
       .select()
       .from(payrollMonths)
-      .where(and(eq(payrollMonths.clinicId, clinicId), eq(payrollMonths.month, monthStart(month))))
+      .where(
+        and(
+          eq(payrollMonths.clinicId, clinicId),
+          eq(payrollMonths.month, monthStart(month)),
+          isNull(payrollMonths.reversedAt),
+        ),
+      )
       .limit(1);
 
     return row ?? null;

@@ -152,6 +152,9 @@ export const useReversePayment = () =>
 
 export const useCloseMonth = (month: string) => usePayrollWrite(() => payrollApi.close(month));
 
+export const useReopenMonth = (month: string) =>
+  usePayrollWrite((reason: string) => payrollApi.reopen(month, reason));
+
 export const useSetTreatmentShare = () =>
   usePayrollWrite(
     ({ treatmentId, body }: { treatmentId: string; body: UpdateTreatmentSettlementInput }) =>

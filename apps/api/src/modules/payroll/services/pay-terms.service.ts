@@ -476,6 +476,7 @@ export class PayTermsService implements OnModuleInit {
         and(
           eq(payrollMonths.clinicId, clinicId),
           sql`${payrollMonths.month} >= ${monthStart(month)}`,
+          isNull(payrollMonths.reversedAt),
         ),
       )
       .limit(1);

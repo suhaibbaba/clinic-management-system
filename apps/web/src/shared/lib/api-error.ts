@@ -53,6 +53,7 @@ const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [PAYROLL_ERROR.NOT_ON_PERCENTAGE]: "errors.payroll.notOnPercentage",
   [PAYROLL_ERROR.PAST_MONTH]: "errors.payroll.pastMonth",
   [PAYROLL_ERROR.NOT_COLLECTING]: "errors.payroll.notCollecting",
+  [PAYROLL_ERROR.NOT_CLOSED]: "errors.payroll.notClosed",
   [AUTH_ERROR.LOCKED]: "errors.auth.locked",
   [AUTH_ERROR.CODE_INVALID]: "errors.auth.codeInvalid",
   [AUTH_ERROR.GOOGLE_FAILED]: "errors.auth.googleFailed",

@@ -195,7 +195,13 @@ export class ExpensesService implements OnModuleInit {
     const [closed] = await this.db
       .select({ id: payrollMonths.id })
       .from(payrollMonths)
-      .where(and(eq(payrollMonths.clinicId, clinicId), eq(payrollMonths.month, firstOf(month))))
+      .where(
+        and(
+          eq(payrollMonths.clinicId, clinicId),
+          eq(payrollMonths.month, firstOf(month)),
+          isNull(payrollMonths.reversedAt),
+        ),
+      )
       .limit(1);
 
     if (closed) {

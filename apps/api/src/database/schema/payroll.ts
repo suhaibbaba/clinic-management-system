@@ -123,8 +123,15 @@ export const payrollMonths = pgTable(
     lines: jsonb("lines").$type<PayrollLineSnapshot[]>().notNull(),
     closedAt: timestamp("closed_at", { withTimezone: true }).notNull().defaultNow(),
     closedBy: uuid("closed_by"),
+    reversedAt: timestamp("reversed_at", { withTimezone: true }),
+    reversedBy: uuid("reversed_by"),
+    reversalReason: text("reversal_reason"),
   },
-  (table) => [uniqueIndex("payroll_months_month_uniq").on(table.clinicId, table.month)],
+  (table) => [
+    uniqueIndex("payroll_months_month_uniq")
+      .on(table.clinicId, table.month)
+      .where(sql`reversed_at is null`),
+  ],
 );
 
 export const staffPayments = pgTable(
@@ -263,8 +270,14 @@ export const ownerDraws = pgTable(
     profit: jsonb("profit").$type<MonthProfit>().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     createdBy: uuid("created_by"),
+    reversedAt: timestamp("reversed_at", { withTimezone: true }),
+    reversedBy: uuid("reversed_by"),
   },
-  (table) => [uniqueIndex("owner_draws_month_uniq").on(table.clinicId, table.month)],
+  (table) => [
+    uniqueIndex("owner_draws_month_uniq")
+      .on(table.clinicId, table.month)
+      .where(sql`reversed_at is null`),
+  ],
 );
 
 export const settlementItems = pgTable(

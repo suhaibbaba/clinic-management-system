@@ -69,6 +69,9 @@ export const payrollApi = {
   reversePayment: (id: string, reason: string): Promise<StaffPayment> =>
     apiRequest(`/staff-payments/${id}/reverse`, { method: "POST", body: { reason } }),
 
+  reopen: (month: string, reason: string): Promise<{ id: string }> =>
+    apiRequest(`/payroll/${month}/reopen`, { method: "POST", body: { reason } }),
+
   close: (month: string): Promise<Payroll> =>
     apiRequest(`/payroll/${month}/close`, { method: "POST", body: {} }),
 

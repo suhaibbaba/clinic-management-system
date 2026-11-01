@@ -17,6 +17,7 @@ import {
   PATIENT_ID,
   SHIPPED_CAPABILITIES,
 } from "@test/helpers/fixtures";
+import { holdConfirmClock, passConfirmHold } from "@test/helpers/confirm-hold";
 import { mockApi, renderWithProviders, type MockResponse } from "@test/helpers/render";
 
 function handlers(role: UserRole, overrides: Record<string, MockResponse> = {}) {
@@ -98,6 +99,7 @@ describe("Billing", () => {
     });
 
     it("records a payment and prints its receipt", async () => {
+      holdConfirmClock();
       const api = await renderAccountTab(USER_ROLE.RECEPTIONIST, {
         [`GET /payments/${makePayment().id}/receipt`]: { status: 200, body: {} },
       });
@@ -114,6 +116,7 @@ describe("Billing", () => {
       expect(
         api.calls.some((entry) => entry.method === "POST" && entry.url.endsWith("/payments")),
       ).toBe(false);
+      await passConfirmHold();
       await userEvent.click(within(summary).getByTestId("account-payment-modal-confirm-confirm"));
 
       const posted = await vi.waitFor(() => {
@@ -197,6 +200,7 @@ describe("Billing", () => {
     });
 
     it("deletes a payment only after the confirmation", async () => {
+      holdConfirmClock();
       const api = await renderAccountTab(USER_ROLE.ADMIN, {
         [`DELETE /payments/${makePayment().id}`]: { status: 204 },
       });
@@ -205,6 +209,7 @@ describe("Billing", () => {
 
       const dialog = await screen.findByTestId("statement-confirm-delete");
       expect(api.calls.some((call) => call.method === "DELETE")).toBe(false);
+      await passConfirmHold();
       await userEvent.click(within(dialog).getByRole("button", { name: ar.common.deleteForever }));
 
       await waitFor(() =>

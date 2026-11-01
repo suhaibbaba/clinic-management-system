@@ -218,6 +218,7 @@ export const SHIPPED_CAPABILITIES: Record<UserRole, readonly string[]> = {
     "payroll.monthPdf",
     "payroll.ownerDraws",
     "payroll.pay",
+    "payroll.reopen",
     "payroll.payRules",
     "payroll.plans",
     "payroll.salaries",

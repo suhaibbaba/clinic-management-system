@@ -28,6 +28,8 @@ const NOTE_MIN = 3;
 
 const NOTE_MAX = 500;
 
+const HOLD_SECONDS = 5;
+
 export function ConfirmDialog({
   open,
   onOpenChange,
@@ -45,15 +47,36 @@ export function ConfirmDialog({
   const [busy, setBusy] = useState(false);
   const [toggled, setToggled] = useState(false);
   const [written, setWritten] = useState("");
+  const [holding, setHolding] = useState(HOLD_SECONDS);
   const noteId = useId();
   const consequencesId = useId();
-  const ready = note === undefined || written.trim().length >= NOTE_MIN;
+  const ready = holding === 0 && (note === undefined || written.trim().length >= NOTE_MIN);
 
   useEffect(() => {
     if (open) {
       setToggled(false);
       setWritten("");
     }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const until = Date.now() + HOLD_SECONDS * 1000;
+    setHolding(HOLD_SECONDS);
+
+    const tick = setInterval(() => {
+      const left = Math.max(0, Math.ceil((until - Date.now()) / 1000));
+
+      setHolding(left);
+      if (left === 0) {
+        clearInterval(tick);
+      }
+    }, 250);
+
+    return () => clearInterval(tick);
   }, [open]);
 
   const hasConsequences = consequences !== undefined && consequences.length > 0;
@@ -105,6 +128,11 @@ export function ConfirmDialog({
             onClick={() => void confirm()}
           >
             {t(confirmLabel ?? (tone === "danger" ? "common.deleteForever" : "common.confirm"))}
+            {holding > 0 && (
+              <span {...testid(testId, "hold")} aria-hidden className="tabular-nums">
+                {holding}
+              </span>
+            )}
           </Button>
         </>
       }

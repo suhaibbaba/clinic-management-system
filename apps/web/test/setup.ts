@@ -8,6 +8,7 @@ document.documentElement.setAttribute("lang", "ar");
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.useRealTimers();
 });
 
 globalThis.ResizeObserver ??= class {

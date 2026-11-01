@@ -186,6 +186,16 @@ export class PayrollController {
     return this.payroll.pay(actor, params.month, body);
   }
 
+  @Post(":month/reopen")
+  @Audit(PAYROLL_MONTHS_ENTITY, AUDIT_ACTION.UPDATE, { entityIdSource: "response" })
+  reopen(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: MonthParamDto,
+    @Body() body: ReverseEntryDto,
+  ): Promise<{ id: string }> {
+    return this.payroll.reopen(actor, params.month, body.reason);
+  }
+
   @Post(":month/close")
   @Audit(PAYROLL_MONTHS_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: "response" })
   close(@CurrentUser() actor: AuthenticatedUser, @Param() params: MonthParamDto): Promise<Payroll> {

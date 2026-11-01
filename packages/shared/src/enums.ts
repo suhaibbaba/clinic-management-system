@@ -1270,6 +1270,7 @@ export const PAYROLL_ERROR = {
   NOT_ON_PERCENTAGE: "payroll_not_on_percentage",
   PAST_MONTH: "payroll_past_month",
   NOT_COLLECTING: "payroll_not_collecting",
+  NOT_CLOSED: "payroll_not_closed",
 } as const;
 
 export const WHATSAPP_STATUS = {

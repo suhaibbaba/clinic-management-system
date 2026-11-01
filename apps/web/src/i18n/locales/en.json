@@ -627,12 +627,13 @@
       "monthClosed": "This month is closed; its pay can no longer change",
       "alreadyClosed": "This month is already closed",
       "notEmployee": "A visiting doctor is not an employee; settle them from their page",
-      "futureMonth": "A month that has not started cannot be closed",
+      "futureMonth": "A month can be closed only once it has ended",
       "notADoctor": "A percentage is only for somebody who treats patients; add them as a doctor first",
       "nothingToPay": "Nothing is owed for the chosen treatments",
       "notOnPercentage": "This doctor is on a salary, not a percentage",
       "pastMonth": "A change cannot start in a month that has passed",
-      "notCollecting": "The clinic takes this doctor's payments, so there is nothing to receive from them"
+      "notCollecting": "The clinic takes this doctor's payments, so there is nothing to receive from them",
+      "notClosed": "This month is not closed"
     },
     "document": {
       "unavailable": "Sending documents on WhatsApp is not set up for this clinic. Add the document template in the assistant settings.",
@@ -2509,7 +2510,8 @@
         "setShareTerms": "Change an Employee's Percentage",
         "ownerDraws": "View the Owner's Profit",
         "monthPdf": "Print a Month's Payroll",
-        "sendMonth": "Send a Month's Payroll by WhatsApp"
+        "sendMonth": "Send a Month's Payroll by WhatsApp",
+        "reopen": "Reopen a Closed Payroll Month"
       },
       "payroll-adjustments": {
         "reverse": "Reverse an Extra or Cut"
@@ -3391,7 +3393,14 @@
       "recorded": "Handover recorded"
     },
     "owedToClinic": "Owed by doctors",
-    "moreActions": "More Actions"
+    "moreActions": "More Actions",
+    "reopen": "Reopen Month",
+    "reopenTitle": "Reopen {{month}}?",
+    "reopenUnlocks": "Pay plans, salaries, bonuses, deductions and the month's expenses can change again",
+    "reopenDraw": "The owner's draw recorded at closing is cancelled; closing the month again records it anew",
+    "reopenKept": "The closing stays in the audit log with your reason",
+    "reopenReason": "Why is it being reopened?",
+    "reopenedDone": "Month reopened"
   },
   "earnings": {
     "title": "My Earnings",
