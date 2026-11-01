@@ -1,24 +1,33 @@
-import { WAITING_LIST_SOURCE } from "@clinic/shared";
+import { CONTACT_MESSAGE_STATUS, WAITING_LIST_SOURCE } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Icon, Menu, MenuContent, MenuItem, MenuTrigger, type IconName } from "@clinic/ui";
+import {
+  Icon,
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuSeparator,
+  MenuTrigger,
+  type IconName,
+} from "@clinic/ui";
 import { useWaitingList } from "@web/modules/appointments/queries";
 import { useSession } from "@web/shared/providers/session";
 import { canSeeBilling } from "@web/shared/permissions/billing";
-import { usePendingBookingsCount } from "@web/shared/queries/booking";
+import { usePendingBookings } from "@web/shared/queries/booking";
 import { seesPendingBookings } from "@web/shared/permissions/booking";
 import { seesContactMessages } from "@web/shared/permissions/website";
-import { useOpenContactMessagesCount } from "@web/shared/queries/website";
+import { useContactMessages } from "@web/shared/queries/website";
 import { useInventoryAlerts } from "@web/modules/inventory/queries";
 import { useLabOrders } from "@web/modules/labs/queries";
 import { usePatients } from "@web/shared/queries/patients";
+import { useSeenNotifications } from "@web/shared/hooks/use-seen-notifications";
 import { cn } from "@clinic/ui/lib/cn";
 
 interface Waiting {
   readonly key: string;
   readonly icon: IconName;
-  readonly count: number;
+  readonly count: number | undefined;
   readonly to: string;
 }
 
@@ -28,10 +37,13 @@ export function NotificationBell(): JSX.Element {
   const { user, can } = useSession();
 
   const frontDesk = seesPendingBookings(can);
-  const pending = usePendingBookingsCount(frontDesk);
+  const pending = usePendingBookings({ limit: 1 }, frontDesk);
 
   const mayMessages = seesContactMessages(can);
-  const messages = useOpenContactMessagesCount(mayMessages);
+  const messages = useContactMessages(
+    { limit: 1, status: CONTACT_MESSAGE_STATUS.OPEN },
+    mayMessages,
+  );
 
   const mayQueue = can("waiting-list.list");
   const urgent = useWaitingList({ limit: 1, source: WAITING_LIST_SOURCE.ONLINE }, mayQueue);
@@ -45,47 +57,49 @@ export function NotificationBell(): JSX.Element {
   const seesMoney = user !== null && canSeeBilling(can);
   const owing = usePatients({ page: 1, limit: 1, hasBalance: true }, { enabled: seesMoney });
 
-  const stock = alerts.data
-    ? alerts.data.low.length + alerts.data.expiring.length + alerts.data.expired.length
-    : 0;
+  const stock =
+    alerts.data &&
+    alerts.data.low.length + alerts.data.expiring.length + alerts.data.expired.length;
 
-  const waiting: Waiting[] = (
-    [
-      {
-        key: "pendingBookings",
-        icon: "globe",
-        count: frontDesk ? pending : 0,
-        to: "/appointments?status=pending",
-      },
-      {
-        key: "contactMessages",
-        icon: "message",
-        count: mayMessages ? messages : 0,
-        to: "/settings?view=website&tab=messages&status=open",
-      },
-      {
-        key: "urgentRequests",
-        icon: "alert",
-        count: mayQueue ? (urgent.data?.total ?? 0) : 0,
-        to: "/appointments",
-      },
-      {
-        key: "overdueLabs",
-        icon: "clipboard",
-        count: mayLabs ? (overdueLabs.data?.total ?? 0) : 0,
-        to: "/labs?tab=orders",
-      },
-      { key: "inventoryAlerts", icon: "package", count: mayStock ? stock : 0, to: "/inventory" },
-      {
-        key: "overdueBalances",
-        icon: "money",
-        count: seesMoney ? (owing.data?.total ?? 0) : 0,
-        to: "/patients?filter=balance",
-      },
-    ] satisfies Waiting[]
-  ).filter((entry) => entry.count > 0);
+  const entries: Waiting[] = [
+    {
+      key: "pendingBookings",
+      icon: "globe",
+      count: frontDesk ? pending.data?.total : 0,
+      to: "/appointments?status=pending",
+    },
+    {
+      key: "contactMessages",
+      icon: "message",
+      count: mayMessages ? messages.data?.total : 0,
+      to: "/settings?view=website&tab=messages&status=open",
+    },
+    {
+      key: "urgentRequests",
+      icon: "alert",
+      count: mayQueue ? urgent.data?.total : 0,
+      to: "/appointments",
+    },
+    {
+      key: "overdueLabs",
+      icon: "clipboard",
+      count: mayLabs ? overdueLabs.data?.total : 0,
+      to: "/labs?tab=orders",
+    },
+    { key: "inventoryAlerts", icon: "package", count: mayStock ? stock : 0, to: "/inventory" },
+    {
+      key: "overdueBalances",
+      icon: "money",
+      count: seesMoney ? owing.data?.total : 0,
+      to: "/patients?filter=balance",
+    },
+  ];
 
-  const total = waiting.reduce((sum, entry) => sum + entry.count, 0);
+  const waiting = entries.filter((entry) => (entry.count ?? 0) > 0);
+  const { unseen: total, markAllRead } = useSeenNotifications(
+    user?.id ?? null,
+    Object.fromEntries(entries.map((entry) => [entry.key, entry.count])),
+  );
 
   return (
     <Menu>
@@ -124,19 +138,30 @@ export function NotificationBell(): JSX.Element {
             {t("nav.notificationsEmpty")}
           </p>
         ) : (
-          waiting.map((entry) => (
+          <>
+            {waiting.map((entry) => (
+              <MenuItem
+                key={entry.key}
+                data-testid={`notification-${entry.key}`}
+                icon={entry.icon}
+                onSelect={() => void navigate(entry.to)}
+                trailing={
+                  <span className="text-label tabular-nums text-ink-muted">{entry.count}</span>
+                }
+              >
+                {t(`notifications.${entry.key}`)}
+              </MenuItem>
+            ))}
+            <MenuSeparator />
             <MenuItem
-              key={entry.key}
-              data-testid={`notification-${entry.key}`}
-              icon={entry.icon}
-              onSelect={() => void navigate(entry.to)}
-              trailing={
-                <span className="text-label tabular-nums text-ink-muted">{entry.count}</span>
-              }
+              data-testid="notification-mark-all-read"
+              icon="check"
+              unavailable={total === 0}
+              onSelect={markAllRead}
             >
-              {t(`notifications.${entry.key}`)}
+              {t("notifications.markAllRead")}
             </MenuItem>
-          ))
+          </>
         )}
       </MenuContent>
     </Menu>
