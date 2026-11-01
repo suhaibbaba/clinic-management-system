@@ -1273,6 +1273,10 @@ export const PAYROLL_ERROR = {
   NOT_CLOSED: "payroll_not_closed",
 } as const;
 
+export const CLINIC_ERROR = {
+  CURRENCY_LOCKED: "clinic_currency_locked",
+} as const;
+
 export const WHATSAPP_STATUS = {
   UNKNOWN: "unknown",
   AVAILABLE: "available",

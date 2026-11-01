@@ -47,7 +47,7 @@ import {
 } from "@web/modules/assistant/queries";
 import { canReachNavItem } from "@web/shared/lib/navigation";
 import { useClinic } from "@web/shared/queries/clinic";
-import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
+import { setClinicTimeZone } from "@web/shared/lib/clinic-locale";
 import { useSession } from "@web/shared/providers/session";
 import { useAssistantStream } from "@web/modules/assistant/hooks/use-assistant-stream";
 import { useWorkspaceTopBar } from "@web/shared/providers/workspace-top-bar";

@@ -9,7 +9,8 @@ import {
   setYear,
   startOfMonth,
 } from "date-fns";
-import { ar, enGB, type Locale } from "date-fns/locale";
+import { isRtlLanguage } from "@clinic/shared";
+import { ar, enGB, tr, type Locale } from "date-fns/locale";
 import { useEffect, useRef, useState, type JSX, type ReactNode } from "react";
 import {
   DayPicker,
@@ -19,10 +20,13 @@ import {
 } from "react-day-picker";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@ui/components/icon";
+import { useLocaleFormat } from "@ui/components/locale-format";
 import { cn } from "@ui/lib/cn";
 
+const DATE_LOCALES: Readonly<Record<string, Locale>> = { ar, en: enGB, tr };
+
 export function dateLocale(language: string): Locale {
-  return language.split("-")[0] === "ar" ? ar : enGB;
+  return DATE_LOCALES[language.split("-")[0] ?? ""] ?? enGB;
 }
 
 const FIRST_YEAR = 1900;
@@ -292,7 +296,8 @@ function PeriodGrid({
 export function Calendar(props: DayPickerProps): JSX.Element {
   const { t, i18n } = useTranslation();
   const locale = dateLocale(i18n.language);
-  const isRtl = i18n.language.split("-")[0] === "ar";
+  const isRtl = isRtlLanguage(i18n.language);
+  const { weekStartsOn } = useLocaleFormat();
 
   const lastYear = new Date().getFullYear() + 1;
   const firstMonth = startOfMonth(props.startMonth ?? new Date(FIRST_YEAR, 0, 1));
@@ -328,6 +333,7 @@ export function Calendar(props: DayPickerProps): JSX.Element {
         onMonthChange={goToMonth}
         hideNavigation
         locale={locale}
+        {...(weekStartsOn !== undefined && { weekStartsOn })}
         dir={isRtl ? "rtl" : "ltr"}
         components={{ DayButton: CalendarDayButton }}
         formatters={{

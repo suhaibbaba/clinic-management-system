@@ -540,8 +540,7 @@ export class PurchaseRequestsService {
           request: purchaseRequests,
           supplierName: suppliers.name,
           supplierPhone: suppliers.phone,
-          createdByNameAr: users.nameAr,
-          createdByNameEn: users.nameEn,
+          createdByName: users.name,
         })
         .from(purchaseRequests)
         .leftJoin(suppliers, eq(suppliers.id, purchaseRequests.supplierId))
@@ -572,8 +571,7 @@ export class PurchaseRequestsService {
       this.db
         .select({
           send: purchaseRequestSends,
-          sentByNameAr: users.nameAr,
-          sentByNameEn: users.nameEn,
+          sentByName: users.name,
         })
         .from(purchaseRequestSends)
         .leftJoin(users, eq(users.id, purchaseRequestSends.sentBy))
@@ -625,16 +623,16 @@ export class PurchaseRequestsService {
           sentAt: row.request.sentAt?.toISOString() ?? null,
           sentTo: row.request.sentTo,
           cancelReason: row.request.cancelReason,
-          createdByName: toOptionalPersonName(row.createdByNameAr, row.createdByNameEn),
+          createdByName: toOptionalPersonName(row.createdByName),
           createdAt: row.request.createdAt.toISOString(),
           lines: own,
           sends: sends
             .filter(({ send }) => send.requestId === id)
-            .map(({ send, sentByNameAr, sentByNameEn }) => ({
+            .map(({ send, sentByName }) => ({
               id: send.id,
               sentAt: send.sentAt.toISOString(),
               sentTo: send.sentTo,
-              sentByName: toOptionalPersonName(sentByNameAr, sentByNameEn),
+              sentByName: toOptionalPersonName(sentByName),
             })),
         },
       ];

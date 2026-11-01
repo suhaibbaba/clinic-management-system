@@ -29,7 +29,7 @@ const VENEER = "veneer";
 const WITH_CUSTOM: ToothStates = buildToothStates(
   makeLookupBundle({
     [LOOKUP_LIST.TOOTH_STATE]: [
-      { code: VENEER, nameAr: "وجه تجميلي", nameEn: "Veneer", color: "#7c3aed" },
+      { code: VENEER, name: { ar: "وجه تجميلي", en: "Veneer" }, color: "#7c3aed" },
     ],
   })[LOOKUP_LIST.TOOTH_STATE] ?? [],
   "ar",
@@ -179,7 +179,7 @@ describe("tooth state derivation", () => {
     it("picks readable ink for it, so the tooth number does not vanish", () => {
       const light = buildToothStates(
         makeLookupBundle({
-          [LOOKUP_LIST.TOOTH_STATE]: [{ code: "pale", nameAr: "فاتح", color: "#fef9c3" }],
+          [LOOKUP_LIST.TOOTH_STATE]: [{ code: "pale", name: { ar: "فاتح" }, color: "#fef9c3" }],
         })[LOOKUP_LIST.TOOTH_STATE] ?? [],
         "ar",
       );
@@ -196,7 +196,7 @@ describe("tooth state derivation", () => {
       const english = buildToothStates(
         makeLookupBundle({
           [LOOKUP_LIST.TOOTH_STATE]: [
-            { code: VENEER, nameAr: "وجه تجميلي", nameEn: "Veneer", color: "#7c3aed" },
+            { code: VENEER, name: { ar: "وجه تجميلي", en: "Veneer" }, color: "#7c3aed" },
           ],
         })[LOOKUP_LIST.TOOTH_STATE] ?? [],
         "en",

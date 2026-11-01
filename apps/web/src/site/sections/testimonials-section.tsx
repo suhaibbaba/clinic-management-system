@@ -9,7 +9,7 @@ import { useSite } from "@web/site/hooks/use-site";
 import { orDefault, pick } from "@web/site/lib/text";
 
 export function TestimonialsSection(): JSX.Element | null {
-  const { site, language, t } = useSite();
+  const { site, language, languages, t } = useSite();
   const { testimonials } = site.content;
 
   if (testimonials.items.length === 0) {
@@ -24,8 +24,8 @@ export function TestimonialsSection(): JSX.Element | null {
     >
       <ShowcaseHeading
         id="testimonials"
-        title={orDefault(testimonials.title, language, t("testimonials.title"))}
-        subtitle={pick(testimonials.subtitle, language)}
+        title={orDefault(testimonials.title, language, t("testimonials.title"), languages)}
+        subtitle={pick(testimonials.subtitle, language, languages)}
       />
       <Slider
         label={t("testimonials.title")}
@@ -41,7 +41,7 @@ export function TestimonialsSection(): JSX.Element | null {
             <CardFill />
             <SiteIcon name="quote" className="size-7 text-primary-200" />
             <blockquote className="site-fill-soft flex-1 text-value text-ink-muted">
-              {pick(item.text, language)}
+              {pick(item.text, language, languages)}
             </blockquote>
             <figcaption className="flex items-center justify-between gap-3">
               <span className="site-fill-ink text-section font-bold text-primary-900">

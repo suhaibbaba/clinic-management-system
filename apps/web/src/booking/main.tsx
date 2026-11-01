@@ -2,10 +2,11 @@ import { StrictMode, type JSX } from "react";
 import { createRoot } from "react-dom/client";
 import "@web/booking/booking.css";
 import { BookingWizard } from "@web/booking/booking-wizard";
-import { BOOKING_LANGUAGE, t } from "@web/booking/i18n";
+import { t } from "@web/booking/i18n";
 import { FullPageMessage, PageShell } from "@web/booking/layout";
 import { ManagePage } from "@web/booking/manage-page";
 import { parseRoute } from "@web/booking/route";
+import { useBookingLanguage } from "@web/booking/use-booking-language";
 
 function BookingApp(): JSX.Element {
   const route = parseRoute(window.location.pathname, window.location.search);
@@ -18,21 +19,24 @@ function BookingApp(): JSX.Element {
       return <ManagePage token={route.token} slug={route.slug} />;
 
     default:
-      return (
-        <PageShell clinicName={undefined}>
-          <FullPageMessage title={t("errors.notFound")} />
-        </PageShell>
-      );
+      return <NotFound />;
   }
+}
+
+function NotFound(): JSX.Element {
+  const language = useBookingLanguage(undefined);
+
+  return (
+    <PageShell clinicName={undefined} language={language}>
+      <FullPageMessage title={t("errors.notFound")} />
+    </PageShell>
+  );
 }
 
 const container = document.getElementById("root");
 if (!container) {
   throw new Error("Root container #root is missing from booking.html");
 }
-
-document.documentElement.lang = BOOKING_LANGUAGE;
-document.documentElement.dir = "rtl";
 
 createRoot(container).render(
   <StrictMode>

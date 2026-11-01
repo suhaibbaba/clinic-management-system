@@ -45,7 +45,7 @@ export class TranslationsService {
     const rows = await this.list(user);
     const bundle = Object.fromEntries(
       TRANSLATION_LANGUAGES.map((language) => [language, {}]),
-    ) as TranslationBundle;
+    ) as Record<TranslationLanguage, Record<string, unknown>>;
 
     for (const row of rows) {
       nest(bundle[row.language], row.key, row.value);

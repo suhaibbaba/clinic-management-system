@@ -7,16 +7,16 @@ import { imageOf } from "@web/site/lib/images";
 import { orDefault, pick } from "@web/site/lib/text";
 
 export function ServicesPage(): JSX.Element {
-  const { site, language, t } = useSite();
+  const { site, language, languages, t } = useSite();
   const { services } = site.content;
 
   return (
     <>
       <PageHero
         id="services"
-        eyebrow={orDefault(services.subtitle, language, t("services.eyebrow"))}
-        title={orDefault(services.title, language, t("services.pageTitle"))}
-        intro={pick(services.intro, language)}
+        eyebrow={orDefault(services.subtitle, language, t("services.eyebrow"), languages)}
+        title={orDefault(services.title, language, t("services.pageTitle"), languages)}
+        intro={pick(services.intro, language, languages)}
         image={imageOf(site, services.image)}
       />
       <div className="mx-auto flex max-w-6xl flex-col gap-12 px-4 py-12">

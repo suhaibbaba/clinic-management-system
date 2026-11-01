@@ -453,8 +453,7 @@ export class LabOrdersService implements OnModuleInit {
         order: labOrders,
         patientName: patients.fullName,
         patientFileNumber: patients.fileNumber,
-        doctorNameAr: users.nameAr,
-        doctorNameEn: users.nameEn,
+        doctorName: users.name,
         labName: labs.name,
         workTypeName: labWorkTypes.name,
       })

@@ -160,7 +160,7 @@ describe("Public booking (e2e)", () => {
       )
       .at(-1)?.vars["code"];
 
-    if (!code) {
+    if (typeof code !== "string" || !code) {
       throw new Error(`No OTP was sent for appointment ${appointmentId}`);
     }
 

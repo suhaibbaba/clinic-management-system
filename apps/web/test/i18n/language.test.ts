@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import i18n from "@web/i18n";
+import { clinicLocale } from "@clinic/shared";
 import {
+  adoptClinicLanguage,
   applyLanguageToDocument,
   changeLanguage,
   initLanguage,
@@ -89,5 +91,34 @@ describe("language", () => {
     window.localStorage.setItem("clinic.language", "fr");
 
     expect(storedLanguage()).toBeNull();
+  });
+
+  it("has the Turkish strings, left to right, once Turkish is chosen", async () => {
+    await changeLanguage("tr");
+
+    expect(document.documentElement.dir).toBe("ltr");
+    expect(i18n.t("common.save")).toBe("Kaydet");
+  });
+
+  it("opens a Turkish clinic in Turkish when nobody chose a language", async () => {
+    window.localStorage.clear();
+    await adoptClinicLanguage(clinicLocale({ country: "TR" }));
+
+    expect(i18n.language).toBe("tr");
+    expect(storedLanguage()).toBeNull();
+  });
+
+  it("keeps a stored choice the clinic offers", async () => {
+    await changeLanguage("en");
+    await adoptClinicLanguage(clinicLocale({ country: "TR" }));
+
+    expect(i18n.language).toBe("en");
+  });
+
+  it("leaves a stored language the clinic does not offer", async () => {
+    await changeLanguage("ar");
+    await adoptClinicLanguage(clinicLocale({ country: "TR" }));
+
+    expect(i18n.language).toBe("tr");
   });
 });

@@ -1,3 +1,5 @@
+import { LANGUAGE_PARAM } from "@web/booking/constants";
+
 export type BookingRoute =
   | { readonly kind: "book"; readonly slug: string }
   | { readonly kind: "manage"; readonly token: string; readonly slug: string | undefined }
@@ -50,4 +52,16 @@ export function rememberClinic(token: string, slug: string): void {
   try {
     window.localStorage.setItem(STORAGE_PREFIX + token, slug);
   } catch {}
+}
+
+export function languageUrl(language: string, primaryLanguage: string): URL {
+  const url = new URL(window.location.href);
+
+  if (language === primaryLanguage) {
+    url.searchParams.delete(LANGUAGE_PARAM);
+  } else {
+    url.searchParams.set(LANGUAGE_PARAM, language);
+  }
+
+  return url;
 }

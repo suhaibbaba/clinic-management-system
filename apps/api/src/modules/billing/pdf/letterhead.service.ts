@@ -1,5 +1,12 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { clinicScheduleSettings, documentSettings, personName } from "@clinic/shared";
+import {
+  clinicLocale,
+  documentLanguage,
+  localized,
+  numberSeparators,
+  type ClockFormat,
+  type NumberSeparators,
+} from "@clinic/shared";
 import { eq } from "drizzle-orm";
 import { documentStrings, type DocumentLanguage } from "@api/modules/billing/pdf/document-strings";
 import { documentDate, documentDateTime } from "@api/modules/billing/pdf/document-format";
@@ -19,6 +26,8 @@ export interface Letterhead {
   readonly currency: string;
   readonly language: DocumentLanguage;
   readonly timeZone: string;
+  readonly clock: ClockFormat;
+  readonly separators: NumberSeparators;
   readonly logo: FetchedObject | null;
 }
 
@@ -32,8 +41,8 @@ export class LetterheadService {
   async load(clinicId: string): Promise<Letterhead> {
     const [row] = await this.db
       .select({
-        nameAr: clinics.nameAr,
-        nameEn: clinics.nameEn,
+        name: clinics.name,
+        country: clinics.country,
         phone: clinics.phone,
         email: clinics.email,
         address: clinics.address,
@@ -49,10 +58,11 @@ export class LetterheadService {
       throw new NotFoundException("Resource not found");
     }
 
-    const language = documentSettings(row.settings).language;
-    const names = { ar: row.nameAr, en: row.nameEn };
-    const name = personName(names, language);
-    const otherName = personName(names, language === "ar" ? "en" : "ar");
+    const locale = clinicLocale(row);
+    const language = documentLanguage(row);
+    const name = localized(row.name, language, locale.languages);
+    const other = locale.languages.find((code) => code !== language);
+    const otherName = other ? localized(row.name, other) : "";
 
     return {
       name,
@@ -62,7 +72,9 @@ export class LetterheadService {
       email: row.email ?? "",
       currency: row.currency,
       language,
-      timeZone: clinicScheduleSettings(row.settings).timezone,
+      timeZone: locale.timeZone,
+      clock: locale.clock,
+      separators: numberSeparators(locale.numberLocale),
       logo: row.logoKey ? await this.storage.getObject(row.logoKey) : null,
     };
   }
@@ -81,7 +93,7 @@ export class LetterheadService {
       title,
       subtitle,
       issued: documentDate(now, clinic.timeZone),
-      printed: `${documentStrings(clinic.language).common.printed} ${isolateLtr(documentDateTime(now, clinic.timeZone))}`,
+      printed: `${documentStrings(clinic.language).common.printed} ${isolateLtr(documentDateTime(now, clinic.timeZone, clinic.clock))}`,
     });
   }
 }

@@ -1,4 +1,4 @@
-import type { TranslationLanguage } from "@clinic/shared";
+import { DEFAULT_LANGUAGE, isRtlLanguage, type TranslationLanguage } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
@@ -17,29 +17,39 @@ import {
   usePageParams,
   type Column,
 } from "@clinic/ui";
-import ar from "@web/i18n/locales/ar.json";
-import en from "@web/i18n/locales/en.json";
 import { useSaveTranslations, useTranslationOverrides } from "@web/modules/translations/queries";
 import { errorToast } from "@web/shared/lib/api-error";
 import { useDebounced } from "@web/shared/hooks/use-debounced";
+import { useClinicLanguages } from "@web/shared/hooks/use-clinic-languages";
 
 interface Group {
   readonly id: string;
   readonly keys: readonly string[];
   readonly sections: ReadonlySet<string>;
-  readonly shipped: Record<TranslationLanguage, string>;
+  readonly shipped: Partial<Record<TranslationLanguage, string>>;
 }
 
 type Row =
   | { readonly kind: "group"; readonly group: Group }
   | { readonly kind: "key"; readonly key: string; readonly group: Group };
 
-const SHIPPED: Record<TranslationLanguage, Record<string, string>> = {
-  ar: flatten(ar as Record<string, unknown>),
-  en: flatten(en as Record<string, unknown>),
-};
+const LOCALE_FILES = import.meta.glob<Record<string, unknown>>("../../../i18n/locales/*.json", {
+  eager: true,
+  import: "default",
+});
 
-const KEYS = Object.keys(SHIPPED.ar);
+const SHIPPED: Partial<Record<TranslationLanguage, Record<string, string>>> = Object.fromEntries(
+  Object.entries(LOCALE_FILES).map(([path, strings]) => [
+    path.replace(/^.*\/(\w+)\.json$/, "$1"),
+    flatten(strings),
+  ]),
+);
+
+const shippedIn = (language: TranslationLanguage, key: string): string =>
+  SHIPPED[language]?.[key] ?? "";
+
+const KEYS = Object.keys(SHIPPED[DEFAULT_LANGUAGE] ?? {});
+const SHIPPED_LANGUAGES = Object.keys(SHIPPED) as TranslationLanguage[];
 const sectionOf = (key: string): string => key.split(".")[0] ?? "";
 import { UnsavedChanges } from "@web/shared/components/unsaved-changes";
 const SECTIONS = [...new Set(KEYS.map(sectionOf))].sort();
@@ -48,7 +58,7 @@ const GROUPS: readonly Group[] = (() => {
   const byText = new Map<string, string[]>();
 
   for (const key of KEYS) {
-    const text = `${SHIPPED.ar[key] ?? ""}\u0000${SHIPPED.en[key] ?? ""}`;
+    const text = SHIPPED_LANGUAGES.map((language) => shippedIn(language, key)).join("\u0000");
     byText.set(text, [...(byText.get(text) ?? []), key]);
   }
 
@@ -56,7 +66,9 @@ const GROUPS: readonly Group[] = (() => {
     id: keys[0] ?? "",
     keys,
     sections: new Set(keys.map(sectionOf)),
-    shipped: { ar: SHIPPED.ar[keys[0] ?? ""] ?? "", en: SHIPPED.en[keys[0] ?? ""] ?? "" },
+    shipped: Object.fromEntries(
+      SHIPPED_LANGUAGES.map((language) => [language, shippedIn(language, keys[0] ?? "")]),
+    ),
   }));
 })();
 
@@ -65,6 +77,7 @@ const draftId = (language: TranslationLanguage, key: string): string => `${langu
 export function TranslationsPage(): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
+  const languages = useClinicLanguages();
   const [params, setSearchParams] = useSearchParams();
   const { page, perPage, setPage, resetPage } = usePageParams([DEFAULT_PER_PAGE]);
 
@@ -108,17 +121,17 @@ export function TranslationsPage(): JSX.Element {
     return GROUPS.filter((group) => (section === "" ? true : group.sections.has(section)))
       .filter((group) =>
         changedOnly
-          ? group.keys.some((key) => saved[draftId("ar", key)] || saved[draftId("en", key)])
+          ? group.keys.some((key) => languages.some((language) => saved[draftId(language, key)]))
           : true,
       )
       .filter((group) =>
         term === ""
           ? true
-          : group.shipped.ar.toLowerCase().includes(term) ||
-            group.shipped.en.toLowerCase().includes(term) ||
-            group.keys.some((key) => key.toLowerCase().includes(term)),
+          : languages.some((language) =>
+              (group.shipped[language] ?? "").toLowerCase().includes(term),
+            ) || group.keys.some((key) => key.toLowerCase().includes(term)),
       );
-  }, [section, changedOnly, debounced, saved]);
+  }, [section, changedOnly, debounced, saved, languages]);
 
   const totalPages = Math.max(1, Math.ceil(matched.length / perPage));
   const current = Math.min(page, totalPages);
@@ -169,7 +182,7 @@ export function TranslationsPage(): JSX.Element {
         {row.kind === "group" && (
           <span
             className="truncate text-meta text-ink-subtle"
-            dir={language === "ar" ? "rtl" : "ltr"}
+            dir={isRtlLanguage(language) ? "rtl" : "ltr"}
           >
             {row.group.shipped[language]}
           </span>
@@ -177,7 +190,7 @@ export function TranslationsPage(): JSX.Element {
         <Input
           data-testid={`translations-${language}-${testKey}`}
           className="min-w-0"
-          dir={language === "ar" ? "rtl" : "ltr"}
+          dir={isRtlLanguage(language) ? "rtl" : "ltr"}
           value={value ?? ""}
           placeholder={value === null ? t("translations.mixed") : row.group.shipped[language]}
           onChange={(event) => write(language, keys, event.target.value)}
@@ -199,7 +212,9 @@ export function TranslationsPage(): JSX.Element {
           </span>
         ) : (
           <span className="flex min-w-0 flex-col items-start gap-1">
-            <span className="max-w-full truncate text-value text-ink">{row.group.shipped.ar}</span>
+            <span className="max-w-full truncate text-value text-ink">
+              {row.group.shipped[languages[0] ?? DEFAULT_LANGUAGE]}
+            </span>
             {row.group.keys.length === 1 ? (
               <span className="max-w-full truncate text-meta text-ink-subtle" dir="ltr">
                 {row.group.id}
@@ -219,18 +234,12 @@ export function TranslationsPage(): JSX.Element {
           </span>
         ),
     },
-    {
-      key: "ar",
-      header: "translations.arabic",
-      className: "w-[39%] align-top",
-      render: (row) => languageCell(row, "ar"),
-    },
-    {
-      key: "en",
-      header: "translations.english",
-      className: "w-[39%] align-top",
-      render: (row) => languageCell(row, "en"),
-    },
+    ...languages.map((language) => ({
+      key: language,
+      header: `languages.name.${language}`,
+      className: "align-top",
+      render: (row: Row) => languageCell(row, language),
+    })),
   ];
 
   const submit = async (): Promise<void> => {

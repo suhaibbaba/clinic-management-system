@@ -10,8 +10,7 @@ export async function ensureSystemLookups(db: Executor, clinicId?: string): Prom
     SYSTEM_LOOKUPS[listKey].map((row, index) => ({
       listKey,
       code: row.code,
-      nameAr: row.nameAr,
-      nameEn: row.nameEn,
+      name: JSON.stringify(row.name),
       color: row.color ?? null,
       sortOrder: index,
       meta: JSON.stringify(row.meta ?? {}),
@@ -22,7 +21,7 @@ export async function ensureSystemLookups(db: Executor, clinicId?: string): Prom
   const values = sql.join(
     rows.map(
       (row) => sql`(
-        ${row.listKey}::text, ${row.code}::text, ${row.nameAr}::text, ${row.nameEn}::text,
+        ${row.listKey}::text, ${row.code}::text, ${row.name}::jsonb,
         ${row.color}::text, ${row.sortOrder}::integer, ${row.meta}::jsonb, ${row.chart}::text
       )`,
     ),
@@ -33,12 +32,12 @@ export async function ensureSystemLookups(db: Executor, clinicId?: string): Prom
 
   const result = await db.execute(sql`
     insert into lookup_options
-      (clinic_id, list_key, code, name_ar, name_en, color, sort_order, is_system, meta)
-    select c.id, v.list_key, v.code, v.name_ar, v.name_en, v.color, v.sort_order, true, v.meta
+      (clinic_id, list_key, code, name, color, sort_order, is_system, meta)
+    select c.id, v.list_key, v.code, v.name, v.color, v.sort_order, true, v.meta
     from clinics c
     cross join (
       values ${values}
-    ) as v(list_key, code, name_ar, name_en, color, sort_order, meta, chart)
+    ) as v(list_key, code, name, color, sort_order, meta, chart)
     where (
       v.chart is null
       or exists (

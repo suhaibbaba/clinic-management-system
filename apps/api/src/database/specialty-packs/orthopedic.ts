@@ -11,8 +11,7 @@ const drug = (
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_|_$/g, "")
     .slice(0, 48),
-  nameAr: name,
-  nameEn: name,
+  name: { ar: name, en: name },
   meta: { ...regimen, ...(note && { note }) },
 });
 
@@ -74,19 +73,19 @@ export const ORTHOPEDIC_PACK: SpecialtyPack = {
 
   lookups: {
     [LOOKUP_LIST.APPOINTMENT_TYPE]: [
-      { code: "cast_check", nameAr: "فحص الجبس", nameEn: "Cast check" },
-      { code: "cast_removal", nameAr: "فك الجبس", nameEn: "Cast removal" },
-      { code: "post_op", nameAr: "مراجعة بعد العملية", nameEn: "Post-operative review" },
-      { code: "injection", nameAr: "حقنة مفصل", nameEn: "Joint injection" },
+      { code: "cast_check", name: { ar: "فحص الجبس", en: "Cast check" } },
+      { code: "cast_removal", name: { ar: "فك الجبس", en: "Cast removal" } },
+      { code: "post_op", name: { ar: "مراجعة بعد العملية", en: "Post-operative review" } },
+      { code: "injection", name: { ar: "حقنة مفصل", en: "Joint injection" } },
     ],
 
     [LOOKUP_LIST.ATTACHMENT_TYPE]: [
-      { code: "xray", nameAr: "صورة أشعة X-ray", nameEn: "X-ray" },
-      { code: "mri", nameAr: "رنين مغناطيسي MRI", nameEn: "MRI" },
-      { code: "ct", nameAr: "تصوير طبقي CT", nameEn: "CT scan" },
-      { code: "dexa", nameAr: "فحص كثافة العظام DEXA", nameEn: "DEXA scan" },
-      { code: "ultrasound", nameAr: "ألتراساوند", nameEn: "Ultrasound" },
-      { code: "operative_report", nameAr: "تقرير عملية", nameEn: "Operative report" },
+      { code: "xray", name: { ar: "صورة أشعة X-ray", en: "X-ray" } },
+      { code: "mri", name: { ar: "رنين مغناطيسي MRI", en: "MRI" } },
+      { code: "ct", name: { ar: "تصوير طبقي CT", en: "CT scan" } },
+      { code: "dexa", name: { ar: "فحص كثافة العظام DEXA", en: "DEXA scan" } },
+      { code: "ultrasound", name: { ar: "ألتراساوند", en: "Ultrasound" } },
+      { code: "operative_report", name: { ar: "تقرير عملية", en: "Operative report" } },
     ],
 
     [LOOKUP_LIST.FREQUENT_DRUG]: [
@@ -128,25 +127,25 @@ export const ORTHOPEDIC_PACK: SpecialtyPack = {
     [LOOKUP_LIST.DRUG_INSTRUCTION]: [
       {
         code: "apply_locally",
-        nameAr: "يدهن موضعياً على مكان الألم",
-        nameEn: "Apply to the painful area",
+        name: { ar: "يدهن موضعياً على مكان الألم", en: "Apply to the painful area" },
       },
       {
         code: "once_weekly_upright",
-        nameAr: "مرة في الأسبوع على معدة فارغة، والبقاء واقفاً نصف ساعة",
-        nameEn: "Once a week on an empty stomach, stay upright for half an hour",
+        name: {
+          ar: "مرة في الأسبوع على معدة فارغة، والبقاء واقفاً نصف ساعة",
+          en: "Once a week on an empty stomach, stay upright for half an hour",
+        },
       },
       {
         code: "ice_after",
-        nameAr: "كمادات ثلج بعد الحقنة",
-        nameEn: "Ice packs after the injection",
+        name: { ar: "كمادات ثلج بعد الحقنة", en: "Ice packs after the injection" },
       },
     ],
 
     [LOOKUP_LIST.ITEM_CATEGORY]: [
-      { code: "casting", nameAr: "Casting materials", nameEn: "Casting materials" },
-      { code: "orthoses", nameAr: "Splints and braces", nameEn: "Splints and braces" },
-      { code: "injectables", nameAr: "Injectables", nameEn: "Injectables" },
+      { code: "casting", name: { ar: "Casting materials", en: "Casting materials" } },
+      { code: "orthoses", name: { ar: "Splints and braces", en: "Splints and braces" } },
+      { code: "injectables", name: { ar: "Injectables", en: "Injectables" } },
     ],
   },
 };

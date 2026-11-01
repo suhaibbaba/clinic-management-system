@@ -4,6 +4,7 @@ import {
   type UserRole,
   type ChartType,
   type Doctor,
+  type PersonName,
   USER_ROLE,
 } from "@clinic/shared";
 
@@ -18,8 +19,7 @@ export const doctorColumns = {
   defaultAppointmentDurationMinutes: doctors.defaultAppointmentDurationMinutes,
   createdAt: doctors.createdAt,
   updatedAt: doctors.updatedAt,
-  userNameAr: users.nameAr,
-  userNameEn: users.nameEn,
+  userName: users.name,
   userPhone: users.phone,
   userEmail: users.email,
   userIsActive: users.isActive,
@@ -39,8 +39,7 @@ export interface DoctorJoinedRow {
   defaultAppointmentDurationMinutes: number;
   createdAt: Date;
   updatedAt: Date;
-  userNameAr: string;
-  userNameEn: string;
+  userName: PersonName;
   userPhone: string;
   userEmail: string | null;
   userIsActive: boolean;
@@ -63,7 +62,7 @@ export function toDoctor(row: DoctorJoinedRow, photoUrl: string | null): Doctor 
     updatedAt: row.updatedAt.toISOString(),
     user: {
       id: row.userId,
-      name: { ar: row.userNameAr, en: row.userNameEn },
+      name: row.userName,
       phone: row.userPhone,
       email: row.userEmail,
       isActive: row.userIsActive,

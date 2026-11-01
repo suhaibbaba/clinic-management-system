@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { clinicLocaleSchema } from "@shared/locale/profile";
 import { BOOKING_NAME_LENGTH } from "@shared/constants/booking";
 import {
   BOOKING_CONFIRMATION_MODE,
@@ -50,6 +51,7 @@ export const publicClinicSchema = z.object({
   confirmationMode: z.enum(BOOKING_CONFIRMATION_MODES),
   maxDaysAhead: z.number().int(),
   messageChannel: z.enum(NOTIFICATION_CHANNELS),
+  locale: clinicLocaleSchema,
 });
 export type PublicClinic = z.infer<typeof publicClinicSchema>;
 

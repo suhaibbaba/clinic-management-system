@@ -198,8 +198,8 @@ export class UsersService implements OnModuleInit {
       .set({
         ...((input.firstName !== undefined || input.lastName !== undefined) &&
           staffNameColumns(
-            input.firstName ?? { ar: existing.firstNameAr, en: existing.firstNameEn },
-            input.lastName ?? { ar: existing.lastNameAr, en: existing.lastNameEn },
+            input.firstName ?? existing.firstName,
+            input.lastName ?? existing.lastName,
           )),
         ...(input.phone !== undefined && { phone: input.phone }),
         ...(input.email !== undefined && { email: input.email ?? null }),

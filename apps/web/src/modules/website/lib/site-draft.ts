@@ -1,6 +1,6 @@
 import { SITE_SECTIONS, type SiteSection, type SiteText } from "@clinic/shared";
 
-export const blankText = (): SiteText => ({ ar: "", en: "" });
+export const blankText = (): SiteText => ({});
 
 export const newItemId = (): string => crypto.randomUUID().slice(0, 8);
 

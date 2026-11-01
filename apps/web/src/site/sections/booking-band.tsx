@@ -66,7 +66,7 @@ function ContactChip({
 }
 
 export function BookingBand(): JSX.Element {
-  const { site, language, t } = useSite();
+  const { site, language, languages, t } = useSite();
   const glyph = useSiteGlyph();
   const { clinic } = site;
   const { cta } = site.content.about;
@@ -126,10 +126,10 @@ export function BookingBand(): JSX.Element {
           </div>
           <div className="relative order-first flex flex-col items-center gap-3 px-5 pt-12 text-center md:order-none md:py-12">
             <h2 id="booking-band-title" className="text-title font-bold md:text-headline">
-              {orDefault(cta.title, language, t("home.ctaTitle"))}
+              {orDefault(cta.title, language, t("home.ctaTitle"), languages)}
             </h2>
             <p className="max-w-md text-heading text-ink-inverse/90">
-              {pick(cta.subtitle, language) || t("home.ctaSubtitle")}
+              {pick(cta.subtitle, language, languages) || t("home.ctaSubtitle")}
             </p>
             {bookable && (
               <PillLink

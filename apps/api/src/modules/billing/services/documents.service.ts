@@ -90,7 +90,7 @@ export class DocumentsService {
         { label: text.fileNumber, value: patient.fileNumber, ltr: true },
         {
           label: text.date,
-          value: documentDateTime(payment.createdAt, clinic.timeZone),
+          value: documentDateTime(payment.createdAt, clinic.timeZone, clinic.clock),
           ltr: true,
         },
         { label: text.method, value: methods.get(payment.method) ?? payment.method },
@@ -100,14 +100,14 @@ export class DocumentsService {
 
     pdf.amount(
       isReversal ? text.reversedAmount : text.amount,
-      documentMoney(payment.amount.replace("-", ""), clinic.currency),
+      documentMoney(payment.amount.replace("-", ""), clinic.currency, clinic.separators),
       payment.note ? `${text.note}: ${payment.note}` : undefined,
     );
 
     pdf.totals([
       {
         label: isReversal ? text.balanceAfterReversal : text.balanceAfter,
-        value: documentMoney(balanceAfter, clinic.currency),
+        value: documentMoney(balanceAfter, clinic.currency, clinic.separators),
       },
     ]);
     pdf.signatures([text.signature, text.stamp]);
@@ -128,8 +128,9 @@ export class DocumentsService {
     const text = strings.statement;
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
     const zone = clinic.timeZone;
-    const money = (amount: Money): string => documentMoney(amount, clinic.currency);
-    const figure = (amount: Money): string => documentMoney(amount, "");
+    const money = (amount: Money): string =>
+      documentMoney(amount, clinic.currency, clinic.separators);
+    const figure = (amount: Money): string => documentMoney(amount, "", clinic.separators);
 
     await this.letterheads.draw(pdf, clinic, text.title);
     pdf.footer((page, total) => fillPage(strings.common.page, page, total));
@@ -142,7 +143,11 @@ export class DocumentsService {
         value: formatPeriod(statement, zone, text.all),
         ltr: statement.from !== null,
       },
-      { label: text.printedAt, value: documentDateTime(new Date().toISOString(), zone), ltr: true },
+      {
+        label: text.printedAt,
+        value: documentDateTime(new Date().toISOString(), zone, clinic.clock),
+        ltr: true,
+      },
     ]);
 
     let charged = 0;

@@ -1,5 +1,5 @@
-import { clockTime, localDate, minutesFromLocalMidnight } from "@clinic/shared";
+import { clockTime, localDate, minutesFromLocalMidnight, type ClockFormat } from "@clinic/shared";
 
-export function timeIn(timeZone: string, at: Date): string {
-  return clockTime(minutesFromLocalMidnight(at, localDate(at, timeZone), timeZone));
+export function timeIn(timeZone: string, at: Date, clock: ClockFormat = "12h"): string {
+  return clockTime(minutesFromLocalMidnight(at, localDate(at, timeZone), timeZone), clock);
 }

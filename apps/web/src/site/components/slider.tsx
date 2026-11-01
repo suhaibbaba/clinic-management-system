@@ -1,3 +1,4 @@
+import { isRtlLanguage } from "@clinic/shared";
 import { Children, useEffect, useRef, useState, type JSX, type ReactNode } from "react";
 import { cx } from "@web/booking/ui";
 import { SiteIcon } from "@web/site/components/site-icon";
@@ -44,7 +45,7 @@ export function Slider({
     }
 
     const step = first.offsetWidth + Number.parseFloat(getComputedStyle(element).columnGap || "0");
-    const towardEnd = language === "ar" ? -1 : 1;
+    const towardEnd = isRtlLanguage(language) ? -1 : 1;
 
     element.scrollBy({ left: step * direction * towardEnd, behavior: "smooth" });
   };

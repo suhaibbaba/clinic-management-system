@@ -1,7 +1,6 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import type { PortalAttachment, PortalFileLink, PortalRecord } from "@clinic/shared";
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
-import { toPersonName } from "@api/common/person-name";
 import { DATABASE, type Database } from "@api/database/database.module";
 import {
   appointments,
@@ -64,8 +63,7 @@ export class PortalRecordsService {
             startsAt: appointments.startsAt,
             durationMinutes: appointments.durationMinutes,
             status: appointments.status,
-            nameAr: users.nameAr,
-            nameEn: users.nameEn,
+            doctorName: users.name,
           })
           .from(appointments)
           .innerJoin(doctors, eq(doctors.id, appointments.doctorId))
@@ -87,8 +85,7 @@ export class PortalRecordsService {
             performedAt: performedProcedures.performedAt,
             price: performedProcedures.price,
             discount: performedProcedures.discount,
-            nameAr: users.nameAr,
-            nameEn: users.nameEn,
+            doctorName: users.name,
           })
           .from(performedProcedures)
           .innerJoin(procedureCatalog, eq(procedureCatalog.id, performedProcedures.procedureId))
@@ -109,8 +106,7 @@ export class PortalRecordsService {
             visitDate: visits.visitDate,
             complaint: visits.complaint,
             diagnosis: visits.diagnosis,
-            nameAr: users.nameAr,
-            nameEn: users.nameEn,
+            doctorName: users.name,
           })
           .from(visits)
           .innerJoin(doctors, eq(doctors.id, visits.doctorId))
@@ -130,8 +126,7 @@ export class PortalRecordsService {
             createdAt: prescriptions.createdAt,
             items: prescriptions.items,
             notes: prescriptions.notes,
-            nameAr: users.nameAr,
-            nameEn: users.nameEn,
+            doctorName: users.name,
           })
           .from(prescriptions)
           .innerJoin(doctors, eq(doctors.id, prescriptions.doctorId))
@@ -201,14 +196,14 @@ export class PortalRecordsService {
         startsAt: toIso(row.startsAt),
         durationMinutes: row.durationMinutes,
         status: row.status,
-        doctor: toPersonName(row.nameAr, row.nameEn),
+        doctor: row.doctorName,
       })),
       treatments: procedureRows.map((row) => ({
         id: row.id,
         name: row.name,
         status: row.status,
         performedAt: toIso(row.performedAt),
-        doctor: toPersonName(row.nameAr, row.nameEn),
+        doctor: row.doctorName,
         teeth: (teeth.get(row.id) ?? []).sort((a, b) => a - b),
         price: row.price,
         discount: row.discount,
@@ -216,14 +211,14 @@ export class PortalRecordsService {
       visits: visitRows.map((row) => ({
         id: row.id,
         visitDate: toIso(row.visitDate),
-        doctor: toPersonName(row.nameAr, row.nameEn),
+        doctor: row.doctorName,
         complaint: row.complaint,
         diagnosis: row.diagnosis,
       })),
       prescriptions: rxRows.map((row) => ({
         id: row.id,
         createdAt: toIso(row.createdAt),
-        doctor: toPersonName(row.nameAr, row.nameEn),
+        doctor: row.doctorName,
         items: row.items,
         notes: row.notes,
       })),

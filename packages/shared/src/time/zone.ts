@@ -87,11 +87,15 @@ export function shortDate(isoDate: string): string {
   return `${day}/${month}/${year}`;
 }
 
-export function clockTime(minuteOfDay: number): string {
+export function clockTime(minuteOfDay: number, clock: "12h" | "24h" = "12h"): string {
   const hours = Math.floor(minuteOfDay / 60) % 24;
-  const minutes = Math.floor(minuteOfDay % 60);
+  const minutes = String(Math.floor(minuteOfDay % 60)).padStart(2, "0");
 
-  return `${((hours + 11) % 12) + 1}:${String(minutes).padStart(2, "0")} ${hours < 12 ? "AM" : "PM"}`;
+  if (clock === "24h") {
+    return `${String(hours).padStart(2, "0")}:${minutes}`;
+  }
+
+  return `${((hours + 11) % 12) + 1}:${minutes} ${hours < 12 ? "AM" : "PM"}`;
 }
 
 export function localWeekday(isoDate: string, timeZone: string): number {

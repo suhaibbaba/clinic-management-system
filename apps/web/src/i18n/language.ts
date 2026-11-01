@@ -1,7 +1,8 @@
+import { LANGUAGE_CODES, type ClinicLocale, type LanguageCode } from "@clinic/shared";
 import i18n, { DEFAULT_LANGUAGE, isRtl, loadLanguage } from "@web/i18n";
 
-export const LANGUAGES = ["ar", "en"] as const;
-export type Language = (typeof LANGUAGES)[number];
+export const LANGUAGES = LANGUAGE_CODES;
+export type Language = LanguageCode;
 
 const STORAGE_KEY = "clinic.language";
 
@@ -46,4 +47,25 @@ export async function initLanguage(): Promise<void> {
   }
 
   applyLanguageToDocument(language);
+}
+
+export async function adoptClinicLanguage(
+  locale: Pick<ClinicLocale, "languages" | "primaryLanguage">,
+) {
+  const stored = storedLanguage();
+  const offered: readonly string[] = locale.languages;
+
+  if (stored !== null && offered.includes(stored)) {
+    return;
+  }
+
+  const language = locale.primaryLanguage;
+
+  if (i18n.language === language) {
+    return;
+  }
+
+  await loadLanguage(language);
+  applyLanguageToDocument(language);
+  await i18n.changeLanguage(language);
 }

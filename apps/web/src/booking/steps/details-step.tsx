@@ -2,7 +2,7 @@ import { isBookingPhone } from "@shared/constants/booking";
 import { joinPhone, type PhoneCountry } from "@shared/constants/phone";
 import { PhoneCountrySelect } from "@clinic/ui/components/phone-country-select";
 import { useState, type FormEvent, type JSX, type ReactNode } from "react";
-import { t } from "@web/booking/i18n";
+import { bookingLocale, t } from "@web/booking/i18n";
 import { isBookingNameComplete, NameFields } from "@web/booking/steps/name-fields";
 import { Button, Field } from "@web/booking/ui";
 
@@ -64,7 +64,7 @@ export function DetailsStep({
             <PhoneCountrySelect
               country={details.country}
               onChange={(country) => onChange({ ...details, country })}
-              language="ar"
+              language={bookingLocale().language}
               label={t("details.country")}
               data-testid="details-country"
             />

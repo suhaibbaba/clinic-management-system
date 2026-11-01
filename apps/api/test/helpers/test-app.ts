@@ -103,8 +103,7 @@ export async function createTestContext(): Promise<TestContext> {
       const [clinic] = await db
         .insert(clinics)
         .values({
-          nameAr: `عيادة اختبار ${suffix}`,
-          nameEn: `Test Clinic ${suffix}`,
+          name: { ar: `عيادة اختبار ${suffix}`, en: `Test Clinic ${suffix}` },
           slug: `test-${suffix}`,
           modules: [...modules],
         })
@@ -139,12 +138,9 @@ export async function createTestContext(): Promise<TestContext> {
           .insert(users)
           .values({
             clinicId: clinic.id,
-            firstNameAr: "اختبار",
-            lastNameAr: role,
-            firstNameEn: "Test",
-            lastNameEn: role,
-            nameAr: `اختبار ${role}`,
-            nameEn: `Test ${role}`,
+            firstName: { ar: "اختبار", en: "Test" },
+            lastName: { ar: role, en: role },
+            name: { ar: `اختبار ${role}`, en: `Test ${role}` },
             phone,
             email: `${role}.${suffix}@test.local`,
             passwordHash,

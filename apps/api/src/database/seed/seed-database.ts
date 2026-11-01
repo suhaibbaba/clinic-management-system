@@ -15,14 +15,17 @@ import {
   WAITING_LIST_SOURCE,
   WAITING_LIST_STATUS,
   addDays,
+  documentLanguage,
   instantFromLocal,
   joinPatientName,
   localDate,
+  localized,
   localWeekday,
   occupiesSlot,
   PAYROLL_ADJUSTMENT_KIND,
   STAFF_PAYMENT_KIND,
   type LabOrderStatus,
+  type LocalizedText,
 } from "@clinic/shared";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import type { BusyInterval } from "@api/modules/appointments/lib/slots";
@@ -134,10 +137,12 @@ export async function seedDatabase(db: Database, options: SeedOptions): Promise<
   const daysForward = options.daysForward ?? DEFAULT_DAYS_FORWARD;
 
   const name = options.namePrefix
-    ? {
-        ar: `${CLINIC_NAME.ar} ${options.namePrefix}`,
-        en: `${CLINIC_NAME.en} ${options.namePrefix}`,
-      }
+    ? (Object.fromEntries(
+        Object.entries(CLINIC_NAME).map(([language, text]) => [
+          language,
+          `${text} ${options.namePrefix}`,
+        ]),
+      ) as LocalizedText)
     : CLINIC_NAME;
 
   const clinic = await upsertSeedClinic(db, { slug, name, defaults: CLINIC_DEFAULTS });
@@ -1051,7 +1056,10 @@ async function writeNotifications(
           : index % 3 === 1
             ? NOTIFICATION_TEMPLATE.REMINDER_2H
             : NOTIFICATION_TEMPLATE.BOOKING_CONFIRMED,
-      vars: { clinic: CLINIC_NAME.ar, time: entry.startsAt.toISOString() },
+      vars: {
+        clinic: localized(CLINIC_NAME, documentLanguage(CLINIC_DEFAULTS)),
+        time: entry.startsAt.toISOString(),
+      },
       status: index % 17 === 0 ? NOTIFICATION_STATUS.FAILED : NOTIFICATION_STATUS.SENT,
       error: index % 17 === 0 ? "gateway timeout" : null,
       appointmentId: id as string,

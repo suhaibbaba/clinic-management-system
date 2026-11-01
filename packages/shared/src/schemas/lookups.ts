@@ -5,14 +5,20 @@ import {
   type LookupListKey,
 } from "@shared/constants/lookups";
 import { uuidSchema } from "@shared/schemas/common";
+import { FALLBACK_LANGUAGE } from "@shared/locale/languages";
+import {
+  localized,
+  localizedTextInputSchema,
+  localizedTextSchema,
+  type LocalizedText,
+} from "@shared/locale/localized-text";
 
 export const lookupOptionSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
   listKey: z.enum(LOOKUP_LIST_KEYS),
   code: z.string(),
-  nameAr: z.string(),
-  nameEn: z.string(),
+  name: localizedTextSchema,
   color: z.string().nullable(),
   sortOrder: z.number().int(),
   isSystem: z.boolean(),
@@ -41,8 +47,7 @@ const colourSchema = z
 export const createLookupOptionSchema = z.object({
   listKey: z.enum(LOOKUP_LIST_KEYS),
   code: lookupCodeSchema.optional(),
-  nameAr: z.string().trim().min(1).max(160),
-  nameEn: z.string().trim().min(1).max(160),
+  name: localizedTextInputSchema(1, 160),
   color: colourSchema.nullish(),
   meta: z.record(z.string(), z.unknown()).optional(),
 });
@@ -50,8 +55,7 @@ export type CreateLookupOptionInput = z.infer<typeof createLookupOptionSchema>;
 
 export const updateLookupOptionSchema = z
   .object({
-    nameAr: z.string().trim().min(1).max(160),
-    nameEn: z.string().trim().min(1).max(160),
+    name: localizedTextInputSchema(1, 160),
     color: colourSchema.nullish(),
     isActive: z.boolean(),
     meta: z.record(z.string(), z.unknown()),
@@ -83,12 +87,12 @@ export const lookupBundleSchema = z.record(z.string(), z.array(lookupOptionSchem
 export type LookupBundle = z.infer<typeof lookupBundleSchema>;
 
 export function lookupLabel(
-  option: { readonly listKey?: LookupListKey; readonly nameAr: string; readonly nameEn: string },
+  option: { readonly listKey?: LookupListKey; readonly name: LocalizedText },
   language: string,
+  fallbacks: readonly string[] = [],
 ): string {
-  const english =
-    language.startsWith("en") ||
-    (option.listKey !== undefined && ENGLISH_ONLY_LOOKUP_LISTS.includes(option.listKey));
+  const englishOnly =
+    option.listKey !== undefined && ENGLISH_ONLY_LOOKUP_LISTS.includes(option.listKey);
 
-  return english ? option.nameEn || option.nameAr : option.nameAr;
+  return localized(option.name, englishOnly ? FALLBACK_LANGUAGE : language, fallbacks);
 }

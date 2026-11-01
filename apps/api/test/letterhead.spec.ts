@@ -1,6 +1,7 @@
 import { LetterheadService, type Letterhead } from "@api/modules/billing/pdf/letterhead.service";
 import { PDFDocument } from "pdf-lib";
 import { RtlPdf } from "@api/modules/billing/pdf/pdf-builder";
+import { documentMoney } from "@api/modules/billing/pdf/document-format";
 
 describe("the printed letterhead", () => {
   const clinic = (over: Partial<Letterhead> = {}): Letterhead => ({
@@ -12,6 +13,8 @@ describe("the printed letterhead", () => {
     currency: "ILS",
     language: "ar",
     timeZone: "Asia/Damascus",
+    clock: "12h",
+    separators: { group: ",", decimal: "." },
     logo: null,
     ...over,
   });
@@ -56,6 +59,42 @@ describe("the printed letterhead", () => {
     expect(calls[0]).toMatchObject({ otherName: "Al Nour Clinic", email: "info@alnour.test" });
     expect(calls[0]?.issued).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
     expect(calls[0]?.printed).toMatch(/^تاريخ الطباعة \u2066\d{2}\/\d{2}\/\d{4} · .+\u2069$/);
+  });
+
+  it("prints a Turkish clinic's sheet in Turkish, on a 24-hour clock, with its own grouping", async () => {
+    const row = {
+      name: { tr: "Nur Kliniği", en: "Nur Clinic" },
+      country: "TR",
+      phone: "+905320000000",
+      email: null,
+      address: "İstanbul",
+      currency: "TRY",
+      settings: {},
+      logoKey: null,
+    };
+    const chain = {
+      select: () => chain,
+      from: () => chain,
+      where: () => chain,
+      limit: async () => [row],
+    };
+    const turkish = await new LetterheadService(chain as never, null as never).load("clinic");
+
+    expect(turkish).toMatchObject({
+      name: "Nur Kliniği",
+      otherName: "Nur Clinic",
+      language: "tr",
+      clock: "24h",
+      timeZone: "Europe/Istanbul",
+    });
+    expect(documentMoney("1250.00", turkish.currency, turkish.separators)).toBe("1.250 ₺");
+
+    const { pdf, calls } = capture();
+    await service.draw(pdf, turkish, "Tahsilat makbuzu");
+
+    expect(calls[0]?.printed).toMatch(
+      /^Yazdırılma tarihi \u2066\d{2}\/\d{2}\/\d{4} · \d{2}:\d{2}\u2069$/,
+    );
   });
 
   it("keeps the letterhead on every page of a long document", async () => {

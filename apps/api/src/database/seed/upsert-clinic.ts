@@ -1,5 +1,5 @@
 import type { PersonName } from "@clinic/shared";
-import { and, asc, count, eq, isNull, ne, or, type InferInsertModel } from "drizzle-orm";
+import { and, asc, count, eq, isNull, ne, or, sql, type InferInsertModel } from "drizzle-orm";
 import type { Database } from "@api/database/database.module";
 import { clinics, users } from "@api/database/schema";
 
@@ -7,7 +7,7 @@ type Db = Database;
 
 type ClinicDefaults = Omit<
   InferInsertModel<typeof clinics>,
-  "nameAr" | "nameEn" | "slug" | "id" | "createdAt" | "updatedAt" | "deletedAt"
+  "name" | "slug" | "id" | "createdAt" | "updatedAt" | "deletedAt"
 >;
 
 export interface SeedClinicSpec {
@@ -30,8 +30,9 @@ export async function upsertSeedClinic(db: Db, spec: SeedClinicSpec): Promise<Se
         isNull(clinics.deletedAt),
         or(
           eq(clinics.slug, spec.slug),
-          eq(clinics.nameAr, spec.name.ar),
-          eq(clinics.nameEn, spec.name.en),
+          ...Object.entries(spec.name).map(
+            ([language, value]) => sql`${clinics.name} ->> ${language} = ${value}`,
+          ),
         ),
       ),
     )
@@ -43,8 +44,7 @@ export async function upsertSeedClinic(db: Db, spec: SeedClinicSpec): Promise<Se
       .insert(clinics)
       .values({
         ...spec.defaults,
-        nameAr: spec.name.ar,
-        nameEn: spec.name.en,
+        name: spec.name,
         slug: spec.slug,
       })
       .returning({ id: clinics.id });

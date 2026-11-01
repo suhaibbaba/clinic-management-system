@@ -3,6 +3,7 @@ import {
   CHART_TYPES,
   USER_ROLES,
   type ClinicModule,
+  type LocalizedText,
   type WeeklySchedule,
 } from "@clinic/shared";
 import { sql } from "drizzle-orm";
@@ -46,8 +47,7 @@ export const clinics = pgTable(
   "clinics",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    nameAr: text("name_ar").notNull(),
-    nameEn: text("name_en").notNull(),
+    name: jsonb("name").$type<LocalizedText>().notNull(),
     slug: text("slug").notNull(),
     siteDomain: text("site_domain"),
     logoKey: text("logo_key"),
@@ -103,13 +103,10 @@ export const users = pgTable(
     clinicId: uuid("clinic_id")
       .notNull()
       .references(() => clinics.id),
-    firstNameAr: text("first_name_ar").notNull(),
-    lastNameAr: text("last_name_ar").notNull(),
-    firstNameEn: text("first_name_en").notNull(),
-    lastNameEn: text("last_name_en").notNull(),
-    nameAr: text("name_ar").notNull(),
-    nameEn: text("name_en").notNull(),
-    normalizedName: normalizedName("name_ar || ' ' || name_en"),
+    firstName: jsonb("first_name").$type<LocalizedText>().notNull(),
+    lastName: jsonb("last_name").$type<LocalizedText>().notNull(),
+    name: jsonb("name").$type<LocalizedText>().notNull(),
+    normalizedName: normalizedName("localized_text_values(name)"),
     phone: text("phone").notNull(),
     email: text("email"),
     passwordHash: text("password_hash"),

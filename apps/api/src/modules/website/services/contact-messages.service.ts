@@ -10,6 +10,8 @@ import {
 import {
   CONTACT_MESSAGE_STATUS,
   WEBSITE_ERROR,
+  localized,
+  localizedValues,
   type ContactMessage,
   type ContactMessageReceipt,
   type CreateContactMessageInput,
@@ -74,10 +76,9 @@ export class ContactMessagesService implements OnModuleInit {
       throw new HttpException(WEBSITE_ERROR.TOO_MANY_MESSAGES, HttpStatus.TOO_MANY_REQUESTS);
     }
 
-    const topic = input.topic
-      ? clinic.content.contact.topics.find(
-          (option) => option.ar === input.topic || option.en === input.topic,
-        )
+    const wanted = input.topic;
+    const topic = wanted
+      ? clinic.content.contact.topics.find((option) => localizedValues(option).includes(wanted))
       : undefined;
 
     if (input.topic && !topic) {
@@ -89,7 +90,9 @@ export class ContactMessagesService implements OnModuleInit {
       name: input.name,
       phone: input.phone,
       email: input.email ?? null,
-      topic: topic?.ar ?? null,
+      topic: topic
+        ? localized(topic, clinic.locale.primaryLanguage, clinic.locale.languages)
+        : null,
       message: input.message,
     });
 
@@ -115,7 +118,7 @@ export class ContactMessagesService implements OnModuleInit {
       this.db
         .select({
           message: contactMessages,
-          handler: { nameAr: users.nameAr, nameEn: users.nameEn },
+          handler: { name: users.name },
         })
         .from(contactMessages)
         .leftJoin(users, eq(users.id, contactMessages.handledBy))
@@ -170,7 +173,7 @@ export class ContactMessagesService implements OnModuleInit {
     const [row] = await this.db
       .select({
         message: contactMessages,
-        handler: { nameAr: users.nameAr, nameEn: users.nameEn },
+        handler: { name: users.name },
       })
       .from(contactMessages)
       .leftJoin(users, eq(users.id, contactMessages.handledBy))

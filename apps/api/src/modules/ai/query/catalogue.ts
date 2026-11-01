@@ -53,8 +53,7 @@ export const READ_VIEWS: readonly ReadView[] = [
     joins: "JOIN public.users u ON u.id = t.user_id",
     columns: [
       { name: "id" },
-      { name: "name_ar", sql: "u.name_ar" },
-      { name: "name_en", sql: "u.name_en" },
+      { name: "name", sql: "localized_text_values(u.name)" },
       { name: "specialty_id" },
       { name: "is_active", sql: "u.is_active" },
     ],

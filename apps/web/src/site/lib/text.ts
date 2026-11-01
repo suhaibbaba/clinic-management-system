@@ -1,17 +1,52 @@
-import type { DaySchedule, PersonName, SiteLanguage, SiteText } from "@clinic/shared";
+import {
+  isLanguageCode,
+  languageDefinition,
+  localized,
+  type ClinicLocale,
+  type DaySchedule,
+  type PersonName,
+  type SiteLanguage,
+  type SiteText,
+} from "@clinic/shared";
 import { clockTime } from "@shared/time/zone";
 
-export const pick = (text: SiteText, language: SiteLanguage): string =>
-  (language === "en" ? text.en : text.ar) || text.ar;
+export const pick = (
+  text: SiteText,
+  language: SiteLanguage,
+  languages: readonly SiteLanguage[] = [],
+): string => localized(text, language, languages);
 
-export const orDefault = (text: SiteText, language: SiteLanguage, fallback: string): string =>
-  pick(text, language) || fallback;
+export const orDefault = (
+  text: SiteText,
+  language: SiteLanguage,
+  fallback: string,
+  languages: readonly SiteLanguage[] = [],
+): string => pick(text, language, languages) || fallback;
 
-export const nameIn = (name: PersonName, language: SiteLanguage): string =>
-  (language === "en" ? name.en : name.ar) || name.ar;
+export const nameIn = (
+  name: PersonName,
+  language: SiteLanguage,
+  languages: readonly SiteLanguage[] = [],
+): string => localized(name, language, languages);
 
 export const isSiteLanguage = (value: string | null): value is SiteLanguage =>
-  value === "ar" || value === "en";
+  isLanguageCode(value);
+
+export const siteLanguage = (
+  requested: string | null,
+  locale: Pick<ClinicLocale, "languages" | "primaryLanguage">,
+): SiteLanguage =>
+  isSiteLanguage(requested) && locale.languages.includes(requested)
+    ? requested
+    : locale.primaryLanguage;
+
+export const intlLocaleOf = (language: SiteLanguage): string =>
+  `${languageDefinition(language).intlLocale}-u-nu-latn`;
+
+export const topicValue = (
+  topic: SiteText,
+  locale: Pick<ClinicLocale, "languages" | "primaryLanguage">,
+): string => localized(topic, locale.primaryLanguage, locale.languages);
 
 export interface HoursRow {
   readonly days: readonly number[];
@@ -43,15 +78,16 @@ export function groupHours(schedule: readonly DaySchedule[]): HoursRow[] {
 const SUNDAY = Date.UTC(2024, 0, 7);
 
 export function weekdayName(weekday: number, language: SiteLanguage): string {
-  return new Intl.DateTimeFormat(language, { weekday: "long", timeZone: "UTC" }).format(
-    new Date(SUNDAY + weekday * 86_400_000),
-  );
+  return new Intl.DateTimeFormat(intlLocaleOf(language), {
+    weekday: "long",
+    timeZone: "UTC",
+  }).format(new Date(SUNDAY + weekday * 86_400_000));
 }
 
-export function timeLabel(time: string): string {
+export function timeLabel(time: string, clock: ClinicLocale["clock"] = "12h"): string {
   const [hours = 0, minutes = 0] = time.split(":").map(Number);
 
-  return clockTime(hours * 60 + minutes);
+  return clockTime(hours * 60 + minutes, clock);
 }
 
 export interface HoursSummary {

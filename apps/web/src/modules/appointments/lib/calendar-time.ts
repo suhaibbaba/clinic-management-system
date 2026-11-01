@@ -6,7 +6,7 @@ import {
   type CalendarAppointment,
   type DoctorTimeOff,
 } from "@clinic/shared";
-import { clinicTimeZone } from "@web/shared/lib/clinic-zone";
+import { clinicTimeZone } from "@web/shared/lib/clinic-locale";
 
 export const QUEUE_STEP_MINUTES = 15;
 

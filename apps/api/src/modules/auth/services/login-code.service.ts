@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { and, desc, eq, gt, inArray, isNull, lt, sql } from "drizzle-orm";
+import { clinicLocale } from "@clinic/shared";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, loginCodes, users } from "@api/database/schema";
 import { AccountEmailService } from "@api/modules/email/services/account-email.service";
@@ -134,10 +135,11 @@ export class LoginCodeService {
   private async send(user: UserRow, to: string, code: string): Promise<void> {
     const [clinic] = await this.db
       .select({
-        nameAr: clinics.nameAr,
-        nameEn: clinics.nameEn,
+        name: clinics.name,
         logoKey: clinics.logoKey,
         email: clinics.email,
+        country: clinics.country,
+        settings: clinics.settings,
       })
       .from(clinics)
       .where(eq(clinics.id, user.clinicId))
@@ -148,11 +150,12 @@ export class LoginCodeService {
     }
 
     await this.email.sendLoginCode(
-      { email: to, name: { ar: user.nameAr, en: user.nameEn } },
+      { email: to, name: user.name },
       {
-        name: { ar: clinic.nameAr, en: clinic.nameEn },
+        name: clinic.name,
         logoKey: clinic.logoKey,
         email: clinic.email,
+        language: clinicLocale(clinic).primaryLanguage,
       },
       code,
       LOGIN_CODE_TTL_MINUTES,

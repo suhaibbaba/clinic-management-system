@@ -158,8 +158,7 @@ export class LotBlocksService {
         block: lotBlocks,
         itemName: inventoryItems.name,
         unit: inventoryItems.unit,
-        blockedByNameAr: users.nameAr,
-        blockedByNameEn: users.nameEn,
+        blockedByName: users.name,
       })
       .from(lotBlocks)
       .innerJoin(inventoryItems, eq(inventoryItems.id, lotBlocks.itemId))
@@ -193,7 +192,7 @@ export class LotBlocksService {
       )
       .orderBy(asc(stockMovements.createdAt));
 
-    return rows.map(({ block, itemName, unit, blockedByNameAr, blockedByNameEn }) => {
+    return rows.map(({ block, itemName, unit, blockedByName }) => {
       const batch = stock
         .get(block.itemId)
         ?.batches.find((candidate) => candidate.batchNo === block.batchNo);
@@ -207,7 +206,7 @@ export class LotBlocksService {
         expiryDate: batch?.expiryDate ?? null,
         reason: block.reason,
         blockedAt: block.createdAt.toISOString(),
-        blockedByName: toOptionalPersonName(blockedByNameAr, blockedByNameEn),
+        blockedByName: toOptionalPersonName(blockedByName),
         liftedAt: block.liftedAt?.toISOString() ?? null,
         remaining: batch?.remaining ?? "0",
         uses: uses

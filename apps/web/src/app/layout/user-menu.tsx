@@ -1,4 +1,4 @@
-import type { AuthenticatedUserProfile } from "@clinic/shared";
+import { languageDefinition, languageScript, type AuthenticatedUserProfile } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -14,10 +14,9 @@ import {
 import { Icon } from "@clinic/ui/components/icon";
 import { PersonName, usePersonName } from "@clinic/ui/components/person-name";
 import { WEB_VERSION } from "@web/shared/constants/app";
-import { changeLanguage, LANGUAGES } from "@web/i18n/language";
+import { changeLanguage } from "@web/i18n/language";
 import { cn } from "@clinic/ui/lib/cn";
 import { Ltr } from "@clinic/ui/components/ltr";
-import { LANGUAGE_LABELS } from "@web/shared/constants/layout";
 
 export interface UserMenuProps {
   readonly user: AuthenticatedUserProfile;
@@ -80,17 +79,17 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
 
         <MenuLabel>{t("nav.language")}</MenuLabel>
 
-        {LANGUAGES.map((language) => (
+        {user.clinic.locale.languages.map((language) => (
           <MenuItem
             key={language}
             data-testid={`user-menu-language-${language}`}
-            icon={language === "ar" ? "language" : "globe"}
+            icon={languageScript(language) === "arabic" ? "language" : "globe"}
             onSelect={() => void changeLanguage(language)}
             {...(language === current && {
               trailing: <Icon name="check" className="text-primary-600" />,
             })}
           >
-            {LANGUAGE_LABELS[language]}
+            {languageDefinition(language).nativeName}
           </MenuItem>
         ))}
 

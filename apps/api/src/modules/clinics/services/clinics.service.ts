@@ -1,18 +1,19 @@
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
   type OnModuleInit,
 } from "@nestjs/common";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import {
   ALLOWED_CLINIC_LOGO_MIME_TYPES,
   CLINIC_ICONS,
   MAX_APP_SHORT_NAME_LENGTH,
   MAX_CLINIC_ICON_BYTES,
   MAX_CLINIC_LOGO_BYTES,
-  appointmentSettingsSchema,
+  CLINIC_ERROR,
   clinicIcon,
   type Clinic,
   type ClinicBranding,
@@ -24,12 +25,22 @@ import {
   type PresignClinicLogoInput,
   type PresignClinicLogoResponse,
   type UpdateClinicInput,
-  documentSettings,
+  documentLanguage,
+  DEFAULT_LANGUAGE,
+  languageDirection,
 } from "@clinic/shared";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { clinics } from "@api/database/schema";
+import {
+  charges,
+  clinics,
+  expenses,
+  labPayments,
+  payments,
+  supplierOpeningBalances,
+  supplierPayments,
+} from "@api/database/schema";
 import { StorageService } from "@api/modules/storage/services/storage.service";
 import { LOGO_CATEGORY } from "@api/modules/clinics/constants";
 import { CLINICS_ENTITY } from "@api/common/constants/audit-entities";
@@ -38,6 +49,8 @@ import {
   appName,
   iconSource,
   iconKey,
+  isTimeZone,
+  SETTINGS_SECTIONS,
   ClinicRow,
 } from "@api/modules/clinics/lib/clinics";
 
@@ -68,8 +81,8 @@ export class ClinicsService implements OnModuleInit {
   async branding(): Promise<ClinicBranding> {
     const rows = await this.db
       .select({
-        nameAr: clinics.nameAr,
-        nameEn: clinics.nameEn,
+        name: clinics.name,
+        country: clinics.country,
         settings: clinics.settings,
         logoKey: clinics.logoKey,
         logoIconsAt: clinics.logoIconsAt,
@@ -85,7 +98,7 @@ export class ClinicsService implements OnModuleInit {
     }
 
     return {
-      name: { ar: only.nameAr, en: only.nameEn },
+      name: only.name,
       logoUrl: await this.signLogo(only.logoKey),
       iconsAt: only.logoIconsAt?.toISOString() ?? null,
       appName: appName(only),
@@ -95,8 +108,8 @@ export class ClinicsService implements OnModuleInit {
   async manifest(): Promise<ClinicManifest> {
     const rows = await this.db
       .select({
-        nameAr: clinics.nameAr,
-        nameEn: clinics.nameEn,
+        name: clinics.name,
+        country: clinics.country,
         settings: clinics.settings,
         logoKey: clinics.logoKey,
         appIconKey: clinics.appIconKey,
@@ -107,7 +120,7 @@ export class ClinicsService implements OnModuleInit {
       .limit(2);
 
     const only = rows.length === 1 ? rows[0] : undefined;
-    const language = only ? documentSettings(only.settings).language : "ar";
+    const language = only ? documentLanguage(only) : DEFAULT_LANGUAGE;
     const name = appName(only);
     const version = only?.logoIconsAt?.toISOString();
 
@@ -115,7 +128,7 @@ export class ClinicsService implements OnModuleInit {
       name,
       short_name: name.slice(0, MAX_APP_SHORT_NAME_LENGTH).trim(),
       lang: language,
-      dir: language === "ar" ? "rtl" : "ltr",
+      dir: languageDirection(language),
       start_url: "/",
       scope: "/",
       display: "standalone",
@@ -312,23 +325,35 @@ export class ClinicsService implements OnModuleInit {
   }
 
   async update(actor: AuthenticatedUser, input: UpdateClinicInput): Promise<Clinic> {
-    await this.findOwnOrFail(actor.clinicId);
+    const existing = await this.findOwnOrFail(actor.clinicId);
+    const settings = input.settings as Record<string, unknown> | undefined;
 
-    const appointmentsSettings = (input.settings as Record<string, unknown> | undefined)?.[
-      "appointments"
-    ];
+    for (const [key, schema] of SETTINGS_SECTIONS) {
+      const section = settings?.[key];
+
+      if (section !== undefined && !schema.safeParse(section).success) {
+        throw new BadRequestException(`settings.${key} is invalid`);
+      }
+    }
+
+    const timeZone = settings?.["timezone"];
+
+    if (timeZone !== undefined && !isTimeZone(timeZone)) {
+      throw new BadRequestException("settings.timezone is invalid");
+    }
 
     if (
-      appointmentsSettings !== undefined &&
-      !appointmentSettingsSchema.strict().safeParse(appointmentsSettings).success
+      input.currency !== undefined &&
+      input.currency !== existing.currency &&
+      (await this.hasRecordedMoney(actor.clinicId))
     ) {
-      throw new BadRequestException("settings.appointments is invalid");
+      throw new ConflictException(CLINIC_ERROR.CURRENCY_LOCKED);
     }
 
     const [row] = await this.db
       .update(clinics)
       .set({
-        ...(input.name !== undefined && { nameAr: input.name.ar, nameEn: input.name.en }),
+        ...(input.name !== undefined && { name: input.name }),
         ...(input.phone !== undefined && { phone: input.phone ?? null }),
         ...(input.email !== undefined && { email: input.email ?? null }),
         ...(input.address !== undefined && { address: input.address ?? null }),
@@ -349,6 +374,27 @@ export class ClinicsService implements OnModuleInit {
     }
 
     return this.withLogoUrl(row);
+  }
+
+  private async hasRecordedMoney(clinicId: string): Promise<boolean> {
+    const ledgers = [
+      charges,
+      payments,
+      labPayments,
+      supplierPayments,
+      supplierOpeningBalances,
+      expenses,
+    ];
+    const [row] = await this.db.execute<{ recorded: boolean }>(
+      sql`select ${sql.join(
+        ledgers.map(
+          (ledger) => sql`exists (select 1 from ${ledger} where ${ledger.clinicId} = ${clinicId})`,
+        ),
+        sql` or `,
+      )} as recorded`,
+    );
+
+    return row?.recorded === true;
   }
 
   private async verifyUploadedImage(key: string, clinicId: string): Promise<void> {

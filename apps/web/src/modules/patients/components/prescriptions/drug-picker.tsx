@@ -1,4 +1,5 @@
 import {
+  FALLBACK_LANGUAGE,
   LOOKUP_LIST,
   lookupLabel,
   readDrugRegimen,
@@ -62,8 +63,7 @@ export const DrugPicker = forwardRef<HTMLInputElement, DrugPickerProps>(function
       try {
         const added = await create.mutateAsync({
           listKey: LOOKUP_LIST.FREQUENT_DRUG,
-          nameAr: typed,
-          nameEn: typed,
+          name: { [FALLBACK_LANGUAGE]: typed },
         });
         toast.success("prescriptions.drugAdded");
         pick(added);

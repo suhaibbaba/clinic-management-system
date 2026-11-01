@@ -1,5 +1,5 @@
 import { minutesFromLocalMidnight, localDate, instantFromLocal } from "@clinic/shared";
-import { clinicTimeZone } from "@web/shared/lib/clinic-zone";
+import { clinicTimeZone } from "@web/shared/lib/clinic-locale";
 import { WORK_WEEK_LAST_DAY } from "@web/shared/constants/dates";
 
 export const minutesOf = (iso: string): number => {

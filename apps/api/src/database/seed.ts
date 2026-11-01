@@ -1,5 +1,5 @@
 import { hash } from "@node-rs/argon2";
-import { USER_ROLE } from "@clinic/shared";
+import { USER_ROLE, bothNames } from "@clinic/shared";
 import { ConfigService } from "@nestjs/config";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
@@ -78,7 +78,7 @@ function report(summary: SeedSummary, password: string, elapsedMs: number): void
 
   const lines = [
     "",
-    `Seeded clinic: ${CLINIC_NAME.en} (${CLINIC_NAME.ar})`,
+    `Seeded clinic: ${bothNames(CLINIC_NAME)}`,
     "",
     'Sign in at POST /auth/login with the phone or the email as "identifier":',
     "",

@@ -13,14 +13,14 @@ import { IconInput, Labelled } from "@web/site/components/site-field";
 import { useSite } from "@web/site/hooks/use-site";
 import { FIELD_BOX, fieldTone } from "@web/site/lib/field-style";
 import { revealField } from "@web/site/lib/reveal-field";
-import { pick } from "@web/site/lib/text";
+import { pick, topicValue } from "@web/site/lib/text";
 
 const EMPTY = { name: "", phone: "", topic: "", message: "" };
 
 type ContactField = keyof typeof EMPTY;
 
 export function ContactForm(): JSX.Element {
-  const { site, language, t, preview } = useSite();
+  const { site, language, languages, t, preview } = useSite();
   const base = useId();
   const [country, setCountry] = useState<PhoneCountry>(
     isPhoneCountry(site.clinic.country) ? site.clinic.country : DEFAULT_PHONE_COUNTRY,
@@ -165,28 +165,32 @@ export function ContactForm(): JSX.Element {
                 {t("contact.form.topic")} ({t("contact.form.optional")})
               </legend>
               <div className="flex flex-wrap gap-2" data-testid="site-contact-topics">
-                {topics.map((topic) => (
-                  <label
-                    key={topic.ar}
-                    className={cx(
-                      "pill-text inline-flex min-h-(--control-h) cursor-pointer items-center rounded-pill border px-4 text-label font-medium transition-colors",
-                      "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-primary-600",
-                      values.topic === topic.ar
-                        ? "border-primary-600 bg-primary-600 text-ink-inverse"
-                        : "border-line-strong bg-surface text-ink-muted hover:border-primary-300 hover:text-primary-700",
-                    )}
-                  >
-                    <input
-                      type="radio"
-                      name={`${base}-topic`}
-                      value={topic.ar}
-                      checked={values.topic === topic.ar}
-                      onChange={() => set("topic")(topic.ar)}
-                      className="sr-only"
-                    />
-                    {pick(topic, language)}
-                  </label>
-                ))}
+                {topics.map((topic, index) => {
+                  const value = topicValue(topic, site.clinic.locale);
+
+                  return (
+                    <label
+                      key={`${index}-${value}`}
+                      className={cx(
+                        "pill-text inline-flex min-h-(--control-h) cursor-pointer items-center rounded-pill border px-4 text-label font-medium transition-colors",
+                        "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-primary-600",
+                        values.topic === value
+                          ? "border-primary-600 bg-primary-600 text-ink-inverse"
+                          : "border-line-strong bg-surface text-ink-muted hover:border-primary-300 hover:text-primary-700",
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name={`${base}-topic`}
+                        value={value}
+                        checked={values.topic === value}
+                        onChange={() => set("topic")(value)}
+                        className="sr-only"
+                      />
+                      {pick(topic, language, languages)}
+                    </label>
+                  );
+                })}
               </div>
             </fieldset>
           )}

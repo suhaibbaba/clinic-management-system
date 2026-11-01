@@ -8,8 +8,8 @@ import { useSite } from "@web/site/hooks/use-site";
 import { pick } from "@web/site/lib/text";
 
 export function SiteTopBar(): JSX.Element {
-  const { site, language } = useSite();
-  const tagline = pick(site.content.brand.tagline, language);
+  const { site, language, languages } = useSite();
+  const tagline = pick(site.content.brand.tagline, language, languages);
   const hours = useHoursText();
   const address = site.clinic.address;
 

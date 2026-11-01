@@ -1,17 +1,18 @@
 import {
-  DEFAULT_PHONE_COUNTRY,
   isPhoneCountry,
+  languageDefinition,
   type PhoneCountry,
   type SiteLanguage,
 } from "@clinic/shared";
-import { ARABIC_FLAG_COUNTRIES, ENGLISH_FLAG_COUNTRY } from "@web/site/constants";
+import { LANGUAGE_FLAGS } from "@web/site/constants";
 
 export function languageFlag(language: SiteLanguage, clinicCountry: string): PhoneCountry {
-  if (language === "en") {
-    return ENGLISH_FLAG_COUNTRY;
-  }
+  const { countries, fallback } = LANGUAGE_FLAGS[language];
 
-  return isPhoneCountry(clinicCountry) && ARABIC_FLAG_COUNTRIES.includes(clinicCountry)
+  return isPhoneCountry(clinicCountry) && countries.includes(clinicCountry)
     ? clinicCountry
-    : DEFAULT_PHONE_COUNTRY;
+    : fallback;
 }
+
+export const languageLabel = (language: SiteLanguage): string =>
+  languageDefinition(language).nativeName;

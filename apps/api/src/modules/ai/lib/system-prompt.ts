@@ -1,8 +1,8 @@
-import type { PersonName, UserRole } from "@clinic/shared";
+import { localizedValues, type PersonName, type UserRole } from "@clinic/shared";
 import { viewCatalogue } from "@api/modules/ai/query/catalogue";
 import { groupCatalogue } from "@api/modules/ai/tools/tool-groups";
 
-export const SYSTEM_PROMPT_VERSION = 12;
+export const SYSTEM_PROMPT_VERSION = 13;
 
 export interface PromptDoctor {
   readonly id: string;
@@ -149,5 +149,8 @@ function actor(input: SystemPromptInput): string[] {
   ];
 }
 
-const both = (name: PersonName): string =>
-  name.en && name.en !== name.ar ? `${name.ar} (${name.en})` : name.ar;
+function both(name: PersonName): string {
+  const [first = "", ...others] = localizedValues(name);
+
+  return others.length > 0 ? `${first} (${others.join(", ")})` : first;
+}

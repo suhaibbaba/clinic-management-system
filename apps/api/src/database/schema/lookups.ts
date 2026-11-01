@@ -9,6 +9,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import type { LocalizedText } from "@clinic/shared";
 import { clinics } from "@api/database/schema/core";
 
 export const lookupOptions = pgTable(
@@ -20,8 +21,7 @@ export const lookupOptions = pgTable(
       .references(() => clinics.id),
     listKey: text("list_key").notNull(),
     code: text("code").notNull(),
-    nameAr: text("name_ar").notNull(),
-    nameEn: text("name_en").notNull(),
+    name: jsonb("name").$type<LocalizedText>().notNull(),
     color: text("color"),
     sortOrder: integer("sort_order").notNull().default(0),
     isSystem: boolean("is_system").notNull().default(false),

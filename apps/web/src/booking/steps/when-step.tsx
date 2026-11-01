@@ -2,7 +2,7 @@ import type { PublicSlots } from "@clinic/shared";
 import type { JSX, ReactNode } from "react";
 import { failureKey } from "@web/booking/api";
 import { dayTitle, formatTime, weekTitle, type DayChip } from "@web/booking/format";
-import { t } from "@web/booking/i18n";
+import { bookingLocale, t } from "@web/booking/i18n";
 import { Alert, Button, Skeleton, cx } from "@web/booking/ui";
 import type { AsyncState } from "@web/booking/use-async";
 
@@ -10,11 +10,10 @@ export type SlotOption = PublicSlots["slots"][number];
 
 const NOON = 12;
 
-const PLURAL = new Intl.PluralRules("ar");
-
 const isMorning = (slot: SlotOption): boolean => Number(slot.start.split(":")[0]) < NOON;
 
-const slotCount = (count: number): string => t(`when.count.${PLURAL.select(count)}`, { count });
+const slotCount = (count: number): string =>
+  t(`when.count.${new Intl.PluralRules(bookingLocale().language).select(count)}`, { count });
 
 function Glyph({
   path,

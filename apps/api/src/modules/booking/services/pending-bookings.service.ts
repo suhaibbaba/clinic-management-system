@@ -2,8 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   APPOINTMENT_STATUS,
-  clinicScheduleSettings,
-  DEFAULT_TIME_ZONE,
+  clinicLocale,
   localDate,
   shortDate,
   NOTIFICATION_TEMPLATE,
@@ -14,7 +13,6 @@ import { AppointmentsService } from "@api/modules/appointments/services/appointm
 import { BookingTokenService } from "@api/modules/booking/services/booking-token.service";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { type Env } from "@api/config/env.schema";
-import { notificationName } from "@api/common/person-name";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics } from "@api/database/schema";
 import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
@@ -46,9 +44,9 @@ export class PendingBookingsService {
       appointmentId: appointment.id,
       vars: {
         clinic: clinic.name,
-        doctor: notificationName(appointment.doctorName),
-        date: shortDate(localDate(new Date(appointment.startsAt), clinic.timeZone)),
-        time: timeIn(clinic.timeZone, new Date(appointment.startsAt)),
+        doctor: appointment.doctorName,
+        date: shortDate(localDate(new Date(appointment.startsAt), clinic.locale.timeZone)),
+        time: timeIn(clinic.locale.timeZone, new Date(appointment.startsAt), clinic.locale.clock),
         link: this.manageLink(appointment.id),
       },
     });
@@ -73,25 +71,22 @@ export class PendingBookingsService {
       appointmentId: appointment.id,
       vars: {
         clinic: clinic.name,
-        date: shortDate(localDate(new Date(appointment.startsAt), clinic.timeZone)),
-        time: timeIn(clinic.timeZone, new Date(appointment.startsAt)),
+        date: shortDate(localDate(new Date(appointment.startsAt), clinic.locale.timeZone)),
+        time: timeIn(clinic.locale.timeZone, new Date(appointment.startsAt), clinic.locale.clock),
       },
     });
 
     return appointment;
   }
 
-  private async clinicFor(clinicId: string): Promise<{ name: string; timeZone: string }> {
+  private async clinicFor(clinicId: string) {
     const [row] = await this.db
-      .select({ nameAr: clinics.nameAr, nameEn: clinics.nameEn, settings: clinics.settings })
+      .select({ name: clinics.name, country: clinics.country, settings: clinics.settings })
       .from(clinics)
       .where(eq(clinics.id, clinicId))
       .limit(1);
 
-    return {
-      name: row ? notificationName({ ar: row.nameAr, en: row.nameEn }) : "",
-      timeZone: clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE,
-    };
+    return { name: row?.name ?? "", locale: clinicLocale(row) };
   }
 
   private manageLink(appointmentId: string): string {

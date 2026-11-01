@@ -1,6 +1,12 @@
 import {
   ALLOWED_CLINIC_LOGO_MIME_TYPES,
+  clinicLocale,
+  countryPreset,
   CURRENCIES,
+  documentLanguage,
+  isCurrency,
+  isRtlLanguage,
+  type LocalizedText,
   DEFAULT_PHONE_COUNTRY,
   isPhoneCountry,
   MAX_CLINIC_LOGO_BYTES,
@@ -55,13 +61,14 @@ import { useClinic } from "@web/shared/queries/clinic";
 import { errorToast } from "@web/shared/lib/api-error";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
-import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
+import { setClinicTimeZone } from "@web/shared/lib/clinic-locale";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { CLINIC_APP_ICON_LABELS, CLINIC_LOGO_LABELS } from "@web/modules/clinic/constants";
 import { countChanges } from "@web/shared/lib/changes";
-
-const isCurrency = (value: string): value is Currency =>
-  (CURRENCIES as readonly string[]).includes(value);
+import {
+  ClinicLocaleSection,
+  type ClinicLocaleDraft,
+} from "@web/modules/clinic/components/clinic-locale-section";
 
 export function ClinicPage(): JSX.Element {
   const { t, i18n } = useTranslation();
@@ -74,8 +81,8 @@ export function ClinicPage(): JSX.Element {
   const updateClinic = useUpdateClinic();
   const resolveLocation = useResolveLocation();
 
-  const [nameAr, setNameAr] = useState("");
-  const [nameEn, setNameEn] = useState("");
+  const [name, setName] = useState<LocalizedText>({});
+  const [locale, setLocale] = useState<ClinicLocaleDraft>(() => localeDraftOf(clinicLocale(null)));
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
@@ -84,6 +91,10 @@ export function ClinicPage(): JSX.Element {
   const [country, setCountry] = useState<PhoneCountry>(DEFAULT_PHONE_COUNTRY);
   const countryNames = useMemo(
     () => new Intl.DisplayNames([i18n.language], { type: "region" }),
+    [i18n.language],
+  );
+  const currencyNames = useMemo(
+    () => new Intl.DisplayNames([i18n.language], { type: "currency" }),
     [i18n.language],
   );
   const [workingHours, setWorkingHours] = useState<WeeklySchedule>([]);
@@ -96,8 +107,7 @@ export function ClinicPage(): JSX.Element {
         : null;
 
     return {
-      nameAr: data.name.ar,
-      nameEn: data.name.en,
+      name: data.name,
       phone: data.phone ?? "",
       email: data.email ?? "",
       address: data.address ?? "",
@@ -106,12 +116,16 @@ export function ClinicPage(): JSX.Element {
       country: isPhoneCountry(data.country) ? data.country : DEFAULT_PHONE_COUNTRY,
       workingHours: data.workingHours,
       autoNoShowDays: appointmentSettings(data.settings).autoNoShowDays,
+      locale: {
+        ...localeDraftOf(clinicLocale(data)),
+        documentLanguage: documentLanguage(data),
+      },
     };
   };
 
   const applyDraft = (draft: ReturnType<typeof draftFrom>): void => {
-    setNameAr(draft.nameAr);
-    setNameEn(draft.nameEn);
+    setName(draft.name);
+    setLocale(draft.locale);
     setPhone(draft.phone);
     setEmail(draft.email);
     setAddress(draft.address);
@@ -134,8 +148,7 @@ export function ClinicPage(): JSX.Element {
   }, [clinic.data]);
 
   const current = {
-    nameAr,
-    nameEn,
+    name,
     phone,
     email,
     address,
@@ -144,6 +157,7 @@ export function ClinicPage(): JSX.Element {
     country,
     workingHours,
     autoNoShowDays,
+    locale,
   };
   const changes = clinic.data ? countChanges(draftFrom(clinic.data), current) : 0;
 
@@ -173,7 +187,7 @@ export function ClinicPage(): JSX.Element {
   }, [shortLink, location]);
 
   const body: UpdateClinicInput = {
-    name: { ar: nameAr.trim(), en: nameEn.trim() },
+    name: Object.fromEntries(locale.languages.map((code) => [code, (name[code] ?? "").trim()])),
     phone: phone === "" ? null : phone,
     email: email.trim() === "" ? null : email.trim(),
     address: address.trim() === "" ? null : address.trim(),
@@ -182,7 +196,13 @@ export function ClinicPage(): JSX.Element {
     currency,
     country,
     workingHours,
-    settings: { ...clinic.data?.settings, appointments: { autoNoShowDays } },
+    settings: {
+      ...clinic.data?.settings,
+      appointments: { autoNoShowDays },
+      timezone: locale.timeZone,
+      locale: { languages: locale.languages, clock: locale.clock, weekStart: locale.weekStart },
+      documents: { language: locale.documentLanguage },
+    },
   };
 
   const form = useFormErrors({
@@ -224,32 +244,30 @@ export function ClinicPage(): JSX.Element {
         >
           <div className="flex flex-col gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div onBlur={form.leave("name.ar")}>
-                <FormField error={errors["name.ar"]} label="clinic.nameAr" htmlFor="clinic-name-ar">
-                  <Input
-                    placeholder={t("common.placeholders.fullNameAr")}
-                    id="clinic-name-ar"
-                    data-testid="clinic-field-name-ar"
-                    value={nameAr}
-                    disabled={!canEdit}
-                    onChange={(event) => setNameAr(event.target.value)}
-                  />
-                </FormField>
-              </div>
-
-              <div onBlur={form.leave("name.en")}>
-                <FormField error={errors["name.en"]} label="clinic.nameEn" htmlFor="clinic-name-en">
-                  <Input
-                    placeholder={t("common.placeholders.fullNameEn")}
-                    id="clinic-name-en"
-                    data-testid="clinic-field-name-en"
-                    dir="ltr"
-                    value={nameEn}
-                    disabled={!canEdit}
-                    onChange={(event) => setNameEn(event.target.value)}
-                  />
-                </FormField>
-              </div>
+              {locale.languages.map((code) => (
+                <div key={code} onBlur={form.leave(`name.${code}`)}>
+                  <FormField
+                    error={errors[`name.${code}`] ?? errors["name"]}
+                    label="clinic.nameIn"
+                    labelValues={{ language: t(`languages.in.${code}`) }}
+                    htmlFor={`clinic-name-${code}`}
+                    required={code === locale.languages[0]}
+                  >
+                    <Input
+                      placeholder={t("common.placeholders.fullNameIn", {
+                        language: t(`languages.in.${code}`),
+                      })}
+                      id={`clinic-name-${code}`}
+                      data-testid={`clinic-field-name-${code}`}
+                      lang={code}
+                      {...(!isRtlLanguage(code) && { dir: "ltr" })}
+                      value={name[code] ?? ""}
+                      disabled={!canEdit}
+                      onChange={(event) => setName({ ...name, [code]: event.target.value })}
+                    />
+                  </FormField>
+                </div>
+              ))}
             </div>
 
             <div onBlur={form.leave("phone")}>
@@ -378,7 +396,7 @@ export function ClinicPage(): JSX.Element {
                   disabled={!canEdit}
                   options={CURRENCIES.map((code) => ({
                     value: code,
-                    label: `${t(`clinic.currencies.${code}`)} (${code})`,
+                    label: `${currencyNames.of(code) ?? code} (${code})`,
                   }))}
                   onChange={(event) => setCurrency(event.target.value as Currency)}
                 />
@@ -423,6 +441,24 @@ export function ClinicPage(): JSX.Element {
             <AppIconField src={clinic.data?.appIconUrl ?? null} canEdit={canEdit} />
           </div>
         </section>
+
+        <ClinicLocaleSection
+          value={locale}
+          onChange={setLocale}
+          canEdit={canEdit}
+          onApplyCountry={() => {
+            const preset = countryPreset(country);
+
+            setCurrency(preset.currency);
+            setLocale({
+              languages: preset.languages,
+              documentLanguage: preset.languages[0],
+              timeZone: preset.timeZone,
+              clock: preset.clock,
+              weekStart: preset.weekStart,
+            });
+          }}
+        />
 
         <section
           data-testid="clinic-working-hours"
@@ -726,4 +762,14 @@ function AboutSection(): JSX.Element {
       <InstallCard />
     </section>
   );
+}
+
+function localeDraftOf(locale: ReturnType<typeof clinicLocale>): ClinicLocaleDraft {
+  return {
+    languages: locale.languages,
+    documentLanguage: locale.primaryLanguage,
+    timeZone: locale.timeZone,
+    clock: locale.clock,
+    weekStart: locale.weekStart,
+  };
 }

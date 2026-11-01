@@ -47,7 +47,7 @@ import {
   todayIso,
   workWeekDates,
 } from "@web/shared/lib/dates";
-import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
+import { setClinicTimeZone } from "@web/shared/lib/clinic-locale";
 import { DayQueue } from "@web/modules/appointments/components/day-queue";
 import {
   canBookAppointment,

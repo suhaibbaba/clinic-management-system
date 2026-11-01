@@ -13,7 +13,7 @@ import { nameIn, orDefault, pick } from "@web/site/lib/text";
 import { SITE_PATH } from "@web/site/route";
 
 export function DoctorsTeaser(): JSX.Element | null {
-  const { site, language, t } = useSite();
+  const { site, language, languages, t } = useSite();
   const { doctors: copy } = site.content;
   const doctors = visibleDoctors(site);
 
@@ -30,8 +30,8 @@ export function DoctorsTeaser(): JSX.Element | null {
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-14">
         <ShowcaseHeading
           id="doctors-teaser"
-          title={orDefault(copy.title, language, t("doctors.title"))}
-          subtitle={orDefault(copy.subtitle, language, t("doctors.subtitle"))}
+          title={orDefault(copy.title, language, t("doctors.title"), languages)}
+          subtitle={orDefault(copy.subtitle, language, t("doctors.subtitle"), languages)}
           action={
             <PillLink to={SITE_PATH.DOCTORS} tone="outline" data-testid="site-doctors-more">
               {t("home.doctorsAll")}
@@ -44,7 +44,7 @@ export function DoctorsTeaser(): JSX.Element | null {
           data-testid="site-doctors-carousel"
         >
           {doctors.map((doctor) => {
-            const name = nameIn(doctor.name, language);
+            const name = nameIn(doctor.name, language, languages);
             const profile = profileOf(site, doctor.id);
 
             return (
@@ -67,7 +67,7 @@ export function DoctorsTeaser(): JSX.Element | null {
                       {name}
                     </span>
                     <span className="site-fill-soft text-label text-ink-muted">
-                      {(profile && pick(profile.title, language)) || doctor.specialty}
+                      {(profile && pick(profile.title, language, languages)) || doctor.specialty}
                     </span>
                   </span>
                   <span

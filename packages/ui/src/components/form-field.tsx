@@ -10,6 +10,7 @@ import { parts, type TestIdProps } from "@ui/lib/testid";
 
 export interface FormFieldProps extends TestIdProps {
   label: string;
+  labelValues?: Record<string, string | number> | undefined;
   htmlFor: string;
   error?: FieldError | undefined;
   errorKey?: string | undefined;
@@ -24,6 +25,7 @@ export interface FormFieldProps extends TestIdProps {
 
 export function FormField({
   label,
+  labelValues,
   htmlFor,
   error,
   errorKey,
@@ -51,7 +53,7 @@ export function FormField({
           {...part("label")}
           className="cursor-pointer text-label font-medium text-ink"
         >
-          {t(label)}
+          {t(label, labelValues ?? {})}
           {required && (
             <span {...part("required")} aria-hidden="true" className="ms-1 text-danger-600">
               *

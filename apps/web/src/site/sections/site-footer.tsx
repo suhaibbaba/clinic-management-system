@@ -5,8 +5,8 @@ import { useSite } from "@web/site/hooks/use-site";
 import { nameIn } from "@web/site/lib/text";
 
 export function SiteFooter(): JSX.Element {
-  const { site, language, t } = useSite();
-  const name = nameIn(site.clinic.name, language);
+  const { site, language, languages, t } = useSite();
+  const name = nameIn(site.clinic.name, language, languages);
 
   return (
     <footer data-testid="site-footer" className="bg-primary-50">

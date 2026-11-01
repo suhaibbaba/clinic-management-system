@@ -582,6 +582,20 @@
       "when": 1793491520507,
       "tag": "0082_reopen_payroll_month",
       "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1793493406770,
+      "tag": "0083_localized_names",
+      "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1793494416571,
+      "tag": "0084_ai_read_localized_names",
+      "breakpoints": true
     }
   ]
 }

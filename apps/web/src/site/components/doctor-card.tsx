@@ -18,11 +18,11 @@ export function DoctorCard({
   readonly doctor: PublicSiteDoctor;
   readonly bookable: boolean;
 }): JSX.Element {
-  const { site, language, t } = useSite();
-  const name = nameIn(doctor.name, language);
+  const { site, language, languages, t } = useSite();
+  const name = nameIn(doctor.name, language, languages);
   const profile = profileOf(site, doctor.id);
-  const title = (profile && pick(profile.title, language)) || doctor.specialty;
-  const bio = profile ? pick(profile.bio, language) : "";
+  const title = (profile && pick(profile.title, language, languages)) || doctor.specialty;
+  const bio = profile ? pick(profile.bio, language, languages) : "";
   const profilePath = `${SITE_PATH.DOCTORS}/${doctor.id}`;
 
   return (

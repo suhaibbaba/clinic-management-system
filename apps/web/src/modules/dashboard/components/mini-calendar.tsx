@@ -6,9 +6,11 @@ import { toIsoDate, todayIso } from "@web/shared/lib/dates";
 import { useCalendar } from "@web/shared/queries/appointments";
 import { cn } from "@clinic/ui/lib/cn";
 import { MINI_CALENDAR_WEEKDAYS } from "@web/modules/dashboard/constants";
+import { activeClinicLocale } from "@web/shared/lib/clinic-locale";
+import { dateLocale } from "@web/shared/lib/format";
 
 export function MiniCalendar(): JSX.Element {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const today = todayIso();
   const [month, setMonth] = useState(() => today.slice(0, 7));
@@ -25,12 +27,17 @@ export function MiniCalendar(): JSX.Element {
     return days;
   }, [feed.data]);
 
-  const cells = useMemo(() => monthCells(month), [month]);
+  const weekStart = activeClinicLocale().weekStart;
+  const cells = useMemo(() => monthCells(month, weekStart), [month, weekStart]);
+  const weekdays = [
+    ...MINI_CALENDAR_WEEKDAYS.slice(weekStart),
+    ...MINI_CALENDAR_WEEKDAYS.slice(0, weekStart),
+  ];
 
-  const monthLabel = new Intl.DateTimeFormat(
-    i18n.language.startsWith("en") ? "en-GB-u-ca-gregory-nu-latn" : "ar-SY-u-ca-gregory-nu-latn",
-    { month: "long", year: "numeric" },
-  ).format(new Date(`${month}-01T12:00:00Z`));
+  const monthLabel = new Intl.DateTimeFormat(dateLocale(), {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${month}-01T12:00:00Z`));
 
   return (
     <Widget data-testid="mini-calendar">
@@ -56,7 +63,7 @@ export function MiniCalendar(): JSX.Element {
       </div>
 
       <div data-testid="mini-calendar-grid" className="grid grid-cols-7 gap-[3px] text-center">
-        {MINI_CALENDAR_WEEKDAYS.map((key) => (
+        {weekdays.map((key) => (
           <b key={key} className="py-1 text-micro font-medium text-ink-muted">
             {t(`dashboard.calendar.weekday.${key}`)}
           </b>
@@ -151,11 +158,11 @@ function StepButton({
   );
 }
 
-function monthCells(month: string): readonly (string | null)[] {
+function monthCells(month: string, weekStart: number): readonly (string | null)[] {
   const [year = 0, index = 1] = month.split("-").map(Number);
   const first = new Date(Date.UTC(year, index - 1, 1));
   const days = new Date(Date.UTC(year, index, 0)).getUTCDate();
-  const lead = first.getUTCDay();
+  const lead = (first.getUTCDay() - weekStart + 7) % 7;
 
   const cells: (string | null)[] = Array.from({ length: lead }, () => null);
 

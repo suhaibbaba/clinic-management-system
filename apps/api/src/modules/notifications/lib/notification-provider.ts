@@ -8,6 +8,7 @@ export interface OutboundMessage {
   readonly to: string;
   readonly channel: NotificationChannel;
   readonly body: string;
+  readonly language?: string | undefined;
 }
 
 export interface OutboundDocument {
@@ -15,6 +16,7 @@ export interface OutboundDocument {
   readonly pdf: Buffer;
   readonly filename: string;
   readonly caption: string;
+  readonly language?: string | undefined;
 }
 
 export interface NotificationProvider {

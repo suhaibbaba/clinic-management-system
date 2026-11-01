@@ -1,12 +1,16 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
-  DEFAULT_NOTIFICATION_TEMPLATES,
+  DEFAULT_LANGUAGE,
+  defaultNotificationTemplate,
+  documentLanguage,
   NOTIFICATION_CHANNEL,
   NOTIFICATION_STATUS,
   NOTIFICATION_TEMPLATE,
   notificationSettings,
   renderTemplate,
+  resolveNotificationVars,
+  type LanguageCode,
   type NotificationChannel,
   type NotificationSettings,
   type NotificationTemplate,
@@ -38,14 +42,15 @@ export class NotificationsService {
   ) {}
 
   async send(input: SendNotification): Promise<SendResult | null> {
-    const settings = await this.settingsFor(input.clinicId);
+    const { settings, language } = await this.clinicFor(input.clinicId);
 
     if (!settings.enabled || inRehearsal()) {
       return null;
     }
 
     const channel = input.channel ?? settings.channel;
-    const body = renderTemplate(this.bodyFor(settings, input.template), input.vars);
+    const vars = resolveNotificationVars(input.vars, language);
+    const body = renderTemplate(this.bodyFor(settings, input.template, language), vars);
 
     const [row] = await this.db
       .insert(notificationsLog)
@@ -57,8 +62,8 @@ export class NotificationsService {
         vars:
           input.template === NOTIFICATION_TEMPLATE.BOOKING_OTP ||
           input.template === NOTIFICATION_TEMPLATE.PORTAL_CODE
-            ? { ...input.vars, code: "••••••" }
-            : input.vars,
+            ? { ...vars, code: "••••••" }
+            : vars,
         status: NOTIFICATION_STATUS.QUEUED,
         appointmentId: input.appointmentId ?? null,
       })
@@ -71,7 +76,7 @@ export class NotificationsService {
     let result: SendResult = { id: row.id, status: NOTIFICATION_STATUS.QUEUED, body };
 
     await afterCommit(async () => {
-      result = await this.dispatch(row.id, input, channel, body);
+      result = await this.dispatch(row.id, input, channel, body, language);
     });
 
     return result;
@@ -82,9 +87,10 @@ export class NotificationsService {
     input: SendNotification,
     channel: NotificationChannel,
     body: string,
+    language: LanguageCode,
   ): Promise<SendResult> {
     try {
-      await this.deliver(input.clinicId, { to: input.to, channel, body });
+      await this.deliver(input.clinicId, { to: input.to, channel, body, language });
 
       await this.db
         .update(notificationsLog)
@@ -137,20 +143,37 @@ export class NotificationsService {
   }
 
   async settingsFor(clinicId: string): Promise<NotificationSettings> {
+    return (await this.clinicFor(clinicId)).settings;
+  }
+
+  async languageFor(clinicId: string): Promise<LanguageCode> {
+    return (await this.clinicFor(clinicId)).language;
+  }
+
+  private async clinicFor(
+    clinicId: string,
+  ): Promise<{ settings: NotificationSettings; language: LanguageCode }> {
     const [row] = await this.db
-      .select({ settings: clinics.settings })
+      .select({ settings: clinics.settings, country: clinics.country })
       .from(clinics)
       .where(eq(clinics.id, clinicId))
       .limit(1);
 
-    return notificationSettings(row?.settings);
+    return {
+      settings: notificationSettings(row?.settings),
+      language: row ? documentLanguage(row) : DEFAULT_LANGUAGE,
+    };
   }
 
-  private bodyFor(settings: NotificationSettings, template: NotificationTemplate): string {
+  private bodyFor(
+    settings: NotificationSettings,
+    template: NotificationTemplate,
+    language: LanguageCode,
+  ): string {
     const custom = settings.templates[template];
 
     return typeof custom === "string" && custom.trim() !== ""
       ? custom
-      : DEFAULT_NOTIFICATION_TEMPLATES[template];
+      : defaultNotificationTemplate(template, language);
   }
 }

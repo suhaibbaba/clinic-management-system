@@ -1,14 +1,9 @@
 import { randomBytes } from "node:crypto";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { personName } from "@clinic/shared";
+import { languageDirection, localized } from "@clinic/shared";
 import { type Env } from "@api/config/env.schema";
-import {
-  EMAIL_PROVIDER,
-  COPY,
-  LOGIN_CODE_COPY,
-  LOGO_CONTENT_ID,
-} from "@api/modules/email/constants";
+import { EMAIL_PROVIDER, ACCOUNT_EMAIL_COPY, LOGO_CONTENT_ID } from "@api/modules/email/constants";
 import { type EmailProvider } from "@api/modules/email/lib/email-provider";
 import { renderEmail } from "@api/modules/email/lib/email-template";
 import { StorageService } from "@api/modules/storage/services/storage.service";
@@ -49,13 +44,15 @@ export class AccountEmailService {
   ): Promise<void> {
     const base = this.config.get("PUBLIC_BASE_URL", { infer: true }).replace(/\/$/, "");
     const hours = this.config.get("EMAIL_LINK_TTL_HOURS", { infer: true });
-    const copy = COPY[purpose];
-    const clinicName = personName(clinic.name, "ar");
-    const who = personName(recipient.name, "ar");
+    const copy = ACCOUNT_EMAIL_COPY[clinic.language][purpose];
+    const clinicName = localized(clinic.name, clinic.language);
+    const who = localized(recipient.name, clinic.language);
     const logo = await this.logo(clinic.logoKey);
 
     const { html, text } = renderEmail({
       clinicName,
+      language: clinic.language,
+      direction: languageDirection(clinic.language),
       ...(logo ? { logoContentId: LOGO_CONTENT_ID } : {}),
       heading: copy.heading,
       body: copy.body(who, clinicName, hours),
@@ -80,24 +77,27 @@ export class AccountEmailService {
     code: string,
     minutes: number,
   ): Promise<void> {
-    const clinicName = personName(clinic.name, "ar");
-    const who = personName(recipient.name, "ar");
+    const copy = ACCOUNT_EMAIL_COPY[clinic.language].loginCode;
+    const clinicName = localized(clinic.name, clinic.language);
+    const who = localized(recipient.name, clinic.language);
     const logo = await this.logo(clinic.logoKey);
 
     const { html, text } = renderEmail({
       clinicName,
+      language: clinic.language,
+      direction: languageDirection(clinic.language),
       ...(logo ? { logoContentId: LOGO_CONTENT_ID } : {}),
-      heading: LOGIN_CODE_COPY.heading,
-      body: LOGIN_CODE_COPY.body(who, clinicName, minutes),
+      heading: copy.heading,
+      body: copy.body(who, clinicName, minutes),
       code,
-      footer: LOGIN_CODE_COPY.footer,
+      footer: copy.footer,
     });
 
     await this.provider.send({
       to: recipient.email,
       fromName: clinicName,
       ...(clinic.email ? { replyTo: clinic.email } : {}),
-      subject: LOGIN_CODE_COPY.subject(clinicName),
+      subject: copy.subject(clinicName),
       html,
       text,
       ...(logo ? { attachments: [logo] } : {}),

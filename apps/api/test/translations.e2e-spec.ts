@@ -40,7 +40,7 @@ describe("Translations (e2e)", () => {
   };
 
   it("starts empty: nothing is copied out of the locale files", async () => {
-    expect(await bundle(tokens[USER_ROLE.ADMIN])).toEqual({ ar: {}, en: {} });
+    expect(await bundle(tokens[USER_ROLE.ADMIN])).toEqual({ ar: {}, en: {}, tr: {} });
   });
 
   it("returns a saved override nested the way i18next takes a bundle", async () => {
@@ -54,6 +54,7 @@ describe("Translations (e2e)", () => {
     expect(await bundle(tokens[USER_ROLE.ADMIN])).toEqual({
       ar: { labs: { orders: { title: "أعمال المخابر" } } },
       en: {},
+      tr: {},
     });
   });
 
@@ -77,7 +78,7 @@ describe("Translations (e2e)", () => {
     });
 
     expect(response.statusCode).toBe(204);
-    expect(await bundle(tokens[USER_ROLE.ADMIN])).toEqual({ ar: {}, en: {} });
+    expect(await bundle(tokens[USER_ROLE.ADMIN])).toEqual({ ar: {}, en: {}, tr: {} });
   });
 
   it("frees the key, so it can be overridden again", async () => {
@@ -120,7 +121,7 @@ describe("Translations (e2e)", () => {
 
       const saved = await bundle(tokens[USER_ROLE.ADMIN]);
 
-      expect(saved.ar.nav).not.toHaveProperty("patients");
+      expect(saved.ar?.nav).not.toHaveProperty("patients");
       expect(saved.en).not.toHaveProperty("nav");
     });
 
@@ -237,6 +238,6 @@ describe("Translations (e2e)", () => {
     const other = await context.createClinic();
     const otherAdmin = await context.login(other.phones[USER_ROLE.ADMIN]);
 
-    expect(await bundle(otherAdmin)).toEqual({ ar: {}, en: {} });
+    expect(await bundle(otherAdmin)).toEqual({ ar: {}, en: {}, tr: {} });
   });
 });

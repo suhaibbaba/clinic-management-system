@@ -2,8 +2,7 @@ import { ConflictException, Inject, Injectable } from "@nestjs/common";
 import {
   APPOINTMENT_STATUS,
   APPOINTMENT_RELEASED_STATUSES,
-  clinicScheduleSettings,
-  DEFAULT_TIME_ZONE,
+  clinicLocale,
   localDate,
   shortDate,
   NOTIFICATION_TEMPLATE,
@@ -97,13 +96,13 @@ export class ScheduleConflictsService {
     }
 
     const [clinic] = await this.db
-      .select({ nameAr: clinics.nameAr, nameEn: clinics.nameEn, settings: clinics.settings })
+      .select({ name: clinics.name, country: clinics.country, settings: clinics.settings })
       .from(clinics)
       .where(eq(clinics.id, actor.clinicId))
       .limit(1);
 
-    const settings = clinicScheduleSettings(clinic?.settings);
-    const zone = settings.timezone || DEFAULT_TIME_ZONE;
+    const locale = clinicLocale(clinic);
+    const zone = locale.timeZone;
 
     for (const conflict of conflicts) {
       await this.db
@@ -124,9 +123,9 @@ export class ScheduleConflictsService {
         template: NOTIFICATION_TEMPLATE.BOOKING_CANCELLED,
         appointmentId: conflict.id,
         vars: {
-          clinic: clinic?.nameAr ?? "",
+          clinic: clinic?.name ?? "",
           date: shortDate(localDate(startsAt, zone)),
-          time: timeIn(zone, startsAt),
+          time: timeIn(zone, startsAt, locale.clock),
         },
       });
     }

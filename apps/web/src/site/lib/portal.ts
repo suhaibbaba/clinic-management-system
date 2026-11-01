@@ -1,4 +1,5 @@
 import type {
+  ClinicLocale,
   PortalAccount,
   PortalAppointment,
   PortalPrescription,
@@ -6,13 +7,15 @@ import type {
   SiteLanguage,
 } from "@clinic/shared";
 import { APPOINTMENT_STATUS } from "@shared/enums";
-import { currencySymbol, formatWholeMoney, subtractMoney } from "@shared/schemas/money";
+import { currencySymbol } from "@shared/locale/currencies";
+import type { NumberSeparators } from "@shared/locale/numbers";
+import { formatWholeMoney, subtractMoney } from "@shared/schemas/money";
+import { clockTime } from "@shared/time/zone";
 import { PORTAL_PAGE_TAIL, PORTAL_TABS } from "@web/site/constants";
 import type { Translate } from "@web/site/i18n";
+import { intlLocaleOf } from "@web/site/lib/text";
 
 export type PortalTab = (typeof PORTAL_TABS)[number];
-
-const LOCALES: Record<SiteLanguage, string> = { ar: "ar-u-nu-latn", en: "en-GB" };
 
 const stripBidiMarks = (text: string): string => text.replaceAll(/[‎‏؜]/g, "");
 
@@ -22,16 +25,28 @@ export function portalDate(iso: string, timeZone: string): string {
   return `${day}/${month}/${year}`;
 }
 
-export function portalTime(iso: string, timeZone: string): string {
-  return stripBidiMarks(
-    new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone }).format(
-      new Date(iso),
-    ),
-  );
+export function portalTime(
+  iso: string,
+  timeZone: string,
+  clock: ClinicLocale["clock"] = "12h",
+): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    hour: "numeric",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone,
+  }).formatToParts(new Date(iso));
+  const part = (type: Intl.DateTimeFormatPartTypes): number =>
+    Number(parts.find((entry) => entry.type === type)?.value ?? 0);
+
+  return clockTime(part("hour") * 60 + part("minute"), clock);
 }
 
-export const portalDateTime = (iso: string, timeZone: string): string =>
-  `${portalDate(iso, timeZone)} · ${portalTime(iso, timeZone)}`;
+export const portalDateTime = (
+  iso: string,
+  timeZone: string,
+  clock: ClinicLocale["clock"] = "12h",
+): string => `${portalDate(iso, timeZone)} · ${portalTime(iso, timeZone, clock)}`;
 
 export interface PortalDateParts {
   readonly day: string;
@@ -54,7 +69,9 @@ export function portalDateParts(iso: string, timeZone: string): PortalDateParts 
 
 export function portalWeekday(iso: string, language: SiteLanguage, timeZone: string): string {
   return stripBidiMarks(
-    new Intl.DateTimeFormat(LOCALES[language], { weekday: "long", timeZone }).format(new Date(iso)),
+    new Intl.DateTimeFormat(intlLocaleOf(language), { weekday: "long", timeZone }).format(
+      new Date(iso),
+    ),
   );
 }
 
@@ -85,8 +102,11 @@ export function treatmentTone(status: PortalTreatment["status"]): PortalTone {
   return status === "done" ? "success" : status === "cancelled" ? "neutral" : "warning";
 }
 
-export const portalMoney = (amount: string, currency: string): string =>
-  `\u2066${formatWholeMoney(amount)}\u00A0${currencySymbol(currency)}\u2069`;
+export const portalMoney = (
+  amount: string,
+  currency: string,
+  separators?: NumberSeparators,
+): string => `\u2066${formatWholeMoney(amount, separators)}\u00A0${currencySymbol(currency)}\u2069`;
 
 export const netPrice = (price: string, discount: string): string => subtractMoney(price, discount);
 

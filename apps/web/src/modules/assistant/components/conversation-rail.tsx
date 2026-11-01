@@ -5,7 +5,7 @@ import { Button, ConversationItem, Icon, MenuItem, RowMenu, useConfirm } from "@
 import { Skeleton } from "@clinic/ui/components/skeleton";
 import { RenameConversationModal } from "@web/modules/assistant/components/rename-conversation-modal";
 import { useDeleteConversation } from "@web/modules/assistant/queries";
-import { clinicTimeZone } from "@web/shared/lib/clinic-zone";
+import { clinicTimeZone } from "@web/shared/lib/clinic-locale";
 import { formatRelativeTime } from "@web/shared/lib/format";
 import { cn } from "@clinic/ui/lib/cn";
 

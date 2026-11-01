@@ -19,6 +19,8 @@ import {
 import { and, count, desc, eq, gt, isNull, lt } from "drizzle-orm";
 import {
   AUTH_ERROR,
+  FALLBACK_LANGUAGE,
+  localized,
   type Passkey,
   type PasskeyChallenge,
   type RegisterPasskeyInput,
@@ -129,7 +131,7 @@ export class PasskeyService {
     actor: AuthenticatedUser,
   ): Promise<PasskeyChallenge<PublicKeyCredentialCreationOptionsJSON>> {
     const [owner] = await this.db
-      .select({ user: users, clinicNameAr: clinics.nameAr, clinicNameEn: clinics.nameEn })
+      .select({ user: users, clinicName: clinics.name })
       .from(users)
       .innerJoin(clinics, eq(clinics.id, users.clinicId))
       .where(and(eq(users.id, actor.id), eq(users.clinicId, actor.clinicId)))
@@ -145,11 +147,11 @@ export class PasskeyService {
       .where(eq(passkeys.userId, actor.id));
 
     const options = await generateRegistrationOptions({
-      rpName: owner.clinicNameEn || owner.clinicNameAr,
+      rpName: localized(owner.clinicName, FALLBACK_LANGUAGE),
       rpID: this.rp.id,
       userID: new TextEncoder().encode(owner.user.id),
       userName: owner.user.email ?? owner.user.phone,
-      userDisplayName: owner.user.nameEn || owner.user.nameAr,
+      userDisplayName: localized(owner.user.name, FALLBACK_LANGUAGE),
       attestationType: "none",
       excludeCredentials: existing.map((row) => ({
         id: row.credentialId,

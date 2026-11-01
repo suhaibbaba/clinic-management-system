@@ -14,18 +14,18 @@ import { nameIn, orDefault, pick, heroLines } from "@web/site/lib/text";
 import { SITE_PATH } from "@web/site/route";
 
 export function HeroSection(): JSX.Element {
-  const { site, language, t } = useSite();
+  const { site, language, languages, t } = useSite();
   const { hero, story, highlights } = site.content;
   const slides = hero.images
     .map((key) => site.images[key])
     .filter((url): url is string => url !== undefined);
   const { active, playing, show, hold } = useSlides(slides.length);
   const bookable = useBookable();
-  const eyebrow = pick(story.eyebrow, language);
+  const eyebrow = pick(story.eyebrow, language, languages);
   const [lead, accent] = heroLines(
-    orDefault(hero.title, language, nameIn(site.clinic.name, language)),
+    orDefault(hero.title, language, nameIn(site.clinic.name, language, languages), languages),
   );
-  const statLabel = pick(hero.stat.label, language);
+  const statLabel = pick(hero.stat.label, language, languages);
   const faces = site.doctors.filter((doctor) => doctor.photoUrl !== null).slice(0, HERO_FACES_MAX);
   const showServices = site.content.sections.includes(SITE_SECTION.SERVICES);
 
@@ -127,7 +127,7 @@ export function HeroSection(): JSX.Element {
               {accent && <span className="block text-primary-600">{accent}</span>}
             </h1>
             <p className="text-heading text-ink-muted">
-              {orDefault(hero.subtitle, language, t("hero.subtitle"))}
+              {orDefault(hero.subtitle, language, t("hero.subtitle"), languages)}
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-2">
               {bookable && (
@@ -171,7 +171,7 @@ export function HeroSection(): JSX.Element {
             className="grid grid-cols-1 gap-y-5 rounded-card border border-line/70 bg-surface p-5 shadow-float sm:grid-cols-2 md:p-7 lg:grid-cols-4 lg:divide-x lg:divide-line"
           >
             {highlights.map((feature, position) => {
-              const text = pick(feature.text, language);
+              const text = pick(feature.text, language, languages);
 
               return (
                 <li key={position} className="flex items-center gap-4 lg:px-5">
@@ -180,7 +180,7 @@ export function HeroSection(): JSX.Element {
                   </span>
                   <span className="flex min-w-0 flex-col gap-1">
                     <span className="text-section font-bold text-primary-900">
-                      {pick(feature.label, language)}
+                      {pick(feature.label, language, languages)}
                     </span>
                     {text && <span className="text-label text-ink-muted">{text}</span>}
                   </span>

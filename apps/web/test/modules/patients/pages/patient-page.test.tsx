@@ -77,7 +77,7 @@ const toothState = (fdi: number): string | null | undefined =>
   document.querySelector(`[data-tooth="${fdi}"]`)?.getAttribute("data-state");
 
 const toothStateName = (code: string): string =>
-  SYSTEM_LOOKUPS[LOOKUP_LIST.TOOTH_STATE].find((row) => row.code === code)?.nameAr ?? code;
+  SYSTEM_LOOKUPS[LOOKUP_LIST.TOOTH_STATE].find((row) => row.code === code)?.name.ar ?? code;
 
 describe("Patient page", () => {
   beforeEach(() => {

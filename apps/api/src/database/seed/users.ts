@@ -98,12 +98,9 @@ export async function upsertUser(
     .insert(users)
     .values({
       clinicId,
-      firstNameAr: account.firstName.ar,
-      lastNameAr: account.lastName.ar,
-      firstNameEn: account.firstName.en,
-      lastNameEn: account.lastName.en,
-      nameAr: joinPersonName(account.firstName, account.lastName).ar,
-      nameEn: joinPersonName(account.firstName, account.lastName).en,
+      firstName: account.firstName,
+      lastName: account.lastName,
+      name: joinPersonName(account.firstName, account.lastName),
       phone: account.phone,
       email: account.email,
       passwordHash,

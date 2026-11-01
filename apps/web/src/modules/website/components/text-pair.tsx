@@ -1,7 +1,8 @@
-import type { SiteText } from "@clinic/shared";
+import { languageDirection, type SiteText } from "@clinic/shared";
 import type { FocusEvent, JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { FormField, Input, Textarea } from "@clinic/ui";
+import { useClinicLanguages } from "@web/shared/hooks/use-clinic-languages";
 import type { FieldErrors } from "@web/shared/lib/form-errors";
 
 export function TextPair({
@@ -30,6 +31,7 @@ export function TextPair({
   readonly placeholder?: string;
 }): JSX.Element {
   const { t } = useTranslation();
+  const languages = useClinicLanguages();
   const Control = multiline ? Textarea : Input;
 
   return (
@@ -44,43 +46,28 @@ export function TextPair({
       </legend>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div onBlur={leave(`${path}.ar`)}>
-          <FormField
-            label="website.language.ar"
-            htmlFor={`${id}-ar`}
-            error={errors[`${path}.ar`]}
-            {...(hint !== undefined && { hint })}
-          >
-            <Control
-              id={`${id}-ar`}
-              data-testid={`text-pair-${id}-ar`}
-              dir="rtl"
-              value={value.ar}
-              {...(placeholder !== undefined && { placeholder: t(placeholder) })}
-              hasError={errors[`${path}.ar`] !== undefined}
-              onChange={(event) => onChange({ ...value, ar: event.target.value })}
-            />
-          </FormField>
-        </div>
-
-        <div onBlur={leave(`${path}.en`)}>
-          <FormField
-            label="website.language.en"
-            htmlFor={`${id}-en`}
-            error={errors[`${path}.en`]}
-            optional
-          >
-            <Control
-              id={`${id}-en`}
-              data-testid={`text-pair-${id}-en`}
-              dir="ltr"
-              lang="en"
-              value={value.en}
-              hasError={errors[`${path}.en`] !== undefined}
-              onChange={(event) => onChange({ ...value, en: event.target.value })}
-            />
-          </FormField>
-        </div>
+        {languages.map((language, index) => (
+          <div key={language} onBlur={leave(`${path}.${language}`)}>
+            <FormField
+              label={`website.language.${language}`}
+              htmlFor={`${id}-${language}`}
+              error={errors[`${path}.${language}`]}
+              hint={index === 0 ? hint : undefined}
+              optional={index > 0}
+            >
+              <Control
+                id={`${id}-${language}`}
+                data-testid={`text-pair-${id}-${language}`}
+                dir={languageDirection(language)}
+                lang={language}
+                value={value[language] ?? ""}
+                {...(index === 0 && placeholder !== undefined && { placeholder: t(placeholder) })}
+                hasError={errors[`${path}.${language}`] !== undefined}
+                onChange={(event) => onChange({ ...value, [language]: event.target.value })}
+              />
+            </FormField>
+          </div>
+        ))}
       </div>
     </fieldset>
   );

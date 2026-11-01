@@ -15,4 +15,8 @@ describe("language flags", () => {
   it("uses the British flag for English", () => {
     expect(languageFlag("en", "JO")).toBe("GB");
   });
+
+  it("uses the Turkish flag for Turkish", () => {
+    expect(languageFlag("tr", "PS")).toBe("TR");
+  });
 });

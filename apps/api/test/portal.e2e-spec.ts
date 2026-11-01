@@ -71,13 +71,13 @@ describe("Patient portal (e2e)", () => {
   };
 
   const lastCodeFor = (phone: string): string => {
-    const message = sent.findLast((entry) => entry.to === phone);
+    const code = sent.findLast((entry) => entry.to === phone)?.vars["code"];
 
-    if (!message?.vars["code"]) {
+    if (typeof code !== "string" || !code) {
       throw new Error(`No portal code was sent to ${phone}`);
     }
 
-    return message.vars["code"];
+    return code;
   };
 
   const forgetCodes = (phone: string) =>

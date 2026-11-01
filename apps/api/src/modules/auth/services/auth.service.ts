@@ -6,6 +6,7 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 import {
   AUTH_ERROR,
   DEFAULT_PHONE_COUNTRY,
+  clinicLocale,
   nationalPhoneDigits,
   type AuthenticatedUserProfile,
   type IssuedSession,
@@ -234,9 +235,9 @@ export class AuthService {
       id: user.id,
       clinicId: user.clinicId,
       clinic: await this.sessionClinic(user.clinicId),
-      name: { ar: user.nameAr, en: user.nameEn },
-      firstName: { ar: user.firstNameAr, en: user.firstNameEn },
-      lastName: { ar: user.lastNameAr, en: user.lastNameEn },
+      name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
       phone: user.phone,
       email: user.email,
       role: user.role,
@@ -258,10 +259,11 @@ export class AuthService {
     const [[row], chartTypes] = await Promise.all([
       this.db
         .select({
-          nameAr: clinics.nameAr,
-          nameEn: clinics.nameEn,
+          name: clinics.name,
           logoKey: clinics.logoKey,
           country: clinics.country,
+          currency: clinics.currency,
+          settings: clinics.settings,
         })
         .from(clinics)
         .where(and(eq(clinics.id, clinicId), isNull(clinics.deletedAt)))
@@ -280,18 +282,20 @@ export class AuthService {
 
     if (!row) {
       return {
-        name: { ar: "", en: "" },
+        name: {},
         logoUrl: null,
         chartTypes: [],
         country: DEFAULT_PHONE_COUNTRY,
+        locale: clinicLocale({ country: DEFAULT_PHONE_COUNTRY }),
       };
     }
 
     return {
-      name: { ar: row.nameAr, en: row.nameEn },
+      name: row.name,
       logoUrl: row.logoKey ? (await this.storage.createBrandingUrl(row.logoKey)).url : null,
       chartTypes: chartTypes.map((specialty) => specialty.chartType),
       country: row.country,
+      locale: clinicLocale(row),
     };
   }
 }

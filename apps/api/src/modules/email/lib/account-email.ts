@@ -1,4 +1,4 @@
-import { type PersonName } from "@clinic/shared";
+import { type LanguageCode, type PersonName } from "@clinic/shared";
 import { createHash } from "node:crypto";
 
 export type AccountEmailPurpose = "activate" | "reset";
@@ -12,6 +12,7 @@ export interface ClinicLetterhead {
   readonly name: PersonName;
   readonly logoKey: string | null;
   readonly email: string | null;
+  readonly language: LanguageCode;
 }
 
 export interface IssuedToken {

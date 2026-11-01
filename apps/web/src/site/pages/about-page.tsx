@@ -8,20 +8,20 @@ import { orDefault, pick } from "@web/site/lib/text";
 import { GallerySection } from "@web/site/sections/gallery-section";
 
 export function AboutPage(): JSX.Element {
-  const { site, language, t } = useSite();
+  const { site, language, languages, t } = useSite();
   const { about } = site.content;
-  const paragraphs = pick(about.body, language)
+  const paragraphs = pick(about.body, language, languages)
     .split(/\n{2,}/)
     .filter(Boolean);
-  const note = pick(about.note, language);
+  const note = pick(about.note, language, languages);
 
   return (
     <>
       <PageHero
         id="about"
-        eyebrow={pick(about.eyebrow, language)}
-        title={orDefault(about.title, language, t("about.title"))}
-        subtitle={pick(about.subtitle, language)}
+        eyebrow={pick(about.eyebrow, language, languages)}
+        title={orDefault(about.title, language, t("about.title"), languages)}
+        subtitle={pick(about.subtitle, language, languages)}
         intro={paragraphs.join(" ")}
         image={imageOf(site, about.image)}
         tagline
@@ -48,10 +48,12 @@ export function AboutPage(): JSX.Element {
                 <li key={position} className="flex flex-col items-center gap-2 px-4 text-center">
                   <SiteIcon name={pillar.icon} className="size-10 text-primary-600" />
                   <h2 className="text-heading font-bold text-primary-900">
-                    {pick(pillar.label, language)}
+                    {pick(pillar.label, language, languages)}
                   </h2>
-                  {pick(pillar.text, language) && (
-                    <p className="text-label text-ink-muted">{pick(pillar.text, language)}</p>
+                  {pick(pillar.text, language, languages) && (
+                    <p className="text-label text-ink-muted">
+                      {pick(pillar.text, language, languages)}
+                    </p>
                   )}
                 </li>
               ))}
@@ -67,7 +69,7 @@ export function AboutPage(): JSX.Element {
           >
             <div className="flex flex-col items-center gap-2 text-center">
               <h2 id="why-title" className="text-headline font-bold text-primary-900">
-                {orDefault(about.whyTitle, language, t("about.why"))}
+                {orDefault(about.whyTitle, language, t("about.why"), languages)}
               </h2>
               <AccentRule className="mt-1" />
             </div>
@@ -76,7 +78,7 @@ export function AboutPage(): JSX.Element {
               className="grid w-full grid-cols-1 gap-y-5 rounded-card border border-line/70 bg-surface p-5 shadow-float sm:grid-cols-2 md:p-7 lg:grid-cols-4 lg:divide-x lg:divide-line"
             >
               {about.values.map((value, position) => {
-                const text = pick(value.text, language);
+                const text = pick(value.text, language, languages);
 
                 return (
                   <li key={position} className="flex items-center gap-4 lg:px-5">
@@ -85,7 +87,7 @@ export function AboutPage(): JSX.Element {
                     </span>
                     <span className="flex min-w-0 flex-col gap-1">
                       <span className="text-section font-bold text-primary-900">
-                        {pick(value.label, language)}
+                        {pick(value.label, language, languages)}
                       </span>
                       {text && <span className="text-label text-ink-muted">{text}</span>}
                     </span>

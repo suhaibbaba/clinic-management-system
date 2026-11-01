@@ -7,7 +7,7 @@ import { completeCases } from "@web/site/lib/showcase";
 import { orDefault, pick } from "@web/site/lib/text";
 
 export function CasesSection(): JSX.Element | null {
-  const { site, language, t } = useSite();
+  const { site, language, languages, t } = useSite();
   const { cases } = site.content;
   const items = completeCases(site);
 
@@ -23,8 +23,8 @@ export function CasesSection(): JSX.Element | null {
     >
       <ShowcaseHeading
         id="cases"
-        title={orDefault(cases.title, language, t("cases.title"))}
-        subtitle={pick(cases.subtitle, language)}
+        title={orDefault(cases.title, language, t("cases.title"), languages)}
+        subtitle={pick(cases.subtitle, language, languages)}
       />
       <Slider
         label={t("cases.title")}
@@ -36,7 +36,7 @@ export function CasesSection(): JSX.Element | null {
             key={position}
             before={item.before}
             after={item.after}
-            title={pick(item.title, language)}
+            title={pick(item.title, language, languages)}
             data-testid={`site-case-${position + 1}`}
           />
         ))}

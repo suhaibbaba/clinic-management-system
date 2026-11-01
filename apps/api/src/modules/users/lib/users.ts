@@ -25,12 +25,9 @@ export const photoCategory = (userId: string): string => `staff/${userId}`;
 export const safeColumns = {
   id: users.id,
   clinicId: users.clinicId,
-  nameAr: users.nameAr,
-  nameEn: users.nameEn,
-  firstNameAr: users.firstNameAr,
-  lastNameAr: users.lastNameAr,
-  firstNameEn: users.firstNameEn,
-  lastNameEn: users.lastNameEn,
+  name: users.name,
+  firstName: users.firstName,
+  lastName: users.lastName,
   phone: users.phone,
   email: users.email,
   role: users.role,
@@ -49,20 +46,8 @@ export type SafeUserRow = Pick<UserRow, Exclude<keyof typeof safeColumns, "activ
 export function staffNameColumns(
   firstName: PersonNameInput,
   lastName: PersonNameInput,
-): Pick<
-  UserRow,
-  "firstNameAr" | "lastNameAr" | "firstNameEn" | "lastNameEn" | "nameAr" | "nameEn"
-> {
-  const full = joinPersonName(firstName, lastName);
-
-  return {
-    firstNameAr: firstName.ar,
-    lastNameAr: lastName.ar,
-    firstNameEn: firstName.en,
-    lastNameEn: lastName.en,
-    nameAr: full.ar,
-    nameEn: full.en,
-  };
+): Pick<UserRow, "firstName" | "lastName" | "name"> {
+  return { firstName, lastName, name: joinPersonName(firstName, lastName) };
 }
 
 export function assertNotDoctorRole(role: UserRole): void {
@@ -90,9 +75,9 @@ export function toUser(
   return {
     id: row.id,
     clinicId: row.clinicId,
-    name: { ar: row.nameAr, en: row.nameEn },
-    firstName: { ar: row.firstNameAr, en: row.firstNameEn },
-    lastName: { ar: row.lastNameAr, en: row.lastNameEn },
+    name: row.name,
+    firstName: row.firstName,
+    lastName: row.lastName,
     phone: row.phone,
     email: row.email,
     activated: row.activated,

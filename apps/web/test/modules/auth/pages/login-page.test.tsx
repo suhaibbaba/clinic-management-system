@@ -92,7 +92,7 @@ describe("Login flow", () => {
 
     renderWithProviders(<AppRoutes />, { route: "/doctors" });
 
-    expect(await screen.findByText(profile.name.ar)).toBeInTheDocument();
+    expect(await screen.findByText(profile.name.ar ?? "")).toBeInTheDocument();
     expect(meCalls).toBe(2);
     expect(refreshCalls).toBe(2);
     expect(authTokens.get()).toBe("access-2");

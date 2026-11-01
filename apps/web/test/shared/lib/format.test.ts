@@ -1,6 +1,6 @@
 import type { Clinic } from "@clinic/shared";
 import { beforeAll, describe, expect, it } from "vitest";
-import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
+import { setClinicTimeZone } from "@web/shared/lib/clinic-locale";
 import { dayBounds } from "@web/shared/lib/dates";
 import {
   formatDate,

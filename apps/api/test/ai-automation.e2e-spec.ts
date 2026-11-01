@@ -1,4 +1,5 @@
 import {
+  currencySymbol,
   addDays,
   AI_AUTOMATION_MODE,
   AI_AUTOMATION_RUN_STATUS,
@@ -161,7 +162,7 @@ describe("Daily outbound automation (e2e)", () => {
       const found = await recipients.unpaid(clinic.id, 30, 50, "JOD");
 
       expect(found.map((candidate) => candidate.patientId)).toEqual([patient.oldDebt]);
-      expect(found[0]?.vars["balance"]).toBe("100 د.ا");
+      expect(found[0]?.vars["balance"]).toBe(`100 ${currencySymbol("JOD")}`);
     });
 
     it("finds tomorrow's confirmed appointments only", async () => {

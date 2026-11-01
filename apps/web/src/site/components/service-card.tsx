@@ -9,9 +9,9 @@ import { imageOf } from "@web/site/lib/images";
 import { pick } from "@web/site/lib/text";
 
 export function ServiceCard({ service }: { readonly service: SiteService }): JSX.Element {
-  const { site, language } = useSite();
+  const { site, language, languages } = useSite();
   const glyph = useSiteGlyph();
-  const description = pick(service.description, language);
+  const description = pick(service.description, language, languages);
 
   return (
     <article
@@ -21,7 +21,7 @@ export function ServiceCard({ service }: { readonly service: SiteService }): JSX
       <CardFill />
       <div className="flex min-w-0 flex-1 flex-col items-start gap-2 p-5">
         <h3 className="site-fill-ink text-heading font-bold text-primary-900">
-          {pick(service.title, language)}
+          {pick(service.title, language, languages)}
         </h3>
         {description && <p className="site-fill-soft text-label text-ink-muted">{description}</p>}
       </div>

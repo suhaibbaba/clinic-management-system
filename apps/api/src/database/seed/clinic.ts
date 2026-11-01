@@ -118,7 +118,7 @@ export const CLINIC_DEFAULTS = {
       channel: NOTIFICATION_CHANNEL.SMS,
       remind24h: true,
       remind2h: true,
-      templates: { ...DEFAULT_NOTIFICATION_TEMPLATES },
+      templates: { ...DEFAULT_NOTIFICATION_TEMPLATES.ar },
     },
   },
 };

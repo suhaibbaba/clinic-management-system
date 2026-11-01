@@ -76,12 +76,9 @@ describe("Appointments permission boundaries (e2e)", () => {
       .insert(users)
       .values({
         clinicId: clinic.id,
-        firstNameAr: "طبيب",
-        lastNameAr: "آخر",
-        firstNameEn: "Another",
-        lastNameEn: "doctor",
-        nameAr: "طبيب آخر",
-        nameEn: "Another doctor",
+        firstName: { ar: "طبيب", en: "Another" },
+        lastName: { ar: "آخر", en: "doctor" },
+        name: { ar: "طبيب آخر", en: "Another doctor" },
         phone: uniquePhone(),
         passwordHash: "unused — this account never signs in",
         role: USER_ROLE.DOCTOR,

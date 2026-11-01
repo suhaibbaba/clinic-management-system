@@ -12,7 +12,7 @@ import { visibleDoctors } from "@web/site/lib/doctors";
 import { orDefault, pick } from "@web/site/lib/text";
 
 export function DoctorsPage(): JSX.Element {
-  const { site, language, t, params, setParams } = useSite();
+  const { site, language, languages, t, params, setParams } = useSite();
   const { doctors: copy } = site.content;
   const doctors = visibleDoctors(site);
   const specialties = [...new Set(doctors.map((doctor) => doctor.specialty))];
@@ -25,8 +25,8 @@ export function DoctorsPage(): JSX.Element {
     <>
       <PageHero
         id="doctors"
-        title={orDefault(copy.title, language, t("doctors.title"))}
-        subtitle={orDefault(copy.subtitle, language, t("doctors.subtitle"))}
+        title={orDefault(copy.title, language, t("doctors.title"), languages)}
+        subtitle={orDefault(copy.subtitle, language, t("doctors.subtitle"), languages)}
         image={imageOf(site, copy.image)}
       >
         {copy.features.length > 0 && (
@@ -35,7 +35,7 @@ export function DoctorsPage(): JSX.Element {
               <li key={position} className="flex flex-col items-center gap-2 text-center">
                 <SiteIcon name={feature.icon} className="size-8 text-primary-600" />
                 <span className="text-label font-medium text-primary-900">
-                  {pick(feature.label, language)}
+                  {pick(feature.label, language, languages)}
                 </span>
               </li>
             ))}
