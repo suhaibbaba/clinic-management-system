@@ -11,7 +11,6 @@ import {
   type SubscriptionStatus,
   type VendorClinicDetail,
 } from "@clinic/shared";
-import { Badge } from "@clinic/ui/components/badge";
 import { Button } from "@clinic/ui/components/button";
 import { Checkbox } from "@clinic/ui/components/checkbox";
 import { DatePicker } from "@clinic/ui/components/date-picker";
@@ -29,6 +28,8 @@ import { useClinicActions } from "@web/vendor/hooks/use-clinic-actions";
 import type { VendorLocation } from "@web/vendor/hooks/use-location";
 import { Icon } from "@clinic/ui/components/icon";
 import { Tabs } from "@clinic/ui/components/tabs";
+import { Switch } from "@clinic/ui/components/switch";
+import { useConfirm } from "@clinic/ui/components/confirm-dialog";
 import { VendorLink } from "@web/vendor/components/vendor-link";
 import { vendorPath } from "@web/vendor/lib/route";
 import {
@@ -42,6 +43,8 @@ import { vendorErrorKey } from "@web/vendor/lib/vendor-api-error";
 import {
   useClinic,
   useGrantSpecialty,
+  useRevokeSpecialty,
+  useSaveModules,
   usePlans,
   useSaveDomain,
   useSaveSubscription,
@@ -63,10 +66,10 @@ export function ClinicPage({
   const plans = usePlans();
   const { actionsFor, dialog } = useClinicActions(() => navigate(vendorPath({ kind: "clinics" })));
   const tab: ClinicTab =
-    VENDOR_CLINIC_TABS.find((entry) => entry === params.get(VENDOR_PARAM.TAB)) ?? "subscription";
+    VENDOR_CLINIC_TABS.find((entry) => entry === params.get(VENDOR_PARAM.TAB)) ?? "modules";
   const openTab = (next: ClinicTab): void =>
     navigate(
-      `${vendorPath({ kind: "clinic", id })}${next === "subscription" ? "" : `?${VENDOR_PARAM.TAB}=${next}`}`,
+      `${vendorPath({ kind: "clinic", id })}${next === "modules" ? "" : `?${VENDOR_PARAM.TAB}=${next}`}`,
       { replace: true },
     );
 
@@ -248,6 +251,9 @@ export function ClinicPage({
             )}
           </aside>
         </div>
+      )}
+      {tab === "modules" && (
+        <ModulesPanel key={`modules-${detail.id}`} detail={detail} plans={plans.data.items} />
       )}
       {tab === "domain" && <DomainForm key={`domain-${detail.id}`} detail={detail} />}
       {tab === "specialties" && <Specialties detail={detail} />}
@@ -543,9 +549,102 @@ function SubscriptionForm({
   );
 }
 
-function Specialties({ detail }: { readonly detail: VendorClinicDetail }): JSX.Element {
+function ModulesPanel({
+  detail,
+  plans,
+}: {
+  readonly detail: VendorClinicDetail;
+  readonly plans: readonly Plan[];
+}): JSX.Element {
   const { t } = useTranslation();
+  const save = useSaveModules(detail.id);
+  const plan = plans.find((entry) => entry.id === detail.subscription?.planId);
+  const planModules: readonly ClinicModule[] = plan?.modules ?? [];
+  const [extra, setExtra] = useState<ClinicModule[]>(() =>
+    detail.modules.filter((module) => !planModules.includes(module)),
+  );
+  const modules = resultingModules(planModules, extra);
+  const unchanged = modules.join() === detail.modules.join();
+  const blocked = lacksDependency(modules) || unchanged;
+
+  return (
+    <section
+      className="flex flex-col gap-4 rounded-card border border-line bg-surface p-5"
+      data-testid="vendor-modules"
+    >
+      <div className="flex flex-col gap-1">
+        <h2 className="text-section font-semibold text-ink">{t("vendor.clinic.tabs.modules")}</h2>
+        <p className="text-meta text-ink-muted">
+          {plan
+            ? t("vendor.clinic.modulesOnPlan", { plan: plan.name })
+            : t("vendor.clinic.modulesByHand")}
+        </p>
+      </div>
+      <ModulePicker
+        value={extra}
+        included={planModules}
+        onChange={setExtra}
+        data-testid="vendor-module-switches"
+      />
+      {lacksDependency(modules) && (
+        <p role="alert" className="text-label text-danger-700">
+          {t("vendor.errors.missingModules")}
+        </p>
+      )}
+      {save.isError && (
+        <p role="alert" className="text-label text-danger-700">
+          {t(vendorErrorKey(save.error))}
+        </p>
+      )}
+      {save.isSuccess && unchanged && (
+        <p role="status" className="text-label text-success-700">
+          {t("vendor.clinic.modulesSaved")}
+        </p>
+      )}
+      <div>
+        <Button
+          aria-disabled={blocked || undefined}
+          isLoading={save.isPending}
+          onClick={() => !blocked && save.mutate(modules)}
+          data-testid="vendor-modules-save"
+        >
+          {t("vendor.clinic.saveModules")}
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+function Specialties({ detail }: { readonly detail: VendorClinicDetail }): JSX.Element {
+  const { t, i18n } = useTranslation();
   const grant = useGrantSpecialty(detail.id);
+  const revoke = useRevokeSpecialty(detail.id);
+  const { confirm, dialog } = useConfirm("vendor-specialty-confirm");
+  const [lastWarning, setLastWarning] = useState(false);
+  const name = localized(detail.name, i18n.language);
+
+  const toggle = (code: SpecialtyCode, on: boolean): void => {
+    setLastWarning(false);
+
+    if (on) {
+      grant.mutate(code);
+      return;
+    }
+
+    if (detail.specialties.length <= 1) {
+      setLastWarning(true);
+      return;
+    }
+
+    confirm({
+      title: "vendor.clinic.revokeTitle",
+      titleValues: { specialty: t(`vendor.specialtyNames.${code}`), name },
+      tone: "danger",
+      confirmLabel: "vendor.clinic.revoke",
+      consequences: [t("vendor.clinic.revokeBody")],
+      onConfirm: () => revoke.mutateAsync(code),
+    });
+  };
 
   return (
     <section
@@ -553,31 +652,29 @@ function Specialties({ detail }: { readonly detail: VendorClinicDetail }): JSX.E
       data-testid="vendor-specialties"
     >
       <h2 className="text-section font-semibold text-ink">{t("vendor.clinic.specialties")}</h2>
-      <ul className="flex flex-col gap-2">
+      <ul className="flex flex-col gap-3">
         {Object.values(SPECIALTY_CODE).map((code: SpecialtyCode) => (
           <li key={code} className="flex items-center justify-between gap-3">
-            <span className="text-value text-ink">{t(`vendor.specialtyNames.${code}`)}</span>
-            {detail.specialties.includes(code) ? (
-              <Badge tone="success">{t("vendor.clinic.granted")}</Badge>
-            ) : (
-              <Button
-                variant="secondary"
-                size="sm"
-                isLoading={grant.isPending && grant.variables === code}
-                onClick={() => grant.mutate(code)}
-                data-testid={`vendor-grant-${code}`}
-              >
-                {t("vendor.clinic.grant")}
-              </Button>
-            )}
+            <Switch
+              checked={detail.specialties.includes(code)}
+              onCheckedChange={(on) => toggle(code, on)}
+              label={t(`vendor.specialtyNames.${code}`)}
+              data-testid={`vendor-specialty-${code}`}
+            />
           </li>
         ))}
       </ul>
-      {grant.isError && (
+      {lastWarning && (
         <p role="alert" className="text-label text-danger-700">
-          {t(vendorErrorKey(grant.error))}
+          {t("vendor.errors.lastSpecialty")}
         </p>
       )}
+      {(grant.isError || revoke.isError) && (
+        <p role="alert" className="text-label text-danger-700">
+          {t(vendorErrorKey(grant.error ?? revoke.error))}
+        </p>
+      )}
+      {dialog}
     </section>
   );
 }

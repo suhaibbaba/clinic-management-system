@@ -1313,6 +1313,8 @@ export const SUBSCRIPTION_EVENT = {
   CLINIC_CREATED: "clinic_created",
   CLINIC_REMOVED: "clinic_removed",
   CLINIC_RESTORED: "clinic_restored",
+  MODULES_CHANGED: "modules_changed",
+  SPECIALTY_REVOKED: "specialty_revoked",
   SPECIALTY_GRANTED: "specialty_granted",
 } as const satisfies Record<string, string>;
 export type SubscriptionEventAction = EnumValue<typeof SUBSCRIPTION_EVENT>;

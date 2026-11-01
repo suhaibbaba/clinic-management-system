@@ -13,6 +13,8 @@ const modulesSchema = z
 
 export const VENDOR_MISSING_MODULES = "vendor_missing_modules";
 
+export const DEFAULT_PLAN_CODE = "basic";
+
 export const vendorLoginSchema = z.object({
   email: z.email().max(200),
   password: z.string().min(1).max(200),
@@ -91,6 +93,8 @@ export const VENDOR_SLUG_TAKEN = "vendor_slug_taken";
 export const VENDOR_PHONE_TAKEN = "vendor_phone_taken";
 
 export const VENDOR_EMAIL_TAKEN = "vendor_email_taken";
+
+export const VENDOR_LAST_SPECIALTY = "vendor_last_specialty";
 
 export const clinicDomainSchema = z
   .string()
@@ -198,3 +202,14 @@ export type CreateClinicInput = z.infer<typeof createClinicSchema>;
 
 export const createdClinicSchema = z.object({ id: z.uuid() });
 export type CreatedClinic = z.infer<typeof createdClinicSchema>;
+
+export const saveClinicModulesSchema = z.object({
+  modules: modulesSchema,
+});
+export type SaveClinicModulesInput = z.infer<typeof saveClinicModulesSchema>;
+
+export const specialtyParamSchema = z.object({
+  id: z.uuid(),
+  code: z.enum(Object.values(SPECIALTY_CODE)),
+});
+export type SpecialtyParam = z.infer<typeof specialtyParamSchema>;

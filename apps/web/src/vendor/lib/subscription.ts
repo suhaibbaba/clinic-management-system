@@ -1,6 +1,7 @@
 import {
   addDays,
   CLINIC_MODULES,
+  DEFAULT_PLAN_CODE,
   missingModules,
   READ_ONLY_SUBSCRIPTION_STATUSES,
   SUBSCRIPTION_STATUS,
@@ -58,7 +59,7 @@ export function initialSubscription(
         notes: current.notes,
       }
     : {
-        planId: plans.find((plan) => plan.isActive)?.id ?? "",
+        planId: defaultPlanId(plans),
         addOnModules: [],
         status: SUBSCRIPTION_STATUS.TRIAL,
         startsOn: today,
@@ -67,6 +68,12 @@ export function initialSubscription(
         notes: null,
       };
 }
+
+export const defaultPlanId = (plans: readonly Plan[]): string =>
+  (
+    plans.find((plan) => plan.code === DEFAULT_PLAN_CODE && plan.isActive) ??
+    plans.find((plan) => plan.isActive)
+  )?.id ?? "";
 
 export const planInput = (plan: Plan | null): SavePlanInput =>
   plan

@@ -22,6 +22,8 @@ import { Public } from "@api/common/decorators/public.decorator";
 import {
   CreateClinicDto,
   GrantSpecialtyDto,
+  SaveClinicModulesDto,
+  SpecialtyParamDto,
   SaveClinicDomainDto,
   VendorIdParamDto,
   SaveSubscriptionDto,
@@ -102,6 +104,25 @@ export class VendorClinicsController {
     @VendorSession() session: VendorSessionContext,
   ): Promise<void> {
     return this.clinics.saveDomain(params.id, body.domain, session.vendorUserId);
+  }
+
+  @Put("clinics/:id/modules")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  saveModules(
+    @Param() params: VendorIdParamDto,
+    @Body() body: SaveClinicModulesDto,
+    @VendorSession() session: VendorSessionContext,
+  ): Promise<void> {
+    return this.clinics.saveModules(params.id, body.modules, session.vendorUserId);
+  }
+
+  @Delete("clinics/:id/specialties/:code")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  revokeSpecialty(
+    @Param() params: SpecialtyParamDto,
+    @VendorSession() session: VendorSessionContext,
+  ): Promise<void> {
+    return this.clinics.revokeSpecialty(params.id, params.code, session.vendorUserId);
   }
 
   @Post("clinics/:id/specialties")

@@ -5,6 +5,8 @@ import type {
   Paginated,
   Plan,
   SaveClinicDomainInput,
+  SaveClinicModulesInput,
+  SpecialtyCode,
   SavePlanInput,
   SaveSubscriptionInput,
   VendorClinicDetail,
@@ -74,6 +76,10 @@ export const vendorApi = {
     request<void>("PUT", `/clinics/${id}/subscription`, input),
   saveDomain: (id: string, input: SaveClinicDomainInput) =>
     request<void>("PUT", `/clinics/${id}/domain`, input),
+  saveModules: (id: string, input: SaveClinicModulesInput) =>
+    request<void>("PUT", `/clinics/${id}/modules`, input),
+  revokeSpecialty: (id: string, code: SpecialtyCode) =>
+    request<void>("DELETE", `/clinics/${id}/specialties/${code}`),
   grantSpecialty: (id: string, input: GrantSpecialtyInput) =>
     request<void>("POST", `/clinics/${id}/specialties`, input),
   plans: () => request<Paginated<Plan>>("GET", "/plans?limit=100"),

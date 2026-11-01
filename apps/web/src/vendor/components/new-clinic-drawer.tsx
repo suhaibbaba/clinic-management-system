@@ -14,6 +14,7 @@ import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { VENDOR_TRIAL_DAYS } from "@web/vendor/constants";
 import { slugFrom } from "@web/vendor/lib/clinic-actions";
+import { defaultPlanId } from "@web/vendor/lib/subscription";
 import { clinicAddresses, parseDomain } from "@web/vendor/lib/domain";
 import { newClinicProblems } from "@web/vendor/lib/new-clinic";
 import { vendorErrorKey } from "@web/vendor/lib/vendor-api-error";
@@ -51,7 +52,7 @@ export function NewClinicDrawer({
   const [tried, setTried] = useState(false);
 
   const parsedDomain = parseDomain(domain);
-  const chosenPlan = planId || offered[0]?.id || "";
+  const chosenPlan = planId || defaultPlanId(offered);
   const input: CreateClinicInput = {
     name: {
       ...(nameAr.trim() && { ar: nameAr.trim() }),

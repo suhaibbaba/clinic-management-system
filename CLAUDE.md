@@ -114,6 +114,10 @@ a code, a chart type if it needs one, and its starter pack — never a branch in
 - **Expiry** — `SubscriptionExpiryScheduler` moves an ended subscription to `grace`, then to
   `suspended` once its grace days pass. `suspended` and `cancelled` are read-only: `RolesGuard` refuses
   every non-GET request from the clinic's staff with `clinic_suspended`. Nothing is deleted.
+- **Basic** (`DEFAULT_PLAN_CODE`, migration 0090) is the built-in core-only plan and the default in
+  the console. The clinic's **Modules** tab sets modules by hand: on a plan, what is ticked beyond the
+  plan becomes add-ons; without a subscription it writes `clinics.modules` directly. A specialty is
+  switched on and off from its tab; a clinic always keeps at least one.
 - **A clinic without a subscription** keeps its modules exactly as set; the vendor takes it over by
   saving one.
 - **Creating and removing a clinic** is the console's too. Creating writes the clinic, its specialty

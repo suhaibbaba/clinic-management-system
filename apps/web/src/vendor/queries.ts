@@ -1,4 +1,5 @@
 import type {
+  ClinicModule,
   CreateClinicInput,
   SavePlanInput,
   SaveSubscriptionInput,
@@ -117,6 +118,24 @@ export function useSaveDomain(clinicId: string) {
 
   return useMutation({
     mutationFn: (domain: string | null) => vendorApi.saveDomain(clinicId, { domain }),
+    onSuccess: refresh,
+  });
+}
+
+export function useSaveModules(clinicId: string) {
+  const refresh = useRefreshAll();
+
+  return useMutation({
+    mutationFn: (modules: ClinicModule[]) => vendorApi.saveModules(clinicId, { modules }),
+    onSuccess: refresh,
+  });
+}
+
+export function useRevokeSpecialty(clinicId: string) {
+  const refresh = useRefreshAll();
+
+  return useMutation({
+    mutationFn: (code: SpecialtyCode) => vendorApi.revokeSpecialty(clinicId, code),
     onSuccess: refresh,
   });
 }

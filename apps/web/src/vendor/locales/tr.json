@@ -169,8 +169,6 @@
       "save": "Aboneliği kaydet",
       "saved": "Abonelik kaydedildi",
       "specialties": "Uzmanlıklar",
-      "grant": "Etkinleştir",
-      "granted": "Etkin",
       "history": "Geçmiş",
       "noHistory": "Henüz değişiklik yok",
       "system": "Sistem",
@@ -190,6 +188,7 @@
       "ofLimit": "/ {{limit}}",
       "sections": "Klinik bölümleri",
       "tabs": {
+        "modules": "Modüller",
         "subscription": "Abonelik",
         "domain": "Alan adı",
         "specialties": "Uzmanlıklar",
@@ -198,7 +197,14 @@
       "onNow": "Şu an açık",
       "recent": "Son değişiklikler",
       "allHistory": "Tüm geçmiş",
-      "removedNote": "Bu klinik {{date}} tarihinde silindi. Personeli giriş yapamaz, web sitesi kapalı."
+      "removedNote": "Bu klinik {{date}} tarihinde silindi. Personeli giriş yapamaz, web sitesi kapalı.",
+      "modulesOnPlan": "{{plan}} paketinin modülleri her zaman açıktır; üzerine eklediğiniz modüller kliniğin aboneliğine eklenir.",
+      "modulesByHand": "Bu kliniğin aboneliği yok: burada seçtiğiniz modüller çalışır.",
+      "modulesSaved": "Modüller kaydedildi",
+      "saveModules": "Modülleri kaydet",
+      "revokeTitle": "{{name}} için {{specialty}} kapatılsın mı?",
+      "revoke": "Kapat",
+      "revokeBody": "Uzmanlığın şeması ve listeleri klinikten kalkar; verileri kalır ve yeniden açtığınızda geri gelir."
     },
     "plans": {
       "new": "Yeni paket",
@@ -232,7 +238,9 @@
       "domain_changed": "Alan adı değişti",
       "clinic_created": "Klinik oluşturuldu",
       "clinic_removed": "Klinik silindi",
-      "clinic_restored": "Klinik geri yüklendi"
+      "clinic_restored": "Klinik geri yüklendi",
+      "modules_changed": "Modüller değişti",
+      "specialty_revoked": "Uzmanlık kapatıldı"
     },
     "modules": {
       "appointments": "Randevular",
@@ -256,7 +264,8 @@
       "domainTaken": "Bu alan adını başka bir klinik kullanıyor",
       "slugTaken": "Bu kısa bağlantıyı başka bir klinik kullanıyor",
       "phoneTaken": "Bu cep telefonu başka bir kullanıcıya ait",
-      "emailTaken": "Bu e-posta başka bir kullanıcıya ait"
+      "emailTaken": "Bu e-posta başka bir kullanıcıya ait",
+      "lastSpecialty": "Her kliniğin en az bir uzmanlığı olmalı."
     },
     "brandMark": "S",
     "tagline": "Klinikler ve abonelikler",

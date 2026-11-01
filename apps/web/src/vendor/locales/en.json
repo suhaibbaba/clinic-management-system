@@ -169,8 +169,6 @@
       "save": "Save subscription",
       "saved": "Subscription saved",
       "specialties": "Specialties",
-      "grant": "Grant",
-      "granted": "Granted",
       "history": "History",
       "noHistory": "No changes yet",
       "system": "System",
@@ -190,6 +188,7 @@
       "ofLimit": "of {{limit}}",
       "sections": "Clinic sections",
       "tabs": {
+        "modules": "Modules",
         "subscription": "Subscription",
         "domain": "Domain",
         "specialties": "Specialties",
@@ -198,7 +197,14 @@
       "onNow": "On now",
       "recent": "Recent changes",
       "allHistory": "Full history",
-      "removedNote": "This clinic was removed on {{date}}. Its staff cannot sign in and its website is off."
+      "removedNote": "This clinic was removed on {{date}}. Its staff cannot sign in and its website is off.",
+      "modulesOnPlan": "The {{plan}} plan's modules are always on; what you add on top goes into the clinic's subscription.",
+      "modulesByHand": "This clinic has no subscription: the modules you choose here are what it runs.",
+      "modulesSaved": "Modules saved",
+      "saveModules": "Save modules",
+      "revokeTitle": "Switch off {{specialty}} for {{name}}?",
+      "revoke": "Switch off",
+      "revokeBody": "The specialty's chart and lists disappear from the clinic; its data stays and returns when you switch it back on."
     },
     "plans": {
       "new": "New plan",
@@ -232,7 +238,9 @@
       "domain_changed": "Domain changed",
       "clinic_created": "Clinic created",
       "clinic_removed": "Clinic removed",
-      "clinic_restored": "Clinic restored"
+      "clinic_restored": "Clinic restored",
+      "modules_changed": "Modules changed",
+      "specialty_revoked": "Specialty switched off"
     },
     "modules": {
       "appointments": "Appointments",
@@ -256,7 +264,8 @@
       "domainTaken": "Another clinic already uses this domain",
       "slugTaken": "Another clinic already uses this short link",
       "phoneTaken": "Another user already has this mobile",
-      "emailTaken": "Another user already has this email"
+      "emailTaken": "Another user already has this email",
+      "lastSpecialty": "Every clinic needs at least one specialty."
     },
     "brandMark": "V",
     "tagline": "Clinics and subscriptions",

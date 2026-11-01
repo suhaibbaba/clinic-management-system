@@ -15,7 +15,13 @@ export const VENDOR_PARAM = {
   TAB: "tab",
 } as const;
 
-export const VENDOR_CLINIC_TABS = ["subscription", "domain", "specialties", "history"] as const;
+export const VENDOR_CLINIC_TABS = [
+  "modules",
+  "subscription",
+  "specialties",
+  "domain",
+  "history",
+] as const;
 
 export const VENDOR_QUERY_KEY = {
   SESSION: ["vendor", "session"],

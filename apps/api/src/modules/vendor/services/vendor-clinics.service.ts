@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import {
   and,
   count,
@@ -14,6 +14,11 @@ import {
 } from "drizzle-orm";
 import {
   addDays,
+  CLINIC_MODULES,
+  VENDOR_LAST_SPECIALTY,
+  VENDOR_MISSING_MODULES,
+  missingModules,
+  type ClinicModule,
   READ_ONLY_SUBSCRIPTION_STATUSES,
   SUBSCRIPTION_EVENT,
   SUBSCRIPTION_STATUS,
@@ -41,7 +46,8 @@ import {
   subscriptionOf,
   type SummaryRow,
 } from "@api/modules/vendor/lib/vendor-clinic-row";
-import { grantSpecialty } from "@api/database/clinic-specialties";
+import { grantSpecialty, revokeSpecialty } from "@api/database/clinic-specialties";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import { conflictFor } from "@api/modules/vendor/lib/vendor-conflicts";
 import { VENDOR_ENDING_SOON_DAYS, VENDOR_EVENT_LIMIT } from "@api/modules/vendor/constants";
 import { SubscriptionsService } from "@api/modules/vendor/services/subscriptions.service";
@@ -51,6 +57,7 @@ export class VendorClinicsService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly subscriptions: SubscriptionsService,
+    private readonly permissions: PermissionsService,
   ) {}
 
   async list(query: VendorClinicsQuery): Promise<Paginated<VendorClinicSummary>> {
@@ -230,6 +237,100 @@ export class VendorClinicsService {
     } catch (error) {
       throw conflictFor(error) ?? error;
     }
+  }
+
+  async saveModules(
+    clinicId: string,
+    modules: readonly ClinicModule[],
+    actorId: string,
+  ): Promise<void> {
+    await this.db.transaction(async (tx) => {
+      const [clinic] = await tx
+        .select({
+          modules: clinics.modules,
+          subscriptionId: subscriptions.id,
+          planModules: plans.modules,
+        })
+        .from(clinics)
+        .leftJoin(subscriptions, eq(subscriptions.clinicId, clinics.id))
+        .leftJoin(plans, eq(plans.id, subscriptions.planId))
+        .where(and(eq(clinics.id, clinicId), isNull(clinics.deletedAt)))
+        .limit(1);
+
+      if (!clinic) {
+        throw new NotFoundException("Clinic not found");
+      }
+
+      const planModules = clinic.planModules ?? [];
+      const wanted = CLINIC_MODULES.filter(
+        (module) => modules.includes(module) || planModules.includes(module),
+      );
+
+      if (missingModules(wanted).length > 0) {
+        throw new BadRequestException(VENDOR_MISSING_MODULES);
+      }
+
+      if (clinic.subscriptionId !== null) {
+        await tx
+          .update(subscriptions)
+          .set({
+            addOnModules: wanted.filter((module) => !planModules.includes(module)),
+            updatedBy: actorId,
+            updatedAt: new Date(),
+          })
+          .where(eq(subscriptions.id, clinic.subscriptionId));
+      }
+
+      await tx
+        .update(clinics)
+        .set({ modules: wanted, updatedAt: new Date() })
+        .where(eq(clinics.id, clinicId));
+      await this.subscriptions.record(
+        tx,
+        clinicId,
+        actorId,
+        SUBSCRIPTION_EVENT.MODULES_CHANGED,
+        { modules: clinic.modules },
+        { modules: wanted },
+      );
+    });
+
+    this.permissions.forgetClinic(clinicId);
+  }
+
+  async revokeSpecialty(clinicId: string, code: SpecialtyCode, actorId: string): Promise<void> {
+    await this.db.transaction(async (tx) => {
+      const active = await tx
+        .select({ code: specialties.code })
+        .from(specialties)
+        .innerJoin(clinics, eq(clinics.id, specialties.clinicId))
+        .where(
+          and(
+            eq(specialties.clinicId, clinicId),
+            eq(specialties.isActive, true),
+            isNull(specialties.deletedAt),
+            isNull(clinics.deletedAt),
+          ),
+        );
+
+      if (!active.some((entry) => entry.code === code)) {
+        throw new NotFoundException("Specialty not granted");
+      }
+
+      if (active.length === 1) {
+        throw new BadRequestException(VENDOR_LAST_SPECIALTY);
+      }
+
+      await revokeSpecialty(tx, clinicId, code);
+      await this.subscriptions.record(
+        tx,
+        clinicId,
+        actorId,
+        SUBSCRIPTION_EVENT.SPECIALTY_REVOKED,
+        { code },
+        null,
+      );
+    });
   }
 
   private async summaries(rows: readonly SummaryRow[]): Promise<VendorClinicSummary[]> {

@@ -6,7 +6,9 @@ import {
   SUBSCRIPTION_EVENT,
   SUBSCRIPTION_STATUS,
   USER_ROLE,
+  DEFAULT_PLAN_CODE,
   VENDOR_DOMAIN_TAKEN,
+  VENDOR_LAST_SPECIALTY,
   VENDOR_SLUG_TAKEN,
   VENDOR_MISSING_MODULES,
   addDays,
@@ -504,6 +506,90 @@ describe("Vendor console (e2e)", () => {
         SUBSCRIPTION_EVENT.CLINIC_RESTORED,
         SUBSCRIPTION_EVENT.CLINIC_REMOVED,
       ]);
+    });
+  });
+
+  describe("switching modules and specialties by hand", () => {
+    it("ships a core-only Basic plan", async () => {
+      const plans = (await call("GET", "/vendor/plans?limit=100")).json<Paginated<Plan>>();
+
+      expect(plans.items.find((plan) => plan.code === DEFAULT_PLAN_CODE)).toMatchObject({
+        name: "Basic",
+        modules: [],
+        isActive: true,
+      });
+    });
+
+    it("sets an unmanaged clinic's modules directly and records the change", async () => {
+      const clinic = await context.createClinic({ modules: [] });
+
+      const saved = await call("PUT", `/vendor/clinics/${clinic.id}/modules`, {
+        modules: [CLINIC_MODULE.LABS, CLINIC_MODULE.APPOINTMENTS],
+      });
+
+      expect(saved.statusCode).toBe(204);
+      expect(await modulesOf(clinic)).toEqual([CLINIC_MODULE.APPOINTMENTS, CLINIC_MODULE.LABS]);
+      expect(
+        (await call("GET", `/vendor/clinics/${clinic.id}`)).json<VendorClinicDetail>().events[0]
+          ?.action,
+      ).toBe(SUBSCRIPTION_EVENT.MODULES_CHANGED);
+    });
+
+    it("turns a subscribed clinic's extra modules into add-ons and keeps the plan's", async () => {
+      const clinic = await context.createClinic({ modules: [] });
+      const plan = await createPlan([CLINIC_MODULE.APPOINTMENTS]);
+
+      await call("PUT", `/vendor/clinics/${clinic.id}/subscription`, subscription(plan.id));
+      const saved = await call("PUT", `/vendor/clinics/${clinic.id}/modules`, {
+        modules: [CLINIC_MODULE.BOOKING],
+      });
+
+      expect(saved.statusCode).toBe(204);
+      expect(await modulesOf(clinic)).toEqual([CLINIC_MODULE.APPOINTMENTS, CLINIC_MODULE.BOOKING]);
+      expect(
+        (await call("GET", `/vendor/clinics/${clinic.id}`)).json<VendorClinicDetail>().subscription
+          ?.addOnModules,
+      ).toEqual([CLINIC_MODULE.BOOKING]);
+    });
+
+    it("refuses booking without appointments", async () => {
+      const clinic = await context.createClinic({ modules: [] });
+      const saved = await call("PUT", `/vendor/clinics/${clinic.id}/modules`, {
+        modules: [CLINIC_MODULE.BOOKING],
+      });
+
+      expect(saved.statusCode).toBe(400);
+      expect(saved.json()).toMatchObject({ message: VENDOR_MISSING_MODULES });
+    });
+
+    it("switches a specialty off and on, but never the last one", async () => {
+      const clinic = await context.createClinic({ modules: [] });
+
+      await call("POST", `/vendor/clinics/${clinic.id}/specialties`, { code: "orthopedic" });
+
+      const off = await context.app.inject({
+        method: "DELETE",
+        url: `/vendor/clinics/${clinic.id}/specialties/orthopedic`,
+        headers: { cookie },
+      });
+      const last = await context.app.inject({
+        method: "DELETE",
+        url: `/vendor/clinics/${clinic.id}/specialties/dental`,
+        headers: { cookie },
+      });
+
+      expect(off.statusCode).toBe(204);
+      expect(last.statusCode).toBe(400);
+      expect(last.json()).toMatchObject({ message: VENDOR_LAST_SPECIALTY });
+      expect(
+        (await call("GET", `/vendor/clinics/${clinic.id}`)).json<VendorClinicDetail>().specialties,
+      ).toEqual(["dental"]);
+
+      await call("POST", `/vendor/clinics/${clinic.id}/specialties`, { code: "orthopedic" });
+
+      expect(
+        (await call("GET", `/vendor/clinics/${clinic.id}`)).json<VendorClinicDetail>().specialties,
+      ).toEqual(["dental", "orthopedic"]);
     });
   });
 
