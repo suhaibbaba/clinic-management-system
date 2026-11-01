@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Put } from "@nestjs/common";
 import {
+  CLINIC_MODULE,
   AUDIT_ACTION,
   USER_ROLE,
   type PresignSiteImageResponse,
@@ -12,7 +13,9 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { SITE_CONTENT_ENTITY } from "@api/common/constants/audit-entities";
 import { WebsiteService } from "@api/modules/website/services/website.service";
 import { PresignSiteImageDto, SiteContentDto } from "@api/modules/website/dto/website.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.WEBSITE)
 @Controller("website")
 export class WebsiteController {
   constructor(private readonly website: WebsiteService) {}

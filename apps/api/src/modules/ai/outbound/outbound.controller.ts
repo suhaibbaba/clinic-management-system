@@ -11,6 +11,7 @@ import {
   Query,
 } from "@nestjs/common";
 import {
+  CLINIC_MODULE,
   AUDIT_ACTION,
   aiAutomationSettingsSchema,
   idParamSchema,
@@ -33,6 +34,7 @@ import { Capability } from "@api/common/decorators/capability.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
 class IdParamDto extends createZodDto(idParamSchema) {}
 class ListProposalsQueryDto extends createZodDto(listAiProposalsQuerySchema) {}
@@ -41,6 +43,7 @@ class AutomationSettingsDto extends createZodDto(aiAutomationSettingsSchema) {}
 
 const SENDERS = [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST] as const;
 
+@ClinicFeature(CLINIC_MODULE.ASSISTANT)
 @Controller("ai")
 export class OutboundController {
   constructor(

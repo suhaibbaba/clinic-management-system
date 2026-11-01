@@ -11,6 +11,7 @@ import {
   Query,
 } from "@nestjs/common";
 import {
+  CLINIC_MODULE,
   AUDIT_ACTION,
   USER_ROLE,
   type Lab,
@@ -36,7 +37,9 @@ import {
   CreateWorkTypeDto,
   UpdateWorkTypeDto,
 } from "@api/modules/labs/dto/labs.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.LABS)
 @Controller("labs")
 export class LabsController {
   constructor(

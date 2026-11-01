@@ -22,6 +22,21 @@ export class DashboardService {
 
   async summary(actor: AuthenticatedUser): Promise<DashboardSummary> {
     const date = await this.appointments.localToday(actor.clinicId);
+    const [pending, overdue] = await Promise.all([
+      this.pendingBookings(actor),
+      this.overdueTotal(actor),
+    ]);
+    const extras = {
+      ...(pending !== undefined && { pendingBookings: pending }),
+      ...(overdue !== undefined && {
+        overdueTotal: overdue.total,
+        overduePatients: overdue.patients,
+      }),
+    };
+
+    if (!(await this.permissions.can(actor, "appointments.list"))) {
+      return { date, ...extras };
+    }
 
     const ownDoctorId = await this.access.ownDoctorId(actor);
     const unmatchedDoctor = ownDoctorId === null && !(await this.access.seesAllCalendars(actor));
@@ -36,19 +51,10 @@ export class DashboardService {
           ...(ownDoctorId !== null && { doctorId: ownDoctorId }),
         });
 
-    const [pending, overdue] = await Promise.all([
-      this.pendingBookings(actor),
-      this.overdueTotal(actor),
-    ]);
-
     return {
       date,
       appointmentsToday: today?.total ?? 0,
-      ...(pending !== undefined && { pendingBookings: pending }),
-      ...(overdue !== undefined && {
-        overdueTotal: overdue.total,
-        overduePatients: overdue.patients,
-      }),
+      ...extras,
       schedule: today?.items ?? [],
     };
   }

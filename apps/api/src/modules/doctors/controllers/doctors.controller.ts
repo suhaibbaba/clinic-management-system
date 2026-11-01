@@ -10,7 +10,13 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
-import { AUDIT_ACTION, USER_ROLE, type Doctor, type Paginated } from "@clinic/shared";
+import {
+  CLINIC_MODULE,
+  AUDIT_ACTION,
+  USER_ROLE,
+  type Doctor,
+  type Paginated,
+} from "@clinic/shared";
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
@@ -26,6 +32,7 @@ import {
   UpdateDoctorDto,
   UpdateDoctorScheduleDto,
 } from "@api/modules/doctors/dto/doctors.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
 @Controller("doctors")
 export class DoctorsController {
@@ -83,6 +90,7 @@ export class DoctorsController {
   }
 
   @Patch(":id/schedule")
+  @ClinicFeature(CLINIC_MODULE.APPOINTMENTS)
   @Roles(USER_ROLE.DOCTOR)
   @Audit(DOCTORS_ENTITY, AUDIT_ACTION.UPDATE)
   updateSchedule(

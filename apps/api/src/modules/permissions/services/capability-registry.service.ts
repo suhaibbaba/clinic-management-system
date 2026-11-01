@@ -1,15 +1,12 @@
 import { Injectable, Logger, type OnApplicationBootstrap, RequestMethod } from "@nestjs/common";
 import { DiscoveryService, MetadataScanner, Reflector } from "@nestjs/core";
 import { PATH_METADATA, METHOD_METADATA } from "@nestjs/common/constants";
-import { type UserRole } from "@clinic/shared";
+import { type ClinicModule, type UserRole } from "@clinic/shared";
 import { CAPABILITY_KEY } from "@api/common/decorators/capability.decorator";
 import { ROLES_KEY } from "@api/common/decorators/roles.decorator";
+import { CLINIC_FEATURE_KEY } from "@api/common/decorators/clinic-feature.decorator";
 import { IS_PUBLIC_KEY } from "@api/common/decorators/public.decorator";
-import {
-  Capability,
-  MODULE_OF_RESOURCE,
-  scopeOf,
-} from "@api/modules/permissions/lib/capability-registry";
+import { Capability, scopeOf } from "@api/modules/permissions/lib/capability-registry";
 import { joinPath, METHOD_NAMES } from "@api/common/lib/routes";
 import { RULE_CAPABILITIES } from "@api/modules/permissions/lib/rules";
 
@@ -76,7 +73,9 @@ export class CapabilityRegistry implements OnApplicationBootstrap {
           method: METHOD_NAMES[methodCode] ?? "GET",
           path,
           defaultRoles: [...declared],
-          module: MODULE_OF_RESOURCE[resource],
+          module:
+            this.reflector.get<ClinicModule | undefined>(CLINIC_FEATURE_KEY, handler) ??
+            this.reflector.get<ClinicModule | undefined>(CLINIC_FEATURE_KEY, metatype),
         });
       }
     }

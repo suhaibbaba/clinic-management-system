@@ -3,6 +3,7 @@ import { Cron, CronExpression } from "@nestjs/schedule";
 import {
   addDays,
   APPOINTMENT_STATUS,
+  CLINIC_MODULE,
   appointmentSettings,
   AUDIT_ACTION,
   AUTO_NO_SHOW_DAYS,
@@ -13,6 +14,7 @@ import {
 } from "@clinic/shared";
 import { and, eq, inArray, isNull, lt } from "drizzle-orm";
 import { APPOINTMENTS_ENTITY } from "@api/common/constants/audit-entities";
+import { clinicHasModule } from "@api/common/lib/clinic-modules";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { appointments, clinics } from "@api/database/schema";
 import { toAppointment, type AppointmentRow } from "@api/modules/appointments/lib/appointments";
@@ -44,6 +46,7 @@ export class NoShowScheduler {
           isNull(appointments.deletedAt),
           eq(appointments.status, APPOINTMENT_STATUS.CONFIRMED),
           lt(appointments.startsAt, earliestCutoff),
+          clinicHasModule(CLINIC_MODULE.APPOINTMENTS),
         ),
       );
 

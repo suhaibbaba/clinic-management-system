@@ -610,6 +610,13 @@
       "when": 1793495880642,
       "tag": "0086_ai_read_localized_catalog",
       "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1793555906145,
+      "tag": "0087_standard_clinic_modules",
+      "breakpoints": true
     }
   ]
 }

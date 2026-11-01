@@ -1,12 +1,14 @@
 import { Body, Controller, Get, Put } from "@nestjs/common";
-import { USER_ROLE, type ClinicSecrets } from "@clinic/shared";
+import { CLINIC_MODULE, USER_ROLE, type ClinicSecrets } from "@clinic/shared";
 import { Capability } from "@api/common/decorators/capability.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { SecretsService } from "@api/modules/secrets/services/secrets.service";
 import { UpdateSecretsDto } from "@api/modules/secrets/dto/secrets.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.ASSISTANT)
 @Controller("ai/secrets")
 export class SecretsController {
   constructor(private readonly secrets: SecretsService) {}

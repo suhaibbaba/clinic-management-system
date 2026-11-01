@@ -20,7 +20,20 @@ Users belong to one clinic and have exactly one role (v1). `admin` implicitly pa
 
 **Every permission is a capability a clinic can change.** The matrix below is the shipped default. Each endpoint is a capability, and so is each data rule below (`RULE` in `packages/shared`); the Permissions page grants or withdraws any of them per role. The sidebar and the route guards follow the same capabilities, so a page appears the moment its list capability is granted.
 
-**Paid modules** sit above the matrix. A clinic has a `modules` list, empty by default; while a module is off its capabilities are refused to everyone, admin included, and leave the session and the Permissions page. Only the vendor switches one on: `pnpm -C apps/api module:enable <clinic slug> <module>` (and `module:disable`, `module:list`). Today's module is `assistant`: every `/ai` route, the AI query, and the daily follow-ups.
+**Paid modules** sit above the matrix. A clinic has a `modules` list; while a module is off its capabilities are refused to everyone, admin included, and leave the session and the Permissions page, so its pages, tabs, buttons and widgets go with them. Its data stays and returns when the module is switched back on. Only the vendor switches one on: `pnpm -C apps/api module:enable <clinic slug> <module>` (and `module:disable`, `module:list`). A controller names its module with `@ClinicFeature`; a controller without one is core (patients, visits, the timeline, billing, users, permissions, audit, settings, lists, notes, the dashboard).
+
+| Module | Covers | Needs |
+|---|---|---|
+| `appointments` | The calendar, availability, the waiting list, clinic closures, doctor time off, extra hours and weekly schedules, reminders and automatic no-shows, the dashboard's day schedule | — |
+| `booking` | The public booking page, booking from the patient account, pending online bookings | `appointments` |
+| `labs` | Labs, lab orders and lab payments | — |
+| `inventory` | Items, stock, purchasing, requests, counts and suppliers | — |
+| `expenses` | Clinic expenses | — |
+| `payroll` | Payroll, staff payments, doctor settlements and *My earnings* | — |
+| `website` | The public website, its messages and the patient account | — |
+| `assistant` | Every `/ai` route, the AI query and the daily follow-ups | — |
+
+A new clinic gets `appointments`, `booking`, `labs`, `inventory`, `expenses` and `payroll` unless `BOOTSTRAP_MODULES` says otherwise.
 
 | Rule capability | Decides | Default roles (admin always) |
 |---|---|---|

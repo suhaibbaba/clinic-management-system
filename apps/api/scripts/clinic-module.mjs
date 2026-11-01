@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 
 import postgres from "postgres";
 
-const { CLINIC_MODULES } = createRequire(import.meta.url)("@clinic/shared");
+const { CLINIC_MODULES, MODULE_REQUIRES } = createRequire(import.meta.url)("@clinic/shared");
 
 const [action, clinic, module] = process.argv.slice(2);
 const usage = `Usage:
@@ -35,13 +35,32 @@ const sql = postgres(databaseUrl, { max: 1, onnotice: () => {} });
 try {
   if (action === "list") {
     const rows = await sql`
-      select slug, name_en, modules from clinics where deleted_at is null order by created_at`;
+      select slug, coalesce(name->>'en', name->>'ar') as name, modules
+      from clinics where deleted_at is null order by created_at`;
 
     for (const row of rows) {
-      console.log(`${row.slug}\t${row.name_en}\t${row.modules.join(", ") || "-"}`);
+      console.log(`${row.slug}\t${row.name}\t${row.modules.join(", ") || "-"}`);
     }
   } else {
     const isId = /^[0-9a-f-]{36}$/i.test(clinic);
+    const match = isId ? sql`id = ${clinic}` : sql`slug = ${clinic}`;
+    const [current] = await sql`
+      select modules from clinics where deleted_at is null and ${match}`;
+    const enabled = new Set(current?.modules ?? []);
+    const blockers =
+      action === "enable"
+        ? (MODULE_REQUIRES[module] ?? []).filter((needed) => !enabled.has(needed))
+        : [...enabled].filter((other) => (MODULE_REQUIRES[other] ?? []).includes(module));
+
+    if (current && blockers.length > 0) {
+      console.error(
+        action === "enable"
+          ? `${module} needs ${blockers.join(", ")}: enable ${blockers.join(", ")} first.`
+          : `${blockers.join(", ")} needs ${module}: disable ${blockers.join(", ")} first.`,
+      );
+      process.exit(1);
+    }
+
     const rows = await sql`
       update clinics
       set modules = ${
@@ -50,7 +69,7 @@ try {
           : sql`array_remove(modules, ${module})`
       },
       updated_at = now()
-      where deleted_at is null and ${isId ? sql`id = ${clinic}` : sql`slug = ${clinic}`}
+      where deleted_at is null and ${match}
       returning slug, modules`;
 
     if (rows.length === 0) {

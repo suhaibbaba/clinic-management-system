@@ -16,6 +16,7 @@ import { SendDocumentDto } from "@api/modules/notifications/dto/document-deliver
 import { DocumentDeliveryService } from "@api/modules/notifications/services/document-delivery.service";
 import { PayrollDocumentsService } from "@api/modules/payroll/services/payroll-documents.service";
 import {
+  CLINIC_MODULE,
   AUDIT_ACTION,
   USER_ROLE,
   type CollectionTerm,
@@ -47,7 +48,9 @@ import {
   SettlementTermsDto,
   UpdateTreatmentSettlementDto,
 } from "@api/modules/payroll/dto/payroll.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.PAYROLL)
 @Controller("doctors")
 @Roles(USER_ROLE.ADMIN)
 export class DoctorSettlementsController {
@@ -153,6 +156,7 @@ export class DoctorSettlementsController {
   }
 }
 
+@ClinicFeature(CLINIC_MODULE.PAYROLL)
 @Controller("me/settlement")
 @Roles(USER_ROLE.ADMIN)
 export class MySettlementController {
@@ -167,6 +171,7 @@ export class MySettlementController {
   }
 }
 
+@ClinicFeature(CLINIC_MODULE.PAYROLL)
 @Controller("patients/:id/settlement-status")
 @Roles(USER_ROLE.ADMIN)
 export class PatientSettlementStatusController {
@@ -181,6 +186,7 @@ export class PatientSettlementStatusController {
   }
 }
 
+@ClinicFeature(CLINIC_MODULE.PAYROLL)
 @Controller("settlement-treatments")
 @Roles(USER_ROLE.ADMIN)
 export class SettlementTreatmentsController {

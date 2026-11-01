@@ -110,8 +110,8 @@ describe("Dashboard (e2e)", () => {
 
     expect(body.appointmentsToday).toBe(2);
     expect(body.schedule).toHaveLength(2);
-    expect(new Date(body.schedule[0]!.startsAt).getTime()).toBeLessThan(
-      new Date(body.schedule[1]!.startsAt).getTime(),
+    expect(new Date(body.schedule?.[0]?.startsAt ?? "").getTime()).toBeLessThan(
+      new Date(body.schedule?.[1]?.startsAt ?? "").getTime(),
     );
   });
 
@@ -262,7 +262,7 @@ describe("Dashboard (e2e)", () => {
     expect(body.overdueTotal).toEqual(expect.any(String));
     expect(body.pendingBookings).toEqual(expect.any(Number));
 
-    for (const entry of body.schedule) {
+    for (const entry of body.schedule ?? []) {
       expect(entry.doctorId).toBe(fixtures.doctorId);
     }
   });

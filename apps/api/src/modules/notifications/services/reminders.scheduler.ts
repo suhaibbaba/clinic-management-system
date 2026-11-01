@@ -3,12 +3,14 @@ import { Cron, CronExpression } from "@nestjs/schedule";
 import {
   APPOINTMENT_STATUS,
   bookingSettings,
+  CLINIC_MODULE,
   clinicLocale,
   localDate,
   shortDate,
 } from "@clinic/shared";
 import { and, eq, gt, isNotNull, isNull, lt, notExists } from "drizzle-orm";
 import { DATABASE, type Database } from "@api/database/database.module";
+import { clinicHasModule } from "@api/common/lib/clinic-modules";
 import { appointments, bookingOtps, clinics, doctors, patients, users } from "@api/database/schema";
 import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
 import { REMINDERS, WINDOW, MINUTE } from "@api/modules/notifications/constants";
@@ -59,6 +61,7 @@ export class RemindersScheduler {
             eq(appointments.status, APPOINTMENT_STATUS.CONFIRMED),
             gt(appointments.startsAt, from),
             lt(appointments.startsAt, to),
+            clinicHasModule(CLINIC_MODULE.APPOINTMENTS),
           ),
         );
 

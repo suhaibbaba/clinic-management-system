@@ -15,6 +15,7 @@ import { Throttle } from "@nestjs/throttler";
 import { SendDocumentDto } from "@api/modules/notifications/dto/document-delivery.dto";
 import { DocumentDeliveryService } from "@api/modules/notifications/services/document-delivery.service";
 import {
+  CLINIC_MODULE,
   AUDIT_ACTION,
   LAB_ORDER_STATUS,
   USER_ROLE,
@@ -46,7 +47,9 @@ import {
   ConfirmDto,
   AttachmentParamsDto,
 } from "@api/modules/labs/dto/lab-orders.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.LABS)
 @Controller("lab-orders")
 export class LabOrdersController {
   constructor(

@@ -1,4 +1,4 @@
-import { CLINIC_MODULE, type ClinicModule, type UserRole } from "@clinic/shared";
+import { type ClinicModule, type UserRole } from "@clinic/shared";
 
 export interface Capability {
   readonly key: string;
@@ -8,11 +8,6 @@ export interface Capability {
   readonly defaultRoles: UserRole[];
   readonly module?: ClinicModule | undefined;
 }
-
-export const MODULE_OF_RESOURCE: Readonly<Record<string, ClinicModule>> = {
-  ai: CLINIC_MODULE.ASSISTANT,
-  website: CLINIC_MODULE.WEBSITE,
-};
 
 export const scopeOf = (controller: { name: string }): string =>
   controller.name

@@ -10,7 +10,13 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
-import { AUDIT_ACTION, USER_ROLE, type Paginated, type WaitingListEntry } from "@clinic/shared";
+import {
+  CLINIC_MODULE,
+  AUDIT_ACTION,
+  USER_ROLE,
+  type Paginated,
+  type WaitingListEntry,
+} from "@clinic/shared";
 import { WAITING_LIST_ENTITY } from "@api/common/constants/audit-entities";
 import { WaitingListService } from "@api/modules/appointments/services/waiting-list.service";
 import { Audit } from "@api/common/decorators/audit.decorator";
@@ -26,7 +32,9 @@ import {
   PromoteWaitingListEntryDto,
   DeclineWaitingListEntryDto,
 } from "@api/modules/appointments/dto/waiting-list.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.APPOINTMENTS)
 @Controller("waiting-list")
 @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
 export class WaitingListController {

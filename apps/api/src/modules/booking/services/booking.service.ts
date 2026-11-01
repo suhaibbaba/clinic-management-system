@@ -14,6 +14,7 @@ import {
   APPOINTMENT_TYPE,
   BOOKING_CONFIRMATION_MODE,
   bookingSettings,
+  CLINIC_MODULE,
   clinicLocale,
   notificationSettings,
   joinPatientName,
@@ -39,6 +40,7 @@ import {
 import { and, asc, count, eq, gt, gte, inArray, isNull, lt, ne, sql } from "drizzle-orm";
 import { randomInt } from "node:crypto";
 import { hashCode } from "@api/common/lib/codes";
+import { clinicHasModule } from "@api/common/lib/clinic-modules";
 import { AvailabilityService } from "@api/modules/appointments/services/availability.service";
 import { WaitingListService } from "@api/modules/appointments/services/waiting-list.service";
 import { BookingTokenService } from "@api/modules/booking/services/booking-token.service";
@@ -707,7 +709,13 @@ export class BookingService {
         settings: clinics.settings,
       })
       .from(clinics)
-      .where(and(eq(clinics.slug, slug), isNull(clinics.deletedAt)))
+      .where(
+        and(
+          eq(clinics.slug, slug),
+          isNull(clinics.deletedAt),
+          clinicHasModule(CLINIC_MODULE.BOOKING),
+        ),
+      )
       .limit(1);
 
     if (!row) {

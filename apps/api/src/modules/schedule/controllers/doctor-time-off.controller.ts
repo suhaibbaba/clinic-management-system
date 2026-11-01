@@ -11,6 +11,7 @@ import {
   Query,
 } from "@nestjs/common";
 import {
+  CLINIC_MODULE,
   AUDIT_ACTION,
   USER_ROLE,
   type DoctorTimeOff,
@@ -32,7 +33,9 @@ import {
   IdParamDto,
   UpdateDoctorTimeOffDto,
 } from "@api/modules/schedule/dto/doctor-time-off.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.APPOINTMENTS)
 @Controller()
 export class DoctorTimeOffController {
   constructor(private readonly timeOff: DoctorTimeOffService) {}

@@ -1,19 +1,40 @@
 # CLAUDE.md — Clinic Management System
 
-A web-based clinic management system. The first client is a dental clinic; the system is
-**multi-specialty by design**. Never put dental-only logic outside the dental specialty
-configuration.
+A web-based clinic management system, sold per clinic. A small **core** is always on; every other
+feature is a paid **module** and every specialty a paid **specialty pack**, both switched on by the
+vendor. The first clients are a dental clinic and an orthopedic clinic; the product is
+**multi-specialty by design**, so specialty behaviour is configuration and data, never a code branch.
 
-Everything hangs off the **patient record**: appointments, visits, treatments, X-rays, lab orders
-and payments attach to the patient and appear in one timeline.
+Everything hangs off the **patient record**: visits, treatments, X-rays, payments and, where their
+modules are on, appointments and lab orders attach to the patient and appear in one timeline.
 
-## Roles
+## Non-negotiables
 
-`admin` · `doctor` · `technician` · `receptionist`, plus anonymous **public** on the booking page.
-One clinic, one role per user. `admin` passes every role check within its own clinic.
+Never:
 
-**`ROLES.md` is the specification — read it before implementing any endpoint.** Its five global
-rules, in short:
+- store or expose an editable balance or quantity
+- hard-delete a medical or financial row
+- use a float for money
+- skip the audit interceptor on a financial or medical mutation
+- return medical fields to a caller without `patients.clinical`
+- decide anything by comparing a role in code; add a capability or a `RULE` instead
+- ship a feature outside core without a module, or let a module's route answer while it is off
+- put specialty logic (dental or orthopedic) in core, billing, appointments or any module
+- hardcode a user-facing choice list, a colour, a font size or a control height
+- decide whether a minute is bookable anywhere but `AvailabilityService`
+- put a tab or filter in `useState`, or drop a route without redirecting it
+- write a user-facing string in a component
+- commit a secret or a screenshot
+
+## Tenancy, roles and capabilities
+
+One database holds every clinic; every domain table carries `clinic_id`. Roles: `admin` · `doctor` ·
+`visiting_doctor` · `technician` · `receptionist`, plus anonymous **public** on the booking page and
+the **patient** signed in on the clinic's website. One clinic, one role per user. `admin` passes
+every role check within its own clinic.
+
+**`ROLES.md` is the specification — read it before implementing any endpoint.** Its global rules,
+in short:
 
 1. Every request is scoped to the caller's `clinic_id`, taken from the token and never from the
    body, path or query. Another clinic's row is a 404, never a 403.
@@ -22,10 +43,81 @@ rules, in short:
    capability in `RULE`; a clinic grants or withdraws each per role. Capabilities decide which fields
    are serialized, not only which endpoints answer; a field the caller may not read is absent, not
    null. Only `admin` is fixed: it passes every check.
-3. Financial and medical mutations always write an audit entry with old and new values.
-4. Nothing is hard-deleted. Only `admin` may soft-delete financial records or view deleted rows.
-5. Doctors see the records of patients in their clinic (v1); `STRICT_DOCTOR_SCOPE` exists to tighten
+3. **Modules sit above capabilities.** While a clinic lacks a module, its capabilities are refused to
+   everyone, admin included, and leave the session and the Permissions page.
+4. Financial and medical mutations always write an audit entry with old and new values.
+5. Nothing is hard-deleted. Only `admin` may soft-delete financial records or view deleted rows.
+6. Doctors see the records of patients in their clinic (v1); `STRICT_DOCTOR_SCOPE` exists to tighten
    this later.
+
+## Core
+
+Always on, for every clinic. A controller without `@ClinicFeature` is core.
+
+- **Patients** — the record, visits, treatments and performed procedures, prescriptions, medical
+  history, documents, attachments (X-rays), the chart, the timeline.
+- **Billing** — charges, payments, balances, the procedure catalog and price list.
+- **Clinic** — users, doctors and their profiles, permissions, the audit log, settings, lookup lists,
+  translations, notes, the dashboard, notifications plumbing.
+
+A walk-in clinic runs on core alone: a visit never needs an appointment.
+
+## Modules
+
+`CLINIC_MODULE` in `packages/shared`; the clinic's `modules` column holds what it has.
+`ROLES.md` keeps the authoritative table.
+
+| Module | Owns | Needs |
+|---|---|---|
+| `appointments` | Calendar, availability, waiting list, closures, time off, extra hours, weekly schedules, reminders, auto no-show, the dashboard's day schedule | — |
+| `booking` | Public booking page, booking from the patient account, pending online bookings | `appointments` |
+| `labs` | Labs, lab orders, lab payments | — |
+| `inventory` | Items, stock, purchasing, requests, counts, suppliers | — |
+| `expenses` | Clinic expenses | — |
+| `payroll` | Payroll, staff payments, doctor settlements, *My earnings* | — |
+| `website` | Public website, its messages, the patient account | — |
+| `assistant` | Every `/ai` route, the AI query, daily follow-ups | — |
+
+How a module is wired:
+
+- **API** — `@ClinicFeature(CLINIC_MODULE.X)` on the controller (or one route); `RolesGuard` refuses
+  it while the module is off, role-less routes included. A rule capability passes its module to
+  `rule()`. A public route checks `clinicHasModule()` in its clinic lookup and answers 404. A
+  background job filters clinics with `clinicHasModule()`. A core response that embeds module data
+  (the dashboard) omits those fields when the caller lacks the capability.
+- **Web** — nothing to add: the sidebar, route guards, tabs and buttons already follow capabilities.
+  A core screen showing a module's widget checks the capability that feeds it.
+- **Dependencies** — `MODULE_REQUIRES`; the module script and bootstrap refuse a module without what
+  it needs, and refuse to remove what another enabled module needs.
+- **Only the vendor switches a module.** No clinic screen does, admin included.
+- **Switching off hides, never deletes.** The data stays and returns when the module returns.
+- **New clinics** get `STANDARD_CLINIC_MODULES` unless `BOOTSTRAP_MODULES` says otherwise.
+- `clinic-modules.e2e-spec` files every capability scope as core or a module; a new controller fails
+  it until it is filed.
+
+## Specialties
+
+A specialty is paid too: the vendor grants it (`BOOTSTRAP_SPECIALTIES`, or `clinic-specialty.js
+enable`), which adds its list rows and starter pack; an admin may only rename one. Today: `dental`
+(FDI tooth chart, 11–48 and 51–85) and `orthopedic` (body-region chart). `chart_marks` links a
+treatment to a location generically per specialty; `CHART_TYPE` names the chart. A new specialty is
+a code, a chart type if it needs one, and its starter pack — never a branch in core.
+
+## Licensing and the vendor (planned)
+
+Next steps, in order; build toward them, never against them:
+
+1. **Subscriptions** — `plans` (modules included, limits), `subscriptions` (clinic, plan, add-on
+   modules, specialties, `ends_at`, status `trial`/`active`/`grace`/`suspended`/`cancelled` as a code
+   enum) and an append-only `subscription_events` history. `clinics.modules` becomes computed from the
+   active subscription. An expired clinic goes to grace, then read-only — never deleted.
+2. **Vendor console** — a separate `vendor` identity and sign-in above every clinic, never a clinic
+   role. It sees business data only (plan, modules, users, dates), never patients. It replaces the
+   `module:*` and `clinic-specialty.js` scripts.
+3. **Clinic subscription page** — the clinic admin reads their plan and asks for a module.
+
+Until then the vendor switches modules with `pnpm -C apps/api module:enable|disable|list`. A clinic
+that needs its own server later runs the same app and checks a signed license from the console.
 
 ## Tech stack
 
@@ -47,65 +139,55 @@ packages/shared   Zod schemas, types, enums, constants
 packages/ui       components, tokens, the theme contract
 ```
 
-## Modules, in build order
+## Data and domain rules
 
-core · patients · billing · appointments · booking · notifications · labs · inventory · reports
-
-**Phase 1** core, patients, billing, internal appointments, roles, audit log.
-**Phase 2** public booking, notifications, labs, inventory.
-**Phase 3** reports, dashboard, prescriptions, a second specialty chart, expenses.
-
-## Architecture
-
-1. **Multi-clinic, multi-specialty from day one.** Every domain table carries `clinic_id`.
-   Specialty behaviour is configuration and data, never a code branch.
-2. **Ledgers, not balances.** `charges`, `payments`, `lab_orders`, `lab_payments`,
-   `stock_movements`, `supplier_payments`, `supplier_opening_balances` are append-only. A balance and a quantity are `sum()` over them, computed on
-   read. A correction is a new reversing row. **Never store an editable balance or quantity.**
-3. **Soft delete** for everything medical and financial, plus `created_by`/`updated_by`/
+1. **Ledgers, not balances.** `charges`, `payments`, `lab_orders`, `lab_payments`,
+   `stock_movements`, `supplier_payments`, `supplier_opening_balances` are append-only. A balance and
+   a quantity are `sum()` over them, computed on read. A correction is a new reversing row.
+2. **Soft delete** for everything medical and financial, plus `created_by`/`updated_by`/
    `created_at`/`updated_at`.
-4. **Audit log** on every financial and medical mutation: user, time, entity, old and new value.
+3. **Audit log** on every financial and medical mutation: user, time, entity, old and new value.
    Immutable — no update or delete path. The database enforces it with triggers (migration 0048):
    the audit logs are append-only, a ledger row may change only its reversal and soft-delete
    markers, and no medical or financial row is hard-deleted. Only a superuser setting
    `session_replication_role = replica` (the seed, test clean-up) gets past them.
-5. **Charts** use FDI numbering (11–48, 51–85). `chart_marks` links a treatment to a location
-   generically per specialty.
-6. **Public booking is anonymous.** The phone number is the identity; a patient has no password. The
-   patient account on the website signs in with a one-time code sent to that phone and only reads (see
-   `ROLES.md`). Slots are computed, never stored.
-7. **State machines are code enums**, in `packages/shared`; transitions validated in services.
-8. **Every user-facing choice list is data**, in `lookup_options`, scoped per clinic and grouped by
+4. **State machines are code enums**, in `packages/shared`; transitions validated in services.
+5. **Every user-facing choice list is data**, in `lookup_options`, scoped per clinic and grouped by
    `list_key`. Adding an option is not a code change. `is_system` is a label, not a lock: every row
    can be renamed, recoloured, reordered, switched off or deleted. Switching off keeps the name
    resolving; deleting takes it and the stored code falls back to itself. Codes are never edited.
    **The exception is a status that drives a state machine** — appointment status, lab order status,
    stock movement direction — which stays an enum.
-9. **`AvailabilityService` is the only place that decides whether a minute is bookable.** It
+6. **`AvailabilityService` is the only place that decides whether a minute is bookable.** It
    subtracts, in order: clinic closures, clinic working hours, the doctor's schedule, doctor time
    off, and booked appointments. `closedReason` says which. A closure or absence over booked
    appointments answers 409 with who is in the way; the caller returns with `force` and optionally
    `cancelAppointments`.
-10. **Staff, clinic and list names are stored per language, patient names are not.** A
-    `LocalizedText` (`{ ar?, en?, tr?, … }`, jsonb) read through `<PersonName>` / `localized()`, never
-    `.ar`, never a per-screen ternary. A form shows one input per clinic language. A patient's name is
-    one language. Names are stored in parts (patient: first, optional middle, last; staff: first and
-    last per language) and the API writes the full name beside them — `fullName` / `name` in every
-    response, `firstName` / `lastName` where a screen is short of room. The web never splits a full
-    name. Printed documents and patient messages use the clinic's document language.
-11. **Money is whole numbers in the interface, and a symbol.** `wholeMoneySchema` gates every write;
-    money inputs refuse a decimal separator; displays format with zero decimals, grouped the way the
-    clinic's country writes numbers. Storage stays `numeric(10,2)` and read schemas stay
-    `moneySchema`. The currency is its symbol from `CURRENCY_DEFINITIONS`, never a code or a name,
-    and it cannot change once the clinic has recorded money.
-12. **Translations are editable per clinic.** `translation_overrides` stores only what an admin
+7. **Public booking is anonymous.** The phone number is the identity; a patient has no password. The
+   patient account on the website signs in with a one-time code sent to that phone and only reads
+   (see `ROLES.md`). Slots are computed, never stored.
+8. **Staff, clinic and list names are stored per language, patient names are not.** A
+   `LocalizedText` (`{ ar?, en?, tr?, … }`, jsonb) read through `<PersonName>` / `localized()`, never
+   `.ar`, never a per-screen ternary. A form shows one input per clinic language. A patient's name is
+   one language. Names are stored in parts (patient: first, optional middle, last; staff: first and
+   last per language) and the API writes the full name beside them — `fullName` / `name` in every
+   response, `firstName` / `lastName` where a screen is short of room. The web never splits a full
+   name. Printed documents and patient messages use the clinic's document language.
+9. **Money is whole numbers in the interface, and a symbol.** `wholeMoneySchema` gates every write;
+   money inputs refuse a decimal separator; displays format with zero decimals, grouped the way the
+   clinic's country writes numbers. Storage stays `numeric(10,2)` and read schemas stay
+   `moneySchema`. The currency is its symbol from `CURRENCY_DEFINITIONS`, never a code or a name,
+   and it cannot change once the clinic has recorded money.
+10. **Translations are editable per clinic.** `translation_overrides` stores only what an admin
     changed; the locale files remain the default, so improved wording still reaches untouched keys
     and a reset is a row delete.
-13. **A clinic's locale is one profile.** `clinicLocale(clinic)` (country, currency, time zone,
+11. **A clinic's locale is one profile.** `clinicLocale(clinic)` (country, currency, time zone,
     languages, primary language, clock, week start, number locale) starts from the country's
     `COUNTRY_PRESETS` row and the clinic's `settings.locale` overrides it. Every date, time, number
     and language decision reads it; nothing compares a language code. A new language is a row in
     `LANGUAGE_DEFINITIONS` plus its locale files; a new country is a preset row.
+12. **Files.** Upload through presigned R2 URLs; store the key and metadata, serve short-lived signed
+    URLs. A receptionist never receives an attachment URL. **Staff have a photo, patients do not.**
 
 ## Backend
 
@@ -119,12 +201,8 @@ core · patients · billing · appointments · booking · notifications · labs 
   `constants.ts` are private to it; what two modules need lives in `src/common/` (`lib/`,
   `constants/` — audit entity names, Postgres error codes —, `types/`). ESLint enforces it.
 - DTOs are shared Zod schemas. Never duplicate validation.
-- **A paid feature is a module** (`CLINIC_MODULE`): its capabilities carry the module, and
-  `PermissionsService` refuses them while the clinic's `modules` lacks it. Background jobs filter
-  clinics by module. Switching one on is the vendor's command, never a screen.
-- **A specialty is paid too.** The vendor grants it (`BOOTSTRAP_SPECIALTIES`, or
-  `clinic-specialty.js enable`), which adds its list rows and starter pack; an admin may only rename one.
-- `JwtAuthGuard` global; `@Roles(...)` per endpoint; object-level checks inside services.
+- `JwtAuthGuard` global; `@Roles(...)` and `@ClinicFeature(...)` per controller or endpoint;
+  object-level checks inside services.
 - **Every route is rate limited** by the global `RequestThrottlerGuard` (per user, or per IP when
   signed out); a public or costly route adds a tighter `@Throttle`. The client IP is trusted only
   past our own proxies (`TRUST_PROXY`). Sign-in locks an identifier for 15 minutes after five
@@ -132,14 +210,16 @@ core · patients · billing · appointments · booking · notifications · labs 
   message caps sends per phone.
 - **The assistant never changes data unasked:** every action tool is tier `confirm` or stricter,
   so the user approves each change on its card. A linked id (a visit, a procedure, a work type) is
-  checked to belong to the same patient, clinic or lab before it is stored.
+  checked to belong to the same patient, clinic or lab before it is stored. Every assistant tool
+  names the capability it reads, so it disappears with its module.
 - Every list endpoint paginates, filters by query param, and is clinic-scoped automatically.
 - **Newest first by default** — every list, table and attachment list. A sort picker may offer
   other orders; its default is newest. Exceptions carry meaning: a calendar or queue by time, the
   waiting list by priority, an admin-ordered list by `sortOrder`, batches by expiry.
 - Money is `numeric(10,2)`, handled as strings. **Never float.**
 - Errors are `{ statusCode, message, error }`; Arabic wording is resolved on the front end by code.
-- Every schema change is a committed `drizzle-kit generate` migration. Never edit an applied one.
+- Every schema change is a committed `drizzle-kit generate` migration (`--custom` for data). Never
+  edit an applied one.
 
 ## Frontend
 
@@ -166,19 +246,20 @@ core · patients · billing · appointments · booking · notifications · labs 
   `languageDirection()`. Gregorian dates, words through i18n. `check:i18n` fails on an Arabic
   literal in a component, on a key missing from any locale, and on a plural form a language needs.
 - Dropdowns read the clinic's lists through `useLookupOptions` / `useLookupLabels`, never a constant.
-- Role-aware UI is cosmetic; the API is the boundary. Never link to a page the reader would be
-  bounced off — check the helper the route guard uses.
+- **Role-aware UI is cosmetic; the API is the boundary.** A screen asks a helper in
+  `shared/permissions/` (`can(...)`), never a role or a module name. Never link to a page the reader
+  would be bounced off — check the helper the route guard uses.
 - **A view somebody can reach is a view somebody can link to.** Tabs and filters live in the URL,
   never `useState`. A retired route redirects, it does not disappear.
 - **Navigation is one table.** `shared/lib/navigation.ts` gives each section the capabilities that
   open it (`PAGE_CAPABILITIES`); the sidebar and the route guards read the same table, so a grant on
-  the Permissions page adds the section and its route at once. No screen tests a role. An inner page
-  (a patient, a lab, an item) takes the back link above its title from the same file, `backTarget`:
-  one step back in the app, or its parent list when opened directly — the installed app has no
-  browser Back.
+  the Permissions page or a module switched on adds the section and its route at once. No screen
+  tests a role. An inner page (a patient, a lab, an item) takes the back link above its title from
+  the same file, `backTarget`: one step back in the app, or its parent list when opened directly —
+  the installed app has no browser Back.
 - The top bar reads search-first, actions-last, in logical properties.
 
-### The interface system
+## The interface system
 
 `packages/ui`, imported as `@clinic/ui`. One library, many branded copies, so nothing inside names a
 clinic or a colour. `base.css` declares every token with a neutral default; a product's
@@ -224,27 +305,25 @@ through its `className` or a `data-part`, never a fork.
 - Colours are named in `packages/ui/src/styles/base.css` and a product's `theme.css`/`theme.ts`.
   `lint:hex` fails on a literal anywhere else.
 
-## Files & images
-
-Upload through presigned R2 URLs; store the key and metadata, serve short-lived signed URLs. A
-receptionist never receives an attachment URL. **Staff have a photo, patients do not.**
-
 ## Testing
 
-- **API** Jest against a real Postgres. Required: balance computation, slot availability and
-  conflicts, permission boundaries per role, lab-order transitions, audit writes.
+- **API** Jest against a real Postgres (`docker compose exec api pnpm --filter @clinic/api test`).
+  Required: balance computation, slot availability and conflicts, permission boundaries per role,
+  module boundaries (routes refused, jobs skipped, fields omitted while a module is off), lab-order
+  transitions, audit writes.
 - **Web** Vitest under `apps/web/test` (`pnpm test`: jsdom, plus a node lane for the dev proxy), and
   only two kinds of test:
   - **Security**: every role's sidebar asserted **as a whole list** (the failure that matters is an
-    entry appearing for somebody it was never meant for), each route guard per role, each retired
-    address landing on its replacement, fields a role must not see, and the session's tokens.
+    entry appearing for somebody it was never meant for) — a core-only clinic's included —, each
+    route guard per role, each retired address landing on its replacement, fields a role must not
+    see, and the session's tokens.
   - **Logic** with no rendering: a module's `lib/`, `hooks/` and `queries.ts`, `shared/lib/`, `i18n/`.
   No page, component, layout or browser-mode tests.
 - **Direction and spacing are still verified by a person on the sandbox.** A pull request that
   changes what a screen looks like carries screenshots in its description, in Arabic RTL, at the
   widths it touches. Screenshots are never committed.
 
-## Versioning & deploy
+## Versioning and deploy
 
 The version is `<major>.<minor>` from the root `package.json` plus the commit count, resolved at
 deploy and never stored. `APP_VERSION` reaches the API as an environment variable and the web as a
@@ -254,27 +333,10 @@ API's beside its own only when they differ.
 CI and the sandbox deploy run only when started by hand (`workflow_dispatch`); nothing runs on a
 push or a pull request.
 
-## Never
-
-- store or expose an editable balance or quantity
-- hard-delete a medical or financial row
-- use a float for money
-- skip the audit interceptor on a financial or medical mutation
-- return medical fields to a caller without `patients.clinical`
-- decide anything by comparing a role in code; add a capability or a `RULE` instead
-- put dental logic in core, billing or appointments
-- hardcode a user-facing choice list, a colour, a font size or a control height
-- decide whether a minute is bookable anywhere but `AvailabilityService`
-- put a tab or filter in `useState`, or drop a route without redirecting it
-- write a user-facing string in a component
-- commit a secret or a screenshot
-
-## Language & commits
+## Language, commits and comments
 
 Code, comments, commits and the API are English. UI strings are Arabic through i18n. Conventional
 commits (`feat(billing): ...`).
-
-## Comments
 
 **No comments.** Code explains itself through naming; rationale belongs in the pull request.
 

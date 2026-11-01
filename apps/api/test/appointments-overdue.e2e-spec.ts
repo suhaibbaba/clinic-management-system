@@ -207,6 +207,16 @@ describe("Overdue appointments and automatic no-shows (e2e)", () => {
       expect(await statusOf(stale)).toBe(APPOINTMENT_STATUS.NO_SHOW);
       expect(await statusOf(recent)).toBe(APPOINTMENT_STATUS.CONFIRMED);
     });
+
+    it("leaves alone a clinic whose appointments module is off", async () => {
+      const at = await setup();
+      const stale = await insert(at, addDays(today(), -8), "10:00", APPOINTMENT_STATUS.CONFIRMED);
+
+      await context.db.update(clinics).set({ modules: [] }).where(eq(clinics.id, at.clinic.id));
+      await scheduler().markNoShows();
+
+      expect(await statusOf(stale)).toBe(APPOINTMENT_STATUS.CONFIRMED);
+    });
   });
 
   describe("the setting", () => {

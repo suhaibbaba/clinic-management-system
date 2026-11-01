@@ -15,6 +15,7 @@ import { Throttle } from "@nestjs/throttler";
 import { SendDocumentDto } from "@api/modules/notifications/dto/document-delivery.dto";
 import { DocumentDeliveryService } from "@api/modules/notifications/services/document-delivery.service";
 import {
+  CLINIC_MODULE,
   AUDIT_ACTION,
   USER_ROLE,
   type InventoryAlerts,
@@ -68,7 +69,9 @@ import {
   CreateItemDto,
   UpdateItemDto,
 } from "@api/modules/inventory/dto/inventory.dto";
+import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
+@ClinicFeature(CLINIC_MODULE.INVENTORY)
 @Controller("inventory")
 export class InventoryController {
   constructor(

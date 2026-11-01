@@ -1,7 +1,14 @@
 import { randomInt, randomUUID } from "node:crypto";
 import { hash } from "@node-rs/argon2";
 import { and, eq, isNull } from "drizzle-orm";
-import { CHART_TYPE, CLINIC_MODULE, LOOKUP_LIST, SPECIALTY_CODE, USER_ROLE } from "@clinic/shared";
+import {
+  CHART_TYPE,
+  CLINIC_MODULE,
+  LOOKUP_LIST,
+  SPECIALTY_CODE,
+  STANDARD_CLINIC_MODULES,
+  USER_ROLE,
+} from "@clinic/shared";
 import { clinics, lookupOptions, procedureCatalog, specialties, users } from "@api/database/schema";
 import { bootstrapClinic } from "@api/database/bootstrap/bootstrap-clinic";
 import { bootstrapEnvSchema, type BootstrapEnv } from "@api/database/bootstrap/bootstrap-env";
@@ -20,7 +27,7 @@ describe("Clinic bootstrap (e2e)", () => {
     await context.close();
   });
 
-  const environment = (overrides: Record<string, string> = {}): BootstrapEnv => {
+  const environment = (overrides: Record<string, string | undefined> = {}): BootstrapEnv => {
     const suffix = randomUUID().slice(0, 8);
 
     return bootstrapEnvSchema.parse({
@@ -374,10 +381,17 @@ describe("Clinic bootstrap (e2e)", () => {
       expect(env.BOOTSTRAP_MODULES).toEqual([]);
     });
 
+    it("gives a clinic the standard modules when none are listed", () => {
+      const env = environment({ BOOTSTRAP_MODULES: undefined });
+
+      expect(env.BOOTSTRAP_MODULES).toEqual(STANDARD_CLINIC_MODULES);
+    });
+
     it.each([
       ["no specialty", { BOOTSTRAP_SPECIALTIES: "" }],
       ["an unknown specialty", { BOOTSTRAP_SPECIALTIES: "cardiology" }],
-      ["an unknown module", { BOOTSTRAP_MODULES: "payroll" }],
+      ["an unknown module", { BOOTSTRAP_MODULES: "billing" }],
+      ["booking without appointments", { BOOTSTRAP_MODULES: "booking" }],
       ["a slug with spaces", { BOOTSTRAP_CLINIC_SLUG: "kossai jarrar" }],
       ["a local phone number", { BOOTSTRAP_ADMIN_PHONE: "0599123456" }],
       ["a short password", { BOOTSTRAP_ADMIN_PASSWORD: "short" }],
