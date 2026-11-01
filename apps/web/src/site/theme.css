@@ -1,11 +1,19 @@
 @theme static {
-  --color-primary-50: #f1fafb;
-  --color-primary-100: #ddf3f5;
-  --color-primary-200: #bfe6ea;
-  --color-primary-300: #8ed3d9;
-  --color-primary-500: #23a8b3;
-  --color-primary-600: #1199a6;
-  --color-primary-700: #0b7f8c;
-  --color-primary-800: #0a5c78;
-  --color-primary-900: #0b3d58;
+  --color-primary-50: #f4fcfd;
+  --color-primary-100: #e9f9fb;
+  --color-primary-200: #c6eef1;
+  --color-primary-300: #8fdbe0;
+  --color-primary-500: #42c5cc;
+  --color-primary-600: #0ba5ac;
+  --color-primary-700: #08869a;
+  --color-primary-800: #08627a;
+  --color-primary-900: #073f58;
+  --color-ink-muted: #637888;
+
+  --control-h: 3rem;
+
+  --shadow-card: 0 14px 34px -22px rgb(8 98 122 / 0.32), 0 2px 8px -4px rgb(11 165 172 / 0.12);
+  --shadow-card-hover: 0 20px 40px -22px rgb(8 98 122 / 0.42);
+  --shadow-float: 0 12px 30px -16px rgb(7 63 88 / 0.3);
+  --shadow-nav-active: 0 10px 22px -12px rgb(8 98 122 / 0.55);
 }

@@ -21,9 +21,13 @@ export function ShowcaseHeading({
     >
       <div className="flex flex-col items-center gap-1.5 text-center md:col-start-2">
         {eyebrow && <p className="text-section font-medium text-primary-600">{eyebrow}</p>}
-        <h2 id={`${id}-title`} className="text-title font-bold text-primary-900 md:text-headline">
-          {title}
-        </h2>
+        <div className="flex items-center gap-4">
+          <span aria-hidden className="h-0.5 w-8 rounded-pill bg-primary-900/70 sm:w-14" />
+          <h2 id={`${id}-title`} className="text-headline font-bold text-primary-900">
+            {title}
+          </h2>
+          <span aria-hidden className="h-0.5 w-8 rounded-pill bg-primary-900/70 sm:w-14" />
+        </div>
         {subtitle && <p className="text-section text-ink-muted">{subtitle}</p>}
       </div>
       {action && <div className="flex justify-center md:justify-end">{action}</div>}

@@ -7,20 +7,18 @@ import { useSite } from "@web/site/hooks/use-site";
 import { nameIn, pick } from "@web/site/lib/text";
 
 export function SiteFooter(): JSX.Element {
-  const { site, language, t } = useSite();
+  const { site, language, t, page } = useSite();
   const name = nameIn(site.clinic.name, language);
-  const tagline = pick(site.content.brand.tagline, language);
+  const motto = pick(site.content.brand.motto, language);
 
   return (
     <footer data-testid="site-footer" className="bg-primary-50">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex max-w-full min-w-0 shrink-0 flex-col items-start gap-2">
-          <SiteLink to="/" className="flex max-w-full min-w-0">
-            <SiteLogo url={site.clinic.logoUrl} name={name} size="footer" />
-          </SiteLink>
-          {tagline && <span className="text-meta text-primary-600">{tagline}</span>}
-        </div>
-        <InfoStrip compact />
+      <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 pt-6 pb-8 text-center">
+        <SiteLink to="/" className="flex max-w-full min-w-0 justify-center">
+          <SiteLogo url={site.clinic.logoUrl} name={name} size="footer" />
+        </SiteLink>
+        {motto && <p className="text-heading font-bold text-primary-900">{motto}</p>}
+        {page.kind !== "home" && <InfoStrip compact />}
         <SocialLinks />
       </div>
       <p className="border-t border-primary-100 px-4 py-4 text-center text-meta text-ink-subtle">

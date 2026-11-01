@@ -20,27 +20,29 @@ export function ServicesTeaser(): JSX.Element | null {
     <section
       data-testid="site-services-teaser"
       aria-labelledby="services-teaser-title"
-      className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-14"
+      className="bg-primary-50"
     >
-      <ShowcaseHeading
-        id="services-teaser"
-        eyebrow={orDefault(services.subtitle, language, t("services.eyebrow"))}
-        title={orDefault(services.title, language, t("services.pageTitle"))}
-        action={
-          <PillLink to={SITE_PATH.SERVICES} tone="outline" data-testid="site-services-more">
-            {t("home.servicesAll")}
-          </PillLink>
-        }
-      />
-      <Slider
-        label={t("nav.services")}
-        item="w-[72%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)]"
-        data-testid="site-services-carousel"
-      >
-        {services.items.map((service) => (
-          <ServiceTile key={service.id} service={service} />
-        ))}
-      </Slider>
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 pt-6 pb-14">
+        <ShowcaseHeading
+          id="services-teaser"
+          eyebrow={orDefault(services.subtitle, language, t("services.eyebrow"))}
+          title={orDefault(services.title, language, t("services.pageTitle"))}
+          action={
+            <PillLink to={SITE_PATH.SERVICES} tone="outline" data-testid="site-services-more">
+              {t("home.servicesAll")}
+            </PillLink>
+          }
+        />
+        <Slider
+          label={t("nav.services")}
+          item="w-[72%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)]"
+          data-testid="site-services-carousel"
+        >
+          {services.items.map((service) => (
+            <ServiceTile key={service.id} service={service} />
+          ))}
+        </Slider>
+      </div>
     </section>
   );
 }

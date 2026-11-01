@@ -13,6 +13,7 @@ export function BrandCard(): JSX.Element {
         label="website.fields.tagline"
         hint="website.fields.taglineHint"
       />
+      <DraftText path="brand.motto" label="website.fields.motto" hint="website.fields.mottoHint" />
       <div className="grid gap-3 sm:grid-cols-2">
         {SITE_SOCIALS.map((name) => (
           <DraftLink

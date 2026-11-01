@@ -142,6 +142,7 @@ export const siteContentSchema = z.object({
   brand: z
     .object({
       tagline: optionalText(60),
+      motto: optionalText(120),
       social: z
         .object({
           instagram: siteLinkSchema,
@@ -153,6 +154,7 @@ export const siteContentSchema = z.object({
     })
     .default({
       tagline: blankText,
+      motto: blankText,
       social: { instagram: "", facebook: "", whatsapp: "", youtube: "" },
     }),
   hero: z.object({
@@ -249,6 +251,7 @@ export function defaultSiteContent(): SiteContent {
     sections: SITE_SECTIONS.filter((section) => section !== SITE_SECTION.PORTAL),
     brand: {
       tagline: blank(),
+      motto: blank(),
       social: { instagram: "", facebook: "", whatsapp: "", youtube: "" },
     },
     hero: {

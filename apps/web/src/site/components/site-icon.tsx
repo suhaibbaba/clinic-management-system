@@ -12,6 +12,7 @@ import {
   Clock,
   Eye,
   Gem,
+  Globe,
   Heart,
   Mail,
   MapPin,
@@ -20,9 +21,11 @@ import {
   Navigation,
   Phone,
   Play,
+  CirclePlay,
+  Plus,
   Quote,
   Send,
-  Shield,
+  ShieldCheck,
   Smile,
   Sparkles,
   Star,
@@ -50,13 +53,16 @@ type UiIcon =
   | "menu"
   | "phone"
   | "play"
+  | "play-circle"
+  | "plus"
+  | "globe"
   | "quote"
   | "x";
 
 const ICONS: Record<SiteIconName | UiIcon, LucideIcon> = {
   users: Users,
   sparkles: Sparkles,
-  shield: Shield,
+  shield: ShieldCheck,
   heart: Heart,
   gem: Gem,
   smile: Smile,
@@ -84,6 +90,9 @@ const ICONS: Record<SiteIconName | UiIcon, LucideIcon> = {
   menu: Menu,
   phone: Phone,
   play: Play,
+  "play-circle": CirclePlay,
+  plus: Plus,
+  globe: Globe,
   quote: Quote,
   x: X,
 };

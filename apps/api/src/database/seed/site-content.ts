@@ -50,6 +50,10 @@ export function siteContent(
     sections: [...SITE_SECTIONS],
     brand: {
       tagline: { ar: "ابتسامتك أمانة", en: "Your smile, in good hands" },
+      motto: {
+        ar: "رعاية متكاملة .. لابتسامة أكثر صحة وجمالاً",
+        en: "Complete care for a healthier, brighter smile",
+      },
       social: {
         instagram: "https://www.instagram.com/abuobeid.dental",
         facebook: "https://www.facebook.com/abuobeid.dental",
@@ -59,47 +63,47 @@ export function siteContent(
     },
     hero: {
       title: {
-        ar: "رعاية متكاملة\nلصحة وجمال أسنانك",
-        en: "Complete care\nfor a healthy, beautiful smile",
+        ar: "ابتسامة صحية\nتبدأ من هنا",
+        en: "A healthy smile\nstarts here",
       },
       subtitle: {
-        ar: "رعاية أسنان متكاملة لكل العائلة في قلب نابلس: فحص، تنظيف، تجميل، زراعة وتقويم، بأحدث الأجهزة وبأيدي فريق يهتم بك.",
-        en: "Complete dental care for the whole family in the heart of Nablus: check-ups, cleaning, cosmetics, implants and orthodontics, with modern equipment and a team that cares.",
+        ar: "رعاية أسنان متكاملة لكل أفراد العائلة في قلب نابلس، بأحدث الأجهزة والتقنيات وفريق طبي متخصص",
+        en: "Complete dental care for every member of the family in the heart of Nablus, with the latest equipment and a specialist team.",
       },
       images: [photo("chair"), photo("smile"), photo("whitening")],
       stat: { value: "+12,000", label: { ar: "ابتسامة سعيدة", en: "happy smiles" } },
     },
     highlights: [
       {
-        icon: "shield",
-        label: { ar: "تعقيم كامل", en: "Full sterilisation" },
+        icon: "monitor",
+        label: { ar: "أجهزة حديثة", en: "Modern equipment" },
         text: {
-          ar: "أدوات معقمة لكل مريض وفق بروتوكولات صارمة.",
-          en: "Sterile instruments for every patient, under strict protocols.",
+          ar: "تشخيص دقيق وعلاج بأحدث التقنيات.",
+          en: "Precise diagnosis and treatment with the latest technology.",
         },
       },
       {
-        icon: "monitor",
-        label: { ar: "أشعة رقمية", en: "Digital X-rays" },
+        icon: "users",
+        label: { ar: "مناسبة لكل العائلة", en: "For the whole family" },
         text: {
-          ar: "تشخيص أدق بجرعة إشعاع أقل بكثير.",
-          en: "Sharper diagnosis with a fraction of the radiation.",
+          ar: "نهتم بصحتك وصحة أطفالك في كل مرحلة عمرية",
+          en: "We care for you and your children at every age.",
+        },
+      },
+      {
+        icon: "shield",
+        label: { ar: "بيئة آمنة ومعقمة", en: "Safe and sterile" },
+        text: {
+          ar: "أعلى معايير التعقيم والسلامة لراحة عائلتك.",
+          en: "The highest standards of sterilisation and safety for your family.",
         },
       },
       {
         icon: "clock",
-        label: { ar: "مواعيد دقيقة", en: "On-time appointments" },
+        label: { ar: "مواعيد مرنة", en: "Flexible appointments" },
         text: {
-          ar: "نحترم وقتك ونلتزم بموعدك.",
-          en: "We respect your time and keep to your slot.",
-        },
-      },
-      {
-        icon: "heart",
-        label: { ar: "علاج بلا ألم", en: "Gentle treatment" },
-        text: {
-          ar: "تخدير موضعي حديث وتعامل هادئ مع المرضى القلقين.",
-          en: "Modern local anaesthesia and a calm approach for anxious patients.",
+          ar: "نحترم وقتك ونلتزم بمواعيدك.",
+          en: "We respect your time and keep to your appointments.",
         },
       },
     ],

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   groupHours,
+  initialOf,
   orDefault,
   pick,
   timeLabel,
@@ -48,5 +49,12 @@ describe("opening hours", () => {
   it("writes a clock time with Latin digits in both languages", () => {
     expect(timeLabel("20:30", "en")).toBe("8:30 PM");
     expect(timeLabel("08:00", "ar")).toMatch(/^8:00/);
+  });
+});
+
+describe("initialOf", () => {
+  it("takes the first letter of a trimmed name", () => {
+    expect(initialOf("  سناء محمود")).toBe("س");
+    expect(initialOf("")).toBe("");
   });
 });

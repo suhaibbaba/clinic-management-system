@@ -14,8 +14,8 @@ export function HomePage(): JSX.Element {
       <ServicesTeaser />
       <AboutTeaser />
       <CasesSection />
-      <DoctorsTeaser />
       <TestimonialsSection />
+      <DoctorsTeaser />
       <BookingBand />
     </>
   );

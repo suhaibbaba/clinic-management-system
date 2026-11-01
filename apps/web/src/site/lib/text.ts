@@ -96,3 +96,5 @@ export function titleLines(title: string): readonly [string, string] {
 
   return [lead, rest.filter(Boolean).join(" ")];
 }
+
+export const initialOf = (name: string): string => Array.from(name.trim())[0] ?? "";

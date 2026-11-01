@@ -11,7 +11,8 @@
     "book": "Book an appointment",
     "menu": "Menu",
     "switchLanguage": "View the site in {{language}}",
-    "account": "My account"
+    "account": "My account",
+    "language": "Site language"
   },
   "hero": {
     "subtitle": "Complete care with modern technology, in a calm and safe setting",
@@ -42,7 +43,8 @@
     "profile": "View profile",
     "profileOf": "View {{name}}'s profile",
     "back": "All doctors",
-    "notFound": "This doctor is not available."
+    "notFound": "This doctor is not available.",
+    "more": "Learn more"
   },
   "about": {
     "title": "About us",
@@ -132,9 +134,11 @@
     "galleryTitle": "A place designed for you",
     "galleryLink": "Discover more",
     "contactLink": "All ways to reach us",
-    "ctaTitle": "Book your appointment now",
-    "ctaSubtitle": "Our team is ready to welcome you and give your teeth the best care",
-    "callNow": "Call now"
+    "ctaTitle": "Ready for a new smile?",
+    "ctaSubtitle": "Book in under a minute and pick the time that suits you.",
+    "callNow": "Call now",
+    "highlightsLabel": "Why us",
+    "ctaBook": "Book now"
   },
   "notFound": {
     "title": "Page not found",

@@ -1,10 +1,9 @@
-import { SITE_SECTION, type SiteLanguage, type SiteSection } from "@clinic/shared";
+import { SITE_SECTION, type SiteSection } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { cx } from "@web/booking/ui";
 import { SiteIcon } from "@web/site/components/site-icon";
 import { SiteLink } from "@web/site/components/site-link";
 import { SiteLogo } from "@web/site/components/site-logo";
-import { SITE_LANGUAGE_LABELS, SITE_LANGUAGE_SHORT, SITE_PARAM } from "@web/site/constants";
 import { useBookable } from "@web/site/hooks/use-bookable";
 import { useSite } from "@web/site/hooks/use-site";
 import { nameIn } from "@web/site/lib/text";
@@ -40,9 +39,8 @@ const LINKS: readonly {
 ];
 
 export function SiteHeader(): JSX.Element {
-  const { site, language, t, page, setParams } = useSite();
+  const { site, language, t, page } = useSite();
   const [open, setOpen] = useState(false);
-  const other: SiteLanguage = language === "ar" ? "en" : "ar";
   const name = nameIn(site.clinic.name, language);
   const links = LINKS.filter(
     (link) => link.section === null || site.content.sections.includes(link.section),
@@ -74,10 +72,10 @@ export function SiteHeader(): JSX.Element {
   return (
     <header
       data-testid="site-header"
-      className="sticky top-0 z-30 border-b border-line/50 bg-surface/90 backdrop-blur-md"
+      className="sticky top-0 z-30 bg-surface/95 shadow-[0_10px_30px_-24px] shadow-primary-900/40 backdrop-blur-md"
     >
       <SiteTopBar />
-      <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
+      <div className="mx-auto flex min-h-20 max-w-6xl items-center gap-4 px-4 py-3 md:min-h-24">
         <SiteLink
           to="/"
           data-testid="site-brand"
@@ -114,17 +112,6 @@ export function SiteHeader(): JSX.Element {
         </nav>
 
         <div className="ms-auto flex shrink-0 items-center gap-2 lg:ms-0">
-          <button
-            type="button"
-            lang={other}
-            data-testid="site-language"
-            aria-label={t("nav.switchLanguage", { language: SITE_LANGUAGE_LABELS[other] })}
-            onClick={() => setParams({ [SITE_PARAM.LANGUAGE]: other === "ar" ? null : other })}
-            className="pill-text inline-flex min-h-(--control-h) cursor-pointer items-center rounded-pill px-3 text-label font-medium text-ink-muted hover:bg-primary-50 hover:text-primary-700"
-          >
-            {SITE_LANGUAGE_SHORT[other]}
-          </button>
-
           {portal && (
             <SiteLink
               to={SITE_PATH.ACCOUNT}
@@ -144,7 +131,7 @@ export function SiteHeader(): JSX.Element {
             <SiteLink
               to={SITE_PATH.BOOKING}
               data-testid="site-header-book"
-              className="pill-text inline-flex min-h-(--control-h) items-center gap-2 rounded-pill bg-primary-600 px-4 text-label font-medium text-ink-inverse shadow-nav-active transition-colors hover:bg-primary-700 max-[23rem]:px-3 sm:px-6"
+              className="pill-text inline-flex min-h-(--control-h) items-center gap-2 rounded-pill bg-linear-to-l from-primary-700 to-primary-600 px-5 text-value font-bold text-ink-inverse shadow-nav-active transition-[filter,box-shadow] hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 max-[23rem]:px-3 sm:px-7"
             >
               <SiteIcon name="calendar" />
               <span className="max-[23rem]:sr-only">{t("nav.book")}</span>
@@ -158,9 +145,9 @@ export function SiteHeader(): JSX.Element {
             aria-controls="site-menu-panel"
             aria-label={t("nav.menu")}
             onClick={() => setOpen((value) => !value)}
-            className="inline-flex size-(--control-h) cursor-pointer items-center justify-center rounded-control text-ink-muted hover:bg-primary-50 lg:hidden"
+            className="inline-flex size-(--control-h) cursor-pointer items-center justify-center rounded-control text-primary-900 hover:bg-primary-50 lg:hidden"
           >
-            <SiteIcon name={open ? "x" : "menu"} />
+            <SiteIcon name={open ? "x" : "menu"} className="size-7" />
           </button>
         </div>
       </div>
