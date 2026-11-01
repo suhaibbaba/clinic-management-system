@@ -20,6 +20,7 @@ const KIND_TONES: Record<PayEntryKind, BadgeTone> = {
   cut: "warning",
   salary: "success",
   share: "success",
+  remittance: "info",
 };
 
 export function PayEntriesList({

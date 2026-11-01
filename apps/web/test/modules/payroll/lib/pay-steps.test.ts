@@ -77,8 +77,11 @@ function settlement(treatments: SettlementTreatment[]): DoctorSettlement {
     },
     treatments,
     payouts: [],
+    collector: "clinic",
     earned: sum((row) => row.payable),
     paid: "0.00",
+    held: "0.00",
+    remitted: "0.00",
     balance: sum((row) => row.payable),
   } as DoctorSettlement;
 }
@@ -91,7 +94,11 @@ const line = (overrides: Partial<PayrollLine> = {}): PayrollLine =>
     cuts: "0.00",
     received: "0.00",
     owed: "225.00",
+    collector: "clinic",
+    held: "0.00",
+    remitted: "0.00",
     payments: [],
+    remittances: [],
     ...overrides,
   }) as PayrollLine;
 
@@ -156,5 +163,39 @@ describe("paySteps", () => {
       "deduction",
       "paidOut",
     ]);
+  });
+
+  it("counts what the doctor took from patients as paid to them, and says what they owe", () => {
+    const { steps, owed, owesClinic } = paySteps(
+      line({ collector: "doctor", held: "450.00", received: "450.00", owed: "-225.00" }),
+      month,
+    );
+
+    expect(steps.slice(-2).map((step) => [step.key, step.amount])).toEqual([
+      ["paidOut", "0.00"],
+      ["held", "450.00"],
+    ]);
+    expect({ owed, owesClinic }).toEqual({ owed: "225.00", owesClinic: true });
+  });
+
+  it("shows what the doctor handed to the clinic", () => {
+    const { steps, owed, owesClinic } = paySteps(
+      line({
+        collector: "doctor",
+        held: "450.00",
+        remitted: "225.00",
+        received: "225.00",
+        owed: "0.00",
+        remittances: [{ id: "r1" } as PayrollLine["remittances"][number]],
+      }),
+      month,
+    );
+
+    expect(steps.slice(-3).map((step) => [step.key, step.amount])).toEqual([
+      ["paidOut", "0.00"],
+      ["held", "450.00"],
+      ["remitted", "225.00"],
+    ]);
+    expect({ owed, owesClinic }).toEqual({ owed: "0.00", owesClinic: false });
   });
 });

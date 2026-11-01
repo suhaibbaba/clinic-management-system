@@ -18,9 +18,11 @@ import { PayrollDocumentsService } from "@api/modules/payroll/services/payroll-d
 import {
   AUDIT_ACTION,
   USER_ROLE,
+  type CollectionTerm,
   type DoctorSettlement,
   type OwnSettlement,
   type SettlementPayout,
+  type StaffPayment,
   type TreatmentSettlementStatus,
 } from "@clinic/shared";
 import { Audit } from "@api/common/decorators/audit.decorator";
@@ -28,12 +30,15 @@ import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import {
+  COLLECTION_TERMS_ENTITY,
   DOCTOR_RATES_ENTITY,
   SETTLEMENT_TREATMENTS_ENTITY,
   STAFF_PAYMENTS_ENTITY,
 } from "@api/common/constants/audit-entities";
 import { DoctorSettlementsService } from "@api/modules/payroll/services/doctor-settlements.service";
 import {
+  CollectionTermsDto,
+  CreateRemittanceDto,
   CreateSettlementPayoutDto,
   IdParamDto,
   OwnSettlementQueryDto,
@@ -97,6 +102,34 @@ export class DoctorSettlementsController {
     @Body() body: SettlementTermsDto,
   ): Promise<{ id: string }> {
     return this.settlements.updateTerms(actor, params.id, body);
+  }
+
+  @Get(":id/collection-terms")
+  collectionTerms(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+  ): Promise<CollectionTerm[]> {
+    return this.settlements.collectionTerms(actor, params.id);
+  }
+
+  @Put(":id/collection-terms")
+  @Audit(COLLECTION_TERMS_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: "response" })
+  setCollectionTerms(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Body() body: CollectionTermsDto,
+  ): Promise<CollectionTerm> {
+    return this.settlements.setCollector(actor, params.id, body);
+  }
+
+  @Post(":id/remittances")
+  @Audit(STAFF_PAYMENTS_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: "response" })
+  remit(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Body() body: CreateRemittanceDto,
+  ): Promise<StaffPayment> {
+    return this.settlements.remit(actor, params.id, body);
   }
 
   @Post(":id/payouts")

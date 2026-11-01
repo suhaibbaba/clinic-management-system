@@ -3,6 +3,7 @@ import {
   createPaymentSchema,
   formatMinorUnits,
   LOOKUP_LIST,
+  PAYMENT_COLLECTOR,
   toMinorUnits,
   type CreatePaymentInput,
 } from "@clinic/shared";
@@ -19,11 +20,14 @@ import {
   Select,
   Textarea,
   useConfirm,
+  usePersonName,
   useToast,
 } from "@clinic/ui";
 import { openReceipt } from "@web/modules/billing/lib/documents";
 import { useLookupLabels, useLookupOptions } from "@web/shared/queries/lookups";
-import { useCreatePayment } from "@web/modules/billing/queries";
+import { useCreatePayment, usePaymentHolders } from "@web/modules/billing/queries";
+import { canHandPaymentToDoctor } from "@web/shared/permissions/billing";
+import { useSession } from "@web/shared/providers/session";
 import { errorToast } from "@web/shared/lib/api-error";
 import { moneyText } from "@web/shared/lib/format";
 import { ellipsis } from "@web/i18n/ellipsis";
@@ -51,6 +55,14 @@ export function PaymentModal({
   const { confirm, dialog } = useConfirm(`${testId}-confirm`);
   const toast = useToast();
   const createPayment = useCreatePayment();
+  const { can } = useSession();
+  const nameOf = usePersonName();
+  const holders = usePaymentHolders(open && canHandPaymentToDoctor(can)).data ?? [];
+  const holderName = (doctorId: string | null | undefined): string | undefined => {
+    const holder = holders.find((entry) => entry.doctorId === doctorId);
+
+    return holder && nameOf(holder.name);
+  };
 
   const {
     register,
@@ -76,6 +88,7 @@ export function PaymentModal({
         amount: "",
         method: "cash",
         note: "",
+        heldBy: null,
       });
     }
   }, [open, patientId, balance, reset]);
@@ -106,6 +119,9 @@ export function PaymentModal({
         confirmLabel: "billing.recordAndPrint",
         consequences: [
           t("billing.confirmPayment.method", { method: methodLabel(values.method) }),
+          ...(values.heldBy
+            ? [t("billing.confirmPayment.heldBy", { doctor: holderName(values.heldBy) })]
+            : []),
           t("billing.confirmPayment.remaining", {
             amount: moneyText(
               formatMinorUnits(toMinorUnits(balance) - toMinorUnits(values.amount)),
@@ -196,6 +212,40 @@ export function PaymentModal({
               )}
             />
           </FormField>
+
+          {holders.length > 0 && (
+            <FormField
+              label="billing.heldBy"
+              htmlFor="payment-held-by"
+              hint="billing.heldByHint"
+              error={errors.heldBy}
+            >
+              <Controller
+                name="heldBy"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    id="payment-held-by"
+                    data-testid="payment-field-held-by"
+                    options={[
+                      { value: PAYMENT_COLLECTOR.CLINIC, label: t("billing.heldByClinic") },
+                      ...holders.map((holder) => ({
+                        value: holder.doctorId,
+                        label: nameOf(holder.name),
+                      })),
+                    ]}
+                    value={field.value ?? PAYMENT_COLLECTOR.CLINIC}
+                    onBlur={field.onBlur}
+                    onChange={(event) =>
+                      field.onChange(
+                        event.target.value === PAYMENT_COLLECTOR.CLINIC ? null : event.target.value,
+                      )
+                    }
+                  />
+                )}
+              />
+            </FormField>
+          )}
 
           <FormField label="billing.note" htmlFor="payment-note" error={errors.note} optional>
             <Textarea

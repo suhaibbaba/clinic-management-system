@@ -17,12 +17,13 @@ import {
   useToast,
   type Column,
 } from "@clinic/ui";
+import { cn } from "@clinic/ui/lib/cn";
 import { MonthSwitcher } from "@web/modules/payroll/components/month-switcher";
 import { PAY_STATUS_TONES } from "@web/modules/payroll/constants";
 import { usePayrollMonth } from "@web/modules/payroll/hooks/use-payroll-month";
 import { payrollSource } from "@web/modules/payroll/lib/documents";
 import { payStatus } from "@web/modules/payroll/lib/plans";
-import { useCloseMonth, usePayroll } from "@web/modules/payroll/queries";
+import { useCloseMonth, usePayroll, useReopenMonth } from "@web/modules/payroll/queries";
 import { DocumentActions } from "@web/shared/components/document-actions";
 import { errorToast } from "@web/shared/lib/api-error";
 import { formatMonth, moneyText } from "@web/shared/lib/format";
@@ -41,7 +42,9 @@ export function PayrollPage(): JSX.Element {
 
   const payroll = usePayroll(month, true);
   const close = useCloseMonth(month);
+  const reopen = useReopenMonth(month);
   const [closing, setClosing] = useState(false);
+  const [reopening, setReopening] = useState(false);
 
   const data = payroll.data;
   const isClosed = Boolean(data?.closedAt);
@@ -130,10 +133,19 @@ export function PayrollPage(): JSX.Element {
             <Button
               icon={<Icon name="lock" />}
               data-testid="payroll-close"
-              aria-disabled={month > thisMonth || undefined}
-              onClick={() => month <= thisMonth && setClosing(true)}
+              aria-disabled={month >= thisMonth || undefined}
+              onClick={() => month < thisMonth && setClosing(true)}
             >
               {t("payroll.close")}
+            </Button>
+          ) : isClosed && can("payroll.reopen") ? (
+            <Button
+              variant="secondary"
+              icon={<Icon name="reset" />}
+              data-testid="payroll-reopen"
+              onClick={() => setReopening(true)}
+            >
+              {t("payroll.reopen")}
             </Button>
           ) : undefined
         }
@@ -142,7 +154,14 @@ export function PayrollPage(): JSX.Element {
       <MonthSwitcher state={monthState} closedAt={data?.closedAt} />
 
       {data && (
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div
+          className={cn(
+            "grid gap-3",
+            Number(data.totals.owedToClinic) > 0
+              ? "sm:grid-cols-2 lg:grid-cols-4"
+              : "sm:grid-cols-3",
+          )}
+        >
           <StatCard
             data-testid="payroll-expected"
             label={t("payroll.expected")}
@@ -165,6 +184,15 @@ export function PayrollPage(): JSX.Element {
             icon="money"
             tone="warning"
           />
+          {Number(data.totals.owedToClinic) > 0 && (
+            <StatCard
+              data-testid="payroll-owed-to-clinic"
+              label={t("payroll.owedToClinic")}
+              value={<Money amount={data.totals.owedToClinic} currency={currency} />}
+              icon="money"
+              tone="primary"
+            />
+          )}
         </div>
       )}
 
@@ -182,6 +210,31 @@ export function PayrollPage(): JSX.Element {
         }
         isLoading={payroll.isPending}
         empty={<EmptyState icon="users" data-testid="payroll-empty" title="payroll.empty" />}
+      />
+
+      <ConfirmDialog
+        data-testid="payroll-reopen-confirm"
+        open={reopening}
+        onOpenChange={setReopening}
+        title="payroll.reopenTitle"
+        titleValues={{ month: formatMonth(month) }}
+        consequences={[
+          t("payroll.reopenUnlocks"),
+          t("payroll.reopenDraw"),
+          t("payroll.reopenKept"),
+        ]}
+        note={{ label: "payroll.reopenReason" }}
+        tone="primary"
+        confirmLabel={t("payroll.reopen")}
+        onConfirm={async ({ note }) => {
+          try {
+            await reopen.mutateAsync(note);
+            toast.success("payroll.reopenedDone");
+          } catch (error) {
+            toast.error(...errorToast(error));
+            throw error;
+          }
+        }}
       />
 
       <ConfirmDialog

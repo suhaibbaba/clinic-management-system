@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { NotificationsModule } from "@api/modules/notifications/notifications.module";
+import { PayrollModule } from "@api/modules/payroll/payroll.module";
 import {
   BillingController,
   PatientBillingController,
@@ -14,7 +15,7 @@ import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 
 @Module({
-  imports: [NotificationsModule],
+  imports: [NotificationsModule, PayrollModule],
   controllers: [PaymentsController, PatientBillingController, BillingController],
   providers: [
     ClinicScopeService,

@@ -20,6 +20,7 @@ import {
   PATIENT_ID,
   SHIPPED_CAPABILITIES,
 } from "@test/helpers/fixtures";
+import { holdConfirmClock, passConfirmHold } from "@test/helpers/confirm-hold";
 import { mockApi, renderWithProviders, type MockResponse } from "@test/helpers/render";
 import { choose } from "@test/select";
 
@@ -226,12 +227,15 @@ describe("Patient page", () => {
     });
 
     it("deletes the file after confirmation and returns to the list", async () => {
+      holdConfirmClock();
       const api = await renderPatientPage(USER_ROLE.ADMIN, {
         [`DELETE /patients/${PATIENT_ID}`]: { status: 204, body: null },
       });
       await openMenu();
       await userEvent.click(await screen.findByRole("menuitem", { name: ar.common.delete }));
-      await userEvent.click(await screen.findByRole("button", { name: ar.common.deleteForever }));
+      const confirm = await screen.findByRole("button", { name: ar.common.deleteForever });
+      await passConfirmHold();
+      await userEvent.click(confirm);
 
       await waitFor(() =>
         expect(

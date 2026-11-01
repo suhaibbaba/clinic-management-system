@@ -9,7 +9,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { clinics, users } from "@api/database/schema/core";
+import { clinics, doctors, users } from "@api/database/schema/core";
 import { patients, performedProcedures } from "@api/database/schema/patients";
 
 const auditColumns = {
@@ -70,6 +70,7 @@ export const payments = pgTable(
     reversesId: uuid("reverses_id"),
     reversedAt: timestamp("reversed_at", { withTimezone: true }),
     receivedBy: uuid("received_by").references(() => users.id),
+    heldBy: uuid("held_by").references(() => doctors.id),
     ...auditColumns,
     ...softDeleteColumn,
   },
@@ -78,6 +79,9 @@ export const payments = pgTable(
     index("payments_patient_idx").on(table.clinicId, table.patientId, table.createdAt),
     uniqueIndex("payments_receipt_uniq").on(table.clinicId, table.receiptNumber),
     index("payments_reverses_idx").on(table.reversesId),
+    index("payments_held_by_idx")
+      .on(table.clinicId, table.heldBy, table.createdAt)
+      .where(sql`held_by is not null`),
   ],
 );
 

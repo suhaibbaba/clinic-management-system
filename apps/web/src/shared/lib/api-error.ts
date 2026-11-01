@@ -52,6 +52,8 @@ const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [PAYROLL_ERROR.NOTHING_TO_PAY]: "errors.payroll.nothingToPay",
   [PAYROLL_ERROR.NOT_ON_PERCENTAGE]: "errors.payroll.notOnPercentage",
   [PAYROLL_ERROR.PAST_MONTH]: "errors.payroll.pastMonth",
+  [PAYROLL_ERROR.NOT_COLLECTING]: "errors.payroll.notCollecting",
+  [PAYROLL_ERROR.NOT_CLOSED]: "errors.payroll.notClosed",
   [AUTH_ERROR.LOCKED]: "errors.auth.locked",
   [AUTH_ERROR.CODE_INVALID]: "errors.auth.codeInvalid",
   [AUTH_ERROR.GOOGLE_FAILED]: "errors.auth.googleFailed",
@@ -92,6 +94,7 @@ const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [PURCHASE_ERROR.CREDIT_EXCEEDS]: "errors.purchase.creditExceeds",
   [PAYMENT_ERROR.EXCEEDS_BALANCE]: "errors.payment.exceedsBalance",
   [PAYMENT_ERROR.REVERSED]: "errors.payment.reversed",
+  [PAYMENT_ERROR.NOT_A_HOLDER]: "errors.payment.notAHolder",
   [DOCUMENT_SEND_ERROR.UNAVAILABLE]: "errors.document.unavailable",
   [DOCUMENT_SEND_ERROR.FAILED]: "errors.document.failed",
 };

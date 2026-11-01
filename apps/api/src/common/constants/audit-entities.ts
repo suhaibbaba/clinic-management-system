@@ -78,6 +78,8 @@ export const EXPENSES_ENTITY = "expenses";
 
 export const DOCTOR_RATES_ENTITY = "doctor_rates";
 
+export const COLLECTION_TERMS_ENTITY = "collection_terms";
+
 export const SETTLEMENT_TREATMENTS_ENTITY = "settlement_treatments";
 
 export const SITE_CONTENT_ENTITY = "site_content";

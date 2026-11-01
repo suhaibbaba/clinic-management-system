@@ -1294,6 +1294,7 @@ export class PurchasingService implements OnModuleInit {
         and(
           eq(payrollMonths.clinicId, clinicId),
           eq(payrollMonths.month, `${date.slice(0, 7)}-01`),
+          isNull(payrollMonths.reversedAt),
         ),
       )
       .limit(1);

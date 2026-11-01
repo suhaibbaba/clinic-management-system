@@ -6,19 +6,26 @@ import {
   type OnModuleInit,
 } from "@nestjs/common";
 import {
+  PAYMENT_COLLECTOR,
   PAY_PLAN_KIND,
   PAYROLL_ERROR,
   STAFF_PAYMENT_KIND,
   addDays,
   addMoney,
   instantFromLocal,
+  type CollectionTerm,
+  type CollectionTermsInput,
+  type CreateRemittanceInput,
   type CreateSettlementPayoutInput,
   type DoctorSettlement,
   type OwnSettlement,
+  type PayrollMonth,
   type SettlementPayout,
   type SettlementQuery,
   type SettlementTermsInput,
   type SettlementTreatment,
+  type StaffPayment,
+  type StaffPaymentKind,
   type TreatmentSettlementStatus,
   type UpdateTreatmentSettlementInput,
 } from "@clinic/shared";
@@ -30,6 +37,7 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import {
   doctors,
+  payments,
   performedProcedures,
   settlementItems,
   staffPayments,
@@ -50,8 +58,8 @@ import {
   type ShareTotals,
   totalsOf,
 } from "@api/modules/payroll/lib/doctor-settlements";
-import { includesShare } from "@api/modules/payroll/lib/pay-terms";
-import { toStaffPayment, type StaffPaymentRow } from "@api/modules/payroll/lib/payroll";
+import { doctorCollects, includesShare } from "@api/modules/payroll/lib/pay-terms";
+import { monthStart, toStaffPayment, type StaffPaymentRow } from "@api/modules/payroll/lib/payroll";
 import { PayTermsService } from "@api/modules/payroll/services/pay-terms.service";
 import { StaffPaymentsService } from "@api/modules/payroll/services/staff-payments.service";
 
@@ -99,7 +107,7 @@ export class DoctorSettlementsService implements OnModuleInit {
     const doctor = await this.requireDoctor(actor.clinicId, doctorId);
     const month = await this.terms.currentMonth(actor.clinicId);
     const [statement, rules, rate, plans] = await Promise.all([
-      this.statement(actor.clinicId, doctor, query),
+      this.statement(actor.clinicId, doctor, query, month),
       this.terms.payRules(actor),
       this.terms.doctorRateAt(actor.clinicId, doctor, month),
       this.terms.plansAt(actor.clinicId, [{ id: doctor.userId, role: doctor.role }], month),
@@ -121,8 +129,9 @@ export class DoctorSettlementsService implements OnModuleInit {
 
   async ownSettlement(actor: AuthenticatedUser, query: SettlementQuery): Promise<OwnSettlement> {
     const doctor = await this.doctorOfUser(actor.clinicId, actor.id);
+    const month = await this.terms.currentMonth(actor.clinicId);
     const [statement, rules] = await Promise.all([
-      this.statement(actor.clinicId, doctor, query),
+      this.statement(actor.clinicId, doctor, query, month),
       this.terms.payRules(actor),
     ]);
 
@@ -153,8 +162,11 @@ export class DoctorSettlementsService implements OnModuleInit {
         outstanding: statement.totals.outstanding,
       },
       payouts: statement.payouts,
+      collector: statement.collector,
       earned: statement.earned,
       paid: statement.paid,
+      held: statement.held,
+      remitted: statement.remitted,
       balance: statement.balance,
     };
   }
@@ -174,6 +186,71 @@ export class DoctorSettlementsService implements OnModuleInit {
         input.effectiveMonth,
       ),
     };
+  }
+
+  async collectionTerms(actor: AuthenticatedUser, doctorId: string): Promise<CollectionTerm[]> {
+    await this.requireDoctor(actor.clinicId, doctorId);
+
+    return this.terms.collectionHistory(actor.clinicId, doctorId);
+  }
+
+  async setCollector(
+    actor: AuthenticatedUser,
+    doctorId: string,
+    input: CollectionTermsInput,
+  ): Promise<CollectionTerm> {
+    await this.requireDoctor(actor.clinicId, doctorId);
+
+    return this.terms.setCollector(actor, doctorId, input);
+  }
+
+  async remit(
+    actor: AuthenticatedUser,
+    doctorId: string,
+    input: CreateRemittanceInput,
+  ): Promise<StaffPayment> {
+    const doctor = await this.requireDoctor(actor.clinicId, doctorId);
+    const collectors = await this.terms.collectorsAt(actor.clinicId, [doctorId], input.month);
+    const collector = collectors.get(doctorId);
+
+    if (!collector || !doctorCollects(collector)) {
+      throw new BadRequestException(PAYROLL_ERROR.NOT_COLLECTING);
+    }
+
+    return this.payments.record(
+      actor,
+      {
+        userId: doctor.userId,
+        kind: STAFF_PAYMENT_KIND.REMITTANCE,
+        month: monthStart(input.month),
+      },
+      { amount: input.amount, method: input.method, note: input.note ?? null },
+    );
+  }
+
+  async heldBetween(clinicId: string, start: Date, end: Date): Promise<Map<string, string>> {
+    const rows = await this.db
+      .select({
+        doctorId: payments.heldBy,
+        held: sql<string>`coalesce(sum(${payments.amount}), 0)::numeric(12, 2)::text`,
+      })
+      .from(payments)
+      .where(
+        and(
+          eq(payments.clinicId, clinicId),
+          isNull(payments.deletedAt),
+          sql`${payments.heldBy} is not null`,
+          gte(payments.createdAt, start),
+          lt(payments.createdAt, end),
+        ),
+      )
+      .groupBy(payments.heldBy);
+
+    return new Map(
+      rows.flatMap((row): [string, string][] =>
+        row.doctorId ? [[row.doctorId, addMoney(row.held, ZERO)]] : [],
+      ),
+    );
   }
 
   async updateTreatment(
@@ -399,55 +476,89 @@ export class DoctorSettlementsService implements OnModuleInit {
     clinicId: string,
     doctor: DoctorRow,
     query: SettlementQuery,
+    month: PayrollMonth,
   ): Promise<
-    Pick<DoctorSettlement, "treatments" | "totals" | "payouts" | "earned" | "paid" | "balance">
+    Pick<
+      DoctorSettlement,
+      | "treatments"
+      | "totals"
+      | "payouts"
+      | "collector"
+      | "earned"
+      | "paid"
+      | "held"
+      | "remitted"
+      | "balance"
+    >
   > {
     const timeZone = await clinicTimeZone(this.db, clinicId);
     const start = instantFromLocal(query.from, 0, timeZone);
     const end = instantFromLocal(addDays(query.to, 1), 0, timeZone);
 
-    const [treatments, earnedRows, payoutRows, paidRows] = await Promise.all([
-      this.lines({
-        clinicId,
-        timeZone,
-        doctors: oneDoctor(doctor.id),
-        window: performedBetween(start, end),
-      }),
-      this.db.execute<{ earned: string | null }>(
-        sql`select coalesce(sum(payable), 0)::numeric(12, 2)::text as earned from (${settlementLines(
-          { clinicId, timeZone, doctors: oneDoctor(doctor.id) },
-        )}) settled`,
-      ),
-      this.db
-        .select()
-        .from(staffPayments)
-        .where(
-          and(
-            this.paymentsOf(clinicId, doctor.userId),
-            gte(staffPayments.createdAt, start),
-            lt(staffPayments.createdAt, end),
+    const [treatments, earnedRows, payoutRows, paidRows, heldRows, remittedRows, collectors] =
+      await Promise.all([
+        this.lines({
+          clinicId,
+          timeZone,
+          doctors: oneDoctor(doctor.id),
+          window: performedBetween(start, end),
+        }),
+        this.db.execute<{ earned: string | null }>(
+          sql`select coalesce(sum(payable), 0)::numeric(12, 2)::text as earned from (${settlementLines(
+            { clinicId, timeZone, doctors: oneDoctor(doctor.id) },
+          )}) settled`,
+        ),
+        this.db
+          .select()
+          .from(staffPayments)
+          .where(
+            and(
+              this.paymentsOf(clinicId, doctor.userId),
+              gte(staffPayments.createdAt, start),
+              lt(staffPayments.createdAt, end),
+            ),
+          )
+          .orderBy(desc(staffPayments.createdAt)),
+        this.db
+          .select({ paid: sql<string>`coalesce(sum(${staffPayments.amount}), 0)::text` })
+          .from(staffPayments)
+          .where(this.paymentsOf(clinicId, doctor.userId)),
+        this.db
+          .select({ held: sql<string>`coalesce(sum(${payments.amount}), 0)::text` })
+          .from(payments)
+          .where(
+            and(
+              eq(payments.clinicId, clinicId),
+              eq(payments.heldBy, doctor.id),
+              isNull(payments.deletedAt),
+            ),
           ),
-        )
-        .orderBy(desc(staffPayments.createdAt)),
-      this.db
-        .select({ paid: sql<string>`coalesce(sum(${staffPayments.amount}), 0)::text` })
-        .from(staffPayments)
-        .where(this.paymentsOf(clinicId, doctor.userId)),
-    ]);
+        this.db
+          .select({ remitted: sql<string>`coalesce(sum(${staffPayments.amount}), 0)::text` })
+          .from(staffPayments)
+          .where(this.paymentsOf(clinicId, doctor.userId, STAFF_PAYMENT_KIND.REMITTANCE)),
+        this.terms.collectorsAt(clinicId, [doctor.id], month),
+      ]);
 
     const filtered = query.status
       ? treatments.filter((line) => line.status === query.status)
       : treatments;
     const earned = addMoney(earnedRows[0]?.earned ?? ZERO, ZERO);
     const paid = addMoney(paidRows[0]?.paid ?? ZERO, ZERO);
+    const held = addMoney(heldRows[0]?.held ?? ZERO, ZERO);
+    const remitted = addMoney(remittedRows[0]?.remitted ?? ZERO, ZERO);
+    const settled = addMoney(addMoney(paid, held), negate(remitted));
 
     return {
       treatments: filtered,
       totals: totalsOf(filtered),
       payouts: await this.withItems(clinicId, payoutRows),
+      collector: collectors.get(doctor.id) ?? PAYMENT_COLLECTOR.CLINIC,
       earned,
       paid,
-      balance: addMoney(earned, negate(paid)),
+      held,
+      remitted,
+      balance: addMoney(earned, negate(settled)),
     };
   }
 
@@ -484,11 +595,15 @@ export class DoctorSettlementsService implements OnModuleInit {
     }));
   }
 
-  private paymentsOf(clinicId: string, userId: string) {
+  private paymentsOf(
+    clinicId: string,
+    userId: string,
+    kind: StaffPaymentKind = STAFF_PAYMENT_KIND.SETTLEMENT,
+  ) {
     return and(
       eq(staffPayments.clinicId, clinicId),
       eq(staffPayments.userId, userId),
-      eq(staffPayments.kind, STAFF_PAYMENT_KIND.SETTLEMENT),
+      eq(staffPayments.kind, kind),
     );
   }
 

@@ -20,6 +20,7 @@ import {
 } from "@api/modules/billing/pdf/document-format";
 import { MUTED, RtlPdf } from "@api/modules/billing/pdf/pdf-builder";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { negate } from "@api/common/lib/money";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { doctors, users } from "@api/database/schema";
@@ -125,7 +126,11 @@ export class PayrollDocumentsService {
           ]
         : []),
       { label: text.paid, value: money(settlement.paid) },
-      { label: text.balance, value: money(settlement.balance), strong: true },
+      ...shown(text.held, settlement.held),
+      ...shown(text.remitted, settlement.remitted),
+      Number(settlement.balance) < 0
+        ? { label: text.owedToClinic, value: money(negate(settlement.balance)), strong: true }
+        : { label: text.balance, value: money(settlement.balance), strong: true },
     ]);
 
     pdf.space(12);

@@ -20,6 +20,12 @@ import { clinicToday } from "@test/helpers/clinic-time";
 
 const TODAY = clinicToday();
 const THIS_MONTH = TODAY.slice(0, 7);
+const LAST_MONTH_END = new Date(
+  Date.UTC(Number(THIS_MONTH.slice(0, 4)), Number(THIS_MONTH.slice(5, 7)) - 1, 0),
+)
+  .toISOString()
+  .slice(0, 10);
+const LAST_MONTH = LAST_MONTH_END.slice(0, 7);
 
 const percentOf = (amount: string, percent: number): string => {
   const minor = Math.round(Number(amount) * 100);
@@ -48,8 +54,8 @@ describe("Profit, expenses and staff percentages (e2e)", () => {
       ...(payload !== undefined && { payload: payload as Record<string, unknown> }),
     });
 
-  const payroll = async (): Promise<Payroll> => {
-    const response = await send("GET", `/payroll/${THIS_MONTH}`);
+  const payroll = async (month = THIS_MONTH): Promise<Payroll> => {
+    const response = await send("GET", `/payroll/${month}`);
 
     expect(response.statusCode).toBe(200);
     return response.json() as Payroll;
@@ -262,27 +268,75 @@ describe("Profit, expenses and staff percentages (e2e)", () => {
       expect(profit.ownerProfit).toBe(subtractMoney(profit.beforeShares, profit.profitShares));
     });
 
+    it("refuses to close a month that has not ended", async () => {
+      const early = await send("POST", `/payroll/${THIS_MONTH}/close`, {});
+
+      expect(early.statusCode).toBe(400);
+      expect(early.json()).toMatchObject({ message: PAYROLL_ERROR.FUTURE_MONTH });
+      expect((await payroll()).closedAt).toBeNull();
+    });
+
     it("records the owner's draw when the month closes and locks its expenses", async () => {
-      const before = await payroll();
+      const before = await payroll(LAST_MONTH);
       expect(before.draw).toBeNull();
 
-      expect((await send("POST", `/payroll/${THIS_MONTH}/close`, {})).statusCode).toBe(201);
+      expect((await send("POST", `/payroll/${LAST_MONTH}/close`, {})).statusCode).toBe(201);
 
-      const after = await payroll();
-      expect(after.draw).toMatchObject({ month: THIS_MONTH, amount: before.profit.ownerProfit });
+      const after = await payroll(LAST_MONTH);
+      expect(after.draw).toMatchObject({ month: LAST_MONTH, amount: before.profit.ownerProfit });
       expect(after.profit).toEqual(before.profit);
 
       const draws = (await send("GET", "/payroll/owner-draws")).json() as OwnerDraw[];
-      expect(draws[0]?.month).toBe(THIS_MONTH);
+      expect(draws[0]?.month).toBe(LAST_MONTH);
 
       const late = await send("POST", "/expenses", {
-        spentOn: TODAY,
+        spentOn: LAST_MONTH_END,
         category: "rent",
         amount: "10",
         method: "cash",
       });
       expect(late.statusCode).toBe(409);
       expect(late.json()).toMatchObject({ message: PAYROLL_ERROR.MONTH_CLOSED });
+    });
+
+    it("reopens a closed month with a reason, cancels its draw, and closes it again", async () => {
+      const reopened = await send("POST", `/payroll/${LAST_MONTH}/reopen`, {
+        reason: "أُغلق بالخطأ",
+      });
+      expect(reopened.statusCode).toBe(201);
+
+      const open = await payroll(LAST_MONTH);
+      expect(open).toMatchObject({ closedAt: null, draw: null });
+      const draws = (await send("GET", "/payroll/owner-draws")).json() as OwnerDraw[];
+      expect(draws.some((draw) => draw.month === LAST_MONTH)).toBe(false);
+
+      const expense = await send("POST", "/expenses", {
+        spentOn: LAST_MONTH_END,
+        category: "rent",
+        amount: "10",
+        method: "cash",
+      });
+      expect(expense.statusCode).toBe(201);
+
+      const again = await send("POST", `/payroll/${LAST_MONTH}/reopen`, { reason: "مرة ثانية" });
+      expect(again.statusCode).toBe(409);
+      expect(again.json()).toMatchObject({ message: PAYROLL_ERROR.NOT_CLOSED });
+
+      expect((await send("POST", `/payroll/${LAST_MONTH}/close`, {})).statusCode).toBe(201);
+      expect((await payroll(LAST_MONTH)).draw).toMatchObject({ month: LAST_MONTH });
+    });
+
+    it("keeps reopening a month to the admin", async () => {
+      for (const role of [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST]) {
+        const response = await context.app.inject({
+          method: "POST",
+          url: `/payroll/${LAST_MONTH}/reopen`,
+          headers: as(role),
+          payload: { reason: "محاولة" },
+        });
+
+        expect({ role, status: response.statusCode }).toEqual({ role, status: 403 });
+      }
     });
   });
 });

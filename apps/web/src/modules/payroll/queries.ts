@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
+  CollectionTerm,
+  CollectionTermsInput,
   CreatePayrollAdjustmentInput,
+  CreateRemittanceInput,
   CreateSalaryPaymentInput,
   CreateSettlementPayoutInput,
   DoctorSettlement,
@@ -70,6 +73,14 @@ export function usePlanHistory(userId: string | null): UseQueryResult<PayPlan[]>
   });
 }
 
+export function useCollectionTerms(doctorId: string | null): UseQueryResult<CollectionTerm[]> {
+  return useQuery({
+    queryKey: [PAYROLL_KEY, "collection-terms", doctorId],
+    queryFn: () => payrollApi.collectionTerms(doctorId ?? ""),
+    enabled: doctorId !== null,
+  });
+}
+
 export function useSettlement(
   doctorId: string | null,
   query: SettlementQuery,
@@ -110,6 +121,14 @@ export const useSetClinicRate = () =>
     payrollApi.setClinicRate(doctorId, body),
   );
 
+export const useSetCollector = () =>
+  usePayrollWrite(({ doctorId, body }: { doctorId: string; body: CollectionTermsInput }) =>
+    payrollApi.setCollector(doctorId, body),
+  );
+
+export const useRemit = (doctorId: string) =>
+  usePayrollWrite((body: CreateRemittanceInput) => payrollApi.remit(doctorId, body));
+
 export const useSetShareTerms = () =>
   usePayrollWrite(({ userId, body }: { userId: string; body: ShareTermsInput }) =>
     payrollApi.setShareTerms(userId, body),
@@ -132,6 +151,9 @@ export const useReversePayment = () =>
   );
 
 export const useCloseMonth = (month: string) => usePayrollWrite(() => payrollApi.close(month));
+
+export const useReopenMonth = (month: string) =>
+  usePayrollWrite((reason: string) => payrollApi.reopen(month, reason));
 
 export const useSetTreatmentShare = () =>
   usePayrollWrite(

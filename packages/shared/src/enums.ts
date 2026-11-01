@@ -1029,6 +1029,7 @@ export type DocumentSendError = EnumValue<typeof DOCUMENT_SEND_ERROR>;
 export const PAYMENT_ERROR = {
   EXCEEDS_BALANCE: "payment_exceeds_balance",
   REVERSED: "payment_reversed",
+  NOT_A_HOLDER: "payment_not_a_holder",
 } as const satisfies Record<string, string>;
 export type PaymentError = EnumValue<typeof PAYMENT_ERROR>;
 
@@ -1186,13 +1187,23 @@ export const PAYROLL_ADJUSTMENT_KINDS = [
 export const STAFF_PAYMENT_KIND = {
   SALARY: "salary",
   SETTLEMENT: "settlement",
+  REMITTANCE: "remittance",
 } as const satisfies Record<string, string>;
 export type StaffPaymentKind = EnumValue<typeof STAFF_PAYMENT_KIND>;
 
 export const STAFF_PAYMENT_KINDS = [
   STAFF_PAYMENT_KIND.SALARY,
   STAFF_PAYMENT_KIND.SETTLEMENT,
+  STAFF_PAYMENT_KIND.REMITTANCE,
 ] as const;
+
+export const PAYMENT_COLLECTOR = {
+  CLINIC: "clinic",
+  DOCTOR: "doctor",
+} as const satisfies Record<string, string>;
+export type PaymentCollector = EnumValue<typeof PAYMENT_COLLECTOR>;
+
+export const PAYMENT_COLLECTORS = [PAYMENT_COLLECTOR.CLINIC, PAYMENT_COLLECTOR.DOCTOR] as const;
 
 export const PAY_PLAN_KIND = {
   SALARY: "salary",
@@ -1258,6 +1269,8 @@ export const PAYROLL_ERROR = {
   NOTHING_TO_PAY: "payroll_nothing_to_pay",
   NOT_ON_PERCENTAGE: "payroll_not_on_percentage",
   PAST_MONTH: "payroll_past_month",
+  NOT_COLLECTING: "payroll_not_collecting",
+  NOT_CLOSED: "payroll_not_closed",
 } as const;
 
 export const WHATSAPP_STATUS = {
