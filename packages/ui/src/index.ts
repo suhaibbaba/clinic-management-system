@@ -34,6 +34,12 @@ export { Modal } from "@ui/components/modal";
 export { NotePreview, type NotePreviewProps } from "@ui/components/note-preview";
 export { TotalBadge, type TotalBadgeProps } from "@ui/components/total-badge";
 export {
+  Summary,
+  type SummaryEmphasis,
+  type SummaryProps,
+  type SummaryRow,
+} from "@ui/components/summary";
+export {
   ConfirmDialog,
   useConfirm,
   type ConfirmDialogProps,

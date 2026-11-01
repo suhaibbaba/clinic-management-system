@@ -1,55 +1,52 @@
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Money } from "@clinic/ui";
-import { cn } from "@clinic/ui/lib/cn";
-import type { BreakdownRow, BreakdownSign } from "@web/modules/payroll/lib/pay-breakdown";
+import { Money, Summary, type SummaryEmphasis } from "@clinic/ui";
+import type { BreakdownRow } from "@web/modules/payroll/lib/pay-breakdown";
 import { useCurrency } from "@web/shared/queries/clinic";
-
-const SIGN_MARK: Record<BreakdownSign, string> = { plus: "+", minus: "−", result: "=" };
 
 export function BreakdownRows({
   rows,
   percents = {},
+  conclude = false,
   "data-testid": testId,
 }: {
   readonly rows: readonly BreakdownRow[];
   readonly percents?: Readonly<Record<string, number | undefined>>;
+  readonly conclude?: boolean;
   readonly "data-testid": string;
 }): JSX.Element {
   const { t } = useTranslation();
   const currency = useCurrency();
+  const last = rows.at(-1)?.key;
+
+  const emphasisOf = (row: BreakdownRow): SummaryEmphasis => {
+    if (conclude && row.key === last) {
+      return "total";
+    }
+
+    return row.sign === "result" ? "subtotal" : "item";
+  };
 
   return (
-    <dl data-testid={testId} className="flex flex-col">
-      {rows.map((row) => {
+    <Summary
+      data-testid={testId}
+      rows={rows.map((row) => {
         const percent = row.percent ?? percents[row.key];
 
-        return (
-          <div
-            key={row.key}
-            data-testid={`${testId}-row-${row.key}`}
-            className={cn(
-              "flex items-baseline justify-between gap-3 py-1",
-              row.sign === "result" && "border-t border-line font-semibold text-ink",
-            )}
-          >
-            <dt className="flex items-baseline gap-2 text-label text-ink">
-              <span aria-hidden className="w-3 text-center text-ink-muted">
-                {SIGN_MARK[row.sign]}
+        return {
+          key: row.key,
+          label: t(row.label),
+          value: <Money amount={row.amount} currency={currency} />,
+          emphasis: emphasisOf(row),
+          deduct: row.sign === "minus",
+          aside:
+            percent !== undefined && percent > 0 ? (
+              <span className="text-meta font-normal text-ink-muted" dir="ltr">
+                {percent}%
               </span>
-              {t(row.label)}
-              {percent !== undefined && percent > 0 && (
-                <span className="text-meta text-ink-muted" dir="ltr">
-                  {percent}%
-                </span>
-              )}
-            </dt>
-            <dd>
-              <Money amount={row.amount} currency={currency} />
-            </dd>
-          </div>
-        );
+            ) : undefined,
+        };
       })}
-    </dl>
+    />
   );
 }

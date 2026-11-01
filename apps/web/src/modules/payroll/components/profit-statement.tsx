@@ -1,7 +1,7 @@
 import type { Payroll } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Card, Money } from "@clinic/ui";
+import { Badge, Card, Money, Summary } from "@clinic/ui";
 import { BreakdownRows } from "@web/modules/payroll/components/breakdown-rows";
 import { profitRows } from "@web/modules/payroll/lib/profit-rows";
 import { useOwnerDraws } from "@web/modules/payroll/queries";
@@ -30,7 +30,7 @@ export function ProfitStatement({ payroll }: { readonly payroll: Payroll }): JSX
           )}
         </div>
         <p className="text-meta text-ink-muted">{t("finance.about")}</p>
-        <BreakdownRows data-testid="profit-rows" rows={profitRows(profit)} />
+        <BreakdownRows data-testid="profit-rows" rows={profitRows(profit)} conclude />
       </Card>
 
       <Card data-testid="owner-draws" className="flex flex-col gap-3">
@@ -38,18 +38,15 @@ export function ProfitStatement({ payroll }: { readonly payroll: Payroll }): JSX
         {(draws.data ?? []).length === 0 ? (
           <p className="text-meta text-ink-muted">{t("finance.noDraws")}</p>
         ) : (
-          <ul className="flex flex-col gap-1">
-            {draws.data?.map((entry) => (
-              <li
-                key={entry.id}
-                data-testid={`owner-draw-${entry.id}`}
-                className="flex items-center justify-between rounded-panel bg-inset px-3 py-1.5 text-meta"
-              >
-                <span>{formatMonth(entry.month)}</span>
-                <Money amount={entry.amount} currency={currency} className="font-medium" />
-              </li>
-            ))}
-          </ul>
+          <Summary
+            data-testid="owner-draw"
+            divided
+            rows={(draws.data ?? []).map((entry) => ({
+              key: entry.id,
+              label: formatMonth(entry.month),
+              value: <Money amount={entry.amount} currency={currency} />,
+            }))}
+          />
         )}
       </Card>
     </div>

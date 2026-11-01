@@ -23,6 +23,7 @@ import {
   QuantityInput,
   RadioGroup,
   Select,
+  Summary,
   useToast,
 } from "@clinic/ui";
 import { includesSalary, includesShare } from "@web/modules/payroll/lib/plans";
@@ -384,17 +385,15 @@ export function PaySettingsForm({
       {history.length > 0 && (
         <Card data-testid="pay-settings-history" className="flex flex-col gap-3">
           <h2 className="text-value font-semibold text-ink">{t("payroll.settings.history")}</h2>
-          <ul className="flex flex-col gap-1">
-            {history.map((entry) => (
-              <li
-                key={entry.id}
-                className="flex items-center justify-between rounded-panel bg-inset px-3 py-1.5 text-meta"
-              >
-                <span>{formatMonth(entry.month)}</span>
-                {entry.value}
-              </li>
-            ))}
-          </ul>
+          <Summary
+            data-testid="pay-settings-history-rows"
+            divided
+            rows={history.map((entry) => ({
+              key: entry.id,
+              label: formatMonth(entry.month),
+              value: entry.value,
+            }))}
+          />
         </Card>
       )}
     </div>

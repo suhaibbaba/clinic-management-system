@@ -8,7 +8,16 @@ import { useEffect, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { revealFirstError } from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
-import { Button, FormField, Modal, MoneyInput, Select, Textarea, useToast } from "@clinic/ui";
+import {
+  Button,
+  FormField,
+  Modal,
+  MoneyInput,
+  Select,
+  Summary,
+  Textarea,
+  useToast,
+} from "@clinic/ui";
 import { Money } from "@web/shared/components/money";
 import { useLookupOptions } from "@web/shared/queries/lookups";
 import { usePaySupplier } from "@web/modules/inventory/queries";
@@ -100,13 +109,17 @@ export function SupplierPaymentModal({
         className="flex flex-col gap-4"
         onSubmit={(event) => void submit(event)}
       >
-        <div
+        <Summary
           data-testid={`${testId}-current-balance`}
-          className="flex items-baseline justify-between rounded-panel bg-inset px-3 py-2"
-        >
-          <span className="text-label text-ink-muted">{t("inventory.suppliers.balance")}</span>
-          <Money amount={supplier?.balance ?? "0.00"} currency={currency} className="font-medium" />
-        </div>
+          rows={[
+            {
+              key: "balance",
+              label: t("inventory.suppliers.balance"),
+              value: <Money amount={supplier?.balance ?? "0.00"} currency={currency} />,
+              emphasis: "total",
+            },
+          ]}
+        />
 
         <FormField
           label="inventory.suppliers.payment.amount"
