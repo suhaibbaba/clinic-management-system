@@ -1,11 +1,14 @@
 import { authTokens } from "@web/shared/lib/auth-tokens";
 import { ApiError, NetworkError } from "@web/shared/lib/api-error";
+import { SESSION_RESTORE_RETRY_MS } from "@web/shared/constants/session";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
 const REFRESH_PATH = "/auth/refresh";
 
-let refreshInFlight: Promise<boolean> | null = null;
+type RefreshOutcome = "refreshed" | "signed-out" | "unreachable";
+
+let refreshInFlight: Promise<RefreshOutcome> | null = null;
 
 export interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -61,20 +64,24 @@ async function send(path: string, options: RequestOptions): Promise<Response> {
 }
 
 /** Exchanges the refresh cookie for a new access token. At most one at a time. */
-async function refreshSession(): Promise<boolean> {
-  refreshInFlight ??= (async () => {
+async function refreshSession(): Promise<RefreshOutcome> {
+  refreshInFlight ??= (async (): Promise<RefreshOutcome> => {
     try {
       const response = await send(REFRESH_PATH, { method: "POST", body: {} });
 
+      if (response.status >= 500) {
+        return "unreachable";
+      }
+
       if (!response.ok) {
-        return false;
+        return "signed-out";
       }
 
       const { accessToken } = (await response.json()) as { accessToken: string };
       authTokens.set(accessToken);
-      return true;
+      return "refreshed";
     } catch {
-      return false;
+      return "unreachable";
     } finally {
       queueMicrotask(() => {
         refreshInFlight = null;
@@ -83,6 +90,19 @@ async function refreshSession(): Promise<boolean> {
   })();
 
   return refreshInFlight;
+}
+
+async function refreshOrEnd(): Promise<void> {
+  const outcome = await refreshSession();
+
+  if (outcome === "unreachable") {
+    throw new NetworkError();
+  }
+
+  if (outcome === "signed-out") {
+    authTokens.notifySessionEnded();
+    throw new ApiError(401);
+  }
 }
 
 async function parse<TResult>(response: Response): Promise<TResult> {
@@ -100,12 +120,7 @@ export async function apiRequest<TResult>(
   let response = await send(path, options);
 
   if (response.status === 401 && path !== REFRESH_PATH) {
-    const refreshed = await refreshSession();
-
-    if (!refreshed) {
-      authTokens.notifySessionEnded();
-      throw new ApiError(401);
-    }
+    await refreshOrEnd();
 
     response = await send(path, options);
 
@@ -131,12 +146,7 @@ export async function apiStream(
   let response = await send(path, options);
 
   if (response.status === 401) {
-    const refreshed = await refreshSession();
-
-    if (!refreshed) {
-      authTokens.notifySessionEnded();
-      throw new ApiError(401);
-    }
+    await refreshOrEnd();
 
     response = await send(path, options);
   }
@@ -153,12 +163,7 @@ export async function apiDownload(path: string, query?: RequestOptions["query"])
   let response = await send(path, options);
 
   if (response.status === 401) {
-    const refreshed = await refreshSession();
-
-    if (!refreshed) {
-      authTokens.notifySessionEnded();
-      throw new ApiError(401);
-    }
+    await refreshOrEnd();
 
     response = await send(path, options);
   }
@@ -171,5 +176,15 @@ export async function apiDownload(path: string, query?: RequestOptions["query"])
 }
 
 export async function restoreSession(): Promise<boolean> {
-  return refreshSession();
+  for (const delay of [...SESSION_RESTORE_RETRY_MS, undefined]) {
+    const outcome = await refreshSession();
+
+    if (outcome !== "unreachable" || delay === undefined) {
+      return outcome === "refreshed";
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
+
+  return false;
 }

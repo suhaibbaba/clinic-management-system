@@ -27,4 +27,4 @@ exec node \
   --watch-preserve-output \
   --watch-path=/repo/apps/api/dist \
   --watch-path=/repo/packages/shared/dist \
-  /repo/apps/api/dist/main.js
+  /repo/docker/dev-api-start.mjs

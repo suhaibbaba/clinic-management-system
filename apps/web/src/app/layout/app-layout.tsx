@@ -308,7 +308,7 @@ function NavList({
     <nav data-testid="nav-menu" aria-label={t("nav.menu")} className="min-w-0 flex-1">
       {groups.map((group) =>
         group.label === undefined ? (
-          <ul key="loose">
+          <ul key={group.items[0]?.to}>
             {group.items.map((item) => (
               <NavRow key={item.to} item={item} badges={badges} />
             ))}

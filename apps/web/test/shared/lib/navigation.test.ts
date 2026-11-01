@@ -1,7 +1,7 @@
 import { USER_ROLE } from "@clinic/shared";
-import { canFor } from "@test/helpers/fixtures";
+import { canFor, SHIPPED_CAPABILITIES } from "@test/helpers/fixtures";
 import { describe, expect, it } from "vitest";
-import { backTarget } from "@web/shared/lib/navigation";
+import { backTarget, visibleNavGroups } from "@web/shared/lib/navigation";
 
 describe("the back button's target", () => {
   it("leads each inner page to its parent list", () => {
@@ -50,5 +50,30 @@ describe("the back button's target", () => {
     expect(backTarget("/payroll/u-1", canFor(USER_ROLE.RECEPTIONIST))).toBeUndefined();
     expect(backTarget("/inventory/suppliers/s-1", canFor(USER_ROLE.RECEPTIONIST))).toBeUndefined();
     expect(backTarget("/patients/p-1", undefined)).toBeUndefined();
+  });
+});
+
+describe("the sidebar's group titles", () => {
+  const titles = (withdrawn: readonly string[]) =>
+    visibleNavGroups(
+      (capability) =>
+        SHIPPED_CAPABILITIES[USER_ROLE.ADMIN].includes(capability) &&
+        !withdrawn.includes(capability),
+    ).map((group) => [group.label, group.items.map((item) => item.to)]);
+
+  it("names each group while everything it names is there", () => {
+    expect(titles([])).toEqual([
+      [undefined, ["/dashboard", "/assistant"]],
+      ["nav.groups.care", ["/patients", "/appointments", "/my-earnings"]],
+      ["nav.groups.stores", ["/labs", "/inventory"]],
+    ]);
+  });
+
+  it("drops a title that would name a section the clinic no longer has", () => {
+    expect(titles(["appointments.list", "inventory.list"])).toEqual([
+      [undefined, ["/dashboard", "/assistant"]],
+      [undefined, ["/patients", "/my-earnings"]],
+      [undefined, ["/labs"]],
+    ]);
   });
 });

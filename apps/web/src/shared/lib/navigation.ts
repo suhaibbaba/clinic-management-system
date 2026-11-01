@@ -12,6 +12,7 @@ export interface NavItem {
 
 export interface NavGroup {
   readonly label?: string | undefined;
+  readonly labelNames?: readonly string[];
   readonly items: readonly NavItem[];
 }
 
@@ -73,6 +74,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   },
   {
     label: "nav.groups.care",
+    labelNames: ["/patients", "/appointments"],
     items: [
       {
         to: "/patients",
@@ -97,6 +99,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   },
   {
     label: "nav.groups.stores",
+    labelNames: ["/labs", "/inventory"],
     items: [
       { to: "/labs", label: "nav.labs", capabilities: PAGE_CAPABILITIES.labs, icon: "clipboard" },
       {
@@ -154,9 +157,12 @@ export function visibleNavGroups(can: Can | undefined): readonly NavGroup[] {
     return [];
   }
 
-  return NAV_GROUPS.map((group) => ({ ...group, items: visible(group.items, can) })).filter(
-    (group) => group.items.length > 0,
-  );
+  return NAV_GROUPS.map((group) => {
+    const items = visible(group.items, can);
+    const named = (group.labelNames ?? []).every((to) => items.some((item) => item.to === to));
+
+    return { label: named ? group.label : undefined, items };
+  }).filter((group) => group.items.length > 0);
 }
 
 export function visibleSettingsItems(can: Can | undefined): readonly NavItem[] {

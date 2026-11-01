@@ -299,9 +299,14 @@ export default tseslint.config(
   },
 
   {
-    files: ["docker/**/*.js", "scripts/**/*.mjs", "apps/*/scripts/**/*.mjs"],
+    files: ["docker/**/*.{js,mjs}", "scripts/**/*.mjs", "apps/*/scripts/**/*.mjs"],
     languageOptions: {
-      globals: { console: "readonly", fetch: "readonly", process: "readonly" },
+      globals: {
+        console: "readonly",
+        fetch: "readonly",
+        process: "readonly",
+        setTimeout: "readonly",
+      },
     },
     rules: {
       "no-console": "off",
