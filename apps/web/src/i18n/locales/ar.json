@@ -3429,7 +3429,13 @@
       "shareWhenPaid": "حصته عند الدفع",
       "readySoFar": "جاهز منها",
       "noneCollected": "لم يدفع أي مريض بعد هذا الشهر",
-      "paidInFull": "مدفوع بالكامل"
+      "paidInFull": "مدفوع بالكامل",
+      "searchPlaceholder": "المريض أو رقم الملف أو العلاج",
+      "noMatch": "لا علاج يطابق هذا البحث",
+      "paidFilters": {
+        "partly": "دفع جزءًا",
+        "none": "لم يدفع بعد"
+      }
     },
     "entryKinds": {
       "extra": "مكافأة",

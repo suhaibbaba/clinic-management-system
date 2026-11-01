@@ -1,5 +1,6 @@
 import type { BadgeTone } from "@clinic/ui";
 import type { PayStatus } from "@web/modules/payroll/lib/plans";
+import type { PatientPaidFilter } from "@web/modules/payroll/lib/share-groups";
 
 export const PAYOUT_MODES = ["treatments", "advance"] as const;
 
@@ -16,3 +17,5 @@ export const PAY_STATUS_TONES: Record<PayStatus, BadgeTone> = {
 };
 
 export const FINANCE_TABS = ["payroll", "profit", "expenses"] as const;
+
+export const PATIENT_PAID_FILTERS: readonly PatientPaidFilter[] = ["partly", "none"];

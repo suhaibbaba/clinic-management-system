@@ -1,6 +1,8 @@
 import {
   addMoney,
+  normalizeArabic,
   subtractMoney,
+  type SettlementLineStatus,
   type SettlementTotals,
   type SettlementTreatment,
 } from "@clinic/shared";
@@ -40,4 +42,45 @@ export function sumMoney(
   pick: (row: SettlementTreatment) => string,
 ): string {
   return treatments.reduce((total, row) => addMoney(total, pick(row)), "0.00");
+}
+
+export type PatientPaidFilter = "partly" | "none";
+
+export function matchesSearch(row: SettlementTreatment, search: string): boolean {
+  const needle = normalizeArabic(search.trim().toLowerCase());
+
+  if (needle === "") {
+    return true;
+  }
+
+  return [row.patientName, row.fileNumber ?? "", row.procedureName].some((text) =>
+    normalizeArabic(text.toLowerCase()).includes(needle),
+  );
+}
+
+export const matchesDoctorPaid = (
+  row: SettlementTreatment,
+  status: SettlementLineStatus | null,
+): boolean => status === null || row.status === status;
+
+export function matchesPatientPaid(
+  row: SettlementTreatment,
+  filter: PatientPaidFilter | null,
+): boolean {
+  if (filter === null) {
+    return true;
+  }
+
+  return filter === "partly" ? row.collectedPercent > 0 : row.collectedPercent === 0;
+}
+
+export function pageOf<TRow>(
+  rows: readonly TRow[],
+  page: number,
+  perPage: number,
+): { readonly rows: readonly TRow[]; readonly totalPages: number } {
+  const totalPages = Math.max(1, Math.ceil(rows.length / perPage));
+  const current = Math.min(page, totalPages);
+
+  return { rows: rows.slice((current - 1) * perPage, current * perPage), totalPages };
 }

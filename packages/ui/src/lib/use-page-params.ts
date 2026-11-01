@@ -9,11 +9,16 @@ export interface PageParams {
   readonly resetPage: () => void;
 }
 
-export function usePageParams(options: readonly number[] = PER_PAGE_OPTIONS): PageParams {
+export function usePageParams(
+  options: readonly number[] = PER_PAGE_OPTIONS,
+  scope?: string,
+): PageParams {
   const [params, setParams] = useSearchParams();
+  const pageKey = scope === undefined ? "page" : `${scope}Page`;
+  const perPageKey = scope === undefined ? "perPage" : `${scope}PerPage`;
 
-  const page = Math.max(1, Number.parseInt(params.get("page") ?? "", 10) || 1);
-  const requested = Number.parseInt(params.get("perPage") ?? "", 10);
+  const page = Math.max(1, Number.parseInt(params.get(pageKey) ?? "", 10) || 1);
+  const requested = Number.parseInt(params.get(perPageKey) ?? "", 10);
   const perPage = options.includes(requested) ? requested : DEFAULT_PER_PAGE;
 
   const write = (change: (next: URLSearchParams) => void): void => {
@@ -31,9 +36,9 @@ export function usePageParams(options: readonly number[] = PER_PAGE_OPTIONS): Pa
 
   const putPage = (next: URLSearchParams, value: number): void => {
     if (value <= 1) {
-      next.delete("page");
+      next.delete(pageKey);
     } else {
-      next.set("page", String(value));
+      next.set(pageKey, String(value));
     }
   };
 
@@ -47,9 +52,9 @@ export function usePageParams(options: readonly number[] = PER_PAGE_OPTIONS): Pa
         putPage(next, 1);
 
         if (value === DEFAULT_PER_PAGE) {
-          next.delete("perPage");
+          next.delete(perPageKey);
         } else {
-          next.set("perPage", String(value));
+          next.set(perPageKey, String(value));
         }
       }),
   };
