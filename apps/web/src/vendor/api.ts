@@ -4,7 +4,9 @@ import type {
   GrantSpecialtyInput,
   Paginated,
   Plan,
+  SaveClinicAppDomainInput,
   SaveClinicDomainInput,
+  SaveClinicKeysInput,
   SaveClinicModulesInput,
   SpecialtyCode,
   SaveSubscriptionInput,
@@ -81,6 +83,10 @@ export const vendorApi = {
     request<void>("PUT", `/clinics/${id}/subscription`, input),
   saveDomain: (id: string, input: SaveClinicDomainInput) =>
     request<void>("PUT", `/clinics/${id}/domain`, input),
+  saveAppDomain: (id: string, input: SaveClinicAppDomainInput) =>
+    request<void>("PUT", `/clinics/${id}/app-domain`, input),
+  saveKeys: (id: string, input: SaveClinicKeysInput) =>
+    request<void>("PUT", `/clinics/${id}/keys`, input),
   saveModules: (id: string, input: SaveClinicModulesInput) =>
     request<void>("PUT", `/clinics/${id}/modules`, input),
   revokeSpecialty: (id: string, code: SpecialtyCode) =>

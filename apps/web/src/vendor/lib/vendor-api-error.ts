@@ -2,6 +2,7 @@ import {
   AUTH_ERROR,
   VENDOR_DOMAIN_TAKEN,
   VENDOR_EMAIL_TAKEN,
+  VENDOR_KEYS_UNAVAILABLE,
   VENDOR_MISSING_MODULES,
   VENDOR_PHONE_TAKEN,
   VENDOR_RESET_INVALID,
@@ -14,6 +15,7 @@ const CODED: Readonly<Record<string, string>> = {
   [VENDOR_SLUG_TAKEN]: "vendor.errors.slugTaken",
   [VENDOR_PHONE_TAKEN]: "vendor.errors.phoneTaken",
   [VENDOR_EMAIL_TAKEN]: "vendor.errors.emailTaken",
+  [VENDOR_KEYS_UNAVAILABLE]: "vendor.errors.keysUnavailable",
   [AUTH_ERROR.LOCKED]: "vendor.signIn.locked",
   [VENDOR_RESET_INVALID]: "vendor.reset.invalid",
 };

@@ -117,6 +117,44 @@ export const clinicDomainSchema = z
       .regex(/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/, "Not a domain"),
   );
 
+export const clinicHostSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .transform((value) => value.replace(/^https?:\/\//, "").replace(/\/+$/, ""))
+  .pipe(
+    z
+      .string()
+      .max(253)
+      .regex(/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/, "Not a domain"),
+  );
+
+export const saveClinicAppDomainSchema = z.object({
+  appDomain: clinicHostSchema.nullable(),
+});
+export type SaveClinicAppDomainInput = z.infer<typeof saveClinicAppDomainSchema>;
+
+const secretInputSchema = z.string().trim().min(8).max(500).nullable().optional();
+
+export const saveClinicKeysSchema = z.object({
+  emailFrom: z.string().trim().min(3).max(200).nullable().optional(),
+  resendApiKey: secretInputSchema,
+  googleClientId: z.string().trim().min(10).max(300).nullable().optional(),
+  googleClientSecret: secretInputSchema,
+});
+export type SaveClinicKeysInput = z.infer<typeof saveClinicKeysSchema>;
+
+export const vendorClinicKeysSchema = z.object({
+  encryptionAvailable: z.boolean(),
+  emailFrom: z.string().nullable(),
+  resendApiKeyHint: z.string().nullable(),
+  googleClientId: z.string().nullable(),
+  googleClientSecretHint: z.string().nullable(),
+});
+export type VendorClinicKeys = z.infer<typeof vendorClinicKeysSchema>;
+
+export const VENDOR_KEYS_UNAVAILABLE = "vendor_keys_unavailable";
+
 export const saveClinicDomainSchema = z.object({
   domain: clinicDomainSchema.nullable(),
 });
@@ -127,6 +165,7 @@ export const vendorClinicSummarySchema = z.object({
   slug: z.string(),
   name: localizedTextSchema,
   domain: z.string().nullable(),
+  appDomain: z.string().nullable(),
   logoUrl: z.string().nullable(),
   removedAt: z.iso.datetime().nullable(),
   modules: z.array(z.enum(CLINIC_MODULES)),
@@ -158,6 +197,7 @@ export const subscriptionEventSchema = z.object({
 export type SubscriptionEvent = z.infer<typeof subscriptionEventSchema>;
 
 export const vendorClinicDetailSchema = vendorClinicSummarySchema.extend({
+  keys: vendorClinicKeysSchema,
   doctors: z.number().int().min(0),
   events: z.array(subscriptionEventSchema),
 });

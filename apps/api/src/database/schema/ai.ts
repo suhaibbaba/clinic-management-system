@@ -9,7 +9,7 @@ import {
   AI_OUTBOUND_TARGETS,
   AI_OUTBOUND_TRIGGERS,
   AI_PROPOSAL_STATUSES,
-  CLINIC_SECRET_KINDS,
+  STORED_SECRET_KINDS,
 } from "@clinic/shared";
 import {
   date,
@@ -34,7 +34,7 @@ export const aiProposalStatusEnum = pgEnum("ai_proposal_status", AI_PROPOSAL_STA
 export const aiOutboundTargetEnum = pgEnum("ai_outbound_target", AI_OUTBOUND_TARGETS);
 export const aiOutboundTriggerEnum = pgEnum("ai_outbound_trigger", AI_OUTBOUND_TRIGGERS);
 export const aiAutomationRuleEnum = pgEnum("ai_automation_rule", AI_AUTOMATION_RULES);
-export const clinicSecretKindEnum = pgEnum("clinic_secret_kind", CLINIC_SECRET_KINDS);
+export const clinicSecretKindEnum = pgEnum("clinic_secret_kind", STORED_SECRET_KINDS);
 export const aiAutomationRunStatusEnum = pgEnum(
   "ai_automation_run_status",
   AI_AUTOMATION_RUN_STATUSES,

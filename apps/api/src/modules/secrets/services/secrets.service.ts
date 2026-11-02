@@ -5,15 +5,18 @@ import {
   CLINIC_SECRET_ERROR,
   CLINIC_SECRET_KIND,
   CLINIC_SECRET_KINDS,
-  type ClinicSecretKind,
+  VENDOR_SECRET_KIND,
+  VENDOR_SECRET_KINDS,
   type ClinicSecrets,
+  type StoredSecretKind,
   type UpdateClinicSecretsInput,
+  type VendorSecretKind,
 } from "@clinic/shared";
 import { and, eq } from "drizzle-orm";
 import { AuditService } from "@api/modules/audit/services/audit.service";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { type Env } from "@api/config/env.schema";
-import { DATABASE, type Database } from "@api/database/database.module";
+import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import { clinicSecrets } from "@api/database/schema";
 import { type WhatsAppCredentials } from "@api/common/types/whatsapp";
 import { open, seal } from "@api/modules/secrets/lib/secret-cipher";
@@ -146,7 +149,64 @@ export class SecretsService {
       : null;
   }
 
-  private async reveal(clinicId: string, kind: ClinicSecretKind): Promise<string | null> {
+  get encryptionAvailable(): boolean {
+    return this.masterKey() !== null;
+  }
+
+  async vendorHints(clinicId: string): Promise<Record<VendorSecretKind, string | null>> {
+    const rows = await this.rows(clinicId);
+
+    return Object.fromEntries(
+      VENDOR_SECRET_KINDS.map((kind) => [
+        kind,
+        rows.find((row) => row.kind === kind)?.hint ?? null,
+      ]),
+    ) as Record<VendorSecretKind, string | null>;
+  }
+
+  async storeVendorSecret(
+    tx: DatabaseExecutor,
+    clinicId: string,
+    kind: VendorSecretKind,
+    value: string | null,
+  ): Promise<string | null> {
+    if (value === null) {
+      await tx
+        .delete(clinicSecrets)
+        .where(and(eq(clinicSecrets.clinicId, clinicId), eq(clinicSecrets.kind, kind)));
+
+      return null;
+    }
+
+    const masterKey = this.masterKey();
+
+    if (!masterKey) {
+      throw new HttpException(CLINIC_SECRET_ERROR.UNAVAILABLE, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    const sealed = seal(masterKey, value, context(clinicId, kind));
+    const hint = value.slice(-4);
+
+    await tx
+      .insert(clinicSecrets)
+      .values({ clinicId, kind, ...sealed, hint })
+      .onConflictDoUpdate({
+        target: [clinicSecrets.clinicId, clinicSecrets.kind],
+        set: { ...sealed, hint, updatedAt: new Date(), updatedBy: null },
+      });
+
+    return hint;
+  }
+
+  resendApiKey(clinicId: string): Promise<string | null> {
+    return this.reveal(clinicId, VENDOR_SECRET_KIND.RESEND_API_KEY);
+  }
+
+  googleClientSecret(clinicId: string): Promise<string | null> {
+    return this.reveal(clinicId, VENDOR_SECRET_KIND.GOOGLE_CLIENT_SECRET);
+  }
+
+  private async reveal(clinicId: string, kind: StoredSecretKind): Promise<string | null> {
     const [row] = await this.db
       .select()
       .from(clinicSecrets)

@@ -2,6 +2,8 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post } from
 import { type PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/server";
 import { type Passkey, type PasskeyChallenge } from "@clinic/shared";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { CurrentSite } from "@api/common/decorators/request-site.decorator";
+import { type RequestSite } from "@api/common/types/request-site";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { IdParamDto, RegisterPasskeyDto } from "@api/modules/auth/dto/auth.dto";
 import { PasskeyService } from "@api/modules/auth/services/passkey.service";
@@ -19,16 +21,18 @@ export class PasskeysController {
   @HttpCode(HttpStatus.OK)
   options(
     @CurrentUser() actor: AuthenticatedUser,
+    @CurrentSite() site: RequestSite,
   ): Promise<PasskeyChallenge<PublicKeyCredentialCreationOptionsJSON>> {
-    return this.passkeys.registrationOptions(actor);
+    return this.passkeys.registrationOptions(actor, site);
   }
 
   @Post()
   register(
     @CurrentUser() actor: AuthenticatedUser,
     @Body() body: RegisterPasskeyDto,
+    @CurrentSite() site: RequestSite,
   ): Promise<Passkey> {
-    return this.passkeys.register(actor, body);
+    return this.passkeys.register(actor, body, site);
   }
 
   @Delete(":id")

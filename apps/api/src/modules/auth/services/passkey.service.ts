@@ -26,7 +26,9 @@ import {
   type RegisterPasskeyInput,
   type VerifyPasskeyLoginInput,
 } from "@clinic/shared";
+import { type RequestSite } from "@api/common/types/request-site";
 import { type Env } from "@api/config/env.schema";
+import { ClinicHostService } from "@api/modules/auth/services/clinic-host.service";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { authChallenges, clinics, passkeys, users } from "@api/database/schema";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
@@ -42,22 +44,26 @@ type ChallengePurpose = (typeof AUTH_CHALLENGE_PURPOSE)[keyof typeof AUTH_CHALLE
 
 @Injectable()
 export class PasskeyService {
-  private readonly rp: RelyingParty;
+  private readonly defaultRp: RelyingParty;
 
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     config: ConfigService<Env, true>,
+    private readonly hosts: ClinicHostService,
   ) {
-    this.rp = relyingParty(
+    this.defaultRp = relyingParty(
       config.get("PUBLIC_BASE_URL", { infer: true }),
       config.get("WEBAUTHN_RP_ID", { infer: true }),
       config.get("WEBAUTHN_ORIGIN", { infer: true }),
     );
   }
 
-  async loginOptions(): Promise<PasskeyChallenge<PublicKeyCredentialRequestOptionsJSON>> {
+  async loginOptions(
+    site: RequestSite,
+  ): Promise<PasskeyChallenge<PublicKeyCredentialRequestOptionsJSON>> {
+    const rp = await this.rpFor(site);
     const options = await generateAuthenticationOptions({
-      rpID: this.rp.id,
+      rpID: rp.id,
       userVerification: "preferred",
     });
 
@@ -71,7 +77,11 @@ export class PasskeyService {
     };
   }
 
-  async authenticate(input: VerifyPasskeyLoginInput): Promise<UserRow | undefined> {
+  async authenticate(
+    input: VerifyPasskeyLoginInput,
+    site: RequestSite,
+  ): Promise<UserRow | undefined> {
+    const rp = await this.rpFor(site);
     const challenge = await this.takeChallenge(
       input.challengeId,
       AUTH_CHALLENGE_PURPOSE.PASSKEY_LOGIN,
@@ -99,8 +109,8 @@ export class PasskeyService {
       const result = await verifyAuthenticationResponse({
         response: input.response as unknown as AuthenticationResponseJSON,
         expectedChallenge: challenge,
-        expectedOrigin: this.rp.origins,
-        expectedRPID: this.rp.id,
+        expectedOrigin: rp.origins,
+        expectedRPID: rp.id,
         credential: {
           id: found.passkey.credentialId,
           publicKey: Buffer.from(found.passkey.publicKey, "base64url"),
@@ -129,7 +139,9 @@ export class PasskeyService {
 
   async registrationOptions(
     actor: AuthenticatedUser,
+    site: RequestSite,
   ): Promise<PasskeyChallenge<PublicKeyCredentialCreationOptionsJSON>> {
+    const rp = await this.rpFor(site);
     const [owner] = await this.db
       .select({ user: users, clinicName: clinics.name })
       .from(users)
@@ -148,7 +160,7 @@ export class PasskeyService {
 
     const options = await generateRegistrationOptions({
       rpName: localized(owner.clinicName, FALLBACK_LANGUAGE),
-      rpID: this.rp.id,
+      rpID: rp.id,
       userID: new TextEncoder().encode(owner.user.id),
       userName: owner.user.email ?? owner.user.phone,
       userDisplayName: localized(owner.user.name, FALLBACK_LANGUAGE),
@@ -170,7 +182,12 @@ export class PasskeyService {
     };
   }
 
-  async register(actor: AuthenticatedUser, input: RegisterPasskeyInput): Promise<Passkey> {
+  async register(
+    actor: AuthenticatedUser,
+    input: RegisterPasskeyInput,
+    site: RequestSite,
+  ): Promise<Passkey> {
+    const rp = await this.rpFor(site);
     const [held] = await this.db
       .select({ total: count() })
       .from(passkeys)
@@ -196,8 +213,8 @@ export class PasskeyService {
       const result = await verifyRegistrationResponse({
         response: input.response as unknown as RegistrationResponseJSON,
         expectedChallenge: challenge,
-        expectedOrigin: this.rp.origins,
-        expectedRPID: this.rp.id,
+        expectedOrigin: rp.origins,
+        expectedRPID: rp.id,
         requireUserVerification: false,
       });
 
@@ -257,6 +274,12 @@ export class PasskeyService {
     if (removed.length === 0) {
       throw new NotFoundException();
     }
+  }
+
+  private async rpFor(site: RequestSite): Promise<RelyingParty> {
+    return (await this.hosts.clinicAt(site.host))
+      ? { id: site.host, origins: [site.origin] }
+      : this.defaultRp;
   }
 
   private async storeChallenge(

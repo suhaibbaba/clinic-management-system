@@ -11,6 +11,7 @@ import { UNIQUE_VIOLATION } from "@api/common/constants/postgres-errors";
 const CODE_OF_CONSTRAINT: Readonly<Record<string, string>> = {
   clinics_slug_uniq: VENDOR_SLUG_TAKEN,
   clinics_site_domain_uniq: VENDOR_DOMAIN_TAKEN,
+  clinics_app_domain_uniq: VENDOR_DOMAIN_TAKEN,
   users_phone_uniq: VENDOR_PHONE_TAKEN,
   users_email_uniq: VENDOR_EMAIL_TAKEN,
 };

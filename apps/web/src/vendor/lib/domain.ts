@@ -1,14 +1,20 @@
-import { clinicDomainSchema } from "@clinic/shared";
+import { clinicDomainSchema, clinicHostSchema } from "@clinic/shared";
 
 export interface ClinicAddresses {
-  readonly website: string;
-  readonly dashboard: string;
+  readonly website: string | null;
+  readonly dashboard: string | null;
 }
 
-export const clinicAddresses = (domain: string): ClinicAddresses => ({
-  website: `https://${domain}`,
-  dashboard: `https://admin.${domain}`,
+export const clinicAddresses = (
+  domain: string | null,
+  appDomain: string | null,
+): ClinicAddresses => ({
+  website: domain ? `https://${domain}` : null,
+  dashboard: appDomain ? `https://${appDomain}` : null,
 });
+
+export const googleRedirectUri = (appDomain: string): string =>
+  `https://${appDomain}/api/auth/google/callback`;
 
 export const parseDomain = (input: string): string | null | undefined => {
   if (input.trim() === "") {
@@ -16,6 +22,16 @@ export const parseDomain = (input: string): string | null | undefined => {
   }
 
   const parsed = clinicDomainSchema.safeParse(input);
+
+  return parsed.success ? parsed.data : undefined;
+};
+
+export const parseHost = (input: string): string | null | undefined => {
+  if (input.trim() === "") {
+    return null;
+  }
+
+  const parsed = clinicHostSchema.safeParse(input);
 
   return parsed.success ? parsed.data : undefined;
 };

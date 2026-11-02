@@ -20,7 +20,6 @@ import { StatusBadge } from "@web/vendor/components/status-badge";
 import { VENDOR_PAGE_SIZE, VENDOR_PARAM } from "@web/vendor/constants";
 import { useClinicActions } from "@web/vendor/hooks/use-clinic-actions";
 import type { VendorLocation } from "@web/vendor/hooks/use-location";
-import { clinicAddresses } from "@web/vendor/lib/domain";
 import { vendorPath } from "@web/vendor/lib/route";
 import { useClinics, useOverview } from "@web/vendor/queries";
 
@@ -168,11 +167,11 @@ export function ClinicsPage({ location }: { readonly location: VendorLocation })
               </MenuItem>
             ) : (
               <>
-                {row.domain && (
+                {row.appDomain && (
                   <MenuItem
                     icon="monitor"
                     onSelect={() =>
-                      window.open(clinicAddresses(row.domain ?? "").dashboard, "_blank", "noopener")
+                      window.open(`https://${row.appDomain ?? ""}`, "_blank", "noopener")
                     }
                   >
                     {t("vendor.actions.openDashboard")}

@@ -124,6 +124,12 @@ a code, a chart type if it needs one, and its starter pack — never a branch in
   grants, its admin (signs in by phone code, no password) and a trial or active subscription in one
   transaction. Removing sets `clinics.deleted_at` and nothing else: sessions and sign-in require a live
   clinic, its refresh tokens are revoked, its slug and domain are freed, and restoring brings it back.
+- **A clinic's own addresses and keys** — the vendor sets them per clinic: its website domain
+  (`site_domain`), its **dashboard domain** (`app_domain`), and its own Resend sender and Google
+  OAuth client (secrets sealed in `clinic_secrets`, shown only as their last four characters). On its
+  dashboard domain the API resolves the clinic from the host (`ClinicHostService`), so Google
+  sign-in uses the clinic's client and admits only its staff, passkeys belong to that host and the
+  clinic's emails link to it. A clinic without its own falls back to the server's `.env`.
 - **The vendor console** — `/vendor`, its own bundle (`src/vendor`) and its own sign-in
   (`vendor_users`, an opaque session in the `clinic_vendor_session` httpOnly cookie), never a clinic
   role or a staff token. It sees business data only (plan, modules, specialties, user counts, dates,

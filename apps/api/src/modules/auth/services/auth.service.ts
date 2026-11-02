@@ -28,6 +28,7 @@ import { INVALID_CREDENTIALS, PHONE_MIN_DIGITS } from "@api/modules/auth/constan
 import { UserRow } from "@api/modules/auth/lib/auth";
 import { typedPhoneMatches } from "@api/common/lib/phone";
 import { inLiveClinic } from "@api/common/lib/live-clinic";
+import { type RequestSite } from "@api/common/types/request-site";
 
 @Injectable()
 export class AuthService {
@@ -86,8 +87,11 @@ export class AuthService {
     return this.startSession(user, input.rememberMe ?? true);
   }
 
-  async loginWithPasskey(input: VerifyPasskeyLoginInput): Promise<LoginResponse & IssuedSession> {
-    const user = await this.passkeys.authenticate(input);
+  async loginWithPasskey(
+    input: VerifyPasskeyLoginInput,
+    site: RequestSite,
+  ): Promise<LoginResponse & IssuedSession> {
+    const user = await this.passkeys.authenticate(input, site);
 
     if (!user?.isActive) {
       throw new UnauthorizedException(AUTH_ERROR.PASSKEY_INVALID);
@@ -99,6 +103,7 @@ export class AuthService {
   async loginWithGoogle(
     email: string,
     persistent: boolean,
+    clinicId: string | null,
   ): Promise<LoginResponse & IssuedSession> {
     const [user] = await this.db
       .select()
@@ -108,6 +113,7 @@ export class AuthService {
           isNull(users.deletedAt),
           inLiveClinic,
           eq(sql`lower(${users.email})`, email.toLowerCase()),
+          clinicId === null ? undefined : eq(users.clinicId, clinicId),
         ),
       )
       .limit(1);

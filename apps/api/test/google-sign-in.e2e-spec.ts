@@ -1,19 +1,21 @@
 import { ConfigService } from "@nestjs/config";
-import { AUTH_ERROR, USER_ROLE } from "@clinic/shared";
+import { randomUUID } from "node:crypto";
+import { AUTH_ERROR, USER_ROLE, VENDOR_SECRET_KIND } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-import { users } from "@api/database/schema";
+import { clinics, users } from "@api/database/schema";
+import { SecretsService } from "@api/modules/secrets/services/secrets.service";
 import { GOOGLE_STATE_COOKIE, GOOGLE_TOKEN_URL } from "@api/modules/auth/constants";
 import { REFRESH_COOKIE_NAME } from "@api/modules/auth/lib/refresh-cookie";
 import { createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 const CLIENT_ID = "test-client.apps.googleusercontent.com";
 
-function idToken(claims: Record<string, unknown>): string {
+function idToken(claims: Record<string, unknown>, aud = CLIENT_ID): string {
   const part = (value: unknown) => Buffer.from(JSON.stringify(value)).toString("base64url");
 
   return `${part({ alg: "RS256" })}.${part({
     iss: "https://accounts.google.com",
-    aud: CLIENT_ID,
+    aud,
     exp: Math.floor(Date.now() / 1000) + 300,
     email_verified: true,
     ...claims,
@@ -237,5 +239,112 @@ describe("Google sign-in (e2e)", () => {
 
     expect(response.statusCode).toBe(302);
     expect(errorOf(response)).toBe(AUTH_ERROR.GOOGLE_FAILED);
+  });
+
+  describe("a clinic's own Google app on its dashboard domain", () => {
+    const CLINIC_CLIENT_ID = "clinic-own-client.apps.googleusercontent.com";
+    let own: TestClinic;
+    let host: string;
+
+    const at = (url: string, cookie?: Cookie) =>
+      context.app.inject({
+        method: "GET",
+        url,
+        headers: { host },
+        ...(cookie && { cookies: { [cookie.name]: cookie.value } }),
+      });
+
+    const emailOf = async (userId: string) =>
+      (await context.db.select({ email: users.email }).from(users).where(eq(users.id, userId)))[0]
+        ?.email;
+
+    beforeAll(async () => {
+      own = await context.createClinic();
+      host = `admin.clinic-${randomUUID().slice(0, 8)}.example.ps`;
+
+      await context.db
+        .update(clinics)
+        .set({ appDomain: host, googleClientId: CLINIC_CLIENT_ID })
+        .where(eq(clinics.id, own.id));
+      await context.app
+        .get(SecretsService)
+        .storeVendorSecret(
+          context.db,
+          own.id,
+          VENDOR_SECRET_KIND.GOOGLE_CLIENT_SECRET,
+          "clinic-own-secret",
+        );
+    });
+
+    it("is offered on the clinic's host whether or not the server has a Google app", async () => {
+      googleEnabled = false;
+
+      expect((await at("/auth/methods")).json()).toEqual({ google: true });
+    });
+
+    it("sends the browser to Google with the clinic's client and a callback on its host", async () => {
+      const response = await at("/auth/google");
+      const location = new URL(response.headers.location as string);
+
+      expect(location.searchParams.get("client_id")).toBe(CLINIC_CLIENT_ID);
+      expect(location.searchParams.get("redirect_uri")).toBe(
+        `http://${host}/api/auth/google/callback`,
+      );
+    });
+
+    it("signs in the clinic's own staff and returns them to its host", async () => {
+      const started = await at("/auth/google");
+      const location = new URL(started.headers.location as string);
+      const cookie = (started.cookies as Cookie[]).find((c) => c.name === GOOGLE_STATE_COOKIE);
+      googleAnswers({
+        id_token: idToken(
+          { email: await emailOf(own.userIds[USER_ROLE.RECEPTIONIST]) },
+          CLINIC_CLIENT_ID,
+        ),
+      });
+
+      const response = await at(
+        `/auth/google/callback?code=abc&state=${location.searchParams.get("state")}`,
+        cookie,
+      );
+
+      expect(response.headers.location).toBe(`http://${host}/`);
+
+      const [, init] = fetchSpy.mock.calls[0] as [string, { body: URLSearchParams }];
+      expect(init.body.get("client_secret")).toBe("clinic-own-secret");
+    });
+
+    it("refuses staff of another clinic on this clinic's host", async () => {
+      const started = await at("/auth/google");
+      const location = new URL(started.headers.location as string);
+      const cookie = (started.cookies as Cookie[]).find((c) => c.name === GOOGLE_STATE_COOKIE);
+      googleAnswers({
+        id_token: idToken(
+          { email: await emailOf(clinic.userIds[USER_ROLE.RECEPTIONIST]) },
+          CLINIC_CLIENT_ID,
+        ),
+      });
+
+      const response = await at(
+        `/auth/google/callback?code=abc&state=${location.searchParams.get("state")}`,
+        cookie,
+      );
+
+      expect(errorOf(response)).toBe(AUTH_ERROR.GOOGLE_NO_ACCOUNT);
+    });
+
+    it("is not offered on a clinic's host without its own keys, even with the server's", async () => {
+      const bare = await context.createClinic();
+      const bareHost = `admin.bare-${randomUUID().slice(0, 8)}.example.ps`;
+      await context.db.update(clinics).set({ appDomain: bareHost }).where(eq(clinics.id, bare.id));
+
+      const response = await context.app.inject({
+        method: "GET",
+        url: "/auth/methods",
+        headers: { host: bareHost },
+      });
+
+      expect(response.json()).toEqual({ google: false });
+    });
   });
 });

@@ -47,10 +47,12 @@ import {
   useRevokeSpecialty,
   useSaveModules,
   usePlans,
+  useSaveAppDomain,
   useSaveDomain,
   useSaveSubscription,
 } from "@web/vendor/queries";
-import { clinicAddresses, parseDomain } from "@web/vendor/lib/domain";
+import { clinicAddresses, parseDomain, parseHost } from "@web/vendor/lib/domain";
+import { KeysPanel } from "@web/vendor/components/keys-panel";
 
 type ClinicTab = (typeof VENDOR_CLINIC_TABS)[number];
 
@@ -85,7 +87,7 @@ export function ClinicPage({
   const detail = clinic.data;
   const act = actionsFor(detail);
   const subscription = detail.subscription;
-  const addresses = detail.domain ? clinicAddresses(detail.domain) : null;
+  const addresses = clinicAddresses(detail.domain, detail.appDomain);
 
   return (
     <div className="flex flex-col gap-5" data-testid="vendor-clinic">
@@ -133,30 +135,29 @@ export function ClinicPage({
               )}
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-label text-ink-muted">
-              {addresses ? (
-                <>
-                  <a
-                    href={addresses.website}
-                    target="_blank"
-                    rel="noreferrer"
-                    dir="ltr"
-                    className="text-primary-700 underline"
-                  >
-                    {detail.domain}
-                  </a>
-                  <a
-                    href={addresses.dashboard}
-                    target="_blank"
-                    rel="noreferrer"
-                    dir="ltr"
-                    className="text-primary-700 underline"
-                  >
-                    {`admin.${detail.domain ?? ""}`}
-                  </a>
-                </>
-              ) : (
-                <span dir="ltr">{detail.slug}</span>
+              {addresses.website && (
+                <a
+                  href={addresses.website}
+                  target="_blank"
+                  rel="noreferrer"
+                  dir="ltr"
+                  className="text-primary-700 underline"
+                >
+                  {detail.domain}
+                </a>
               )}
+              {addresses.dashboard && (
+                <a
+                  href={addresses.dashboard}
+                  target="_blank"
+                  rel="noreferrer"
+                  dir="ltr"
+                  className="text-primary-700 underline"
+                >
+                  {detail.appDomain}
+                </a>
+              )}
+              {!addresses.website && !addresses.dashboard && <span dir="ltr">{detail.slug}</span>}
               <span>
                 {detail.specialties.length === 0
                   ? "—"
@@ -232,7 +233,13 @@ export function ClinicPage({
       {tab === "modules" && (
         <ModulesPanel key={`modules-${detail.id}`} detail={detail} plans={plans.data.items} />
       )}
-      {tab === "domain" && <DomainForm key={`domain-${detail.id}`} detail={detail} />}
+      {tab === "domain" && (
+        <>
+          <DomainForm key={`domain-${detail.id}`} detail={detail} />
+          <AppDomainForm key={`app-domain-${detail.id}`} detail={detail} />
+        </>
+      )}
+      {tab === "keys" && <KeysPanel key={JSON.stringify(detail.keys)} detail={detail} />}
       {tab === "specialties" && <Specialties detail={detail} />}
       {tab === "history" && <History detail={detail} />}
 
@@ -267,7 +274,6 @@ function DomainForm({ detail }: { readonly detail: VendorClinicDetail }): JSX.El
   const parsed = parseDomain(text);
   const invalid = parsed === undefined;
   const unchanged = parsed === detail.domain;
-  const addresses = detail.domain ? clinicAddresses(detail.domain) : null;
 
   return (
     <section
@@ -312,40 +318,105 @@ function DomainForm({ detail }: { readonly detail: VendorClinicDetail }): JSX.El
         </p>
       )}
 
-      {addresses ? (
-        <dl
-          className="grid gap-2 text-label sm:grid-cols-[auto_1fr]"
-          data-testid="vendor-domain-addresses"
+      {detail.domain ? (
+        <a
+          href={`https://${detail.domain}`}
+          target="_blank"
+          rel="noreferrer"
+          dir="ltr"
+          className="self-start text-label text-primary-700 underline"
+          data-testid="vendor-domain-address"
         >
-          <dt className="text-ink-muted">{t("vendor.clinic.website")}</dt>
-          <dd>
-            <a
-              href={addresses.website}
-              target="_blank"
-              rel="noreferrer"
-              dir="ltr"
-              className="text-primary-700 underline"
-            >
-              {addresses.website}
-            </a>
-          </dd>
-          <dt className="text-ink-muted">{t("vendor.clinic.dashboard")}</dt>
-          <dd>
-            <a
-              href={addresses.dashboard}
-              target="_blank"
-              rel="noreferrer"
-              dir="ltr"
-              className="text-primary-700 underline"
-            >
-              {addresses.dashboard}
-            </a>
-          </dd>
-        </dl>
+          {`https://${detail.domain}`}
+        </a>
       ) : (
         <p className="text-meta text-ink-muted">
           {t("vendor.clinic.noDomain", { slug: detail.slug })}
         </p>
+      )}
+
+      {save.isError && (
+        <p role="alert" className="text-label text-danger-700">
+          {t(vendorErrorKey(save.error))}
+        </p>
+      )}
+      {save.isSuccess && (
+        <p role="status" className="text-label text-success-700">
+          {t("vendor.clinic.domainSaved")}
+        </p>
+      )}
+    </section>
+  );
+}
+
+function AppDomainForm({ detail }: { readonly detail: VendorClinicDetail }): JSX.Element {
+  const { t } = useTranslation();
+  const save = useSaveAppDomain(detail.id);
+  const [text, setText] = useState(detail.appDomain ?? "");
+  const parsed = parseHost(text);
+  const invalid = parsed === undefined;
+  const unchanged = parsed === detail.appDomain;
+
+  return (
+    <section
+      className="flex flex-col gap-4 rounded-card border border-line bg-surface p-5"
+      data-testid="vendor-app-domain"
+    >
+      <h2 className="text-section font-semibold text-ink">{t("vendor.clinic.appDomain")}</h2>
+      <div className="flex max-w-(--form-max) flex-wrap items-end gap-3">
+        <div className="min-w-0 flex-1">
+          <FormField
+            label="vendor.clinic.appDomain"
+            htmlFor="vendor-app-domain-input"
+            hint="vendor.clinic.appDomainHint"
+          >
+            <Input
+              id="vendor-app-domain-input"
+              dir="ltr"
+              inputMode="url"
+              autoComplete="off"
+              spellCheck={false}
+              placeholder={t("vendor.clinic.appDomainPlaceholder")}
+              value={text}
+              hasError={invalid}
+              onChange={(event) => setText(event.target.value)}
+              data-testid="vendor-app-domain-input"
+            />
+          </FormField>
+        </div>
+      </div>
+      <SaveBar
+        data-testid="vendor-app-domain-bar"
+        visible={!unchanged && text.trim() !== (detail.appDomain ?? "")}
+        saving={save.isPending}
+        invalid={invalid}
+        onSave={() => !invalid && !unchanged && save.mutate(parsed)}
+        onDiscard={() => setText(detail.appDomain ?? "")}
+      />
+
+      {invalid && (
+        <p
+          role="alert"
+          className="text-label text-danger-700"
+          data-testid="vendor-app-domain-invalid"
+        >
+          {t("vendor.clinic.domainInvalid")}
+        </p>
+      )}
+
+      {detail.appDomain ? (
+        <a
+          href={`https://${detail.appDomain}`}
+          target="_blank"
+          rel="noreferrer"
+          dir="ltr"
+          className="self-start text-label text-primary-700 underline"
+          data-testid="vendor-app-domain-address"
+        >
+          {`https://${detail.appDomain}`}
+        </a>
+      ) : (
+        <p className="text-meta text-ink-muted">{t("vendor.clinic.noAppDomain")}</p>
       )}
 
       {save.isError && (

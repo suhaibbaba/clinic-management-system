@@ -645,6 +645,13 @@
       "when": 1793619804506,
       "tag": "0091_vendor_password_resets",
       "breakpoints": true
+    },
+    {
+      "idx": 92,
+      "version": "7",
+      "when": 1793641759136,
+      "tag": "0092_clinic_domains_and_keys",
+      "breakpoints": true
     }
   ]
 }

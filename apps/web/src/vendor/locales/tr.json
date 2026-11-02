@@ -185,7 +185,7 @@
       "system": "Sistem",
       "readOnlyNote": "Klinik salt okunur: personel kayıtları açabilir ama değiştiremez.",
       "domain": "Alan adı",
-      "domainHint": "Web sitesi alan adının kendisidir, panel ise onun admin. alt alanıdır. Her alan adı için DNS kayıtları ve sunucuda bir sertifika gerekir.",
+      "domainHint": "Kliniğin herkese açık web sitesi. Her alan adı için DNS kayıtları ve sunucuda bir sertifika gerekir.",
       "domainPlaceholder": "example.com",
       "website": "Web sitesi",
       "dashboard": "Panel",
@@ -200,7 +200,8 @@
         "subscription": "Abonelik",
         "domain": "Alan adı",
         "specialties": "Uzmanlıklar",
-        "history": "Geçmiş"
+        "history": "Geçmiş",
+        "keys": "E-posta ve Google"
       },
       "onNow": "Şu an açık",
       "recent": "Son değişiklikler",
@@ -211,7 +212,11 @@
       "revokeTitle": "{{name}} için {{specialty}} kapatılsın mı?",
       "revoke": "Kapat",
       "revokeBody": "Uzmanlığın şeması ve listeleri klinikten kalkar; verileri kalır ve yeniden açtığınızda geri gelir.",
-      "unmanagedNote": "Bu kliniğin henüz aboneliği yok. Kaydetmek, mevcut modülleriyle ve değiştirmeden bir abonelik oluşturur."
+      "unmanagedNote": "Bu kliniğin henüz aboneliği yok. Kaydetmek, mevcut modülleriyle ve değiştirmeden bir abonelik oluşturur.",
+      "appDomain": "Panel alan adı",
+      "appDomainHint": "Klinik personelinin giriş yaptığı adres, örneğin admin.clinic.ps. Kliniğin kendi Google girişi ve geçiş anahtarları yalnızca bu adreste çalışır. DNS kaydı, sertifika ve sunucuda bir nginx bloğu gerekir.",
+      "appDomainPlaceholder": "admin.example.com",
+      "noAppDomain": "Panel alan adı yok: personel ortak adreste giriş yapar."
     },
     "status": {
       "trial": "Deneme",
@@ -230,7 +235,9 @@
       "clinic_removed": "Klinik silindi",
       "clinic_restored": "Klinik geri yüklendi",
       "modules_changed": "Modüller değişti",
-      "specialty_revoked": "Uzmanlık kapatıldı"
+      "specialty_revoked": "Uzmanlık kapatıldı",
+      "app_domain_changed": "Panel alan adı değişti",
+      "keys_changed": "E-posta veya Google anahtarları değişti"
     },
     "modules": {
       "appointments": "Randevular",
@@ -255,7 +262,8 @@
       "slugTaken": "Bu kısa bağlantıyı başka bir klinik kullanıyor",
       "phoneTaken": "Bu cep telefonu başka bir kullanıcıya ait",
       "emailTaken": "Bu e-posta başka bir kullanıcıya ait",
-      "lastSpecialty": "Her kliniğin en az bir uzmanlığı olmalı."
+      "lastSpecialty": "Her kliniğin en az bir uzmanlığı olmalı.",
+      "keysUnavailable": "Sunucuda SECRETS_MASTER_KEY yok, bu yüzden anahtarlar kaydedilemez."
     },
     "tagline": "Satıcı paneli",
     "filters": {
@@ -345,6 +353,35 @@
       "invalid": "Bağlantı geçersiz veya süresi dolmuş. Yeni bir bağlantı isteyin.",
       "doneTitle": "Şifre değişti",
       "doneBody": "Diğer tüm cihazlardan çıkış yapıldı. Yeni şifrenizle giriş yapın."
+    },
+    "keys": {
+      "notSet": "Ayarlanmadı",
+      "current": "Kayıtlı, sonu {{hint}}. Değiştirmek için yenisini yazın.",
+      "clear": "Kaldır",
+      "saved": "Anahtarlar kaydedildi",
+      "invalid": "Bir anahtar çok kısa veya gönderen bir adres değil.",
+      "unavailable": "Sunucuda SECRETS_MASTER_KEY yok, bu yüzden anahtarlar kaydedilemez. Sunucunun .env dosyasına ekleyip yeniden başlatın.",
+      "email": {
+        "title": "E-posta (Resend)",
+        "body": "Etkinleştirme, parola sıfırlama ve giriş kodu e-postaları bu kliniğin kendi Resend hesabından gönderilir. Bunlar yoksa sunucunun göndericisi kullanılır.",
+        "from": "Gönderen",
+        "fromHint": "Ad ve adres, örneğin Clinic <no-reply@clinic.ps>. Alan adı bu kliniğin Resend hesabında doğrulanmış olmalıdır.",
+        "fromPlaceholder": "Clinic <no-reply@clinic.ps>",
+        "apiKey": "Resend API anahtarı",
+        "clearTitle": "Kliniğin e-posta anahtarları kaldırılsın mı?",
+        "clearBody": "Kliniğin e-postaları yeniden sunucunun göndericisinden gider."
+      },
+      "google": {
+        "title": "Google ile giriş",
+        "body": "Personelin kliniğin panel alan adında Google ile giriş yapabilmesi için kliniğin kendi Google uygulaması.",
+        "origin": "Yetkili JavaScript kaynağı",
+        "redirect": "Yetkili yönlendirme URI'si",
+        "needsDomain": "Önce bir panel alan adı belirleyin: kliniğin Google uygulaması yalnızca orada çalışır.",
+        "clientId": "İstemci kimliği",
+        "clientSecret": "İstemci gizli anahtarı",
+        "clearTitle": "Kliniğin Google anahtarları kaldırılsın mı?",
+        "clearBody": "Google ile giriş kliniğin panel alan adından kalkar."
+      }
     }
   }
 }

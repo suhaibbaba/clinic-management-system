@@ -31,6 +31,7 @@ const clinic = (overrides: Partial<VendorClinicDetail> = {}): VendorClinicDetail
   slug: "clinic",
   name: { en: "Clinic" },
   domain: null,
+  appDomain: null,
   logoUrl: null,
   removedAt: null,
   modules: [],
@@ -39,6 +40,13 @@ const clinic = (overrides: Partial<VendorClinicDetail> = {}): VendorClinicDetail
   doctors: 1,
   createdAt: "2026-01-01T00:00:00.000Z",
   subscription: null,
+  keys: {
+    encryptionAvailable: true,
+    emailFrom: null,
+    resendApiKeyHint: null,
+    googleClientId: null,
+    googleClientSecretHint: null,
+  },
   events: [],
   ...overrides,
 });

@@ -4,7 +4,9 @@ import {
   grantSpecialtySchema,
   idParamSchema,
   paginationQuerySchema,
+  saveClinicAppDomainSchema,
   saveClinicDomainSchema,
+  saveClinicKeysSchema,
   saveClinicModulesSchema,
   specialtyParamSchema,
   saveSubscriptionSchema,
@@ -30,6 +32,10 @@ export class SaveSubscriptionDto extends createZodDto(saveSubscriptionSchema) {}
 export class VendorClinicsQueryDto extends createZodDto(vendorClinicsQuerySchema) {}
 
 export class SaveClinicDomainDto extends createZodDto(saveClinicDomainSchema) {}
+
+export class SaveClinicAppDomainDto extends createZodDto(saveClinicAppDomainSchema) {}
+
+export class SaveClinicKeysDto extends createZodDto(saveClinicKeysSchema) {}
 
 export class CreateClinicDto extends createZodDto(createClinicSchema) {}
 

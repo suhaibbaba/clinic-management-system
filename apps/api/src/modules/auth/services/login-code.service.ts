@@ -135,6 +135,8 @@ export class LoginCodeService {
   private async send(user: UserRow, to: string, code: string): Promise<void> {
     const [clinic] = await this.db
       .select({
+        appDomain: clinics.appDomain,
+        emailFrom: clinics.emailFrom,
         name: clinics.name,
         logoKey: clinics.logoKey,
         email: clinics.email,
@@ -152,6 +154,9 @@ export class LoginCodeService {
     await this.email.sendLoginCode(
       { email: to, name: user.name },
       {
+        clinicId: user.clinicId,
+        appDomain: clinic.appDomain,
+        emailFrom: clinic.emailFrom,
         name: clinic.name,
         logoKey: clinic.logoKey,
         email: clinic.email,

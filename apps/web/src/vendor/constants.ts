@@ -22,6 +22,7 @@ export const VENDOR_CLINIC_TABS = [
   "subscription",
   "specialties",
   "domain",
+  "keys",
   "history",
 ] as const;
 

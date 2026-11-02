@@ -9,6 +9,9 @@ export interface AccountEmailRecipient {
 }
 
 export interface ClinicLetterhead {
+  readonly clinicId: string;
+  readonly appDomain: string | null;
+  readonly emailFrom: string | null;
   readonly name: PersonName;
   readonly logoKey: string | null;
   readonly email: string | null;

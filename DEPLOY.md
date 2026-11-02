@@ -311,8 +311,34 @@ server {
 }
 ```
 
-Staff keep signing in on the shared dashboard. A clinic that wants its dashboard on its own name
-too adds `admin.<domain>` with the dashboard block above (no `X-Clinic-Entry`).
+### The clinic's dashboard on its own domain
+
+Staff can always sign in on the shared dashboard. A clinic that wants its own sign-in address — and
+needs one for its own Google sign-in — gets a **dashboard domain**, such as `admin.abuobaidclinic.ps`:
+
+1. Point it at the server and issue its certificate with certbot.
+2. Record it on the clinic's page in the vendor console (**Domain** → **Dashboard domain**).
+3. Add a host nginx block exactly like the shared dashboard's, with this name (no `X-Clinic-Entry`).
+
+On that host the API knows the clinic before anybody signs in: its Google sign-in is the clinic's
+own, passkeys made there belong to that host, and the clinic's emails link to it.
+
+### The clinic's own email and Google keys
+
+Set on the clinic's page in the vendor console, **Email & Google** tab, never by the clinic. The
+secrets are sealed with `SECRETS_MASTER_KEY` (the server's `.env`), and the console shows only their
+last four characters.
+
+- **Email (Resend).** The clinic's own Resend account, with the clinic's domain verified there. A
+  sender such as `Clinic <no-reply@abuobaidclinic.ps>` and the account's API key. Activation,
+  password reset and sign-in code emails then go out from it; without them, the server's
+  `EMAIL_PROVIDER` sends them. The vendor's own password emails always use the server's.
+- **Google sign-in.** A Google Cloud OAuth client (Web application) in the clinic's own project,
+  with the dashboard domain as its authorised JavaScript origin and
+  `https://<dashboard domain>/api/auth/google/callback` as its authorised redirect URI — the console
+  shows both. It needs the dashboard domain: Google sign-in on that host uses only the clinic's
+  client, and only the clinic's own staff can sign in with it. The shared dashboard keeps the
+  server's `GOOGLE_CLIENT_ID`, if one is set.
 
 The page's `<head>` (title, description, preview picture and the clinic's structured data) is filled
 by the web container through SSI from `/api/public/site/head`, so search engines and chat previews

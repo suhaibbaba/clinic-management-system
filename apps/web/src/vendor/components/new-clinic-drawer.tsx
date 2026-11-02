@@ -70,7 +70,7 @@ export function NewClinicDrawer({
     },
   };
   const problems = newClinicProblems(input, parsedDomain === undefined);
-  const addresses = parsedDomain ? clinicAddresses(parsedDomain) : null;
+  const website = parsedDomain ? clinicAddresses(parsedDomain, null).website : null;
 
   const submit = (): void => {
     setTried(true);
@@ -189,9 +189,9 @@ export function NewClinicDrawer({
               onChange={(event) => setDomain(event.target.value)}
             />
           </FormField>
-          {addresses && (
+          {website && (
             <p className="text-meta text-ink-muted" dir="ltr">
-              {addresses.website} · {addresses.dashboard}
+              {website}
             </p>
           )}
           <div className="flex flex-col gap-2">

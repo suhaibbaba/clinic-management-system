@@ -24,7 +24,9 @@ import {
   GrantSpecialtyDto,
   SaveClinicModulesDto,
   SpecialtyParamDto,
+  SaveClinicAppDomainDto,
   SaveClinicDomainDto,
+  SaveClinicKeysDto,
   VendorIdParamDto,
   SaveSubscriptionDto,
   VendorClinicsQueryDto,
@@ -104,6 +106,26 @@ export class VendorClinicsController {
     @VendorSession() session: VendorSessionContext,
   ): Promise<void> {
     return this.clinics.saveDomain(params.id, body.domain, session.vendorUserId);
+  }
+
+  @Put("clinics/:id/app-domain")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  saveAppDomain(
+    @Param() params: VendorIdParamDto,
+    @Body() body: SaveClinicAppDomainDto,
+    @VendorSession() session: VendorSessionContext,
+  ): Promise<void> {
+    return this.clinics.saveAppDomain(params.id, body.appDomain, session.vendorUserId);
+  }
+
+  @Put("clinics/:id/keys")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  saveKeys(
+    @Param() params: VendorIdParamDto,
+    @Body() body: SaveClinicKeysDto,
+    @VendorSession() session: VendorSessionContext,
+  ): Promise<void> {
+    return this.clinics.saveKeys(params.id, body, session.vendorUserId);
   }
 
   @Put("clinics/:id/modules")

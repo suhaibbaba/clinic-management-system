@@ -6,6 +6,8 @@ import { type Env } from "@api/config/env.schema";
 import { EMAIL_PROVIDER, ACCOUNT_EMAIL_COPY, LOGO_CONTENT_ID } from "@api/modules/email/constants";
 import { type EmailProvider } from "@api/modules/email/lib/email-provider";
 import { renderEmail } from "@api/modules/email/lib/email-template";
+import { resendSender } from "@api/modules/email/lib/resend-sender";
+import { SecretsService } from "@api/modules/secrets/services/secrets.service";
 import { StorageService } from "@api/modules/storage/services/storage.service";
 import {
   IssuedToken,
@@ -23,6 +25,7 @@ export class AccountEmailService {
     @Inject(EMAIL_PROVIDER) private readonly provider: EmailProvider,
     private readonly config: ConfigService<Env, true>,
     private readonly storage: StorageService,
+    private readonly secrets: SecretsService,
   ) {}
 
   issueToken(): IssuedToken {
@@ -42,7 +45,9 @@ export class AccountEmailService {
     clinic: ClinicLetterhead,
     token: string,
   ): Promise<void> {
-    const base = this.config.get("PUBLIC_BASE_URL", { infer: true }).replace(/\/$/, "");
+    const base = clinic.appDomain
+      ? `https://${clinic.appDomain}`
+      : this.config.get("PUBLIC_BASE_URL", { infer: true }).replace(/\/$/, "");
     const hours = this.config.get("EMAIL_LINK_TTL_HOURS", { infer: true });
     const copy = ACCOUNT_EMAIL_COPY[clinic.language][purpose];
     const clinicName = localized(clinic.name, clinic.language);
@@ -60,7 +65,9 @@ export class AccountEmailService {
       footer: copy.footer,
     });
 
-    await this.provider.send({
+    const sender = await this.senderFor(clinic);
+
+    await sender.send({
       to: recipient.email,
       fromName: clinicName,
       ...(clinic.email ? { replyTo: clinic.email } : {}),
@@ -93,7 +100,9 @@ export class AccountEmailService {
       footer: copy.footer,
     });
 
-    await this.provider.send({
+    const sender = await this.senderFor(clinic);
+
+    await sender.send({
       to: recipient.email,
       fromName: clinicName,
       ...(clinic.email ? { replyTo: clinic.email } : {}),
@@ -124,6 +133,12 @@ export class AccountEmailService {
     });
 
     await this.provider.send({ to, fromName: product, subject: copy.subject(product), html, text });
+  }
+
+  private async senderFor(clinic: ClinicLetterhead): Promise<EmailProvider> {
+    const apiKey = clinic.emailFrom ? await this.secrets.resendApiKey(clinic.clinicId) : null;
+
+    return clinic.emailFrom && apiKey ? resendSender(apiKey, clinic.emailFrom) : this.provider;
   }
 
   private async logo(

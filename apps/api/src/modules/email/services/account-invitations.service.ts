@@ -121,6 +121,8 @@ export class AccountInvitationsService {
   ): Promise<void> {
     const [clinic] = await this.db
       .select({
+        appDomain: clinics.appDomain,
+        emailFrom: clinics.emailFrom,
         name: clinics.name,
         logoKey: clinics.logoKey,
         email: clinics.email,
@@ -146,6 +148,9 @@ export class AccountInvitationsService {
       purpose,
       { email: recipient.email, name: recipient.name },
       {
+        clinicId: clinicId,
+        appDomain: clinic.appDomain,
+        emailFrom: clinic.emailFrom,
         name: clinic.name,
         logoKey: clinic.logoKey,
         email: clinic.email,

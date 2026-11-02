@@ -7,11 +7,12 @@ import { LogEmailProvider, ResendEmailProvider } from "@api/modules/email/servic
 import { type EmailProvider } from "@api/modules/email/lib/email-provider";
 import { AccountInvitationsService } from "@api/modules/email/services/account-invitations.service";
 import { AuthModule } from "@api/modules/auth/auth.module";
+import { SecretsModule } from "@api/modules/secrets/secrets.module";
 import { StorageModule } from "@api/modules/storage/storage.module";
 
 @Global()
 @Module({
-  imports: [StorageModule, forwardRef(() => AuthModule)],
+  imports: [StorageModule, SecretsModule, forwardRef(() => AuthModule)],
   providers: [
     LogEmailProvider,
     {

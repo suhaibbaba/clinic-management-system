@@ -185,7 +185,7 @@
       "system": "System",
       "readOnlyNote": "The clinic is read-only: staff can open records but cannot change anything.",
       "domain": "Domain",
-      "domainHint": "The website is the domain itself and the dashboard is admin. of it. Each domain needs its DNS records and a certificate on the server.",
+      "domainHint": "The clinic's public website. Each domain needs its DNS records and a certificate on the server.",
       "domainPlaceholder": "example.com",
       "website": "Website",
       "dashboard": "Dashboard",
@@ -200,7 +200,8 @@
         "subscription": "Subscription",
         "domain": "Domain",
         "specialties": "Specialties",
-        "history": "History"
+        "history": "History",
+        "keys": "Email & Google"
       },
       "onNow": "On now",
       "recent": "Recent changes",
@@ -211,7 +212,11 @@
       "revokeTitle": "Switch off {{specialty}} for {{name}}?",
       "revoke": "Switch off",
       "revokeBody": "The specialty's chart and lists disappear from the clinic; its data stays and returns when you switch it back on.",
-      "unmanagedNote": "This clinic has no subscription yet. Saving creates one with its current modules, unchanged."
+      "unmanagedNote": "This clinic has no subscription yet. Saving creates one with its current modules, unchanged.",
+      "appDomain": "Dashboard domain",
+      "appDomainHint": "Where the clinic's staff sign in, such as admin.clinic.ps. The clinic's own Google sign-in and passkeys work on this address only. It needs its DNS record, a certificate and an nginx block on the server.",
+      "appDomainPlaceholder": "admin.example.com",
+      "noAppDomain": "No dashboard domain: staff sign in on the shared address."
     },
     "status": {
       "trial": "Trial",
@@ -230,7 +235,9 @@
       "clinic_removed": "Clinic removed",
       "clinic_restored": "Clinic restored",
       "modules_changed": "Modules changed",
-      "specialty_revoked": "Specialty switched off"
+      "specialty_revoked": "Specialty switched off",
+      "app_domain_changed": "Dashboard domain changed",
+      "keys_changed": "Email or Google keys changed"
     },
     "modules": {
       "appointments": "Appointments",
@@ -255,7 +262,8 @@
       "slugTaken": "Another clinic already uses this short link",
       "phoneTaken": "Another user already has this mobile",
       "emailTaken": "Another user already has this email",
-      "lastSpecialty": "Every clinic needs at least one specialty."
+      "lastSpecialty": "Every clinic needs at least one specialty.",
+      "keysUnavailable": "The server has no SECRETS_MASTER_KEY, so keys cannot be saved."
     },
     "tagline": "Vendor console",
     "filters": {
@@ -345,6 +353,35 @@
       "invalid": "This link is invalid or has expired. Ask for a new one.",
       "doneTitle": "Password changed",
       "doneBody": "You were signed out everywhere else. Sign in with your new password."
+    },
+    "keys": {
+      "notSet": "Not set",
+      "current": "Saved, ends in {{hint}}. Type a new one to replace it.",
+      "clear": "Remove",
+      "saved": "Keys saved",
+      "invalid": "A key is too short, or the sender is not an address.",
+      "unavailable": "The server has no SECRETS_MASTER_KEY, so keys cannot be saved. Add one to the server's .env and restart.",
+      "email": {
+        "title": "Email (Resend)",
+        "body": "Activation, password reset and sign-in code emails go out from this clinic's own Resend account. Without them, the server's sender is used.",
+        "from": "Sender",
+        "fromHint": "Name and address, such as Clinic <no-reply@clinic.ps>. Its domain must be verified in this clinic's Resend account.",
+        "fromPlaceholder": "Clinic <no-reply@clinic.ps>",
+        "apiKey": "Resend API key",
+        "clearTitle": "Remove the clinic's email keys?",
+        "clearBody": "The clinic's emails go out from the server's sender again."
+      },
+      "google": {
+        "title": "Google sign-in",
+        "body": "The clinic's own Google app, so staff can sign in with Google on its dashboard domain.",
+        "origin": "Authorised JavaScript origin",
+        "redirect": "Authorised redirect URI",
+        "needsDomain": "Set a dashboard domain first: the clinic's Google app answers only there.",
+        "clientId": "Client ID",
+        "clientSecret": "Client secret",
+        "clearTitle": "Remove the clinic's Google keys?",
+        "clearBody": "Google sign-in disappears from the clinic's dashboard domain."
+      }
     }
   }
 }

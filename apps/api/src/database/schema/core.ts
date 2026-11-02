@@ -50,6 +50,9 @@ export const clinics = pgTable(
     name: jsonb("name").$type<LocalizedText>().notNull(),
     slug: text("slug").notNull(),
     siteDomain: text("site_domain"),
+    appDomain: text("app_domain"),
+    emailFrom: text("email_from"),
+    googleClientId: text("google_client_id"),
     logoKey: text("logo_key"),
     appIconKey: text("app_icon_key"),
     logoIconsAt: timestamp("logo_icons_at", { withTimezone: true }),
@@ -73,6 +76,7 @@ export const clinics = pgTable(
   (table) => [
     uniqueIndex("clinics_slug_uniq").on(table.slug).where(liveRows),
     uniqueIndex("clinics_site_domain_uniq").on(table.siteDomain).where(liveRows),
+    uniqueIndex("clinics_app_domain_uniq").on(table.appDomain).where(liveRows),
   ],
 );
 

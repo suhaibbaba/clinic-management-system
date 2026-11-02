@@ -1,6 +1,7 @@
 import type {
   ClinicModule,
   CreateClinicInput,
+  SaveClinicKeysInput,
   SaveSubscriptionInput,
   SpecialtyCode,
   VendorClinicsQuery,
@@ -127,6 +128,24 @@ export function useSaveDomain(clinicId: string) {
 
   return useMutation({
     mutationFn: (domain: string | null) => vendorApi.saveDomain(clinicId, { domain }),
+    onSuccess: refresh,
+  });
+}
+
+export function useSaveAppDomain(clinicId: string) {
+  const refresh = useRefreshAll();
+
+  return useMutation({
+    mutationFn: (appDomain: string | null) => vendorApi.saveAppDomain(clinicId, { appDomain }),
+    onSuccess: refresh,
+  });
+}
+
+export function useSaveKeys(clinicId: string) {
+  const refresh = useRefreshAll();
+
+  return useMutation({
+    mutationFn: (input: SaveClinicKeysInput) => vendorApi.saveKeys(clinicId, input),
     onSuccess: refresh,
   });
 }

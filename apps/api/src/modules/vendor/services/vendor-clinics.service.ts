@@ -1,4 +1,10 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from "@nestjs/common";
 import {
   and,
   count,
@@ -23,7 +29,11 @@ import {
   SUBSCRIPTION_EVENT,
   SUBSCRIPTION_STATUS,
   VENDOR_CLINIC_FILTER,
+  VENDOR_KEYS_UNAVAILABLE,
+  VENDOR_SECRET_KIND,
   type Paginated,
+  type SaveClinicKeysInput,
+  type VendorClinicKeys,
   type SpecialtyCode,
   type VendorClinicDetail,
   type VendorClinicSummary,
@@ -48,6 +58,7 @@ import {
 } from "@api/modules/vendor/lib/vendor-clinic-row";
 import { grantSpecialty, revokeSpecialty } from "@api/database/clinic-specialties";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
+import { SecretsService } from "@api/modules/secrets/services/secrets.service";
 import { StorageService } from "@api/modules/storage/services/storage.service";
 import { conflictFor } from "@api/modules/vendor/lib/vendor-conflicts";
 import { VENDOR_ENDING_SOON_DAYS, VENDOR_EVENT_LIMIT } from "@api/modules/vendor/constants";
@@ -60,6 +71,7 @@ export class VendorClinicsService {
     private readonly subscriptions: SubscriptionsService,
     private readonly permissions: PermissionsService,
     private readonly storage: StorageService,
+    private readonly secrets: SecretsService,
   ) {}
 
   async list(query: VendorClinicsQuery): Promise<Paginated<VendorClinicSummary>> {
@@ -149,7 +161,7 @@ export class VendorClinicsService {
       throw new NotFoundException("Clinic not found");
     }
 
-    const [[summary], [doctorCount], events] = await Promise.all([
+    const [[summary], [doctorCount], events, keys] = await Promise.all([
       this.summaries([row]),
       this.db
         .select({ value: count() })
@@ -169,6 +181,7 @@ export class VendorClinicsService {
         .where(eq(subscriptionEvents.clinicId, id))
         .orderBy(desc(subscriptionEvents.createdAt))
         .limit(VENDOR_EVENT_LIMIT),
+      this.keys(id),
     ]);
 
     if (!summary) {
@@ -177,6 +190,7 @@ export class VendorClinicsService {
 
     return {
       ...summary,
+      keys,
       doctors: doctorCount?.value ?? 0,
       events: events.map((event) => ({ ...event, createdAt: event.createdAt.toISOString() })),
     };
@@ -239,6 +253,112 @@ export class VendorClinicsService {
     } catch (error) {
       throw conflictFor(error) ?? error;
     }
+  }
+
+  async saveAppDomain(clinicId: string, appDomain: string | null, actorId: string): Promise<void> {
+    try {
+      await this.db.transaction(async (tx) => {
+        const [clinic] = await tx
+          .select({ appDomain: clinics.appDomain })
+          .from(clinics)
+          .where(and(eq(clinics.id, clinicId), isNull(clinics.deletedAt)))
+          .limit(1);
+
+        if (!clinic) {
+          throw new NotFoundException("Clinic not found");
+        }
+
+        if (clinic.appDomain === appDomain) {
+          return;
+        }
+
+        await tx
+          .update(clinics)
+          .set({ appDomain, updatedAt: new Date() })
+          .where(eq(clinics.id, clinicId));
+        await this.subscriptions.record(
+          tx,
+          clinicId,
+          actorId,
+          SUBSCRIPTION_EVENT.APP_DOMAIN_CHANGED,
+          { appDomain: clinic.appDomain },
+          { appDomain },
+        );
+      });
+    } catch (error) {
+      throw conflictFor(error) ?? error;
+    }
+  }
+
+  async saveKeys(clinicId: string, input: SaveClinicKeysInput, actorId: string): Promise<void> {
+    const storesSecret =
+      (input.resendApiKey ?? null) !== null || (input.googleClientSecret ?? null) !== null;
+
+    if (storesSecret && !this.secrets.encryptionAvailable) {
+      throw new UnprocessableEntityException(VENDOR_KEYS_UNAVAILABLE);
+    }
+
+    await this.db.transaction(async (tx) => {
+      const [clinic] = await tx
+        .select({ emailFrom: clinics.emailFrom, googleClientId: clinics.googleClientId })
+        .from(clinics)
+        .where(and(eq(clinics.id, clinicId), isNull(clinics.deletedAt)))
+        .limit(1)
+        .for("update");
+
+      if (!clinic) {
+        throw new NotFoundException("Clinic not found");
+      }
+
+      const hints = await this.secrets.vendorHints(clinicId);
+      const before: Record<string, string | null> = {};
+      const after: Record<string, string | null> = {};
+      const plain: { emailFrom?: string | null; googleClientId?: string | null } = {};
+
+      for (const field of ["emailFrom", "googleClientId"] as const) {
+        const value = input[field];
+
+        if (value !== undefined && value !== clinic[field]) {
+          plain[field] = value;
+          before[field] = clinic[field];
+          after[field] = value;
+        }
+      }
+
+      if (Object.keys(plain).length > 0) {
+        await tx
+          .update(clinics)
+          .set({ ...plain, updatedAt: new Date() })
+          .where(eq(clinics.id, clinicId));
+      }
+
+      const secretFields = [
+        ["resendApiKey", VENDOR_SECRET_KIND.RESEND_API_KEY],
+        ["googleClientSecret", VENDOR_SECRET_KIND.GOOGLE_CLIENT_SECRET],
+      ] as const;
+
+      for (const [field, kind] of secretFields) {
+        const value = input[field];
+
+        if (value === undefined || (value === null && hints[kind] === null)) {
+          continue;
+        }
+
+        before[field] = hints[kind];
+        after[field] = await this.secrets.storeVendorSecret(tx, clinicId, kind, value);
+      }
+
+      if (Object.keys(after).length > 0) {
+        await this.subscriptions.record(
+          tx,
+          clinicId,
+          actorId,
+          SUBSCRIPTION_EVENT.KEYS_CHANGED,
+          before,
+          after,
+        );
+      }
+    });
   }
 
   async saveModules(
@@ -335,6 +455,28 @@ export class VendorClinicsService {
     });
   }
 
+  private async keys(clinicId: string): Promise<VendorClinicKeys> {
+    const [[row], hints] = await Promise.all([
+      this.db
+        .select({
+          emailFrom: clinics.emailFrom,
+          googleClientId: clinics.googleClientId,
+        })
+        .from(clinics)
+        .where(eq(clinics.id, clinicId))
+        .limit(1),
+      this.secrets.vendorHints(clinicId),
+    ]);
+
+    return {
+      encryptionAvailable: this.secrets.encryptionAvailable,
+      emailFrom: row?.emailFrom ?? null,
+      resendApiKeyHint: hints[VENDOR_SECRET_KIND.RESEND_API_KEY],
+      googleClientId: row?.googleClientId ?? null,
+      googleClientSecretHint: hints[VENDOR_SECRET_KIND.GOOGLE_CLIENT_SECRET],
+    };
+  }
+
   private async summaries(rows: readonly SummaryRow[]): Promise<VendorClinicSummary[]> {
     const ids = rows.map((row) => row.id);
 
@@ -376,6 +518,7 @@ export class VendorClinicsService {
       slug: row.slug,
       name: row.name,
       domain: row.domain,
+      appDomain: row.appDomain,
       logoUrl: logos.get(row.id) ?? null,
       removedAt: row.removedAt?.toISOString() ?? null,
       modules: row.modules,

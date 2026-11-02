@@ -1010,6 +1010,20 @@ export const CLINIC_SECRET_KINDS = [
   CLINIC_SECRET_KIND.WHATSAPP_DOCUMENT_TEMPLATE_NAME,
 ] as const;
 
+export const VENDOR_SECRET_KIND = {
+  RESEND_API_KEY: "resend_api_key",
+  GOOGLE_CLIENT_SECRET: "google_client_secret",
+} as const satisfies Record<string, string>;
+export type VendorSecretKind = EnumValue<typeof VENDOR_SECRET_KIND>;
+
+export const VENDOR_SECRET_KINDS = [
+  VENDOR_SECRET_KIND.RESEND_API_KEY,
+  VENDOR_SECRET_KIND.GOOGLE_CLIENT_SECRET,
+] as const;
+
+export const STORED_SECRET_KINDS = [...CLINIC_SECRET_KINDS, ...VENDOR_SECRET_KINDS] as const;
+export type StoredSecretKind = ClinicSecretKind | VendorSecretKind;
+
 export const CLINIC_SECRET_ERROR = {
   UNAVAILABLE: "secrets_unavailable",
 } as const satisfies Record<string, string>;
@@ -1310,6 +1324,8 @@ export const SUBSCRIPTION_EVENT = {
   STATUS_ADVANCED: "status_advanced",
   PLAN_CHANGED: "plan_changed",
   DOMAIN_CHANGED: "domain_changed",
+  APP_DOMAIN_CHANGED: "app_domain_changed",
+  KEYS_CHANGED: "keys_changed",
   CLINIC_CREATED: "clinic_created",
   CLINIC_REMOVED: "clinic_removed",
   CLINIC_RESTORED: "clinic_restored",

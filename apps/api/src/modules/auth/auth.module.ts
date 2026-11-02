@@ -1,6 +1,8 @@
 import { Global, Module } from "@nestjs/common";
 import { LoginThrottleService } from "@api/modules/auth/services/login-throttle.service";
 import { JwtModule } from "@nestjs/jwt";
+import { SecretsModule } from "@api/modules/secrets/secrets.module";
+import { ClinicHostService } from "@api/modules/auth/services/clinic-host.service";
 import { AuthController } from "@api/modules/auth/controllers/auth.controller";
 import { AuthService } from "@api/modules/auth/services/auth.service";
 import { PasswordService } from "@api/modules/auth/services/password.service";
@@ -13,7 +15,7 @@ import { PasskeysController } from "@api/modules/auth/controllers/passkeys.contr
 
 @Global()
 @Module({
-  imports: [JwtModule.register({})],
+  imports: [JwtModule.register({}), SecretsModule],
   controllers: [AuthController, GoogleAuthController, PasskeysController],
   providers: [
     AuthService,
@@ -23,7 +25,15 @@ import { PasskeysController } from "@api/modules/auth/controllers/passkeys.contr
     LoginCodeService,
     PasskeyService,
     GoogleAuthService,
+    ClinicHostService,
   ],
-  exports: [AuthService, PasswordService, TokenService, LoginThrottleService, JwtModule],
+  exports: [
+    AuthService,
+    PasswordService,
+    TokenService,
+    LoginThrottleService,
+    ClinicHostService,
+    JwtModule,
+  ],
 })
 export class AuthModule {}

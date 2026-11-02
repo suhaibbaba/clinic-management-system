@@ -1,6 +1,7 @@
+import { randomUUID } from "node:crypto";
 import { AUTH_ERROR, USER_ROLE } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-import { passkeys, users } from "@api/database/schema";
+import { clinics, passkeys, users } from "@api/database/schema";
 import { REFRESH_COOKIE_NAME } from "@api/modules/auth/lib/refresh-cookie";
 import { SoftAuthenticator } from "@test/helpers/soft-authenticator";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
@@ -248,5 +249,23 @@ describe("Passkeys (e2e)", () => {
 
   it("needs a signed-in user to manage passkeys", async () => {
     expect((await context.app.inject({ method: "GET", url: "/me/passkeys" })).statusCode).toBe(401);
+  });
+
+  it("binds a passkey made on a clinic's dashboard domain to that host", async () => {
+    const host = `admin.passkey-${randomUUID().slice(0, 8)}.example.ps`;
+    await context.db.update(clinics).set({ appDomain: host }).where(eq(clinics.id, clinic.id));
+
+    const atHost = (url: string, headers: Record<string, string> = {}) =>
+      context.app.inject({ method: "POST", url, headers: { ...headers, host } });
+
+    const registration = (await atHost("/me/passkeys/options", auth(token))).json<Challenge>();
+    const signIn = (await atHost("/auth/passkey/options")).json<Challenge>();
+    const elsewhere = await loginOptions();
+
+    expect(registration.options.rp?.id).toBe(host);
+    expect(signIn.options.rpId).toBe(host);
+    expect(elsewhere.options.rpId).toBe("localhost");
+
+    await context.db.update(clinics).set({ appDomain: null }).where(eq(clinics.id, clinic.id));
   });
 });

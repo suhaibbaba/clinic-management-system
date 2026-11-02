@@ -30,6 +30,8 @@ import {
   setRefreshCookie,
 } from "@api/modules/auth/lib/refresh-cookie";
 import { Public } from "@api/common/decorators/public.decorator";
+import { CurrentSite } from "@api/common/decorators/request-site.decorator";
+import { type RequestSite } from "@api/common/types/request-site";
 import { type Env } from "@api/config/env.schema";
 import {
   LoginDto,
@@ -55,8 +57,8 @@ export class AuthController {
 
   @Public()
   @Get("methods")
-  methods(): AuthMethods {
-    return { google: this.google.enabled };
+  async methods(@CurrentSite() site: RequestSite): Promise<AuthMethods> {
+    return { google: await this.google.enabledAt(site) };
   }
 
   @Public()
@@ -99,8 +101,10 @@ export class AuthController {
   @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @Post("passkey/options")
   @HttpCode(HttpStatus.OK)
-  passkeyOptions(): Promise<PasskeyChallenge<PublicKeyCredentialRequestOptionsJSON>> {
-    return this.passkeys.loginOptions();
+  passkeyOptions(
+    @CurrentSite() site: RequestSite,
+  ): Promise<PasskeyChallenge<PublicKeyCredentialRequestOptionsJSON>> {
+    return this.passkeys.loginOptions(site);
   }
 
   @Public()
@@ -109,9 +113,13 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async verifyPasskey(
     @Body() body: VerifyPasskeyLoginDto,
+    @CurrentSite() site: RequestSite,
     @Res({ passthrough: true }) reply: FastifyReply,
   ): Promise<LoginResponse> {
-    const { refreshToken, persistent, ...response } = await this.authService.loginWithPasskey(body);
+    const { refreshToken, persistent, ...response } = await this.authService.loginWithPasskey(
+      body,
+      site,
+    );
     setRefreshCookie(reply, this.config, refreshToken, persistent);
 
     return response;

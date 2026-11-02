@@ -21,6 +21,7 @@ import {
 } from "@clinic/shared";
 import { clinics, subscriptionEvents, users, vendorUsers } from "@api/database/schema";
 import { PasswordService } from "@api/modules/auth/services/password.service";
+import { SecretsService } from "@api/modules/secrets/services/secrets.service";
 import { AccountEmailService } from "@api/modules/email/services/account-email.service";
 import { SubscriptionsService } from "@api/modules/vendor/services/subscriptions.service";
 import {
@@ -392,6 +393,146 @@ describe("Vendor console (e2e)", () => {
       expect(
         (await call("GET", `/vendor/clinics/${clinic.id}`)).json<VendorClinicDetail>().domain,
       ).toBeNull();
+    });
+  });
+
+  describe("the dashboard domain", () => {
+    it("keeps the whole host, admin. included, and records the change", async () => {
+      const clinic = await context.createClinic({ modules: [] });
+      const host = `admin.dash-${randomUUID().slice(0, 8)}.example.ps`;
+
+      const saved = await call("PUT", `/vendor/clinics/${clinic.id}/app-domain`, {
+        appDomain: `https://${host.toUpperCase()}/`,
+      });
+
+      expect(saved.statusCode).toBe(204);
+
+      const detail = (await call("GET", `/vendor/clinics/${clinic.id}`)).json<VendorClinicDetail>();
+
+      expect(detail.appDomain).toBe(host);
+      expect(detail.events[0]).toMatchObject({
+        action: SUBSCRIPTION_EVENT.APP_DOMAIN_CHANGED,
+        oldValue: { appDomain: null },
+        newValue: { appDomain: host },
+      });
+    });
+
+    it("refuses a dashboard domain another clinic already has, and clears one with null", async () => {
+      const first = await context.createClinic({ modules: [] });
+      const second = await context.createClinic({ modules: [] });
+      const host = `admin.taken-${randomUUID().slice(0, 8)}.example.ps`;
+
+      await call("PUT", `/vendor/clinics/${first.id}/app-domain`, { appDomain: host });
+      const taken = await call("PUT", `/vendor/clinics/${second.id}/app-domain`, {
+        appDomain: host,
+      });
+
+      expect(taken.statusCode).toBe(409);
+      expect(taken.json()).toMatchObject({ message: VENDOR_DOMAIN_TAKEN });
+      expect(
+        (await call("PUT", `/vendor/clinics/${first.id}/app-domain`, { appDomain: null }))
+          .statusCode,
+      ).toBe(204);
+      expect(
+        (await call("GET", `/vendor/clinics/${first.id}`)).json<VendorClinicDetail>().appDomain,
+      ).toBeNull();
+    });
+  });
+
+  describe("the clinic's email and Google keys", () => {
+    const RESEND_KEY = "re_clinic_own_resend_key_1234";
+    const GOOGLE_SECRET = "GOCSPX-clinic-own-secret-9876";
+
+    it("stores the secrets sealed, and shows and records only their last four characters", async () => {
+      const clinic = await context.createClinic({ modules: [] });
+
+      const saved = await call("PUT", `/vendor/clinics/${clinic.id}/keys`, {
+        emailFrom: "Clinic <no-reply@clinic.example.ps>",
+        resendApiKey: RESEND_KEY,
+        googleClientId: "clinic-own.apps.googleusercontent.com",
+        googleClientSecret: GOOGLE_SECRET,
+      });
+
+      expect(saved.statusCode).toBe(204);
+
+      const response = await call("GET", `/vendor/clinics/${clinic.id}`);
+      const detail = response.json<VendorClinicDetail>();
+
+      expect(detail.keys).toEqual({
+        encryptionAvailable: true,
+        emailFrom: "Clinic <no-reply@clinic.example.ps>",
+        resendApiKeyHint: "1234",
+        googleClientId: "clinic-own.apps.googleusercontent.com",
+        googleClientSecretHint: "9876",
+      });
+      expect(response.body).not.toContain(RESEND_KEY);
+      expect(response.body).not.toContain(GOOGLE_SECRET);
+      expect(detail.events[0]).toMatchObject({
+        action: SUBSCRIPTION_EVENT.KEYS_CHANGED,
+        newValue: { resendApiKey: "1234", googleClientSecret: "9876" },
+      });
+
+      const secrets = context.app.get(SecretsService);
+      expect(await secrets.resendApiKey(clinic.id)).toBe(RESEND_KEY);
+      expect(await secrets.googleClientSecret(clinic.id)).toBe(GOOGLE_SECRET);
+    });
+
+    it("leaves what is not sent alone, and removes what is sent as null", async () => {
+      const clinic = await context.createClinic({ modules: [] });
+
+      await call("PUT", `/vendor/clinics/${clinic.id}/keys`, {
+        emailFrom: "Clinic <no-reply@clinic.example.ps>",
+        resendApiKey: RESEND_KEY,
+      });
+      await call("PUT", `/vendor/clinics/${clinic.id}/keys`, {
+        googleClientId: "clinic-own.apps.googleusercontent.com",
+      });
+
+      expect(
+        (await call("GET", `/vendor/clinics/${clinic.id}`)).json<VendorClinicDetail>().keys,
+      ).toMatchObject({
+        emailFrom: "Clinic <no-reply@clinic.example.ps>",
+        resendApiKeyHint: "1234",
+      });
+
+      await call("PUT", `/vendor/clinics/${clinic.id}/keys`, {
+        emailFrom: null,
+        resendApiKey: null,
+      });
+
+      expect(
+        (await call("GET", `/vendor/clinics/${clinic.id}`)).json<VendorClinicDetail>().keys,
+      ).toMatchObject({
+        emailFrom: null,
+        resendApiKeyHint: null,
+        googleClientId: "clinic-own.apps.googleusercontent.com",
+      });
+      expect(await context.app.get(SecretsService).resendApiKey(clinic.id)).toBeNull();
+    });
+
+    it("refuses a secret too short to be real", async () => {
+      const clinic = await context.createClinic({ modules: [] });
+
+      expect(
+        (await call("PUT", `/vendor/clinics/${clinic.id}/keys`, { resendApiKey: "re_1" }))
+          .statusCode,
+      ).toBe(400);
+    });
+
+    it("keeps the keys out of every clinic screen, the assistant's key page included", async () => {
+      const clinic = await context.createClinic({ modules: [CLINIC_MODULE.ASSISTANT] });
+
+      await call("PUT", `/vendor/clinics/${clinic.id}/keys`, { resendApiKey: RESEND_KEY });
+
+      const page = await context.app.inject({
+        method: "GET",
+        url: "/ai/secrets",
+        headers: auth(await context.login(clinic.phones[USER_ROLE.ADMIN])),
+      });
+
+      expect(page.statusCode).toBe(200);
+      expect(Object.keys(page.json<{ secrets: object }>().secrets)).not.toContain("resend_api_key");
+      expect(page.body).not.toContain("1234");
     });
   });
 
