@@ -4,8 +4,12 @@ const UPDATE_CHECK_MS = 30 * 60 * 1000;
 
 const STANDALONE_RESUME_CHECK_MS = 60 * 1000;
 
+const UPDATE_GIVE_UP_MS = 30 * 1000;
+
 let registration: ServiceWorkerRegistration | undefined;
 let updating = false;
+let reloaded = false;
+let giveUp: ReturnType<typeof setTimeout> | undefined;
 const listeners = new Set<() => void>();
 
 export function isUpdating(): boolean {
@@ -18,10 +22,26 @@ export function subscribeUpdating(listener: () => void): () => void {
 }
 
 function setUpdating(next: boolean): void {
+  clearTimeout(giveUp);
+
+  if (next) {
+    giveUp = setTimeout(() => setUpdating(false), UPDATE_GIVE_UP_MS);
+  }
+
   if (updating !== next) {
     updating = next;
     listeners.forEach((listener) => listener());
   }
+}
+
+function reloadOnce(): void {
+  if (!updating || reloaded) {
+    return;
+  }
+
+  reloaded = true;
+  setUpdating(false);
+  window.location.reload();
 }
 
 export async function checkForUpdate(): Promise<void> {
@@ -37,12 +57,20 @@ export function watchRegistration(registered: ServiceWorkerRegistration): void {
     if (navigator.serviceWorker.controller) {
       setUpdating(true);
       registered.installing?.addEventListener("statechange", (event) => {
-        if ((event.target as ServiceWorker).state === "redundant") {
+        const { state } = event.target as ServiceWorker;
+
+        if (state === "redundant") {
           setUpdating(false);
+        }
+
+        if (state === "activated") {
+          reloadOnce();
         }
       });
     }
   });
+
+  navigator.serviceWorker.addEventListener?.("controllerchange", reloadOnce);
 
   let lastCheck = Date.now();
 

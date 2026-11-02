@@ -10,10 +10,13 @@ async function load() {
   return import("@web/shared/lib/service-worker");
 }
 
+const workers = new EventTarget();
+const reload = vi.fn();
+
 function controlled(controller: object | null): void {
   Object.defineProperty(navigator, "serviceWorker", {
     configurable: true,
-    value: { controller },
+    value: Object.assign(workers, { controller }),
   });
 }
 
@@ -21,6 +24,11 @@ describe("service worker updates", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     controlled({});
+    reload.mockReset();
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { ...window.location, reload },
+    });
   });
 
   afterEach(() => {
@@ -95,5 +103,55 @@ describe("service worker updates", () => {
     watchRegistration(registration as unknown as ServiceWorkerRegistration);
 
     await expect(checkForUpdate()).resolves.toBeUndefined();
+  });
+
+  const startUpdate = async () => {
+    const worker = await load();
+    const registration = new FakeRegistration();
+    worker.watchRegistration(registration as unknown as ServiceWorkerRegistration);
+
+    const installing = Object.assign(new EventTarget(), { state: "installing" });
+    registration.installing = installing;
+    registration.dispatchEvent(new Event("updatefound"));
+
+    return { ...worker, installing };
+  };
+
+  it("reloads into the new build once it is active, even if the browser never hands over", async () => {
+    const { isUpdating, installing } = await startUpdate();
+
+    installing.state = "activated";
+    installing.dispatchEvent(new Event("statechange"));
+
+    expect(reload).toHaveBeenCalledTimes(1);
+    expect(isUpdating()).toBe(false);
+  });
+
+  it("reloads once when the new build takes over, however many signals arrive", async () => {
+    const { installing } = await startUpdate();
+
+    workers.dispatchEvent(new Event("controllerchange"));
+    installing.state = "activated";
+    installing.dispatchEvent(new Event("statechange"));
+
+    expect(reload).toHaveBeenCalledTimes(1);
+  });
+
+  it("never leaves the bar up: it clears itself if the update stalls", async () => {
+    const { isUpdating } = await startUpdate();
+
+    vi.advanceTimersByTime(31 * 1000);
+
+    expect(isUpdating()).toBe(false);
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it("does not reload a page that was never told an update is coming", async () => {
+    const { watchRegistration } = await load();
+    watchRegistration(new FakeRegistration() as unknown as ServiceWorkerRegistration);
+
+    workers.dispatchEvent(new Event("controllerchange"));
+
+    expect(reload).not.toHaveBeenCalled();
   });
 });
