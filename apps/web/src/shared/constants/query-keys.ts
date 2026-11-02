@@ -27,3 +27,4 @@ export const WEBSITE_EDITOR_KEY = "website-editor";
 export const PAYROLL_KEY = "payroll";
 
 export const WHATSAPP_CHECK_KEY = "whatsapp-check";
+export const PAYMENTS_KEY = "payments";

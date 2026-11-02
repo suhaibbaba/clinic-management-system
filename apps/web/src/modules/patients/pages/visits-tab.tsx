@@ -17,6 +17,7 @@ import {
   Ltr,
   MenuItem,
   Modal,
+  Money,
   PersonName,
   RowMenu,
   TotalBadge,
@@ -27,7 +28,9 @@ import { useSession } from "@web/shared/providers/session";
 import { useDoctors } from "@web/shared/queries/doctors";
 import { ConsumeForVisit } from "@web/modules/inventory/components/consume-for-visit";
 import { canConsumeStock } from "@web/shared/permissions/inventory";
-import { canDeleteVisit } from "@web/shared/permissions/patients";
+import { canDeleteVisit, canSeePrices } from "@web/shared/permissions/patients";
+import { treatmentsTotal } from "@web/modules/patients/lib/treatments/treatments";
+import { useCurrency } from "@web/shared/queries/clinic";
 import { describeItem } from "@web/modules/patients/lib/prescriptions";
 import { TreatmentsPanel } from "@web/modules/patients/components/treatments/treatments-panel";
 import {
@@ -62,6 +65,8 @@ export function VisitsTab({
   const doctors = useDoctors({ limit: 100 });
 
   const deleteVisit = useDeleteVisit(patientId);
+  const currency = useCurrency();
+  const showPrices = canSeePrices(can);
 
   const [consumingFor, setConsumingFor] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -174,6 +179,7 @@ export function VisitsTab({
             doctor={doctorOf(visit.doctorId)}
             procedures={byVisit.get(visit.id) ?? []}
             prescriptions={prescriptionsByVisit.get(visit.id) ?? []}
+            currency={showPrices ? currency : null}
             mayConsume={canConsumeStock(can)}
             mayDelete={canDeleteVisit(can)}
             onEdit={() => {
@@ -255,6 +261,7 @@ interface VisitCardProps {
   readonly doctor: Doctor | undefined;
   readonly procedures: readonly PerformedProcedure[];
   readonly prescriptions: readonly PrescriptionItem[];
+  readonly currency: string | null | undefined;
   readonly mayConsume: boolean;
   readonly mayDelete: boolean;
   readonly onEdit: () => void;
@@ -269,6 +276,7 @@ function VisitCard({
   doctor,
   procedures,
   prescriptions,
+  currency,
   mayConsume,
   mayDelete,
   onEdit,
@@ -363,6 +371,14 @@ function VisitCard({
             <h3 className="truncate text-micro font-medium text-ink-muted">
               {t("visits.procedures")}
             </h3>
+          )}
+          {procedures.length > 0 && currency !== null && (
+            <Money
+              data-testid="visit-fee-total"
+              amount={treatmentsTotal(procedures)}
+              currency={currency}
+              className="ms-auto text-meta font-medium text-ink"
+            />
           )}
           <AddTreatment onClick={onAddProcedure} />
         </div>

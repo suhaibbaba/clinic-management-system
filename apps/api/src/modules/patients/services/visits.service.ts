@@ -1,4 +1,10 @@
-import { BadRequestException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  type OnModuleInit,
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   type CreateVisitInput,
@@ -6,6 +12,7 @@ import {
   type Paginated,
   type UpdateVisitInput,
   type Visit,
+  type VisitFeeInput,
 } from "@clinic/shared";
 import { desc, eq, sql, type SQL } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
@@ -14,13 +21,16 @@ import { ChargesService } from "@api/modules/billing/services/charges.service";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
-import { DATABASE, type Database } from "@api/database/database.module";
+import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import { attachments, doctors, performedProcedures, visits } from "@api/database/schema";
 import {
   ATTACHMENTS_ENTITY,
+  PAYMENTS_ENTITY,
   PERFORMED_PROCEDURES_ENTITY,
   VISITS_ENTITY,
 } from "@api/common/constants/audit-entities";
+import { PaymentsService } from "@api/modules/billing/services/payments.service";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { ProceduresService } from "@api/modules/patients/services/procedures.service";
 import { toVisit, VisitRow } from "@api/common/lib/visits";
@@ -35,6 +45,8 @@ export class VisitsService implements OnModuleInit {
     private readonly audit: AuditService,
     private readonly charges: ChargesService,
     private readonly procedures: ProceduresService,
+    private readonly payments: PaymentsService,
+    private readonly permissions: PermissionsService,
   ) {}
 
   onModuleInit(): void {
@@ -90,27 +102,109 @@ export class VisitsService implements OnModuleInit {
     await this.patientAccess.requirePatientId(actor, input.patientId);
     await this.requireDoctor(actor, input.doctorId);
 
-    const [row] = await this.db
-      .insert(visits)
-      .values({
-        clinicId: actor.clinicId,
-        patientId: input.patientId,
-        doctorId: input.doctorId,
-        visitDate: input.visitDate ? new Date(input.visitDate) : new Date(),
-        complaint: input.complaint ?? null,
-        examination: input.examination ?? null,
-        diagnosis: input.diagnosis ?? null,
-        notes: input.notes ?? null,
-        createdBy: actor.id,
-        updatedBy: actor.id,
-      })
-      .returning();
-
-    if (!row) {
-      throw new Error("Failed to create visit");
+    if (input.fee) {
+      await this.requireFeeCapabilities(actor, input.fee);
     }
 
-    return toVisit(row);
+    return this.db.transaction(async (tx) => {
+      const [row] = await tx
+        .insert(visits)
+        .values({
+          clinicId: actor.clinicId,
+          patientId: input.patientId,
+          doctorId: input.doctorId,
+          visitDate: input.visitDate ? new Date(input.visitDate) : new Date(),
+          complaint: input.complaint ?? null,
+          examination: input.examination ?? null,
+          diagnosis: input.diagnosis ?? null,
+          notes: input.notes ?? null,
+          createdBy: actor.id,
+          updatedBy: actor.id,
+        })
+        .returning();
+
+      if (!row) {
+        throw new Error("Failed to create visit");
+      }
+
+      if (input.fee) {
+        await this.chargeFee(tx, actor, row, input.fee);
+      }
+
+      return toVisit(row);
+    });
+  }
+
+  private async requireFeeCapabilities(
+    actor: AuthenticatedUser,
+    fee: VisitFeeInput,
+  ): Promise<void> {
+    const needed = ["procedures.create", ...(fee.paidWith ? ["payments.create"] : [])];
+
+    for (const capability of needed) {
+      if (!(await this.permissions.can(actor, capability))) {
+        throw new ForbiddenException("You do not have permission to perform this action");
+      }
+    }
+  }
+
+  private async chargeFee(
+    tx: DatabaseExecutor,
+    actor: AuthenticatedUser,
+    visit: VisitRow,
+    fee: VisitFeeInput,
+  ): Promise<void> {
+    const procedure = await this.procedures.create(
+      actor,
+      {
+        patientId: visit.patientId,
+        visitId: visit.id,
+        doctorId: visit.doctorId,
+        procedureId: fee.procedureId,
+        ...(fee.price !== undefined && { price: fee.price }),
+        discount: "0.00",
+        status: "done",
+        performedAt: visit.visitDate.toISOString(),
+        chartMarks: [],
+      },
+      tx,
+    );
+
+    await this.audit.record(
+      {
+        clinicId: actor.clinicId,
+        userId: actor.id,
+        action: AUDIT_ACTION.CREATE,
+        entity: PERFORMED_PROCEDURES_ENTITY,
+        entityId: procedure.id,
+        oldValue: null,
+        newValue: procedure,
+      },
+      tx,
+    );
+
+    if (!fee.paidWith || Number(procedure.price) <= 0) {
+      return;
+    }
+
+    const payment = await this.payments.create(
+      actor,
+      { patientId: visit.patientId, amount: procedure.price, method: fee.paidWith },
+      tx,
+    );
+
+    await this.audit.record(
+      {
+        clinicId: actor.clinicId,
+        userId: actor.id,
+        action: AUDIT_ACTION.CREATE,
+        entity: PAYMENTS_ENTITY,
+        entityId: payment.id,
+        oldValue: null,
+        newValue: payment,
+      },
+      tx,
+    );
   }
 
   async update(actor: AuthenticatedUser, id: string, input: UpdateVisitInput): Promise<Visit> {

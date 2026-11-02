@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { paginationQuerySchema } from "@shared/schemas/common";
+import { lookupCodeSchema } from "@shared/schemas/lookups";
+import { wholeMoneySchema } from "@shared/schemas/money";
 
 export const visitSchema = z.object({
   id: z.uuid(),
@@ -25,10 +27,18 @@ const visitWritableFields = {
   notes: z.string().trim().max(4000).nullish(),
 };
 
+export const visitFeeSchema = z.object({
+  procedureId: z.uuid(),
+  price: wholeMoneySchema.optional(),
+  paidWith: lookupCodeSchema.optional(),
+});
+export type VisitFeeInput = z.infer<typeof visitFeeSchema>;
+
 export const createVisitSchema = z.object({
   ...visitWritableFields,
   patientId: z.uuid(),
   visitDate: z.iso.datetime().optional(),
+  fee: visitFeeSchema.optional(),
 });
 export type CreateVisitInput = z.infer<typeof createVisitSchema>;
 

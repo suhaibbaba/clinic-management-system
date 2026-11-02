@@ -154,12 +154,13 @@ export class ProceduresService implements OnModuleInit {
   async create(
     actor: AuthenticatedUser,
     input: CreatePerformedProcedureInput,
+    executor: DatabaseExecutor = this.db,
   ): Promise<PerformedProcedure> {
     await this.patientAccess.requirePatientId(actor, input.patientId);
     await this.requireDoctor(actor, input.doctorId);
 
     if (input.visitId) {
-      await this.requireVisitOf(actor.clinicId, input.patientId, input.visitId);
+      await this.requireVisitOf(actor.clinicId, input.patientId, input.visitId, executor);
     }
 
     const catalogItem = await this.catalog.requirePriced(actor.clinicId, input.procedureId);
@@ -167,7 +168,7 @@ export class ProceduresService implements OnModuleInit {
 
     await this.assertMarksMatchSpecialty(actor.clinicId, catalogItem.specialtyId, input.chartMarks);
 
-    return this.db.transaction(async (tx) => {
+    return executor.transaction(async (tx) => {
       const [row] = await tx
         .insert(performedProcedures)
         .values({
@@ -444,8 +445,9 @@ export class ProceduresService implements OnModuleInit {
     clinicId: string,
     patientId: string,
     visitId: string,
+    executor: DatabaseExecutor = this.db,
   ): Promise<void> {
-    const [visit] = await this.db
+    const [visit] = await executor
       .select({ id: visits.id })
       .from(visits)
       .where(

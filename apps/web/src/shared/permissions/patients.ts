@@ -11,6 +11,9 @@ export const seesClinicalPatientFields = isClinical;
 
 export const canRecordProcedure = (can: Can): boolean => can("procedures.create");
 
+export const canChargeVisitFee = (can: Can): boolean =>
+  canRecordProcedure(can) && canSeePrices(can);
+
 export const canManageAttachments = (can: Can): boolean => can("patient-attachments.presignUpload");
 
 export const canOpenAttachment = (can: Can): boolean => can("attachments.findOne");

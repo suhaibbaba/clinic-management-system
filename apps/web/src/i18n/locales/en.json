@@ -934,7 +934,16 @@
     },
     "visit": "Visit",
     "teeth": "Teeth",
-    "proceduresTitle": "Treatments at the Visit of {{date}}"
+    "proceduresTitle": "Treatments at the Visit of {{date}}",
+    "fee": {
+      "title": "Fee",
+      "itemHint": "A price-list item charged to the patient's account with the visit. Leave it without a fee for a free visit.",
+      "none": "No fee",
+      "amount": "Amount",
+      "payment": "Payment",
+      "onAccount": "On account",
+      "recordedHint": "The total of the treatments recorded at this visit. Change or cancel it from the treatments."
+    }
   },
   "treatmentPlans": {
     "empty": "No treatments yet",

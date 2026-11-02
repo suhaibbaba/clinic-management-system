@@ -22,7 +22,7 @@ import { negate } from "@api/common/lib/money";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
-import { DATABASE, type Database } from "@api/database/database.module";
+import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import { payments } from "@api/database/schema";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { LookupsService } from "@api/modules/lookups/services/lookups.service";
@@ -97,7 +97,11 @@ export class PaymentsService implements OnModuleInit {
     );
   }
 
-  async create(actor: AuthenticatedUser, input: CreatePaymentInput): Promise<Payment> {
+  async create(
+    actor: AuthenticatedUser,
+    input: CreatePaymentInput,
+    executor: DatabaseExecutor = this.db,
+  ): Promise<Payment> {
     await this.patientAccess.requirePatientId(actor, input.patientId);
     await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.PAYMENT_METHOD, input.method);
 
@@ -108,7 +112,7 @@ export class PaymentsService implements OnModuleInit {
       throw new BadRequestException(PAYMENT_ERROR.NOT_A_HOLDER);
     }
 
-    return this.db.transaction(async (tx) => {
+    return executor.transaction(async (tx) => {
       const receiptNumber = await nextReceiptNumber(tx, actor.clinicId);
       await assertWithinBalance(tx, actor.clinicId, input.patientId, input.amount);
 

@@ -1,4 +1,11 @@
-import { createVisitSchema, type CreateVisitInput, type Doctor, type Visit } from "@clinic/shared";
+import {
+  createVisitSchema,
+  LOOKUP_LIST,
+  type CreateVisitInput,
+  type Doctor,
+  type ProcedureCatalogItem,
+  type Visit,
+} from "@clinic/shared";
 import { useEffect, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { revealFirstError } from "@web/shared/lib/form-errors";
@@ -8,14 +15,30 @@ import {
   DatePicker,
   FormField,
   Icon,
+  InfoTip,
   Modal,
+  Money,
+  MoneyInput,
   Select,
   Textarea,
   TimePicker,
   usePersonName,
   useToast,
 } from "@clinic/ui";
-import { useSaveVisit } from "@web/modules/patients/queries";
+import {
+  usePatientProcedures,
+  useProcedureCatalog,
+  useSaveVisit,
+} from "@web/modules/patients/queries";
+import { treatmentsTotal } from "@web/modules/patients/lib/treatments/treatments";
+import { lastFeeProcedure, rememberFeeProcedure } from "@web/modules/patients/lib/visit-fee-memory";
+import { wholePrice } from "@web/modules/patients/lib/price-list";
+import { canChargeVisitFee, canSeePrices } from "@web/shared/permissions/patients";
+import { canRecordPayment } from "@web/shared/permissions/billing";
+import { useSession } from "@web/shared/providers/session";
+import { useLocalized } from "@web/shared/hooks/use-localized";
+import { useLookupOptions } from "@web/shared/queries/lookups";
+import { useCurrency } from "@web/shared/queries/clinic";
 import { errorToast } from "@web/shared/lib/api-error";
 import { payloadResolver } from "@web/shared/lib/payload-resolver";
 import { ellipsis } from "@web/i18n/ellipsis";
@@ -43,7 +66,22 @@ const splitLocal = (value: string): { date: string; time: string } => {
 const joinLocal = (date: string, time: string): string =>
   date === "" ? "" : `${date}T${time === "" ? "09:00" : time}`;
 
-type VisitFormValues = Omit<CreateVisitInput, "visitDate"> & { visitDate: string };
+type VisitFormValues = Omit<CreateVisitInput, "visitDate" | "fee"> & {
+  visitDate: string;
+  feeProcedureId: string;
+  feePrice: string;
+  payMethod: string;
+};
+
+const NO_FEE = "";
+const ON_ACCOUNT = "";
+const DEFAULT_PAYMENT_METHOD = "cash";
+
+const priceOf = (catalog: readonly ProcedureCatalogItem[], id: string): string => {
+  const item = catalog.find((entry) => entry.id === id);
+
+  return item ? wholePrice(item.defaultPrice) : "";
+};
 
 export function VisitFormModal({
   open,
@@ -57,6 +95,22 @@ export function VisitFormModal({
   const doctorName = usePersonName();
   const toast = useToast();
   const saveVisit = useSaveVisit(patientId);
+  const { can } = useSession();
+  const localized = useLocalized();
+  const currency = useCurrency();
+  const charges = !visit && canChargeVisitFee(can);
+  const takesPayment = charges && canRecordPayment(can);
+  const catalog = useProcedureCatalog();
+  const feeItems = charges ? (catalog.data ?? []) : [];
+  const methods = useLookupOptions(LOOKUP_LIST.PAYMENT_METHOD);
+  const procedures = usePatientProcedures(patientId);
+  const visitProcedures = visit
+    ? (procedures.data ?? []).filter((procedure) => procedure.visitId === visit.id)
+    : [];
+  const recordedFee =
+    visit && canSeePrices(can) && visitProcedures.length > 0
+      ? treatmentsTotal(visitProcedures)
+      : null;
 
   const {
     register,
@@ -66,16 +120,27 @@ export function VisitFormModal({
     getValues,
     formState: { errors, isSubmitting, isValid },
     control,
+    watch,
   } = useForm<VisitFormValues>({
     mode: "onTouched",
     resolver: payloadResolver(createVisitSchema, (values: VisitFormValues) => toPayload(values)),
   });
 
   function toPayload(values: VisitFormValues) {
+    const { feeProcedureId, feePrice, payMethod, ...visitValues } = values;
+
     return {
-      ...values,
+      ...visitValues,
       patientId,
       ...(values.visitDate ? { visitDate: new Date(values.visitDate).toISOString() } : {}),
+      ...(charges &&
+        feeProcedureId && {
+          fee: {
+            procedureId: feeProcedureId,
+            ...(feePrice !== "" && { price: feePrice }),
+            ...(takesPayment && payMethod !== ON_ACCOUNT && { paidWith: payMethod }),
+          },
+        }),
     };
   }
 
@@ -103,9 +168,27 @@ export function VisitFormModal({
             examination: "",
             diagnosis: "",
             notes: "",
+            feeProcedureId: NO_FEE,
+            feePrice: "",
+            payMethod: DEFAULT_PAYMENT_METHOD,
           },
     );
   }, [open, visit, patientId, reset]);
+
+  useEffect(() => {
+    if (!open || visit || feeItems.length === 0 || getValues("feeProcedureId") !== NO_FEE) {
+      return;
+    }
+
+    const remembered = lastFeeProcedure();
+
+    if (remembered && feeItems.some((item) => item.id === remembered)) {
+      setValue("feeProcedureId", remembered);
+      setValue("feePrice", priceOf(feeItems, remembered));
+    }
+  }, [open, visit, feeItems, getValues, setValue]);
+
+  const feeProcedureId = watch("feeProcedureId");
 
   useEffect(() => {
     if (open && !getValues("doctorId") && doctors[0]) {
@@ -122,6 +205,10 @@ export function VisitFormModal({
           ...(visit ? { id: visit.id } : {}),
           body: parsed,
         });
+
+        if (parsed.fee) {
+          rememberFeeProcedure(parsed.fee.procedureId);
+        }
 
         toast.success(visit ? "visits.updated" : "visits.created");
         onOpenChange(false);
@@ -260,6 +347,89 @@ export function VisitFormModal({
             {...register("notes", { setValueAs: (v) => (v === "" ? null : v) })}
           />
         </FormField>
+
+        {charges && (
+          <div
+            data-testid={`${testId}-fee`}
+            className="grid gap-3 border-t border-line pt-4 sm:grid-cols-[minmax(0,1fr)_8rem_10rem]"
+          >
+            <FormField
+              label="visits.fee.title"
+              htmlFor="visit-fee-item"
+              hint="visits.fee.itemHint"
+              optional
+            >
+              <Controller
+                name="feeProcedureId"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    id="visit-fee-item"
+                    data-testid="visit-field-fee-item"
+                    options={[
+                      { value: NO_FEE, label: t("visits.fee.none") },
+                      ...feeItems.map((item) => ({ value: item.id, label: localized(item.name) })),
+                    ]}
+                    value={field.value ?? NO_FEE}
+                    onBlur={field.onBlur}
+                    onChange={(event) => {
+                      field.onChange(event.target.value);
+                      setValue("feePrice", priceOf(feeItems, event.target.value));
+                    }}
+                  />
+                )}
+              />
+            </FormField>
+
+            {feeProcedureId !== NO_FEE && (
+              <FormField label="visits.fee.amount" htmlFor="visit-fee-amount">
+                <MoneyInput
+                  id="visit-fee-amount"
+                  data-testid="visit-field-fee-amount"
+                  currency={currency}
+                  {...register("feePrice")}
+                />
+              </FormField>
+            )}
+
+            {feeProcedureId !== NO_FEE && takesPayment && (
+              <FormField label="visits.fee.payment" htmlFor="visit-pay-method">
+                <Controller
+                  name="payMethod"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      id="visit-pay-method"
+                      data-testid="visit-field-pay-method"
+                      options={[
+                        ...methods,
+                        { value: ON_ACCOUNT, label: t("visits.fee.onAccount") },
+                      ]}
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      onChange={(event) => field.onChange(event.target.value)}
+                    />
+                  )}
+                />
+              </FormField>
+            )}
+          </div>
+        )}
+
+        {recordedFee !== null && (
+          <div
+            data-testid={`${testId}-recorded-fee`}
+            className="flex items-center justify-between gap-3 border-t border-line pt-4"
+          >
+            <span className="flex items-center gap-1 text-label font-medium text-ink">
+              {t("visits.fee.title")}
+              <InfoTip label={t("common.moreInfo")} data-testid={`${testId}-recorded-fee-tip`}>
+                {t("visits.fee.recordedHint")}
+              </InfoTip>
+            </span>
+            <Money amount={recordedFee} currency={currency} className="text-value text-ink" />
+          </div>
+        )}
       </form>
     </Modal>
   );

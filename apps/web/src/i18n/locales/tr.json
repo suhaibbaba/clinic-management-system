@@ -934,7 +934,16 @@
     },
     "visit": "Muayene",
     "teeth": "Dişler",
-    "proceduresTitle": "{{date}} tarihli muayenedeki tedaviler"
+    "proceduresTitle": "{{date}} tarihli muayenedeki tedaviler",
+    "fee": {
+      "title": "Ücret",
+      "itemHint": "Ziyaretle birlikte hastanın hesabına eklenen fiyat listesi kalemi. Ücretsiz bir ziyaret için ücretsiz bırakın.",
+      "none": "Ücretsiz",
+      "amount": "Tutar",
+      "payment": "Ödeme",
+      "onAccount": "Hesaba",
+      "recordedHint": "Bu ziyarette kaydedilen tedavilerin toplamı. Tutarı tedavilerden değiştirin veya iptal edin."
+    }
   },
   "treatmentPlans": {
     "empty": "Henüz tedavi yok",

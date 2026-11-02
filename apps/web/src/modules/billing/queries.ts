@@ -4,6 +4,7 @@ import {
   DASHBOARD_KEY,
   PATIENT_KEY,
   PATIENTS_KEY,
+  PAYMENTS_KEY,
 } from "@web/shared/constants/query-keys";
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
@@ -16,7 +17,6 @@ import type {
 } from "@clinic/shared";
 import { billingApi } from "@web/modules/billing/api";
 
-export const PAYMENTS_KEY = "payments";
 
 export function usePatientBalance(
   patientId: string,

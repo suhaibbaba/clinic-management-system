@@ -3,6 +3,8 @@ import {
   PATIENTS_KEY,
   BALANCE_KEY,
   STATEMENT_KEY,
+  PAYMENTS_KEY,
+  DASHBOARD_KEY,
 } from "@web/shared/constants/query-keys";
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
@@ -258,7 +260,19 @@ export function useSaveVisit(patientId: string) {
   return useMutation({
     mutationFn: ({ id, body }: { id?: string | undefined; body: CreateVisitInput }) =>
       id ? patientsApi.updateVisit(id, body as UpdateVisitInput) : patientsApi.createVisit(body),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [PATIENT_VISITS_KEY, patientId] }),
+    onSuccess: async (_visit, { body }) => {
+      if (!body.fee) {
+        await queryClient.invalidateQueries({ queryKey: [PATIENT_VISITS_KEY, patientId] });
+        return;
+      }
+
+      invalidateClinical(queryClient, patientId);
+      await Promise.all(
+        [PAYMENTS_KEY, PATIENT_KEY, PATIENTS_KEY, DASHBOARD_KEY].map((key) =>
+          queryClient.invalidateQueries({ queryKey: [key] }),
+        ),
+      );
+    },
   });
 }
 
