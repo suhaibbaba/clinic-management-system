@@ -1,4 +1,10 @@
+import { testDatabaseUrl } from "@test/helpers/test-database";
+
 process.env["NODE_ENV"] = "test";
+
+if (process.env["DATABASE_URL"]) {
+  process.env["DATABASE_URL"] = testDatabaseUrl(process.env["DATABASE_URL"]);
+}
 process.env["JWT_SECRET"] ??= "test-only-jwt-secret-value-at-least-32-chars";
 process.env["LOG_LEVEL"] ??= "error";
 

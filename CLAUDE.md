@@ -321,7 +321,8 @@ through its `className` or a `data-part`, never a fork.
 
 ## Testing
 
-- **API** Jest against a real Postgres (`docker compose exec api pnpm --filter @clinic/api test`).
+- **API** Jest against a real Postgres (`docker compose exec api pnpm --filter @clinic/api test`),
+  always in its own `<database>_test` database (created on first run), never the dev data.
   Required: balance computation, slot availability and conflicts, permission boundaries per role,
   module boundaries (routes refused, jobs skipped, fields omitted while a module is off), lab-order
   transitions, audit writes.
