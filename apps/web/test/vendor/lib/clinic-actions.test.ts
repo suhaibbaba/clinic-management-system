@@ -1,7 +1,6 @@
 import { CLINIC_MODULE, SUBSCRIPTION_STATUS, type Subscription } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
 import { initials, slugFrom, suspended } from "@web/vendor/lib/clinic-actions";
-import { newClinicProblems } from "@web/vendor/lib/new-clinic";
 
 const subscription = (overrides: Partial<Subscription> = {}): Subscription => ({
   planId: "22222222-2222-4222-8222-222222222222",
@@ -34,41 +33,5 @@ describe("a clinic's mark and short link", () => {
   it("turns an English name into a short link", () => {
     expect(slugFrom("Al Noor  Dental!")).toBe("al-noor-dental");
     expect(slugFrom("  Dr. Kossai Jarrar ")).toBe("dr-kossai-jarrar");
-  });
-});
-
-describe("the new clinic's problems", () => {
-  const valid = {
-    name: { ar: "عيادة النور" },
-    slug: "alnoor",
-    country: "PS",
-    domain: null,
-    specialties: ["dental" as const],
-    modules: [],
-    trialDays: 30,
-    admin: { firstName: "سامر", lastName: "نصار", phone: "+970599123456", email: null },
-  };
-
-  it("finds none in a complete clinic", () => {
-    expect(newClinicProblems(valid, false)).toEqual([]);
-  });
-
-  it("names booking without appointments", () => {
-    expect(newClinicProblems({ ...valid, modules: ["booking"] }, false)).toEqual(["modules"]);
-  });
-
-  it("names each missing piece once, in the form's order", () => {
-    expect(
-      newClinicProblems(
-        {
-          ...valid,
-          name: {},
-          slug: "x",
-          specialties: [],
-          admin: { ...valid.admin, firstName: "" },
-        },
-        true,
-      ),
-    ).toEqual(["domain", "name", "slug", "specialty", "admin"]);
   });
 });

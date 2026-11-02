@@ -1,39 +1,67 @@
-import { createClinicSchema, missingModules, type CreateClinicInput } from "@clinic/shared";
+import {
+  SPECIALTY_CODE,
+  createClinicSchema,
+  type ClinicModule,
+  type CreateClinicInput,
+  type SpecialtyCode,
+} from "@clinic/shared";
+import { z } from "zod";
+import { VENDOR_TRIAL_DAYS } from "@web/vendor/constants";
+import { parseDomain } from "@web/vendor/lib/domain";
 
-export type NewClinicProblem =
-  "name" | "slug" | "domain" | "specialty" | "modules" | "admin" | "phone" | "email";
+export interface NewClinicValues {
+  readonly name: { readonly ar: string; readonly en: string };
+  readonly slug: string;
+  readonly country: string;
+  readonly domain: string;
+  readonly specialties: SpecialtyCode[];
+  readonly modules: ClinicModule[];
+  readonly trialDays: number;
+  readonly admin: {
+    readonly firstName: string;
+    readonly lastName: string;
+    readonly phone: string;
+    readonly email: string;
+    readonly password: string;
+  };
+}
 
-const PROBLEM_OF_FIELD: Readonly<Record<string, NewClinicProblem>> = {
-  name: "name",
-  slug: "slug",
-  domain: "domain",
-  specialties: "specialty",
-  modules: "modules",
-  firstName: "admin",
-  lastName: "admin",
-  phone: "phone",
-  email: "email",
+export const NEW_CLINIC_DEFAULTS: NewClinicValues = {
+  name: { ar: "", en: "" },
+  slug: "",
+  country: "PS",
+  domain: "",
+  specialties: [SPECIALTY_CODE.DENTAL],
+  modules: [],
+  trialDays: VENDOR_TRIAL_DAYS,
+  admin: { firstName: "", lastName: "", phone: "", email: "", password: "" },
 };
 
-export function newClinicProblems(
-  input: CreateClinicInput,
-  domainInvalid: boolean,
-): NewClinicProblem[] {
-  const modulesMissing = missingModules(input.modules).length > 0;
-  const parsed = createClinicSchema.safeParse(input);
-  const found = parsed.success
-    ? []
-    : parsed.error.issues.map((issue) => {
-        const field = issue.path[issue.path.length - 1];
+export function newClinicPayload(values: NewClinicValues): unknown {
+  const nameAr = values.name.ar.trim();
+  const nameEn = values.name.en.trim();
+  const domain = parseDomain(values.domain);
+  const email = values.admin.email.trim();
 
-        return PROBLEM_OF_FIELD[String(issue.path[0] === "admin" ? field : issue.path[0])];
-      });
-
-  return [
-    ...new Set([
-      ...(domainInvalid ? (["domain"] as const) : []),
-      ...found,
-      ...(modulesMissing ? (["modules"] as const) : []),
-    ]),
-  ].filter((problem): problem is NewClinicProblem => problem !== undefined);
+  return {
+    name: { ...(nameAr && { ar: nameAr }), ...(nameEn && { en: nameEn }) },
+    slug: values.slug.trim(),
+    country: values.country,
+    domain: domain === undefined ? values.domain.trim() : domain,
+    specialties: values.specialties,
+    modules: values.modules,
+    trialDays: values.trialDays,
+    admin: {
+      firstName: values.admin.firstName.trim(),
+      lastName: values.admin.lastName.trim(),
+      phone: values.admin.phone.trim(),
+      email: email === "" ? null : email,
+      ...(values.admin.password !== "" && { password: values.admin.password }),
+    },
+  };
 }
+
+export const newClinicFormSchema: z.ZodType<CreateClinicInput, NewClinicValues> = z.preprocess(
+  (values) => newClinicPayload(values as NewClinicValues),
+  createClinicSchema,
+);

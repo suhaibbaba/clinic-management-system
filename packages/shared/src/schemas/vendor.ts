@@ -247,6 +247,7 @@ export const createClinicSchema = z.object({
     lastName: z.string().trim().min(1).max(60),
     phone: phoneSchema,
     email: z.email().max(200).nullable(),
+    password: passwordSchema.optional(),
   }),
 });
 export type CreateClinicInput = z.infer<typeof createClinicSchema>;

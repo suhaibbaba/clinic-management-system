@@ -557,6 +557,51 @@ describe("Vendor console (e2e)", () => {
       };
     };
 
+    it("gives the admin the password set at creation, and none when it is left out", async () => {
+      const plan = await createPlan([]);
+      const withPassword = newClinic(plan.id);
+      const host = `admin.${withPassword.slug}.example.ps`;
+      const password = "AdminPassword123";
+
+      const created = await call("POST", "/vendor/clinics", {
+        ...withPassword,
+        admin: { ...withPassword.admin, password },
+      });
+      const { id } = created.json<{ id: string }>();
+      await call("PUT", `/vendor/clinics/${id}/app-domain`, { appDomain: host });
+      context.resetThrottle();
+
+      const signIn = await context.app.inject({
+        method: "POST",
+        url: "/auth/login",
+        headers: { host },
+        payload: { identifier: withPassword.admin.phone, password },
+      });
+
+      expect(created.statusCode).toBe(201);
+      expect(signIn.statusCode).toBe(200);
+
+      const without = await call("POST", "/vendor/clinics", newClinic(plan.id));
+      const [admin] = await context.db
+        .select({ passwordHash: users.passwordHash })
+        .from(users)
+        .where(eq(users.clinicId, without.json<{ id: string }>().id));
+
+      expect(admin?.passwordHash).toBeNull();
+    });
+
+    it("refuses an admin password too short to be one", async () => {
+      const plan = await createPlan([]);
+      const input = newClinic(plan.id);
+
+      const created = await call("POST", "/vendor/clinics", {
+        ...input,
+        admin: { ...input.admin, password: "short" },
+      });
+
+      expect(created.statusCode).toBe(400);
+    });
+
     it("creates the clinic, its admin, its specialty and a trial on the plan", async () => {
       const plan = await createPlan([CLINIC_MODULE.APPOINTMENTS, CLINIC_MODULE.LABS]);
       const input = newClinic(plan.id);

@@ -316,7 +316,7 @@
       "firstName": "Ad",
       "lastName": "Soyad",
       "phone": "Cep telefonu",
-      "phoneHint": "Yönetici bu numaraya gelen kodla giriş yapar; şifre verilmez.",
+      "phoneHint": "Yönetici kliniğin panel alan adında, bu numaraya gönderilen bir kodla veya aşağıdaki parolayla giriş yapar.",
       "email": "E-posta",
       "problems": {
         "name": "Kliniğin adını en az bir dilde yazın.",
@@ -326,9 +326,12 @@
         "admin": "Yöneticinin adını ve soyadını yazın.",
         "phone": "Yöneticinin cep telefonunu ülke koduyla yazın.",
         "email": "E-posta geçerli değil.",
-        "modules": "Çevrimiçi randevu, randevular modülünü gerektirir."
+        "modules": "Çevrimiçi randevu, randevular modülünü gerektirir.",
+        "password": "Parola en az 8 karakter olmalıdır."
       },
-      "subscription": "2 · Abonelik"
+      "subscription": "2 · Abonelik",
+      "password": "Parola",
+      "passwordHint": "İsteğe bağlı. Belirlenirse yönetici bu parolayla da giriş yapabilir; belirlenmezse yalnızca cep telefonuna veya e-postasına gönderilen kodla. Profilinden değiştirebilir."
     },
     "forgot": {
       "title": "Şifrenizi mi unuttunuz?",
@@ -383,6 +386,11 @@
         "clearTitle": "Kliniğin Google anahtarları kaldırılsın mı?",
         "clearBody": "Google ile giriş kliniğin panel alan adından kalkar."
       }
+    }
+  },
+  "errors": {
+    "validation": {
+      "required": "Bu alan zorunludur"
     }
   }
 }

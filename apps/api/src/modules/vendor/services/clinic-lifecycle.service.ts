@@ -17,6 +17,7 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, plans, subscriptions, users } from "@api/database/schema";
 import { grantSpecialty } from "@api/database/clinic-specialties";
 import { forgetSessionState } from "@api/common/database/session-state";
+import { PasswordService } from "@api/modules/auth/services/password.service";
 import { TokenService } from "@api/modules/auth/services/token.service";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import { conflictFor } from "@api/modules/vendor/lib/vendor-conflicts";
@@ -30,6 +31,7 @@ export class ClinicLifecycleService {
     private readonly subscriptions: SubscriptionsService,
     private readonly tokens: TokenService,
     private readonly permissions: PermissionsService,
+    private readonly passwords: PasswordService,
   ) {}
 
   async create(
@@ -37,6 +39,10 @@ export class ClinicLifecycleService {
     actorId: string,
     today: string = new Date().toISOString().slice(0, 10),
   ): Promise<CreatedClinic> {
+    const adminPasswordHash = input.admin.password
+      ? await this.passwords.hash(input.admin.password)
+      : null;
+
     try {
       return await this.db.transaction(async (tx) => {
         const [plan] = await tx
@@ -93,7 +99,7 @@ export class ClinicLifecycleService {
           name: joinPersonName(firstName, lastName),
           phone: input.admin.phone,
           email: input.admin.email,
-          passwordHash: null,
+          passwordHash: adminPasswordHash,
           role: USER_ROLE.ADMIN,
         });
 

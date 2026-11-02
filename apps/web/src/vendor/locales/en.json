@@ -316,7 +316,7 @@
       "firstName": "First name",
       "lastName": "Last name",
       "phone": "Mobile",
-      "phoneHint": "The admin signs in with a code sent to this number, so no password is handed over.",
+      "phoneHint": "The admin signs in on the clinic's dashboard domain, with a code sent to this number or with the password below.",
       "email": "Email",
       "problems": {
         "name": "Enter the clinic's name in at least one language.",
@@ -326,9 +326,12 @@
         "admin": "Enter the admin's first and last name.",
         "phone": "Enter the admin's mobile with its country code.",
         "email": "The email is not valid.",
-        "modules": "Online booking needs the appointments module."
+        "modules": "Online booking needs the appointments module.",
+        "password": "The password needs at least 8 characters."
       },
-      "subscription": "2 · Subscription"
+      "subscription": "2 · Subscription",
+      "password": "Password",
+      "passwordHint": "Optional. With one, the admin can also sign in with this password; without it, only with a code sent to their mobile or email. They can change it from their profile."
     },
     "forgot": {
       "title": "Forgot your password?",
@@ -383,6 +386,11 @@
         "clearTitle": "Remove the clinic's Google keys?",
         "clearBody": "Google sign-in disappears from the clinic's dashboard domain."
       }
+    }
+  },
+  "errors": {
+    "validation": {
+      "required": "This field is required"
     }
   }
 }
