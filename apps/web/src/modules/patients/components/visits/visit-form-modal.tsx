@@ -98,6 +98,9 @@ export function VisitFormModal({
   const { can } = useSession();
   const localized = useLocalized();
   const currency = useCurrency();
+  const choosesDoctor =
+    doctors.length > 1 ||
+    (visit !== null && !doctors.some((doctor) => doctor.id === visit.doctorId));
   const charges = !visit && canChargeVisitFee(can);
   const takesPayment = charges && canRecordPayment(can);
   const catalog = useProcedureCatalog();
@@ -252,31 +255,39 @@ export function VisitFormModal({
       <form
         id="visit-form"
         data-testid={`${testId}-form`}
-        className="flex flex-col gap-4"
+        className="grid gap-4 sm:grid-cols-2"
         onSubmit={onSubmit}
         noValidate
       >
-        <FormField label="visits.doctor" htmlFor="visit-doctor" error={errors.doctorId}>
-          <Controller
-            name="doctorId"
-            control={control}
-            render={({ field }) => (
-              <Select
-                id="visit-doctor"
-                data-testid="visit-field-doctor"
-                options={doctors.map((doctor) => ({
-                  value: doctor.id,
-                  label: doctorName(doctor.user.name),
-                }))}
-                value={field.value ?? ""}
-                onBlur={field.onBlur}
-                onChange={(event) => field.onChange(event.target.value)}
+        <div
+          className={
+            choosesDoctor
+              ? "grid gap-4 sm:col-span-full sm:grid-cols-[minmax(0,1fr)_minmax(0,11rem)_minmax(0,9rem)]"
+              : "grid gap-4 sm:col-span-full sm:grid-cols-2"
+          }
+        >
+          {choosesDoctor && (
+            <FormField label="visits.doctor" htmlFor="visit-doctor" error={errors.doctorId}>
+              <Controller
+                name="doctorId"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    id="visit-doctor"
+                    data-testid="visit-field-doctor"
+                    options={doctors.map((doctor) => ({
+                      value: doctor.id,
+                      label: doctorName(doctor.user.name),
+                    }))}
+                    value={field.value ?? ""}
+                    onBlur={field.onBlur}
+                    onChange={(event) => field.onChange(event.target.value)}
+                  />
+                )}
               />
-            )}
-          />
-        </FormField>
+            </FormField>
+          )}
 
-        <FormField label="visits.date" htmlFor="visit-date" error={errors.visitDate}>
           <Controller
             control={control}
             name="visitDate"
@@ -284,29 +295,31 @@ export function VisitFormModal({
               const { date, time } = splitLocal(field.value ?? "");
 
               return (
-                <div className="flex flex-wrap gap-2">
-                  <DatePicker
-                    id="visit-date"
-                    data-testid="visit-field-date"
-                    className="min-w-40 flex-1"
-                    label={t("visits.date")}
-                    value={date}
-                    hasError={errors.visitDate !== undefined}
-                    onChange={(next) => field.onChange(joinLocal(next, time))}
-                  />
-                  <TimePicker
-                    id="visit-time"
-                    data-testid="visit-field-time"
-                    className="w-36"
-                    label={t("visits.time")}
-                    value={time}
-                    onChange={(next) => field.onChange(joinLocal(date, next))}
-                  />
-                </div>
+                <>
+                  <FormField label="visits.date" htmlFor="visit-date" error={errors.visitDate}>
+                    <DatePicker
+                      id="visit-date"
+                      data-testid="visit-field-date"
+                      label={t("visits.date")}
+                      value={date}
+                      hasError={errors.visitDate !== undefined}
+                      onChange={(next) => field.onChange(joinLocal(next, time))}
+                    />
+                  </FormField>
+                  <FormField label="visits.time" htmlFor="visit-time">
+                    <TimePicker
+                      id="visit-time"
+                      data-testid="visit-field-time"
+                      label={t("visits.time")}
+                      value={time}
+                      onChange={(next) => field.onChange(joinLocal(date, next))}
+                    />
+                  </FormField>
+                </>
               );
             }}
           />
-        </FormField>
+        </div>
 
         <FormField label="visits.complaint" htmlFor="visit-complaint" error={errors.complaint}>
           <Textarea
@@ -315,16 +328,6 @@ export function VisitFormModal({
             data-testid="visit-field-complaint"
             rows={2}
             {...register("complaint", { setValueAs: (v) => (v === "" ? null : v) })}
-          />
-        </FormField>
-
-        <FormField label="visits.examination" htmlFor="visit-exam" error={errors.examination}>
-          <Textarea
-            placeholder={ellipsis(t("common.placeholders.examination"))}
-            id="visit-exam"
-            data-testid="visit-field-examination"
-            rows={3}
-            {...register("examination", { setValueAs: (v) => (v === "" ? null : v) })}
           />
         </FormField>
 
@@ -338,20 +341,34 @@ export function VisitFormModal({
           />
         </FormField>
 
-        <FormField label="visits.notes" htmlFor="visit-notes" error={errors.notes} optional>
-          <Textarea
-            placeholder={ellipsis(t("common.placeholders.visitNotes"))}
-            id="visit-notes"
-            data-testid="visit-field-notes"
-            rows={2}
-            {...register("notes", { setValueAs: (v) => (v === "" ? null : v) })}
-          />
-        </FormField>
+        <div className="sm:col-span-full">
+          <FormField label="visits.examination" htmlFor="visit-exam" error={errors.examination}>
+            <Textarea
+              placeholder={ellipsis(t("common.placeholders.examination"))}
+              id="visit-exam"
+              data-testid="visit-field-examination"
+              rows={3}
+              {...register("examination", { setValueAs: (v) => (v === "" ? null : v) })}
+            />
+          </FormField>
+        </div>
+
+        <div className="sm:col-span-full">
+          <FormField label="visits.notes" htmlFor="visit-notes" error={errors.notes} optional>
+            <Textarea
+              placeholder={ellipsis(t("common.placeholders.visitNotes"))}
+              id="visit-notes"
+              data-testid="visit-field-notes"
+              rows={2}
+              {...register("notes", { setValueAs: (v) => (v === "" ? null : v) })}
+            />
+          </FormField>
+        </div>
 
         {charges && (
           <div
             data-testid={`${testId}-fee`}
-            className="grid gap-3 border-t border-line pt-4 sm:grid-cols-[minmax(0,1fr)_8rem_10rem]"
+            className="grid gap-3 border-t border-line pt-4 sm:col-span-full sm:grid-cols-[minmax(0,1fr)_8rem_10rem]"
           >
             <FormField
               label="visits.fee.title"
@@ -364,6 +381,7 @@ export function VisitFormModal({
                 control={control}
                 render={({ field }) => (
                   <Select
+                    searchable
                     id="visit-fee-item"
                     data-testid="visit-field-fee-item"
                     options={[
@@ -419,7 +437,7 @@ export function VisitFormModal({
         {recordedFee !== null && (
           <div
             data-testid={`${testId}-recorded-fee`}
-            className="flex items-center justify-between gap-3 border-t border-line pt-4"
+            className="flex items-center justify-between gap-3 border-t border-line pt-4 sm:col-span-full"
           >
             <span className="flex items-center gap-1 text-label font-medium text-ink">
               {t("visits.fee.title")}

@@ -298,7 +298,7 @@ function VisitCard({
   return (
     <li
       data-testid={`visit-${visit.id}`}
-      className="row-span-4 mb-2.5 grid grid-rows-subgrid gap-0 rounded-card border border-line bg-surface p-4 shadow-card"
+      className="row-span-4 mb-2.5 grid min-w-0 grid-rows-subgrid gap-0 rounded-card border border-line bg-surface p-4 shadow-card"
     >
       <header className="flex items-center gap-3 self-start">
         <DateBlock iso={visit.visitDate} />
@@ -341,7 +341,9 @@ function VisitCard({
                 className={field.wide ? "@sm:col-span-full" : undefined}
               >
                 <dt className="text-micro text-ink-muted">{t(field.label)}</dt>
-                <dd className="mt-0.5 whitespace-pre-wrap text-meta text-ink">{field.value}</dd>
+                <dd className="mt-0.5 whitespace-pre-wrap text-meta text-ink wrap-anywhere">
+                  {field.value}
+                </dd>
               </div>
             ))}
           </dl>
@@ -353,7 +355,7 @@ function VisitCard({
       </div>
 
       <section className="mt-4 border-t border-line pt-3">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
           {procedures.length > 0 ? (
             <button
               type="button"
@@ -401,7 +403,7 @@ function VisitCard({
             </h3>
             <ul className="mt-2 flex flex-col gap-1">
               {prescriptions.map((item, index) => (
-                <li key={index} className="text-meta text-ink">
+                <li key={index} className="text-meta text-ink wrap-anywhere">
                   <span className="font-medium">{item.drug}</span>
                   {describeItem(item) && (
                     <span className="text-ink-muted"> · {describeItem(item)}</span>
