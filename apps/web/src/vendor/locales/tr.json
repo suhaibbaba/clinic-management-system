@@ -96,10 +96,9 @@
     "total": "{{total}} kayıt"
   },
   "vendor": {
-    "title": "Satıcı paneli",
     "signIn": {
       "title": "Satıcı girişi",
-      "subtitle": "Klinik aboneliklerini yönetin",
+      "subtitle": "Klinikleri ve aboneliklerini yönetmek için giriş yapın",
       "email": "E-posta",
       "password": "Şifre",
       "submit": "Giriş yap",
@@ -120,7 +119,10 @@
           "title": "Hiçbir şey silinmez",
           "body": "Askıya alma ve silme kayıtları korur; her değişiklik adınızla kaydedilir."
         }
-      }
+      },
+      "emailPlaceholder": "ad@ornek.com",
+      "passwordPlaceholder": "Şifreniz",
+      "forgot": "Şifremi unuttum"
     },
     "nav": {
       "clinics": "Klinikler",
@@ -283,7 +285,7 @@
       "emailTaken": "Bu e-posta başka bir kullanıcıya ait",
       "lastSpecialty": "Her kliniğin en az bir uzmanlığı olmalı."
     },
-    "tagline": "Klinikler ve abonelikler",
+    "tagline": "Satıcı paneli",
     "filters": {
       "all": "Tümü",
       "active": "Aktif",
@@ -346,6 +348,31 @@
         "email": "E-posta geçerli değil."
       },
       "subscription": "2 · Abonelik"
+    },
+    "forgot": {
+      "title": "Şifrenizi mi unuttunuz?",
+      "subtitle": "Hesabınızın e-postasını yazın, yeni şifre belirlemeniz için bir bağlantı gönderelim.",
+      "submit": "Bağlantıyı gönder",
+      "back": "Girişe dön",
+      "sentTitle": "Gelen kutunuzu kontrol edin",
+      "sentBody": "{{email}} kayıtlıysa bir saat geçerli bir bağlantı gönderildi."
+    },
+    "reset": {
+      "title": "Yeni şifre",
+      "subtitle_one": "En az {{count}} karakterlik bir şifre seçin.",
+      "subtitle_other": "En az {{count}} karakterlik bir şifre seçin.",
+      "password": "Yeni şifre",
+      "again": "Tekrar yazın",
+      "passwordPlaceholder_one": "En az {{count}} karakter",
+      "passwordPlaceholder_other": "En az {{count}} karakter",
+      "againPlaceholder": "Aynı şifre",
+      "submit": "Şifreyi kaydet",
+      "tooShort_one": "Şifre {{count}} karakterden kısa.",
+      "tooShort_other": "Şifre {{count}} karakterden kısa.",
+      "mismatch": "İki şifre eşleşmiyor.",
+      "invalid": "Bağlantı geçersiz veya süresi dolmuş. Yeni bir bağlantı isteyin.",
+      "doneTitle": "Şifre değişti",
+      "doneBody": "Diğer tüm cihazlardan çıkış yapıldı. Yeni şifrenizle giriş yapın."
     }
   }
 }

@@ -1,5 +1,7 @@
 export const VENDOR_BASE = "/vendor";
 
+export const PUBLIC_ROUTES: ReadonlySet<string> = new Set(["login", "forgot", "reset"]);
+
 export const VENDOR_API = `${import.meta.env.VITE_API_BASE_URL ?? "/api"}/vendor`;
 
 export const VENDOR_LANGUAGE_KEY = "clinic-vendor-language";

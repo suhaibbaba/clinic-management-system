@@ -1,4 +1,4 @@
-import { languageDefinition } from "@clinic/shared";
+import { languageDefinition, localized, PRODUCT_NAME } from "@clinic/shared";
 import { Icon } from "@clinic/ui/components/icon";
 import {
   Menu,
@@ -68,7 +68,7 @@ export function Shell({
           >
             <VendorLogo />
             <span className="flex flex-col">
-              <strong className="text-value">{t("vendor.title")}</strong>
+              <strong className="text-value">{localized(PRODUCT_NAME, i18n.language)}</strong>
               <span className="text-meta text-primary-100">{t("vendor.tagline")}</span>
             </span>
           </VendorLink>

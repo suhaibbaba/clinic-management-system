@@ -11,6 +11,10 @@ import { VENDOR_PARAM } from "@web/vendor/constants";
 import { ClinicPage } from "@web/vendor/pages/clinic-page";
 import { ClinicsPage } from "@web/vendor/pages/clinics-page";
 import { LoginPage } from "@web/vendor/pages/login-page";
+import { ForgotPage } from "@web/vendor/pages/forgot-page";
+import { ResetPage } from "@web/vendor/pages/reset-page";
+import { PUBLIC_ROUTES } from "@web/vendor/constants";
+import { localized, PRODUCT_NAME } from "@clinic/shared";
 import { PlansPage } from "@web/vendor/pages/plans-page";
 import { useVendorSession } from "@web/vendor/queries";
 
@@ -19,7 +23,7 @@ const client = new QueryClient({
 });
 
 function VendorApp(): JSX.Element | null {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const session = useVendorSession();
   const route = parseVendorRoute(location.pathname);
@@ -27,19 +31,27 @@ function VendorApp(): JSX.Element | null {
   const { navigate } = location;
 
   useEffect(() => {
-    document.title = t("vendor.title");
-  }, [t]);
+    document.title = `${localized(PRODUCT_NAME, i18n.language)} — ${t("vendor.tagline")}`;
+  }, [t, i18n.language]);
 
   useEffect(() => {
-    if (signedOut && route.kind !== "login") {
+    if (signedOut && !PUBLIC_ROUTES.has(route.kind)) {
       navigate(vendorPath({ kind: "login" }), { replace: true });
-    } else if (session.isSuccess && route.kind === "login") {
+    } else if (session.isSuccess && PUBLIC_ROUTES.has(route.kind)) {
       navigate(vendorPath({ kind: "clinics" }), { replace: true });
     }
   }, [signedOut, session.isSuccess, route.kind, navigate]);
 
   if (route.kind === "login") {
     return <LoginPage navigate={navigate} />;
+  }
+
+  if (route.kind === "forgot") {
+    return <ForgotPage navigate={navigate} />;
+  }
+
+  if (route.kind === "reset") {
+    return <ResetPage token={location.params.get("token") ?? ""} navigate={navigate} />;
   }
 
   if (!session.isSuccess) {

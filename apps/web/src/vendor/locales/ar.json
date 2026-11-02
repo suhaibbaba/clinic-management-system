@@ -104,10 +104,9 @@
     "total": "{{total}} سجل"
   },
   "vendor": {
-    "title": "لوحة المورّد",
     "signIn": {
       "title": "دخول المورّد",
-      "subtitle": "لوحة إدارة اشتراكات العيادات",
+      "subtitle": "ادخل لإدارة العيادات واشتراكاتها",
       "email": "البريد الإلكتروني",
       "password": "كلمة المرور",
       "submit": "دخول",
@@ -128,7 +127,10 @@
           "title": "لا يُمسح شيء",
           "body": "الإيقاف والحذف يحفظان السجلات، وكل تغيير مسجل باسمك."
         }
-      }
+      },
+      "emailPlaceholder": "name@example.com",
+      "passwordPlaceholder": "كلمة المرور",
+      "forgot": "نسيت كلمة المرور؟"
     },
     "nav": {
       "clinics": "العيادات",
@@ -303,7 +305,7 @@
       "emailTaken": "هذا البريد مسجل لمستخدم آخر",
       "lastSpecialty": "لا بد من تخصص واحد على الأقل لكل عيادة."
     },
-    "tagline": "إدارة العيادات والاشتراكات",
+    "tagline": "لوحة المورّد",
     "filters": {
       "all": "الكل",
       "active": "فعّال",
@@ -374,6 +376,43 @@
         "email": "البريد غير صحيح."
       },
       "subscription": "٢ · الاشتراك"
+    },
+    "forgot": {
+      "title": "نسيت كلمة المرور؟",
+      "subtitle": "اكتب بريد حسابك وسنرسل لك رابطًا لتعيين كلمة مرور جديدة.",
+      "submit": "أرسل الرابط",
+      "back": "العودة إلى الدخول",
+      "sentTitle": "تحقق من بريدك",
+      "sentBody": "إن كان {{email}} مسجلًا لدينا فقد أرسلنا إليه رابطًا صالحًا لمدة ساعة."
+    },
+    "reset": {
+      "title": "كلمة مرور جديدة",
+      "subtitle_zero": "اختر كلمة مرور من {{count}} حرف على الأقل.",
+      "subtitle_one": "اختر كلمة مرور من {{count}} حرف على الأقل.",
+      "subtitle_two": "اختر كلمة مرور من {{count}} حرف على الأقل.",
+      "subtitle_few": "اختر كلمة مرور من {{count}} أحرف على الأقل.",
+      "subtitle_many": "اختر كلمة مرور من {{count}} حرفًا على الأقل.",
+      "subtitle_other": "اختر كلمة مرور من {{count}} حرف على الأقل.",
+      "password": "كلمة المرور الجديدة",
+      "again": "أعد كتابتها",
+      "passwordPlaceholder_zero": "{{count}} حرف على الأقل",
+      "passwordPlaceholder_one": "{{count}} حرف على الأقل",
+      "passwordPlaceholder_two": "{{count}} حرف على الأقل",
+      "passwordPlaceholder_few": "{{count}} أحرف على الأقل",
+      "passwordPlaceholder_many": "{{count}} حرفًا على الأقل",
+      "passwordPlaceholder_other": "{{count}} حرف على الأقل",
+      "againPlaceholder": "نفس كلمة المرور",
+      "submit": "حفظ كلمة المرور",
+      "tooShort_zero": "كلمة المرور أقصر من {{count}} حرف.",
+      "tooShort_one": "كلمة المرور أقصر من {{count}} حرف.",
+      "tooShort_two": "كلمة المرور أقصر من {{count}} حرف.",
+      "tooShort_few": "كلمة المرور أقصر من {{count}} أحرف.",
+      "tooShort_many": "كلمة المرور أقصر من {{count}} حرفًا.",
+      "tooShort_other": "كلمة المرور أقصر من {{count}} حرف.",
+      "mismatch": "الكلمتان غير متطابقتين.",
+      "invalid": "الرابط غير صالح أو انتهت صلاحيته. اطلب رابطًا جديدًا.",
+      "doneTitle": "تم تغيير كلمة المرور",
+      "doneBody": "سُجّل خروجك من كل الأجهزة الأخرى. ادخل بكلمة المرور الجديدة."
     }
   }
 }

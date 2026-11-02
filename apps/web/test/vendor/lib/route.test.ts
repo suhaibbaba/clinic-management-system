@@ -8,6 +8,8 @@ describe("the vendor console's addresses", () => {
     ["/vendor", { kind: "clinics" }],
     ["/vendor/", { kind: "clinics" }],
     ["/vendor/login", { kind: "login" }],
+    ["/vendor/forgot", { kind: "forgot" }],
+    ["/vendor/reset", { kind: "reset" }],
     ["/vendor/plans", { kind: "plans" }],
     [`/vendor/clinics/${ID}`, { kind: "clinic", id: ID }],
     ["/vendor/clinics/not-an-id", { kind: "not-found" }],
@@ -20,6 +22,8 @@ describe("the vendor console's addresses", () => {
   it("writes every address it reads back to the same route", () => {
     for (const route of [
       { kind: "login" },
+      { kind: "forgot" },
+      { kind: "reset" },
       { kind: "clinics" },
       { kind: "plans" },
       { kind: "clinic", id: ID },

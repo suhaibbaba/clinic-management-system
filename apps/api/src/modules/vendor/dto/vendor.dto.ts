@@ -10,10 +10,16 @@ import {
   saveSubscriptionSchema,
   savePlanSchema,
   vendorClinicsQuerySchema,
+  vendorForgotPasswordSchema,
   vendorLoginSchema,
+  vendorResetPasswordSchema,
 } from "@clinic/shared";
 
 export class VendorLoginDto extends createZodDto(vendorLoginSchema) {}
+
+export class VendorForgotPasswordDto extends createZodDto(vendorForgotPasswordSchema) {}
+
+export class VendorResetPasswordDto extends createZodDto(vendorResetPasswordSchema) {}
 
 export class SavePlanDto extends createZodDto(savePlanSchema) {}
 

@@ -4,6 +4,7 @@ import {
   VENDOR_EMAIL_TAKEN,
   VENDOR_MISSING_MODULES,
   VENDOR_PHONE_TAKEN,
+  VENDOR_RESET_INVALID,
   VENDOR_SLUG_TAKEN,
 } from "@clinic/shared";
 
@@ -14,6 +15,7 @@ const CODED: Readonly<Record<string, string>> = {
   [VENDOR_PHONE_TAKEN]: "vendor.errors.phoneTaken",
   [VENDOR_EMAIL_TAKEN]: "vendor.errors.emailTaken",
   [AUTH_ERROR.LOCKED]: "vendor.signIn.locked",
+  [VENDOR_RESET_INVALID]: "vendor.reset.invalid",
 };
 
 export class VendorApiError extends Error {

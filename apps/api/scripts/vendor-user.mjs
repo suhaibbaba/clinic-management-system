@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 
+import { createRequire } from "node:module";
+
 import { hash } from "@node-rs/argon2";
 import postgres from "postgres";
+
+const { PASSWORD_MIN_LENGTH } = createRequire(import.meta.url)("@clinic/shared");
 
 const [action, email, ...nameParts] = process.argv.slice(2);
 const usage = `Usage:
@@ -9,7 +13,7 @@ const usage = `Usage:
   VENDOR_PASSWORD=… pnpm -C apps/api vendor:create <email> <name>
   VENDOR_PASSWORD=… pnpm -C apps/api vendor:password <email>
   pnpm -C apps/api vendor:disable <email>
-The password comes from VENDOR_PASSWORD (at least 12 characters), never from the command line.`;
+The password comes from VENDOR_PASSWORD (at least ${PASSWORD_MIN_LENGTH} characters), never from the command line.`;
 
 const databaseUrl = process.env.DATABASE_URL;
 const password = process.env.VENDOR_PASSWORD ?? "";
@@ -22,8 +26,10 @@ if (!databaseUrl) {
 
 const needsPassword = action === "create" || action === "password";
 
-if (needsPassword && password.length < 12) {
-  console.error(`VENDOR_PASSWORD must be at least 12 characters (it has ${password.length}).`);
+if (needsPassword && password.length < PASSWORD_MIN_LENGTH) {
+  console.error(
+    `VENDOR_PASSWORD must be at least ${PASSWORD_MIN_LENGTH} characters (it has ${password.length}).`,
+  );
   process.exit(1);
 }
 

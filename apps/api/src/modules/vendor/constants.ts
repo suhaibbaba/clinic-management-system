@@ -9,3 +9,7 @@ export const VENDOR_EVENT_LIMIT = 50;
 export const VENDOR_ENDING_SOON_DAYS = 30;
 
 export const VENDOR_THROTTLE_PREFIX = "vendor:";
+
+export const VENDOR_RESET_HOURS = 1;
+
+export const VENDOR_RESETS_PER_HOUR = 3;

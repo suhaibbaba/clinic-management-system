@@ -5,7 +5,9 @@ import type {
   SaveSubscriptionInput,
   SpecialtyCode,
   VendorClinicsQuery,
+  VendorForgotPasswordInput,
   VendorLoginInput,
+  VendorResetPasswordInput,
 } from "@clinic/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { vendorApi } from "@web/vendor/api";
@@ -22,6 +24,14 @@ export function useSignIn() {
     onSuccess: (profile) => client.setQueryData(VENDOR_QUERY_KEY.SESSION, profile),
   });
 }
+
+export const useForgotPassword = () =>
+  useMutation({
+    mutationFn: (input: VendorForgotPasswordInput) => vendorApi.forgotPassword(input),
+  });
+
+export const useResetPassword = () =>
+  useMutation({ mutationFn: (input: VendorResetPasswordInput) => vendorApi.resetPassword(input) });
 
 export function useSignOut() {
   const client = useQueryClient();

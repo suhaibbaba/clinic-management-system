@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { localizedTextInputSchema, localizedTextSchema } from "@shared/locale/localized-text";
+import { DEFAULT_LANGUAGE, languageCodeSchema } from "@shared/locale/languages";
 import { COUNTRY_PRESETS } from "@shared/locale/countries";
 import { phoneSchema } from "@shared/schemas/common";
+import { passwordSchema } from "@shared/schemas/auth";
 import { CLINIC_MODULES, missingModules } from "@shared/constants/permissions";
 import { SPECIALTY_CODE, SUBSCRIPTION_STATUSES } from "@shared/enums";
 import { paginationQuerySchema } from "@shared/schemas/common";
@@ -96,11 +98,18 @@ export const VENDOR_EMAIL_TAKEN = "vendor_email_taken";
 
 export const VENDOR_LAST_SPECIALTY = "vendor_last_specialty";
 
+export const VENDOR_RESET_INVALID = "vendor_reset_invalid";
+
 export const clinicDomainSchema = z
   .string()
   .trim()
   .toLowerCase()
-  .transform((value) => value.replace(/^https?:\/\//, "").replace(/\/+$/, "").replace(/^(?:www|admin)\./, ""))
+  .transform((value) =>
+    value
+      .replace(/^https?:\/\//, "")
+      .replace(/\/+$/, "")
+      .replace(/^(?:www|admin)\./, ""),
+  )
   .pipe(
     z
       .string()
@@ -213,3 +222,15 @@ export const specialtyParamSchema = z.object({
   code: z.enum(Object.values(SPECIALTY_CODE)),
 });
 export type SpecialtyParam = z.infer<typeof specialtyParamSchema>;
+
+export const vendorForgotPasswordSchema = z.object({
+  email: z.email().max(200),
+  language: languageCodeSchema.default(DEFAULT_LANGUAGE),
+});
+export type VendorForgotPasswordInput = z.infer<typeof vendorForgotPasswordSchema>;
+
+export const vendorResetPasswordSchema = z.object({
+  token: z.string().min(20).max(200),
+  password: passwordSchema,
+});
+export type VendorResetPasswordInput = z.infer<typeof vendorResetPasswordSchema>;

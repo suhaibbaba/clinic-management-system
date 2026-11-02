@@ -115,3 +115,21 @@ export const subscriptionEvents = pgTable(
   },
   (table) => [index("subscription_events_clinic_created_idx").on(table.clinicId, table.createdAt)],
 );
+
+export const vendorPasswordResets = pgTable(
+  "vendor_password_resets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    vendorUserId: uuid("vendor_user_id")
+      .notNull()
+      .references(() => vendorUsers.id),
+    tokenHash: text("token_hash").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("vendor_password_resets_token_uniq").on(table.tokenHash),
+    index("vendor_password_resets_user_created_idx").on(table.vendorUserId, table.createdAt),
+  ],
+);

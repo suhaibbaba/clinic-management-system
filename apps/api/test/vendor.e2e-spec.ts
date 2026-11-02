@@ -11,6 +11,7 @@ import {
   VENDOR_LAST_SPECIALTY,
   VENDOR_SLUG_TAKEN,
   VENDOR_MISSING_MODULES,
+  VENDOR_RESET_INVALID,
   addDays,
   type Paginated,
   type Plan,
@@ -20,6 +21,7 @@ import {
 } from "@clinic/shared";
 import { clinics, subscriptionEvents, users, vendorUsers } from "@api/database/schema";
 import { PasswordService } from "@api/modules/auth/services/password.service";
+import { AccountEmailService } from "@api/modules/email/services/account-email.service";
 import { SubscriptionsService } from "@api/modules/vendor/services/subscriptions.service";
 import {
   auth,
@@ -590,6 +592,77 @@ describe("Vendor console (e2e)", () => {
       expect(
         (await call("GET", `/vendor/clinics/${clinic.id}`)).json<VendorClinicDetail>().specialties,
       ).toEqual(["dental", "orthopedic"]);
+    });
+  });
+
+  describe("forgotten password", () => {
+    it("answers the same for an unknown email and sends nothing", async () => {
+      const send = jest.spyOn(context.app.get(AccountEmailService), "sendVendorReset");
+      const response = await context.app.inject({
+        method: "POST",
+        url: "/vendor/password/forgot",
+        payload: { email: "nobody@example.test" },
+      });
+
+      expect(response.statusCode).toBe(204);
+      expect(send).not.toHaveBeenCalled();
+      send.mockRestore();
+    });
+
+    it("emails a one-hour link that sets a new password once and signs other sessions out", async () => {
+      context.resetThrottle();
+      const resetEmail = `reset-${randomUUID().slice(0, 8)}@example.test`;
+
+      await context.db.insert(vendorUsers).values({
+        email: resetEmail,
+        name: "Reset",
+        passwordHash: await context.app.get(PasswordService).hash(PASSWORD),
+      });
+      const before = await context.app.inject({
+        method: "POST",
+        url: "/vendor/session",
+        payload: { email: resetEmail, password: PASSWORD },
+      });
+      const oldCookie = String(before.headers["set-cookie"]).split(";")[0] ?? "";
+      const send = jest.spyOn(context.app.get(AccountEmailService), "sendVendorReset");
+
+      await context.app.inject({
+        method: "POST",
+        url: "/vendor/password/forgot",
+        payload: { email: resetEmail.toUpperCase(), language: "en" },
+      });
+
+      expect(send).toHaveBeenCalledWith(resetEmail, "Reset", "en", expect.any(String), 1);
+
+      const url = new URL(String(send.mock.calls[0]?.[3]));
+      const token = url.searchParams.get("token") ?? "";
+      send.mockRestore();
+
+      expect(url.pathname).toBe("/vendor/reset");
+
+      const reset = () =>
+        context.app.inject({
+          method: "POST",
+          url: "/vendor/password/reset",
+          payload: { token, password: "A-brand-new-password" },
+        });
+
+      expect((await reset()).statusCode).toBe(204);
+      expect((await reset()).json()).toMatchObject({ message: VENDOR_RESET_INVALID });
+
+      const stale = await context.app.inject({
+        method: "GET",
+        url: "/vendor/session",
+        headers: { cookie: oldCookie },
+      });
+      const after = await context.app.inject({
+        method: "POST",
+        url: "/vendor/session",
+        payload: { email: resetEmail, password: "A-brand-new-password" },
+      });
+
+      expect(stale.statusCode).toBe(401);
+      expect(after.statusCode).toBe(200);
     });
   });
 

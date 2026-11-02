@@ -573,7 +573,7 @@ dc exec postgres \
        -d "$(grep -E '^POSTGRES_DB=' .env | cut -d= -f2)"
 
 # Vendor console accounts (the console is /vendor on the dashboard host). The password comes from
-# VENDOR_PASSWORD, never the command line; at least 12 characters.
+# VENDOR_PASSWORD, never the command line; at least 8 characters.
 dc exec -e VENDOR_PASSWORD='…' api node scripts/vendor-user.mjs create you@example.com "Your Name"
 dc exec api node scripts/vendor-user.mjs list
 dc exec -e VENDOR_PASSWORD='…' api node scripts/vendor-user.mjs password you@example.com

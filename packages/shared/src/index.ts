@@ -37,6 +37,7 @@ export * from "@shared/constants/charts";
 export * from "@shared/constants/lookups";
 export * from "@shared/constants/phone";
 export * from "@shared/constants/permissions";
+export * from "@shared/constants/product";
 export * from "@shared/schemas/labs";
 export * from "@shared/schemas/lookups";
 export * from "@shared/schemas/medical-histories";

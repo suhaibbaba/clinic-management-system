@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { languageDirection, localized } from "@clinic/shared";
+import { languageDirection, localized, PRODUCT_NAME, type LanguageCode } from "@clinic/shared";
 import { type Env } from "@api/config/env.schema";
 import { EMAIL_PROVIDER, ACCOUNT_EMAIL_COPY, LOGO_CONTENT_ID } from "@api/modules/email/constants";
 import { type EmailProvider } from "@api/modules/email/lib/email-provider";
@@ -102,6 +102,28 @@ export class AccountEmailService {
       text,
       ...(logo ? { attachments: [logo] } : {}),
     });
+  }
+
+  async sendVendorReset(
+    to: string,
+    name: string,
+    language: LanguageCode,
+    url: string,
+    hours: number,
+  ): Promise<void> {
+    const copy = ACCOUNT_EMAIL_COPY[language].reset;
+    const product = localized(PRODUCT_NAME, language);
+    const { html, text } = renderEmail({
+      clinicName: product,
+      language,
+      direction: languageDirection(language),
+      heading: copy.heading,
+      body: copy.body(name, product, hours),
+      action: { label: copy.action, url },
+      footer: copy.footer,
+    });
+
+    await this.provider.send({ to, fromName: product, subject: copy.subject(product), html, text });
   }
 
   private async logo(

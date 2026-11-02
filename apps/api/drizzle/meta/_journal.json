@@ -638,6 +638,13 @@
       "when": 1793573128680,
       "tag": "0090_basic_plan",
       "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1793619804506,
+      "tag": "0091_vendor_password_resets",
+      "breakpoints": true
     }
   ]
 }

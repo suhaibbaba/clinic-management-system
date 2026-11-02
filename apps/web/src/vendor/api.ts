@@ -12,7 +12,9 @@ import type {
   VendorClinicDetail,
   VendorClinicSummary,
   VendorClinicsQuery,
+  VendorForgotPasswordInput,
   VendorLoginInput,
+  VendorResetPasswordInput,
   VendorOverview,
   VendorProfile,
 } from "@clinic/shared";
@@ -65,6 +67,10 @@ export const vendorApi = {
   session: () => request<VendorProfile>("GET", "/session"),
   signIn: (input: VendorLoginInput) => request<VendorProfile>("POST", "/session", input),
   signOut: () => request<void>("DELETE", "/session"),
+  forgotPassword: (input: VendorForgotPasswordInput) =>
+    request<void>("POST", "/password/forgot", input),
+  resetPassword: (input: VendorResetPasswordInput) =>
+    request<void>("POST", "/password/reset", input),
   overview: () => request<VendorOverview>("GET", "/overview"),
   clinics: (params: Partial<VendorClinicsQuery>) =>
     request<Paginated<VendorClinicSummary>>("GET", `/clinics${query(params)}`),

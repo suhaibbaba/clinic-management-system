@@ -2,6 +2,8 @@ import { VENDOR_BASE } from "@web/vendor/constants";
 
 export type VendorRoute =
   | { readonly kind: "login" }
+  | { readonly kind: "forgot" }
+  | { readonly kind: "reset" }
   | { readonly kind: "clinics" }
   | { readonly kind: "clinic"; readonly id: string }
   | { readonly kind: "plans" }
@@ -25,6 +27,14 @@ export function parseVendorRoute(pathname: string): VendorRoute {
     return { kind: "login" };
   }
 
+  if (first === "forgot" && second === undefined) {
+    return { kind: "forgot" };
+  }
+
+  if (first === "reset" && second === undefined) {
+    return { kind: "reset" };
+  }
+
   if (first === "plans" && second === undefined) {
     return { kind: "plans" };
   }
@@ -40,6 +50,10 @@ export const vendorPath = (route: Exclude<VendorRoute, { kind: "not-found" }>): 
   switch (route.kind) {
     case "login":
       return `${VENDOR_BASE}/login`;
+    case "forgot":
+      return `${VENDOR_BASE}/forgot`;
+    case "reset":
+      return `${VENDOR_BASE}/reset`;
     case "clinics":
       return VENDOR_BASE;
     case "plans":

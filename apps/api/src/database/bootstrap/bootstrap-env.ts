@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   CLINIC_MODULES,
+  PASSWORD_MIN_LENGTH,
   missingModules,
   STANDARD_CLINIC_MODULES,
   LANGUAGE_CODES,
@@ -76,7 +77,7 @@ export const bootstrapEnvSchema = z
     ...languageFields("BOOTSTRAP_ADMIN_LAST_NAME"),
     BOOTSTRAP_ADMIN_PHONE: phoneSchema,
     BOOTSTRAP_ADMIN_EMAIL: z.email().optional(),
-    BOOTSTRAP_ADMIN_PASSWORD: z.string().min(10).optional(),
+    BOOTSTRAP_ADMIN_PASSWORD: z.string().min(PASSWORD_MIN_LENGTH).optional(),
   })
   .superRefine((env, context) => {
     for (const prefix of NAMED) {

@@ -7,15 +7,23 @@ import { PlansService } from "@api/modules/vendor/services/plans.service";
 import { SubscriptionExpiryScheduler } from "@api/modules/vendor/services/subscription-expiry.scheduler";
 import { SubscriptionsService } from "@api/modules/vendor/services/subscriptions.service";
 import { VendorAuthService } from "@api/modules/vendor/services/vendor-auth.service";
+import { VendorPasswordService } from "@api/modules/vendor/services/vendor-password.service";
+import { VendorPasswordController } from "@api/modules/vendor/controllers/vendor-password.controller";
 import { VendorClinicsService } from "@api/modules/vendor/services/vendor-clinics.service";
 import { ClinicLifecycleService } from "@api/modules/vendor/services/clinic-lifecycle.service";
 import { VendorSessionGuard } from "@api/modules/vendor/services/vendor-session.guard";
 
 @Module({
   imports: [AuthModule],
-  controllers: [VendorAuthController, VendorClinicsController, VendorPlansController],
+  controllers: [
+    VendorAuthController,
+    VendorPasswordController,
+    VendorClinicsController,
+    VendorPlansController,
+  ],
   providers: [
     VendorAuthService,
+    VendorPasswordService,
     VendorSessionGuard,
     SubscriptionsService,
     PlansService,

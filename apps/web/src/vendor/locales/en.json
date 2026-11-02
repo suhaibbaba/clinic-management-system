@@ -96,10 +96,9 @@
     "total": "{{total}} records"
   },
   "vendor": {
-    "title": "Vendor console",
     "signIn": {
       "title": "Vendor sign-in",
-      "subtitle": "Manage clinic subscriptions",
+      "subtitle": "Sign in to manage clinics and their subscriptions",
       "email": "Email",
       "password": "Password",
       "submit": "Sign in",
@@ -120,7 +119,10 @@
           "title": "Nothing is erased",
           "body": "Suspending and removing keep the records, and every change carries your name."
         }
-      }
+      },
+      "emailPlaceholder": "name@example.com",
+      "passwordPlaceholder": "Your password",
+      "forgot": "Forgot password?"
     },
     "nav": {
       "clinics": "Clinics",
@@ -283,7 +285,7 @@
       "emailTaken": "Another user already has this email",
       "lastSpecialty": "Every clinic needs at least one specialty."
     },
-    "tagline": "Clinics and subscriptions",
+    "tagline": "Vendor console",
     "filters": {
       "all": "All",
       "active": "Active",
@@ -346,6 +348,31 @@
         "email": "The email is not valid."
       },
       "subscription": "2 · Subscription"
+    },
+    "forgot": {
+      "title": "Forgot your password?",
+      "subtitle": "Enter your account's email and we'll send you a link to set a new one.",
+      "submit": "Send the link",
+      "back": "Back to sign-in",
+      "sentTitle": "Check your inbox",
+      "sentBody": "If {{email}} has an account, a link valid for one hour is on its way."
+    },
+    "reset": {
+      "title": "New password",
+      "subtitle_one": "Choose a password of at least {{count}} character.",
+      "subtitle_other": "Choose a password of at least {{count}} characters.",
+      "password": "New password",
+      "again": "Type it again",
+      "passwordPlaceholder_one": "At least {{count}} character",
+      "passwordPlaceholder_other": "At least {{count}} characters",
+      "againPlaceholder": "The same password",
+      "submit": "Save password",
+      "tooShort_one": "The password is shorter than {{count}} character.",
+      "tooShort_other": "The password is shorter than {{count}} characters.",
+      "mismatch": "The two passwords don't match.",
+      "invalid": "This link is invalid or has expired. Ask for a new one.",
+      "doneTitle": "Password changed",
+      "doneBody": "You were signed out everywhere else. Sign in with your new password."
     }
   }
 }
