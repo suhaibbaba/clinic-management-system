@@ -104,7 +104,23 @@
       "password": "Şifre",
       "submit": "Giriş yap",
       "failed": "E-posta veya şifre yanlış",
-      "locked": "Çok fazla deneme. 15 dakika sonra tekrar deneyin"
+      "locked": "Çok fazla deneme. 15 dakika sonra tekrar deneyin",
+      "headline": "Tüm klinikleriniz ve abonelikleri tek yerde",
+      "private": "Yalnızca sistem sağlayıcısı içindir. Klinik personeli erişemez ve hasta verisi göstermez.",
+      "points": {
+        "clinics": {
+          "title": "Klinikler",
+          "body": "Bir kliniği ve yöneticisini tek adımda oluşturun; istediğiniz zaman silin veya geri yükleyin."
+        },
+        "plans": {
+          "title": "Paketler ve modüller",
+          "body": "Her klinikte neyin çalışacağını seçin, Temel'den tüm modüllere kadar."
+        },
+        "safe": {
+          "title": "Hiçbir şey silinmez",
+          "body": "Askıya alma ve silme kayıtları korur; her değişiklik adınızla kaydedilir."
+        }
+      }
     },
     "nav": {
       "clinics": "Klinikler",
@@ -267,7 +283,6 @@
       "emailTaken": "Bu e-posta başka bir kullanıcıya ait",
       "lastSpecialty": "Her kliniğin en az bir uzmanlığı olmalı."
     },
-    "brandMark": "S",
     "tagline": "Klinikler ve abonelikler",
     "filters": {
       "all": "Tümü",

@@ -104,7 +104,23 @@
       "password": "Password",
       "submit": "Sign in",
       "failed": "Wrong email or password",
-      "locked": "Too many attempts. Try again in 15 minutes"
+      "locked": "Too many attempts. Try again in 15 minutes",
+      "headline": "Every clinic and its subscription, in one place",
+      "private": "For the system's provider only. Clinic staff cannot reach it, and it never shows patient data.",
+      "points": {
+        "clinics": {
+          "title": "Clinics",
+          "body": "Create a clinic and its admin in one step; remove or restore it any time."
+        },
+        "plans": {
+          "title": "Plans and modules",
+          "body": "Choose what runs in each clinic, from Basic to every module."
+        },
+        "safe": {
+          "title": "Nothing is erased",
+          "body": "Suspending and removing keep the records, and every change carries your name."
+        }
+      }
     },
     "nav": {
       "clinics": "Clinics",
@@ -267,7 +283,6 @@
       "emailTaken": "Another user already has this email",
       "lastSpecialty": "Every clinic needs at least one specialty."
     },
-    "brandMark": "V",
     "tagline": "Clinics and subscriptions",
     "filters": {
       "all": "All",

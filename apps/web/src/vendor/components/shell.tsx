@@ -12,6 +12,7 @@ import { cn } from "@clinic/ui/lib/cn";
 import { useState, type FormEvent, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { VendorLink } from "@web/vendor/components/vendor-link";
+import { VendorLogo } from "@web/vendor/components/vendor-logo";
 import { VENDOR_PARAM } from "@web/vendor/constants";
 import { changeVendorLanguage, VENDOR_LANGUAGES } from "@web/vendor/i18n";
 import { profileInitials } from "@web/vendor/lib/clinic-actions";
@@ -65,12 +66,7 @@ export function Shell({
             navigate={navigate}
             className="flex items-center gap-2.5 text-ink-inverse no-underline"
           >
-            <span
-              aria-hidden="true"
-              className="grid size-9 place-items-center rounded-control bg-primary-500 text-value font-extrabold"
-            >
-              {t("vendor.brandMark")}
-            </span>
+            <VendorLogo />
             <span className="flex flex-col">
               <strong className="text-value">{t("vendor.title")}</strong>
               <span className="text-meta text-primary-100">{t("vendor.tagline")}</span>
