@@ -214,9 +214,10 @@
       "revokeBody": "Uzmanlığın şeması ve listeleri klinikten kalkar; verileri kalır ve yeniden açtığınızda geri gelir.",
       "unmanagedNote": "Bu kliniğin henüz aboneliği yok. Kaydetmek, mevcut modülleriyle ve değiştirmeden bir abonelik oluşturur.",
       "appDomain": "Panel alan adı",
-      "appDomainHint": "Klinik personelinin giriş yaptığı adres, örneğin admin.clinic.ps. Kliniğin kendi Google girişi ve geçiş anahtarları yalnızca bu adreste çalışır. DNS kaydı, sertifika ve sunucuda bir nginx bloğu gerekir.",
+      "appDomainHint": "Klinik personelinin giriş yaptığı adres, örneğin admin.clinic.ps. Her kliniğin bir tane olmalı: ortak adres yalnızca satıcı konsoludur. Kliniğin kendi Google girişi ve geçiş anahtarları burada çalışır. DNS kaydı, sertifika ve sunucuda bir nginx bloğu gerekir.",
       "appDomainPlaceholder": "admin.example.com",
-      "noAppDomain": "Panel alan adı yok: personel ortak adreste giriş yapar."
+      "noAppDomain": "Henüz panel alan adı yok: bu kliniğin personelinin giriş yapacağı bir yer yok.",
+      "noAppDomainWarning": "Panel alan adı yok: bu kliniğin personelinin giriş yapacağı bir yer yok. Alan adı sekmesinden belirleyin."
     },
     "status": {
       "trial": "Deneme",

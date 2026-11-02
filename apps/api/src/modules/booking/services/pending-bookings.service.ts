@@ -17,6 +17,7 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics } from "@api/database/schema";
 import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
 import { timeIn } from "@api/common/lib/time";
+import { publicBase } from "@api/modules/booking/lib/public-base";
 
 @Injectable()
 export class PendingBookingsService {
@@ -47,7 +48,7 @@ export class PendingBookingsService {
         doctor: appointment.doctorName,
         date: shortDate(localDate(new Date(appointment.startsAt), clinic.locale.timeZone)),
         time: timeIn(clinic.locale.timeZone, new Date(appointment.startsAt), clinic.locale.clock),
-        link: this.manageLink(appointment.id),
+        link: await this.manageLink(actor.clinicId, appointment.id),
       },
     });
 
@@ -89,9 +90,14 @@ export class PendingBookingsService {
     return { name: row?.name ?? "", locale: clinicLocale(row) };
   }
 
-  private manageLink(appointmentId: string): string {
-    const base = this.config.get("PUBLIC_BASE_URL", { infer: true });
+  private async manageLink(clinicId: string, appointmentId: string): Promise<string> {
+    const [clinic] = await this.db
+      .select({ siteDomain: clinics.siteDomain, appDomain: clinics.appDomain })
+      .from(clinics)
+      .where(eq(clinics.id, clinicId))
+      .limit(1);
+    const base = publicBase(clinic, this.config.get("PUBLIC_BASE_URL", { infer: true }));
 
-    return `${base.replace(/\/$/, "")}/booking/manage/${this.tokens.sign(appointmentId)}`;
+    return `${base}/booking/manage/${this.tokens.sign(appointmentId)}`;
   }
 }

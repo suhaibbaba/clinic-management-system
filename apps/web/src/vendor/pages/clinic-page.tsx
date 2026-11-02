@@ -191,6 +191,16 @@ export function ClinicPage({
         </dl>
       </section>
 
+      {!detail.appDomain && !detail.removedAt && (
+        <p
+          role="status"
+          className="rounded-panel bg-warning-50 p-3 text-label text-warning-800"
+          data-testid="vendor-clinic-no-app-domain"
+        >
+          {t("vendor.clinic.noAppDomainWarning")}
+        </p>
+      )}
+
       {isReadOnly(subscription?.status ?? null) && !detail.removedAt && (
         <p role="status" className="rounded-panel bg-danger-50 p-3 text-label text-danger-700">
           {t("vendor.clinic.readOnlyNote")}

@@ -66,6 +66,7 @@ import {
   OTP_TTL_SECONDS,
 } from "@api/modules/booking/constants";
 import { phoneMatches } from "@api/common/lib/phone";
+import { publicBase } from "@api/modules/booking/lib/public-base";
 
 @Injectable()
 export class BookingService {
@@ -555,7 +556,7 @@ export class BookingService {
         doctor: booking.doctorName,
         date: shortDate(localDate(new Date(booking.startsAt), clinic.timeZone)),
         time: timeIn(clinic.timeZone, new Date(booking.startsAt), clinic.locale.clock),
-        link: this.manageLink(token),
+        link: await this.manageLink(clinic.id, token),
       },
     });
 
@@ -872,9 +873,14 @@ export class BookingService {
     return row?.phone ?? "";
   }
 
-  private manageLink(token: string): string {
-    const base = this.config.get("PUBLIC_BASE_URL", { infer: true });
+  private async manageLink(clinicId: string, token: string): Promise<string> {
+    const [clinic] = await this.db
+      .select({ siteDomain: clinics.siteDomain, appDomain: clinics.appDomain })
+      .from(clinics)
+      .where(eq(clinics.id, clinicId))
+      .limit(1);
+    const base = publicBase(clinic, this.config.get("PUBLIC_BASE_URL", { infer: true }));
 
-    return `${base.replace(/\/$/, "")}/booking/manage/${token}`;
+    return `${base}/booking/manage/${token}`;
   }
 }

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   APPOINTMENT_STATUS,
   BOOKING_CONFIRMATION_MODE,
@@ -321,6 +322,30 @@ describe("Public booking (e2e)", () => {
         );
 
       expect(sent).toBeDefined();
+    });
+
+    it("links the confirmation to the clinic's own website domain", async () => {
+      const domain = `site-${randomUUID().slice(0, 8)}.example.ps`;
+      await context.db.update(clinics).set({ siteDomain: domain }).where(eq(clinics.id, clinic.id));
+
+      try {
+        const token = await held();
+        const appointmentId = appointmentIdOf(token);
+
+        await verify(token, issuedCode(appointmentId));
+
+        const confirmation = sent.findLast(
+          (message) =>
+            message.appointmentId === appointmentId &&
+            message.template === NOTIFICATION_TEMPLATE.BOOKING_CONFIRMED,
+        );
+
+        expect(confirmation?.vars?.["link"]).toMatch(
+          new RegExp(`^https://${domain.replace(/\./g, "\\.")}/booking/manage/`),
+        );
+      } finally {
+        await context.db.update(clinics).set({ siteDomain: null }).where(eq(clinics.id, clinic.id));
+      }
     });
 
     it("spends the code, so a replay does not confirm twice", async () => {

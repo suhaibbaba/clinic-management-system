@@ -129,7 +129,9 @@ a code, a chart type if it needs one, and its starter pack — never a branch in
   OAuth client (secrets sealed in `clinic_secrets`, shown only as their last four characters). On its
   dashboard domain the API resolves the clinic from the host (`ClinicHostService`), so Google
   sign-in uses the clinic's client and admits only its staff, passkeys belong to that host and the
-  clinic's emails link to it. A clinic without its own falls back to the server's `.env`.
+  clinic's emails and booking links use its domains. A clinic without its own keys falls back to
+  the server's `.env`. The shared address (`PUBLIC_BASE_URL`) is the vendor console only: the host
+  nginx marks it `X-Clinic-Entry: vendor` and every page there goes to `/vendor`.
 - **The vendor console** — `/vendor`, its own bundle (`src/vendor`) and its own sign-in
   (`vendor_users`, an opaque session in the `clinic_vendor_session` httpOnly cookie), never a clinic
   role or a staff token. It sees business data only (plan, modules, specialties, user counts, dates,

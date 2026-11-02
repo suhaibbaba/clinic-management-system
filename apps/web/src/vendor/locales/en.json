@@ -214,9 +214,10 @@
       "revokeBody": "The specialty's chart and lists disappear from the clinic; its data stays and returns when you switch it back on.",
       "unmanagedNote": "This clinic has no subscription yet. Saving creates one with its current modules, unchanged.",
       "appDomain": "Dashboard domain",
-      "appDomainHint": "Where the clinic's staff sign in, such as admin.clinic.ps. The clinic's own Google sign-in and passkeys work on this address only. It needs its DNS record, a certificate and an nginx block on the server.",
+      "appDomainHint": "Where the clinic's staff sign in, such as admin.clinic.ps. Every clinic needs one: the shared address is the vendor console only. The clinic's own Google sign-in and passkeys work here. It needs its DNS record, a certificate and an nginx block on the server.",
       "appDomainPlaceholder": "admin.example.com",
-      "noAppDomain": "No dashboard domain: staff sign in on the shared address."
+      "noAppDomain": "No dashboard domain yet: this clinic's staff have nowhere to sign in.",
+      "noAppDomainWarning": "No dashboard domain: this clinic's staff have nowhere to sign in. Set one on the Domain tab."
     },
     "status": {
       "trial": "Trial",

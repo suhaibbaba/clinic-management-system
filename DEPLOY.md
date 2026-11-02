@@ -3,20 +3,21 @@
 **One install serves every clinic.** One database, one object store, one set of containers on a
 **shared VPS** that already hosts other projects behind a host-level nginx. Every clinic runs the
 same code, from `main`; a clinic is a row created in the vendor console, never a new environment.
+The shared address is **the vendor console only**: every clinic's staff sign in on the clinic's own
+dashboard domain, and its patients use its website domain.
 
 This stack ships **no reverse proxy and no TLS**, and **nothing it publishes listens on a public
 interface** — every published port binds to `127.0.0.1` and the host nginx reaches it over loopback.
 
-|                  |                                                    |
-| ---------------- | -------------------------------------------------- |
-| Dashboard        | <https://clinic-managment.organza-moda.com>        |
-| API              | <https://clinic-managment.organza-moda.com/api>    |
-| Vendor console   | <https://clinic-managment.organza-moda.com/vendor> |
-| S3 (MinIO)       | <https://clinic-managment-s3.organza-moda.com>     |
-| Server directory | `/opt/clinic/app`                                  |
-| Compose project  | `clinic`                                           |
-| Compose file     | `docker-compose.server.yml`                        |
-| Images           | built on the server: `clinic-api`, `clinic-web`    |
+|                  |                                                           |
+| ---------------- | --------------------------------------------------------- |
+| Vendor console   | <https://clinic-managment.organza-moda.com> (→ `/vendor`) |
+| API              | <https://clinic-managment.organza-moda.com/api>           |
+| S3 (MinIO)       | <https://clinic-managment-s3.organza-moda.com>            |
+| Server directory | `/opt/clinic/app`                                         |
+| Compose project  | `clinic`                                                  |
+| Compose file     | `docker-compose.server.yml`                               |
+| Images           | built on the server: `clinic-api`, `clinic-web`           |
 
 ```
 manual run (main) ─▶ ssh ─▶ git reset --hard origin/main ─▶ resolve APP_VERSION
@@ -185,8 +186,9 @@ sudo certbot certonly --nginx -d clinic-managment.organza-moda.com \
 
 These blocks belong to the **host** nginx, not to this stack.
 
-**Dashboard — `clinic-managment.organza-moda.com`.** One upstream: the web container's own nginx
-serves the SPA and the vendor console and proxies `/api/` to the API container.
+**Vendor console — `clinic-managment.organza-moda.com`.** One upstream: the web container's own
+nginx serves the bundles and proxies `/api/` to the API container. `X-Clinic-Entry: vendor` sends
+every page of this host that is not a file to `/vendor`, so no clinic screen answers here.
 
 ```nginx
 server {
@@ -201,6 +203,7 @@ server {
         proxy_set_header X-Real-IP         $remote_addr;
         proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Clinic-Entry    vendor;
     }
 }
 ```
@@ -275,9 +278,11 @@ docker compose -p clinic -f docker-compose.server.yml exec -e VENDOR_PASSWORD='�
 
 Nothing on the server changes: no checkout, no `.env`, no workflow edit.
 
-1. Sign in to <https://clinic-managment.organza-moda.com/vendor> → **New clinic**. That writes the
+1. Sign in to <https://clinic-managment.organza-moda.com> → **New clinic**. That writes the
    clinic, its specialties, its admin and a trial or active subscription in one go.
-2. The admin signs in on the dashboard with a one-time code sent to their phone. While
+2. Give it a **dashboard domain** (below) — without one its staff have nowhere to sign in — and,
+   with the `website` module, a website domain.
+3. The admin signs in on the dashboard domain with a one-time code sent to their phone. While
    `NOTIFICATIONS_PROVIDER=log`, the code reaches only the API log:
    `docker compose -p clinic -f docker-compose.server.yml logs --tail=50 api`.
 
@@ -313,12 +318,11 @@ server {
 
 ### The clinic's dashboard on its own domain
 
-Staff can always sign in on the shared dashboard. A clinic that wants its own sign-in address — and
-needs one for its own Google sign-in — gets a **dashboard domain**, such as `admin.abuobaidclinic.ps`:
+Every clinic signs in on its own **dashboard domain**, such as `admin.abuobaidclinic.ps`:
 
 1. Point it at the server and issue its certificate with certbot.
 2. Record it on the clinic's page in the vendor console (**Domain** → **Dashboard domain**).
-3. Add a host nginx block exactly like the shared dashboard's, with this name (no `X-Clinic-Entry`).
+3. Add a host nginx block like the vendor console's, with this name and **no** `X-Clinic-Entry`.
 
 On that host the API knows the clinic before anybody signs in: its Google sign-in is the clinic's
 own, passkeys made there belong to that host, and the clinic's emails link to it.
