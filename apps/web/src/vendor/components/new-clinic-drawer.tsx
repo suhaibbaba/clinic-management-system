@@ -1,6 +1,7 @@
 import {
   COUNTRY_PRESETS,
   SPECIALTY_CODE,
+  type ClinicModule,
   type CreateClinicInput,
   type SpecialtyCode,
 } from "@clinic/shared";
@@ -14,11 +15,11 @@ import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { VENDOR_TRIAL_DAYS } from "@web/vendor/constants";
 import { slugFrom } from "@web/vendor/lib/clinic-actions";
-import { defaultPlanId } from "@web/vendor/lib/subscription";
 import { clinicAddresses, parseDomain } from "@web/vendor/lib/domain";
 import { newClinicProblems } from "@web/vendor/lib/new-clinic";
 import { vendorErrorKey } from "@web/vendor/lib/vendor-api-error";
-import { useCreateClinic, usePlans } from "@web/vendor/queries";
+import { useCreateClinic } from "@web/vendor/queries";
+import { ModulePicker } from "@web/vendor/components/module-picker";
 
 const TRIAL_CHOICES = [0, 14, VENDOR_TRIAL_DAYS, 60, 90] as const;
 
@@ -32,10 +33,8 @@ export function NewClinicDrawer({
   readonly onCreated: (id: string) => void;
 }): JSX.Element {
   const { t, i18n } = useTranslation();
-  const plans = usePlans();
   const countryNames = new Intl.DisplayNames([i18n.language], { type: "region" });
   const create = useCreateClinic();
-  const offered = (plans.data?.items ?? []).filter((plan) => plan.isActive);
   const [nameAr, setNameAr] = useState("");
   const [nameEn, setNameEn] = useState("");
   const [slug, setSlug] = useState("");
@@ -43,7 +42,7 @@ export function NewClinicDrawer({
   const [country, setCountry] = useState("PS");
   const [domain, setDomain] = useState("");
   const [specialties, setSpecialties] = useState<SpecialtyCode[]>([SPECIALTY_CODE.DENTAL]);
-  const [planId, setPlanId] = useState("");
+  const [modules, setModules] = useState<ClinicModule[]>([]);
   const [trialDays, setTrialDays] = useState<number>(VENDOR_TRIAL_DAYS);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -52,7 +51,6 @@ export function NewClinicDrawer({
   const [tried, setTried] = useState(false);
 
   const parsedDomain = parseDomain(domain);
-  const chosenPlan = planId || defaultPlanId(offered);
   const input: CreateClinicInput = {
     name: {
       ...(nameAr.trim() && { ar: nameAr.trim() }),
@@ -62,7 +60,7 @@ export function NewClinicDrawer({
     country,
     domain: parsedDomain ?? null,
     specialties,
-    planId: chosenPlan,
+    modules,
     trialDays,
     admin: {
       firstName: firstName.trim(),
@@ -215,17 +213,11 @@ export function NewClinicDrawer({
           <legend className="mb-2 text-label font-bold text-primary-700">
             {t("vendor.newClinic.subscription")}
           </legend>
+          <div className="flex flex-col gap-2">
+            <span className="text-label text-ink-muted">{t("vendor.clinic.tabs.modules")}</span>
+            <ModulePicker value={modules} onChange={setModules} data-testid="new-clinic-modules" />
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <FormField label="vendor.clinic.plan" htmlFor="new-clinic-plan">
-              <Select
-                id="new-clinic-plan"
-                searchable
-                value={chosenPlan || undefined}
-                placeholder={t("vendor.clinic.choosePlan")}
-                onChange={(event) => setPlanId(event.target.value)}
-                options={offered.map((plan) => ({ value: plan.id, label: plan.name }))}
-              />
-            </FormField>
             <FormField label="vendor.newClinic.trial" htmlFor="new-clinic-trial">
               <Select
                 id="new-clinic-trial"

@@ -97,11 +97,6 @@ export function ClinicsPage({ location }: { readonly location: VendorLocation })
       ),
     },
     {
-      key: "plan",
-      header: t("vendor.clinics.columns.plan"),
-      render: (row) => row.subscription?.planName ?? "—",
-    },
-    {
       key: "specialties",
       header: t("vendor.clinics.columns.specialties"),
       hideOnMobile: true,
@@ -173,15 +168,6 @@ export function ClinicsPage({ location }: { readonly location: VendorLocation })
               </MenuItem>
             ) : (
               <>
-                {act.extend && (
-                  <MenuItem
-                    icon="calendar"
-                    onSelect={act.extend}
-                    data-testid="vendor-action-extend"
-                  >
-                    {t("vendor.actions.extend")}
-                  </MenuItem>
-                )}
                 {row.domain && (
                   <MenuItem
                     icon="monitor"

@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { AuthModule } from "@api/modules/auth/auth.module";
+import { StorageModule } from "@api/modules/storage/storage.module";
 import { VendorAuthController } from "@api/modules/vendor/controllers/vendor-auth.controller";
 import { VendorClinicsController } from "@api/modules/vendor/controllers/vendor-clinics.controller";
 import { VendorPlansController } from "@api/modules/vendor/controllers/vendor-plans.controller";
@@ -14,7 +15,7 @@ import { ClinicLifecycleService } from "@api/modules/vendor/services/clinic-life
 import { VendorSessionGuard } from "@api/modules/vendor/services/vendor-session.guard";
 
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, StorageModule],
   controllers: [
     VendorAuthController,
     VendorPasswordController,

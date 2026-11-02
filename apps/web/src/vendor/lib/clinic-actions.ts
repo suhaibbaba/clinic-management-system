@@ -5,18 +5,6 @@ import {
   type Subscription,
 } from "@clinic/shared";
 
-const pad = (value: number): string => String(value).padStart(2, "0");
-
-export function addMonths(isoDate: string, months: number): string {
-  const [year = 1970, month = 1, day = 1] = isoDate.split("-").map(Number);
-  const target = new Date(Date.UTC(year, month - 1 + months, 1));
-  const lastDay = new Date(
-    Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0),
-  ).getUTCDate();
-
-  return `${target.getUTCFullYear()}-${pad(target.getUTCMonth() + 1)}-${pad(Math.min(day, lastDay))}`;
-}
-
 const asInput = (subscription: Subscription): SaveSubscriptionInput => ({
   planId: subscription.planId,
   addOnModules: subscription.addOnModules,
@@ -26,23 +14,6 @@ const asInput = (subscription: Subscription): SaveSubscriptionInput => ({
   graceDays: subscription.graceDays,
   notes: subscription.notes,
 });
-
-export function extendedByAMonth(
-  subscription: Subscription,
-  today: string = new Date().toISOString().slice(0, 10),
-): SaveSubscriptionInput {
-  const from =
-    subscription.endsOn !== null && subscription.endsOn > today ? subscription.endsOn : today;
-
-  return {
-    ...asInput(subscription),
-    status:
-      subscription.status === SUBSCRIPTION_STATUS.TRIAL
-        ? SUBSCRIPTION_STATUS.TRIAL
-        : SUBSCRIPTION_STATUS.ACTIVE,
-    endsOn: addMonths(from, 1),
-  };
-}
 
 export const suspended = (subscription: Subscription): SaveSubscriptionInput => ({
   ...asInput(subscription),

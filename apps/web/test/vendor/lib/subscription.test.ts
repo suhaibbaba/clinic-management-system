@@ -9,7 +9,6 @@ import {
   initialSubscription,
   isReadOnly,
   lacksDependency,
-  planInput,
   resultingModules,
 } from "@web/vendor/lib/subscription";
 import { VendorApiError, vendorErrorKey } from "@web/vendor/lib/vendor-api-error";
@@ -32,6 +31,7 @@ const clinic = (overrides: Partial<VendorClinicDetail> = {}): VendorClinicDetail
   slug: "clinic",
   name: { en: "Clinic" },
   domain: null,
+  logoUrl: null,
   removedAt: null,
   modules: [],
   specialties: [],
@@ -67,12 +67,15 @@ describe("a subscription's modules", () => {
 });
 
 describe("the subscription form's starting values", () => {
-  it("offers a 30-day trial on the first offered plan to a clinic without one", () => {
+  it("offers a clinic without one a 30-day trial that keeps the modules it has", () => {
     expect(
-      initialSubscription(clinic(), [plan({ isActive: false, id: "x" }), plan()], "2026-11-01"),
+      initialSubscription(
+        clinic({ modules: [CLINIC_MODULE.APPOINTMENTS, CLINIC_MODULE.LABS] }),
+        [plan({ code: "basic", modules: [] })],
+        "2026-11-01",
+      ),
     ).toEqual({
-      planId: plan().id,
-      addOnModules: [],
+      addOnModules: [CLINIC_MODULE.APPOINTMENTS, CLINIC_MODULE.LABS],
       status: SUBSCRIPTION_STATUS.TRIAL,
       startsOn: "2026-11-01",
       endsOn: "2026-12-01",
@@ -101,18 +104,6 @@ describe("the subscription form's starting values", () => {
       graceDays: 7,
       notes: "paid yearly",
     });
-  });
-
-  it("opens a new plan empty and an existing one with its values", () => {
-    expect(planInput(null)).toEqual({
-      code: "",
-      name: "",
-      modules: [],
-      maxUsers: null,
-      maxDoctors: null,
-      isActive: true,
-    });
-    expect(planInput(plan({ maxUsers: 5 }))).toMatchObject({ code: "basic", maxUsers: 5 });
   });
 });
 

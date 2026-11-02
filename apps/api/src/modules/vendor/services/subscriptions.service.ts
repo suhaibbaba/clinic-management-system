@@ -1,6 +1,7 @@
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { and, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 import {
+  DEFAULT_PLAN_CODE,
   missingModules,
   SUBSCRIPTION_EVENT,
   SUBSCRIPTION_STATUS,
@@ -49,7 +50,17 @@ export class SubscriptionsService {
         throw new NotFoundException("Clinic not found");
       }
 
-      const [plan] = await tx.select().from(plans).where(eq(plans.id, input.planId)).limit(1);
+      const [current] = await tx
+        .select({ planId: subscriptions.planId })
+        .from(subscriptions)
+        .where(eq(subscriptions.clinicId, clinicId))
+        .limit(1);
+      const planId = input.planId ?? current?.planId;
+      const [plan] = await tx
+        .select()
+        .from(plans)
+        .where(planId ? eq(plans.id, planId) : eq(plans.code, DEFAULT_PLAN_CODE))
+        .limit(1);
 
       if (!plan) {
         throw new BadRequestException("No such plan");

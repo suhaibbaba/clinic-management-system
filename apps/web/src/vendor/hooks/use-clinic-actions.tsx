@@ -2,11 +2,10 @@ import { localized, SUBSCRIPTION_STATUS, type VendorClinicSummary } from "@clini
 import { useConfirm } from "@clinic/ui/components/confirm-dialog";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { extendedByAMonth, suspended } from "@web/vendor/lib/clinic-actions";
+import { suspended } from "@web/vendor/lib/clinic-actions";
 import { useRemoveClinic, useRestoreClinic, useSaveSubscriptionFor } from "@web/vendor/queries";
 
 export interface ClinicActions {
-  readonly extend: (() => void) | null;
   readonly suspend: (() => void) | null;
   readonly remove: () => void;
   readonly restore: () => void;
@@ -27,9 +26,6 @@ export function useClinicActions(onRemoved?: () => void): {
     const name = localized(clinic.name, i18n.language);
 
     return {
-      extend: subscription
-        ? () => save.mutate({ clinicId: clinic.id, input: extendedByAMonth(subscription) })
-        : null,
       suspend:
         subscription && subscription.status !== SUBSCRIPTION_STATUS.SUSPENDED
           ? () =>

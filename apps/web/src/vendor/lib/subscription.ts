@@ -7,7 +7,6 @@ import {
   SUBSCRIPTION_STATUS,
   type ClinicModule,
   type Plan,
-  type SavePlanInput,
   type SaveSubscriptionInput,
   type SubscriptionStatus,
   type VendorClinicDetail,
@@ -59,8 +58,10 @@ export function initialSubscription(
         notes: current.notes,
       }
     : {
-        planId: defaultPlanId(plans),
-        addOnModules: [],
+        addOnModules: detail.modules.filter(
+          (module) =>
+            !plans.find((plan) => plan.id === defaultPlanId(plans))?.modules.includes(module),
+        ),
         status: SUBSCRIPTION_STATUS.TRIAL,
         startsOn: today,
         endsOn: addDays(today, VENDOR_TRIAL_DAYS),
@@ -74,15 +75,3 @@ export const defaultPlanId = (plans: readonly Plan[]): string =>
     plans.find((plan) => plan.code === DEFAULT_PLAN_CODE && plan.isActive) ??
     plans.find((plan) => plan.isActive)
   )?.id ?? "";
-
-export const planInput = (plan: Plan | null): SavePlanInput =>
-  plan
-    ? {
-        code: plan.code,
-        name: plan.name,
-        modules: plan.modules,
-        maxUsers: plan.maxUsers,
-        maxDoctors: plan.maxDoctors,
-        isActive: plan.isActive,
-      }
-    : { code: "", name: "", modules: [], maxUsers: null, maxDoctors: null, isActive: true };

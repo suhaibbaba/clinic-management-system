@@ -448,6 +448,32 @@ describe("Vendor console (e2e)", () => {
       expect(detail.events[0]?.action).toBe(SUBSCRIPTION_EVENT.CLINIC_CREATED);
     });
 
+    it("puts a clinic created without a plan on Basic with the modules chosen", async () => {
+      const { planId: _plan, ...input } = newClinic(randomUUID());
+      const created = await call("POST", "/vendor/clinics", {
+        ...input,
+        modules: [CLINIC_MODULE.BOOKING, CLINIC_MODULE.APPOINTMENTS],
+      });
+      const detail = (
+        await call("GET", `/vendor/clinics/${created.json<{ id: string }>().id}`)
+      ).json<VendorClinicDetail>();
+
+      expect(created.statusCode).toBe(201);
+      expect(detail.modules).toEqual([CLINIC_MODULE.APPOINTMENTS, CLINIC_MODULE.BOOKING]);
+      expect(detail.subscription).toMatchObject({
+        planName: "Basic",
+        addOnModules: [CLINIC_MODULE.APPOINTMENTS, CLINIC_MODULE.BOOKING],
+      });
+
+      const lonely = await call("POST", "/vendor/clinics", {
+        ...newClinic(randomUUID()),
+        planId: undefined,
+        modules: [CLINIC_MODULE.BOOKING],
+      });
+
+      expect(lonely.statusCode).toBe(400);
+    });
+
     it("refuses a slug another clinic has", async () => {
       const plan = await createPlan([]);
       const first = newClinic(plan.id);

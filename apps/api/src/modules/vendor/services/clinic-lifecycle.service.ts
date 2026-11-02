@@ -2,6 +2,9 @@ import { BadRequestException, Inject, Injectable, NotFoundException } from "@nes
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import {
   addDays,
+  DEFAULT_PLAN_CODE,
+  missingModules,
+  VENDOR_MISSING_MODULES,
   countryPreset,
   joinPersonName,
   SUBSCRIPTION_EVENT,
@@ -17,6 +20,7 @@ import { forgetSessionState } from "@api/common/database/session-state";
 import { TokenService } from "@api/modules/auth/services/token.service";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import { conflictFor } from "@api/modules/vendor/lib/vendor-conflicts";
+import { subscriptionModules } from "@api/modules/vendor/lib/subscription-modules";
 import { SubscriptionsService } from "@api/modules/vendor/services/subscriptions.service";
 
 @Injectable()
@@ -43,11 +47,17 @@ export class ClinicLifecycleService {
             isActive: plans.isActive,
           })
           .from(plans)
-          .where(eq(plans.id, input.planId))
+          .where(input.planId ? eq(plans.id, input.planId) : eq(plans.code, DEFAULT_PLAN_CODE))
           .limit(1);
 
         if (!plan?.isActive) {
           throw new BadRequestException("No such plan");
+        }
+
+        const modules = subscriptionModules(plan.modules, input.modules);
+
+        if (missingModules(modules).length > 0) {
+          throw new BadRequestException(VENDOR_MISSING_MODULES);
         }
 
         const preset = countryPreset(input.country);
@@ -60,7 +70,7 @@ export class ClinicLifecycleService {
             country: input.country,
             currency: preset.currency,
             siteDomain: input.domain,
-            modules: [...plan.modules],
+            modules,
             settings: { timezone: preset.timeZone },
           })
           .returning({ id: clinics.id });
@@ -90,6 +100,7 @@ export class ClinicLifecycleService {
         await tx.insert(subscriptions).values({
           clinicId: clinic.id,
           planId: plan.id,
+          addOnModules: modules.filter((module) => !plan.modules.includes(module)),
           status: input.trialDays > 0 ? SUBSCRIPTION_STATUS.TRIAL : SUBSCRIPTION_STATUS.ACTIVE,
           startsOn: today,
           endsOn: input.trialDays > 0 ? addDays(today, input.trialDays) : null,

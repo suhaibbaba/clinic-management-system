@@ -1,12 +1,6 @@
 import { CLINIC_MODULE, SUBSCRIPTION_STATUS, type Subscription } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
-import {
-  addMonths,
-  extendedByAMonth,
-  initials,
-  slugFrom,
-  suspended,
-} from "@web/vendor/lib/clinic-actions";
+import { initials, slugFrom, suspended } from "@web/vendor/lib/clinic-actions";
 import { newClinicProblems } from "@web/vendor/lib/new-clinic";
 
 const subscription = (overrides: Partial<Subscription> = {}): Subscription => ({
@@ -22,38 +16,7 @@ const subscription = (overrides: Partial<Subscription> = {}): Subscription => ({
   ...overrides,
 });
 
-describe("extending a subscription by a month", () => {
-  it.each([
-    ["2026-01-31", "2026-02-28"],
-    ["2026-12-15", "2027-01-15"],
-    ["2028-01-31", "2028-02-29"],
-  ])("moves %s to %s", (from, to) => {
-    expect(addMonths(from, 1)).toBe(to);
-  });
-
-  it("adds a month to a future end date and keeps the rest", () => {
-    expect(extendedByAMonth(subscription(), "2026-11-02")).toMatchObject({
-      endsOn: "2027-01-15",
-      status: SUBSCRIPTION_STATUS.ACTIVE,
-      addOnModules: [CLINIC_MODULE.WEBSITE],
-    });
-  });
-
-  it("counts from today for an ended one, and reactivates it", () => {
-    expect(
-      extendedByAMonth(
-        subscription({ status: SUBSCRIPTION_STATUS.SUSPENDED, endsOn: "2026-09-01" }),
-        "2026-11-02",
-      ),
-    ).toMatchObject({ endsOn: "2026-12-02", status: SUBSCRIPTION_STATUS.ACTIVE });
-  });
-
-  it("keeps a trial a trial", () => {
-    expect(
-      extendedByAMonth(subscription({ status: SUBSCRIPTION_STATUS.TRIAL }), "2026-11-02").status,
-    ).toBe(SUBSCRIPTION_STATUS.TRIAL);
-  });
-
+describe("suspending a subscription", () => {
   it("suspends without touching the dates", () => {
     expect(suspended(subscription())).toMatchObject({
       status: SUBSCRIPTION_STATUS.SUSPENDED,
@@ -81,13 +44,17 @@ describe("the new clinic's problems", () => {
     country: "PS",
     domain: null,
     specialties: ["dental" as const],
-    planId: "22222222-2222-4222-8222-222222222222",
+    modules: [],
     trialDays: 30,
     admin: { firstName: "سامر", lastName: "نصار", phone: "+970599123456", email: null },
   };
 
   it("finds none in a complete clinic", () => {
     expect(newClinicProblems(valid, false)).toEqual([]);
+  });
+
+  it("names booking without appointments", () => {
+    expect(newClinicProblems({ ...valid, modules: ["booking"] }, false)).toEqual(["modules"]);
   });
 
   it("names each missing piece once, in the form's order", () => {

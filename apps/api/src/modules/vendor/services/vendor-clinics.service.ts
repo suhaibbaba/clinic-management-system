@@ -48,6 +48,7 @@ import {
 } from "@api/modules/vendor/lib/vendor-clinic-row";
 import { grantSpecialty, revokeSpecialty } from "@api/database/clinic-specialties";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
+import { StorageService } from "@api/modules/storage/services/storage.service";
 import { conflictFor } from "@api/modules/vendor/lib/vendor-conflicts";
 import { VENDOR_ENDING_SOON_DAYS, VENDOR_EVENT_LIMIT } from "@api/modules/vendor/constants";
 import { SubscriptionsService } from "@api/modules/vendor/services/subscriptions.service";
@@ -58,6 +59,7 @@ export class VendorClinicsService {
     @Inject(DATABASE) private readonly db: Database,
     private readonly subscriptions: SubscriptionsService,
     private readonly permissions: PermissionsService,
+    private readonly storage: StorageService,
   ) {}
 
   async list(query: VendorClinicsQuery): Promise<Paginated<VendorClinicSummary>> {
@@ -358,12 +360,23 @@ export class VendorClinicsService {
         ),
     ]);
     const usersBy = new Map(userCounts.map((entry) => [entry.clinicId, entry.value]));
+    const logos = new Map(
+      await Promise.all(
+        rows
+          .filter((row) => row.logoKey !== null)
+          .map(
+            async (row) =>
+              [row.id, (await this.storage.createBrandingUrl(row.logoKey ?? "")).url] as const,
+          ),
+      ),
+    );
 
     return rows.map((row) => ({
       id: row.id,
       slug: row.slug,
       name: row.name,
       domain: row.domain,
+      logoUrl: logos.get(row.id) ?? null,
       removedAt: row.removedAt?.toISOString() ?? null,
       modules: row.modules,
       specialties: specialtyRows

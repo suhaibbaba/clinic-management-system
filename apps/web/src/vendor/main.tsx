@@ -15,7 +15,6 @@ import { ForgotPage } from "@web/vendor/pages/forgot-page";
 import { ResetPage } from "@web/vendor/pages/reset-page";
 import { PUBLIC_ROUTES } from "@web/vendor/constants";
 import { localized, PRODUCT_NAME } from "@clinic/shared";
-import { PlansPage } from "@web/vendor/pages/plans-page";
 import { useVendorSession } from "@web/vendor/queries";
 
 const client = new QueryClient({
@@ -35,7 +34,9 @@ function VendorApp(): JSX.Element | null {
   }, [t, i18n.language]);
 
   useEffect(() => {
-    if (signedOut && !PUBLIC_ROUTES.has(route.kind)) {
+    if (route.kind === "plans") {
+      navigate(vendorPath({ kind: "clinics" }), { replace: true });
+    } else if (signedOut && !PUBLIC_ROUTES.has(route.kind)) {
       navigate(vendorPath({ kind: "login" }), { replace: true });
     } else if (session.isSuccess && PUBLIC_ROUTES.has(route.kind)) {
       navigate(vendorPath({ kind: "clinics" }), { replace: true });
@@ -77,11 +78,7 @@ function VendorApp(): JSX.Element | null {
         </Shell>
       );
     case "plans":
-      return (
-        <Shell section="plans" navigate={navigate}>
-          <PlansPage location={location} />
-        </Shell>
-      );
+      return null;
     case "not-found":
       return (
         <Shell section="clinics" navigate={navigate}>

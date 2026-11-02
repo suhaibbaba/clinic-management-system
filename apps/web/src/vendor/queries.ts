@@ -1,7 +1,6 @@
 import type {
   ClinicModule,
   CreateClinicInput,
-  SavePlanInput,
   SaveSubscriptionInput,
   SpecialtyCode,
   VendorClinicsQuery,
@@ -155,16 +154,6 @@ export function useGrantSpecialty(clinicId: string) {
 
   return useMutation({
     mutationFn: (code: SpecialtyCode) => vendorApi.grantSpecialty(clinicId, { code }),
-    onSuccess: refresh,
-  });
-}
-
-export function useSavePlan() {
-  const refresh = useRefreshAll();
-
-  return useMutation({
-    mutationFn: ({ id, input }: { readonly id: string | null; readonly input: SavePlanInput }) =>
-      id === null ? vendorApi.createPlan(input) : vendorApi.updatePlan(id, input),
     onSuccess: refresh,
   });
 }

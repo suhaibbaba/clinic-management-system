@@ -25,7 +25,7 @@ export function Shell({
   search = "",
   children,
 }: {
-  readonly section: "clinics" | "plans";
+  readonly section: "clinics";
   readonly navigate: (to: string) => void;
   readonly search?: string;
   readonly children: ReactNode;
@@ -35,7 +35,7 @@ export function Shell({
   const signOut = useSignOut();
   const [query, setQuery] = useState(search);
   const profile = session.data;
-  const tab = (target: "clinics" | "plans"): string =>
+  const tab = (target: "clinics"): string =>
     cn(
       "inline-flex min-h-(--control-h) items-center rounded-control px-3.5 text-label",
       target === section
@@ -81,14 +81,6 @@ export function Shell({
               data-testid="vendor-nav-clinics"
             >
               {t("vendor.nav.clinics")}
-            </VendorLink>
-            <VendorLink
-              to={vendorPath({ kind: "plans" })}
-              navigate={navigate}
-              className={tab("plans")}
-              data-testid="vendor-nav-plans"
-            >
-              {t("vendor.nav.plans")}
             </VendorLink>
           </nav>
 

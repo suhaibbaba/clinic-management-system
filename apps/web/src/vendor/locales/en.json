@@ -112,8 +112,8 @@
           "body": "Create a clinic and its admin in one step; remove or restore it any time."
         },
         "plans": {
-          "title": "Plans and modules",
-          "body": "Choose what runs in each clinic, from Basic to every module."
+          "title": "Modules and specialties",
+          "body": "Choose what runs in each clinic, one module at a time."
         },
         "safe": {
           "title": "Nothing is erased",
@@ -126,7 +126,6 @@
     },
     "nav": {
       "clinics": "Clinics",
-      "plans": "Plans",
       "signOut": "Sign out",
       "label": "Console sections",
       "language": "Language",
@@ -147,7 +146,6 @@
       "empty": "No clinics match",
       "columns": {
         "clinic": "Clinic",
-        "plan": "Plan",
         "specialties": "Specialties",
         "modules": "Modules",
         "users": "Users",
@@ -172,38 +170,30 @@
       "doctors": "Doctors",
       "created": "Created",
       "subscription": "Subscription",
-      "plan": "Plan",
-      "choosePlan": "Choose a plan",
       "status": "Status",
       "startsOn": "Starts",
       "endsOn": "Ends",
       "noEnd": "No end date",
       "graceDays": "Grace days",
       "notes": "Notes",
-      "addOns": "Add-on modules",
       "includedInPlan": "In the plan",
-      "resulting": "Modules on after saving",
       "none": "None",
-      "save": "Save subscription",
       "saved": "Subscription saved",
       "specialties": "Specialties",
       "history": "History",
       "noHistory": "No changes yet",
       "system": "System",
       "readOnlyNote": "The clinic is read-only: staff can open records but cannot change anything.",
-      "unmanagedNote": "This clinic has no subscription, so its modules are as they were set by hand.",
       "domain": "Domain",
       "domainHint": "The website is the domain itself and the dashboard is admin. of it. Each domain needs its DNS records and a certificate on the server.",
       "domainPlaceholder": "example.com",
       "website": "Website",
       "dashboard": "Dashboard",
       "noDomain": "No domain: the website answers at /site/{{slug}}",
-      "saveDomain": "Save domain",
       "domainSaved": "Domain saved",
       "domainInvalid": "Enter a domain such as clinic.ps",
       "until": "until {{date}}",
       "createdOn": "Created {{date}}",
-      "ofLimit": "of {{limit}}",
       "sections": "Clinic sections",
       "tabs": {
         "modules": "Modules",
@@ -216,30 +206,12 @@
       "recent": "Recent changes",
       "allHistory": "Full history",
       "removedNote": "This clinic was removed on {{date}}. Its staff cannot sign in and its website is off.",
-      "modulesOnPlan": "The {{plan}} plan's modules are always on; what you add on top goes into the clinic's subscription.",
-      "modulesByHand": "This clinic has no subscription: the modules you choose here are what it runs.",
+      "modulesByHand": "The modules you choose here are what the clinic runs; changes take effect within a minute.",
       "modulesSaved": "Modules saved",
-      "saveModules": "Save modules",
       "revokeTitle": "Switch off {{specialty}} for {{name}}?",
       "revoke": "Switch off",
-      "revokeBody": "The specialty's chart and lists disappear from the clinic; its data stays and returns when you switch it back on."
-    },
-    "plans": {
-      "new": "New plan",
-      "edit": "Edit plan",
-      "code": "Code",
-      "name": "Name",
-      "modules": "Modules",
-      "maxUsers": "User limit",
-      "maxDoctors": "Doctor limit",
-      "unlimited": "Unlimited",
-      "active": "Offered",
-      "inactive": "Withdrawn",
-      "clinics": "Clinics",
-      "save": "Save plan",
-      "saved": "Plan saved",
-      "empty": "No plans yet",
-      "cancel": "Cancel"
+      "revokeBody": "The specialty's chart and lists disappear from the clinic; its data stays and returns when you switch it back on.",
+      "unmanagedNote": "This clinic has no subscription yet. Saving creates one with its current modules, unchanged."
     },
     "status": {
       "trial": "Trial",
@@ -342,10 +314,10 @@
         "slug": "The short link is 3 to 40 lower-case letters, digits and dashes.",
         "domain": "Enter a domain such as clinic.ps, or leave it empty.",
         "specialty": "Choose at least one specialty.",
-        "plan": "Choose a plan.",
         "admin": "Enter the admin's first and last name.",
         "phone": "Enter the admin's mobile with its country code.",
-        "email": "The email is not valid."
+        "email": "The email is not valid.",
+        "modules": "Online booking needs the appointments module."
       },
       "subscription": "2 · Subscription"
     },

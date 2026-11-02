@@ -30,6 +30,7 @@ import { Icon } from "@clinic/ui/components/icon";
 import { Tabs } from "@clinic/ui/components/tabs";
 import { Switch } from "@clinic/ui/components/switch";
 import { useConfirm } from "@clinic/ui/components/confirm-dialog";
+import { SaveBar } from "@clinic/ui/components/save-bar";
 import { VendorLink } from "@web/vendor/components/vendor-link";
 import { vendorPath } from "@web/vendor/lib/route";
 import {
@@ -84,7 +85,6 @@ export function ClinicPage({
   const detail = clinic.data;
   const act = actionsFor(detail);
   const subscription = detail.subscription;
-  const plan = plans.data.items.find((entry) => entry.id === subscription?.planId);
   const addresses = detail.domain ? clinicAddresses(detail.domain) : null;
 
   return (
@@ -171,16 +171,6 @@ export function ClinicPage({
           </div>
           {!detail.removedAt && (
             <div className="flex flex-wrap gap-2">
-              {act.extend && (
-                <Button
-                  variant="secondary"
-                  icon={<Icon name="calendar" />}
-                  onClick={act.extend}
-                  data-testid="vendor-extend"
-                >
-                  {t("vendor.actions.extend")}
-                </Button>
-              )}
               <Button
                 variant="secondary"
                 icon={<Icon name="trash" />}
@@ -193,22 +183,9 @@ export function ClinicPage({
             </div>
           )}
         </div>
-        <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Stat label={t("vendor.clinic.plan")} value={subscription?.planName ?? "—"} />
-          <Stat
-            label={t("vendor.clinic.users")}
-            value={String(detail.users)}
-            {...(plan?.maxUsers != null && {
-              extra: t("vendor.clinic.ofLimit", { limit: plan.maxUsers }),
-            })}
-          />
-          <Stat
-            label={t("vendor.clinic.doctors")}
-            value={String(detail.doctors)}
-            {...(plan?.maxDoctors != null && {
-              extra: t("vendor.clinic.ofLimit", { limit: plan.maxDoctors }),
-            })}
-          />
+        <dl className="grid grid-cols-3 gap-3">
+          <Stat label={t("vendor.clinic.users")} value={String(detail.users)} />
+          <Stat label={t("vendor.clinic.doctors")} value={String(detail.doctors)} />
           <Stat label={t("vendor.clinics.columns.modules")} value={String(detail.modules.length)} />
         </dl>
       </section>
@@ -319,15 +296,15 @@ function DomainForm({ detail }: { readonly detail: VendorClinicDetail }): JSX.El
             />
           </FormField>
         </div>
-        <Button
-          aria-disabled={invalid || unchanged || undefined}
-          isLoading={save.isPending}
-          onClick={() => !invalid && !unchanged && save.mutate(parsed)}
-          data-testid="vendor-domain-save"
-        >
-          {t("vendor.clinic.saveDomain")}
-        </Button>
       </div>
+      <SaveBar
+        data-testid="vendor-domain-bar"
+        visible={!unchanged && text.trim() !== (detail.domain ?? "")}
+        saving={save.isPending}
+        invalid={invalid}
+        onSave={() => !invalid && !unchanged && save.mutate(parsed)}
+        onDiscard={() => setText(detail.domain ?? "")}
+      />
 
       {invalid && (
         <p role="alert" className="text-label text-danger-700" data-testid="vendor-domain-invalid">
@@ -394,11 +371,10 @@ function SubscriptionForm({
 }): JSX.Element {
   const { t } = useTranslation();
   const save = useSaveSubscription(detail.id);
-  const [input, setInput] = useState(() => initialSubscription(detail, plans));
-  const plan = plans.find((entry) => entry.id === input.planId);
-  const planModules: readonly ClinicModule[] = plan?.modules ?? [];
-  const modules = resultingModules(planModules, input.addOnModules);
-  const blocked = !plan || lacksDependency(modules);
+  const [baseline, setBaseline] = useState(() => initialSubscription(detail, plans));
+  const [input, setInput] = useState(baseline);
+  const dirty = JSON.stringify(input) !== JSON.stringify(baseline) || detail.subscription === null;
+  const blocked = false;
   const update = (patch: Partial<SaveSubscriptionInput>): void =>
     setInput((previous) => ({ ...previous, ...patch }));
 
@@ -413,29 +389,6 @@ function SubscriptionForm({
       )}
 
       <div className="grid max-w-(--form-max) gap-4 sm:grid-cols-2">
-        <FormField label="vendor.clinic.plan" htmlFor="vendor-plan">
-          <Select
-            id="vendor-plan"
-            searchable
-            value={input.planId || undefined}
-            placeholder={t("vendor.clinic.choosePlan")}
-            onChange={(event) =>
-              update({
-                planId: event.target.value,
-                addOnModules: input.addOnModules.filter(
-                  (module) =>
-                    !plans
-                      .find((entry) => entry.id === event.target.value)
-                      ?.modules.includes(module),
-                ),
-              })
-            }
-            options={plans
-              .filter((entry) => entry.isActive || entry.id === input.planId)
-              .map((entry) => ({ value: entry.id, label: entry.name }))}
-            data-testid="vendor-subscription-plan"
-          />
-        </FormField>
         <FormField label="vendor.clinic.status" htmlFor="vendor-status">
           <Select
             id="vendor-status"
@@ -494,15 +447,6 @@ function SubscriptionForm({
         </FormField>
       </div>
 
-      <FormField label="vendor.clinic.addOns" htmlFor="vendor-add-ons">
-        <ModulePicker
-          value={input.addOnModules}
-          included={planModules}
-          onChange={(addOnModules) => update({ addOnModules })}
-          data-testid="vendor-add-ons"
-        />
-      </FormField>
-
       <FormField label="vendor.clinic.notes" htmlFor="vendor-notes">
         <Textarea
           id="vendor-notes"
@@ -513,16 +457,6 @@ function SubscriptionForm({
           }
         />
       </FormField>
-
-      <div className="flex flex-col gap-1">
-        <span className="text-label text-ink-muted">{t("vendor.clinic.resulting")}</span>
-        <ModuleList modules={modules} />
-        {lacksDependency(modules) && (
-          <p role="alert" className="text-label text-danger-700">
-            {t("vendor.errors.missingModules")}
-          </p>
-        )}
-      </div>
 
       {save.isError && (
         <p role="alert" className="text-label text-danger-700">
@@ -535,16 +469,14 @@ function SubscriptionForm({
         </p>
       )}
 
-      <div>
-        <Button
-          aria-disabled={blocked || undefined}
-          isLoading={save.isPending}
-          onClick={() => !blocked && save.mutate(input)}
-          data-testid="vendor-subscription-save"
-        >
-          {t("vendor.clinic.save")}
-        </Button>
-      </div>
+      <SaveBar
+        data-testid="vendor-subscription-bar"
+        visible={dirty}
+        saving={save.isPending}
+        invalid={blocked}
+        onSave={() => !blocked && save.mutate(input, { onSuccess: () => setBaseline(input) })}
+        onDiscard={() => setInput(baseline)}
+      />
     </section>
   );
 }
@@ -574,11 +506,7 @@ function ModulesPanel({
     >
       <div className="flex flex-col gap-1">
         <h2 className="text-section font-semibold text-ink">{t("vendor.clinic.tabs.modules")}</h2>
-        <p className="text-meta text-ink-muted">
-          {plan
-            ? t("vendor.clinic.modulesOnPlan", { plan: plan.name })
-            : t("vendor.clinic.modulesByHand")}
-        </p>
+        <p className="text-meta text-ink-muted">{t("vendor.clinic.modulesByHand")}</p>
       </div>
       <ModulePicker
         value={extra}
@@ -601,16 +529,14 @@ function ModulesPanel({
           {t("vendor.clinic.modulesSaved")}
         </p>
       )}
-      <div>
-        <Button
-          aria-disabled={blocked || undefined}
-          isLoading={save.isPending}
-          onClick={() => !blocked && save.mutate(modules)}
-          data-testid="vendor-modules-save"
-        >
-          {t("vendor.clinic.saveModules")}
-        </Button>
-      </div>
+      <SaveBar
+        data-testid="vendor-modules-bar"
+        visible={!unchanged}
+        saving={save.isPending}
+        invalid={lacksDependency(modules)}
+        onSave={() => !blocked && save.mutate(modules)}
+        onDiscard={() => setExtra(detail.modules.filter((module) => !planModules.includes(module)))}
+      />
     </section>
   );
 }

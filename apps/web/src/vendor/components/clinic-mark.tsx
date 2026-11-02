@@ -1,4 +1,5 @@
 import type { VendorClinicSummary } from "@clinic/shared";
+import { Img } from "@clinic/ui/components/img";
 import { cn } from "@clinic/ui/lib/cn";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
@@ -22,7 +23,8 @@ export function ClinicMark({
         ? "bg-sunken text-ink-muted"
         : "bg-primary-100 text-primary-700";
 
-  return (
+  const pixels = size === "row" ? 36 : 56;
+  const letters = (
     <span
       aria-hidden="true"
       className={cn(
@@ -33,5 +35,24 @@ export function ClinicMark({
     >
       {initials(clinic.name, i18n.language)}
     </span>
+  );
+
+  if (!clinic.logoUrl) {
+    return letters;
+  }
+
+  return (
+    <Img
+      src={clinic.logoUrl}
+      alt=""
+      width={pixels}
+      height={pixels}
+      fit="contain"
+      fallback={letters}
+      className={cn(
+        "shrink-0 border border-line bg-surface p-1",
+        size === "row" ? "rounded-control" : "rounded-card",
+      )}
+    />
   );
 }

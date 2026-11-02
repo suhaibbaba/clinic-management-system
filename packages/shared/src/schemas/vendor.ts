@@ -74,7 +74,7 @@ export type Subscription = z.infer<typeof subscriptionSchema>;
 
 export const saveSubscriptionSchema = z
   .object({
-    planId: z.uuid(),
+    planId: z.uuid().optional(),
     addOnModules: modulesSchema,
     status: z.enum(SUBSCRIPTION_STATUSES),
     startsOn: z.iso.date(),
@@ -127,6 +127,7 @@ export const vendorClinicSummarySchema = z.object({
   slug: z.string(),
   name: localizedTextSchema,
   domain: z.string().nullable(),
+  logoUrl: z.string().nullable(),
   removedAt: z.iso.datetime().nullable(),
   modules: z.array(z.enum(CLINIC_MODULES)),
   specialties: z.array(z.string()),
@@ -198,7 +199,8 @@ export const createClinicSchema = z.object({
     .array(z.enum(Object.values(SPECIALTY_CODE)))
     .min(1)
     .refine((codes) => new Set(codes).size === codes.length, "A specialty is listed twice"),
-  planId: z.uuid(),
+  planId: z.uuid().optional(),
+  modules: modulesSchema.default([]),
   trialDays: z.number().int().min(0).max(365),
   admin: z.object({
     firstName: z.string().trim().min(1).max(60),
