@@ -99,6 +99,49 @@ describe("Appointments (e2e)", () => {
     });
   }
 
+  describe("another clinic's doctor", () => {
+    let foreignDoctorId: string;
+
+    beforeAll(async () => {
+      const other = await context.createClinic();
+      const otherAdmin = await context.login(other.phones[USER_ROLE.ADMIN]);
+
+      foreignDoctorId = (await seedClinicFixtures(context, other, otherAdmin)).doctorId;
+    });
+
+    it("cannot be booked, even by somebody who sees every calendar", async () => {
+      for (const role of [USER_ROLE.ADMIN, USER_ROLE.RECEPTIONIST]) {
+        const response = await context.app.inject({
+          method: "POST",
+          url: "/appointments",
+          headers: auth(tokens[role]),
+          payload: {
+            patientId,
+            doctorId: foreignDoctorId,
+            startsAt: at(monday, "16:00"),
+            durationMinutes: 30,
+          },
+        });
+
+        expect(response.statusCode).toBe(404);
+      }
+    });
+
+    it("cannot be moved onto", async () => {
+      const booked = await book("13:30");
+      const { id } = booked.json<{ id: string }>();
+
+      const response = await context.app.inject({
+        method: "PATCH",
+        url: `/appointments/${id}`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+        payload: { doctorId: foreignDoctorId },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
   describe("availability", () => {
     it("offers the working day, and nothing outside it", async () => {
       const response = await context.app.inject({

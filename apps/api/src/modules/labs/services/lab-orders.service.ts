@@ -460,7 +460,10 @@ export class LabOrdersService implements OnModuleInit {
       .from(labOrders)
       .innerJoin(patients, eq(patients.id, labOrders.patientId))
       .innerJoin(labs, eq(labs.id, labOrders.labId))
-      .innerJoin(doctors, eq(doctors.id, labOrders.doctorId))
+      .innerJoin(
+        doctors,
+        and(eq(doctors.id, labOrders.doctorId), eq(doctors.clinicId, labOrders.clinicId)),
+      )
       .innerJoin(users, eq(users.id, doctors.userId))
       .leftJoin(labWorkTypes, eq(labWorkTypes.id, labOrders.workTypeId))
       .$dynamic();

@@ -31,3 +31,6 @@ export function isNotFound(error: unknown): boolean {
   const candidate = error as { name?: string; $metadata?: { httpStatusCode?: number } };
   return candidate.name === "NotFound" || candidate.$metadata?.httpStatusCode === 404;
 }
+
+export const hasDotSegment = (key: string): boolean =>
+  key.split("/").some((segment) => segment === "." || segment === "..");

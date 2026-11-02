@@ -14,11 +14,11 @@ import { loginThrottleKey } from "@api/modules/auth/lib/login-throttle";
 export class LoginThrottleService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  async assertOpen(identifier: string): Promise<void> {
+  async assertOpen(identifier: string, clinicId: string | null): Promise<void> {
     const [row] = await this.db
       .select({ lockedUntil: loginThrottles.lockedUntil })
       .from(loginThrottles)
-      .where(eq(loginThrottles.key, loginThrottleKey(identifier)))
+      .where(eq(loginThrottles.key, loginThrottleKey(identifier, clinicId)))
       .limit(1);
 
     if (row?.lockedUntil && row.lockedUntil > new Date()) {
@@ -26,13 +26,13 @@ export class LoginThrottleService {
     }
   }
 
-  async recordFailure(identifier: string): Promise<void> {
+  async recordFailure(identifier: string, clinicId: string | null): Promise<void> {
     const window = sql`now() - make_interval(mins => ${LOGIN_WINDOW_MINUTES})`;
     const failures = sql`case when ${loginThrottles.windowStartedAt} < ${window} then 1 else ${loginThrottles.failures} + 1 end`;
 
     await this.db
       .insert(loginThrottles)
-      .values({ key: loginThrottleKey(identifier), failures: 1 })
+      .values({ key: loginThrottleKey(identifier, clinicId), failures: 1 })
       .onConflictDoUpdate({
         target: loginThrottles.key,
         set: {
@@ -43,15 +43,17 @@ export class LoginThrottleService {
       });
   }
 
-  async clear(identifier: string): Promise<void> {
+  async clear(identifier: string, clinicId: string | null): Promise<void> {
     await this.db
       .delete(loginThrottles)
-      .where(eq(loginThrottles.key, loginThrottleKey(identifier)));
+      .where(eq(loginThrottles.key, loginThrottleKey(identifier, clinicId)));
   }
 
-  async lockedUntil(identifiers: readonly string[]): Promise<Map<string, Date>> {
+  async lockedUntil(identifiers: readonly string[], clinicId: string): Promise<Map<string, Date>> {
     const identifierByKey = new Map(
-      identifiers.map((identifier) => [loginThrottleKey(identifier), identifier]),
+      identifiers.flatMap((identifier) =>
+        [clinicId, null].map((scope) => [loginThrottleKey(identifier, scope), identifier] as const),
+      ),
     );
 
     if (identifierByKey.size === 0) {
@@ -68,21 +70,32 @@ export class LoginThrottleService {
         ),
       );
 
-    return new Map(
-      rows.flatMap(({ key, lockedUntil }) => {
-        const identifier = identifierByKey.get(key);
-        return identifier !== undefined && lockedUntil ? [[identifier, lockedUntil] as const] : [];
-      }),
-    );
+    const locks = new Map<string, Date>();
+
+    for (const { key, lockedUntil } of rows) {
+      const identifier = identifierByKey.get(key);
+      const held = identifier === undefined ? undefined : locks.get(identifier);
+
+      if (identifier !== undefined && lockedUntil && (!held || lockedUntil > held)) {
+        locks.set(identifier, lockedUntil);
+      }
+    }
+
+    return locks;
   }
 
-  async clearAll(identifiers: readonly string[]): Promise<void> {
+  async clearAll(identifiers: readonly string[], clinicId: string): Promise<void> {
     if (identifiers.length === 0) {
       return;
     }
 
-    await this.db
-      .delete(loginThrottles)
-      .where(inArray(loginThrottles.key, identifiers.map(loginThrottleKey)));
+    await this.db.delete(loginThrottles).where(
+      inArray(
+        loginThrottles.key,
+        identifiers.flatMap((identifier) =>
+          [clinicId, null].map((scope) => loginThrottleKey(identifier, scope)),
+        ),
+      ),
+    );
   }
 }

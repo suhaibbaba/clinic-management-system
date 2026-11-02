@@ -127,6 +127,6 @@ export class VendorPasswordService {
       return user.email;
     });
 
-    await this.throttle.clear(`${VENDOR_THROTTLE_PREFIX}${email.toLowerCase()}`);
+    await this.throttle.clear(`${VENDOR_THROTTLE_PREFIX}${email.toLowerCase()}`, null);
   }
 }

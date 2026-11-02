@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { USER_ROLE, type LoginResponse } from "@clinic/shared";
+import { AUTH_ERROR, USER_ROLE, type LoginResponse } from "@clinic/shared";
 import { eq } from "drizzle-orm";
 import { clinics, users } from "@api/database/schema";
+import { REFRESH_COOKIE_NAME } from "@api/modules/auth/lib/refresh-cookie";
 import { createTestContext, TEST_PASSWORD, type TestContext } from "@test/helpers/test-app";
 
 describe("The same email and phone in two clinics (e2e)", () => {
@@ -32,12 +33,17 @@ describe("The same email and phone in two clinics (e2e)", () => {
     context.resetThrottle();
   });
 
-  const signIn = (identifier: string, host: string) =>
+  const signIn = (
+    identifier: string,
+    host: string,
+    password = TEST_PASSWORD,
+    headers: Record<string, string> = {},
+  ) =>
     context.app.inject({
       method: "POST",
       url: "/auth/login",
-      headers: { host },
-      payload: { identifier, password: TEST_PASSWORD },
+      headers: { ...headers, host },
+      payload: { identifier, password },
     });
 
   it.each([
@@ -100,5 +106,61 @@ describe("The same email and phone in two clinics (e2e)", () => {
 
     expect((await add()).statusCode).toBe(201);
     expect((await add()).statusCode).toBe(409);
+  });
+
+  it("locks the identifier in one clinic only, and only that clinic's admin lifts it", async () => {
+    const [first, second] = accounts;
+
+    if (!first || !second) {
+      throw new Error("Two accounts were expected");
+    }
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      await signIn(email, first.host, "wrong-password");
+    }
+
+    const locked = await signIn(email, first.host);
+
+    expect(locked.statusCode).toBe(429);
+    expect(locked.json()).toMatchObject({ message: AUTH_ERROR.LOCKED });
+    expect((await signIn(email, second.host)).statusCode).toBe(200);
+
+    const secondAdmin = (await signIn(email, second.host)).json<LoginResponse>().accessToken;
+    await context.app.inject({
+      method: "POST",
+      url: `/users/${second.userId}/unlock`,
+      headers: { authorization: `Bearer ${secondAdmin}`, host: second.host },
+    });
+
+    expect((await signIn(email, first.host)).statusCode).toBe(429);
+  });
+
+  it.each(["vendor", "site"])("refuses staff sign-in on an address marked %s", async (entry) => {
+    const [first] = accounts;
+
+    expect(
+      (await signIn(email, first?.host ?? "", TEST_PASSWORD, { "x-clinic-entry": entry }))
+        .statusCode,
+    ).toBe(401);
+  });
+
+  it("lets only one of two refreshes racing with the same token through", async () => {
+    const [, second] = accounts;
+    const signedIn = await signIn(phone, second?.host ?? "");
+    const token =
+      (signedIn.cookies as { name: string; value: string }[]).find(
+        (cookie) => cookie.name === REFRESH_COOKIE_NAME,
+      )?.value ?? "";
+
+    const refresh = () =>
+      context.app.inject({
+        method: "POST",
+        url: "/auth/refresh",
+        headers: { cookie: `${REFRESH_COOKIE_NAME}=${token}` },
+        payload: {},
+      });
+    const results = await Promise.all([refresh(), refresh(), refresh()]);
+
+    expect(results.filter((result) => result.statusCode === 200)).toHaveLength(1);
   });
 });

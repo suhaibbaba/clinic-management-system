@@ -486,7 +486,10 @@ export class AppointmentsService implements OnModuleInit {
       })
       .from(appointments)
       .innerJoin(patients, eq(patients.id, appointments.patientId))
-      .innerJoin(doctors, eq(doctors.id, appointments.doctorId))
+      .innerJoin(
+        doctors,
+        and(eq(doctors.id, appointments.doctorId), eq(doctors.clinicId, appointments.clinicId)),
+      )
       .innerJoin(users, eq(users.id, doctors.userId));
   }
 

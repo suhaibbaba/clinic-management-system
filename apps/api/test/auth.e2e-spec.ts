@@ -105,7 +105,7 @@ describe("Auth (e2e)", () => {
       const unknown = "+97000000123";
       await context.db
         .delete(loginThrottles)
-        .where(eq(loginThrottles.key, loginThrottleKey(unknown)));
+        .where(eq(loginThrottles.key, loginThrottleKey(unknown, null)));
 
       for (let attempt = 0; attempt < 5; attempt += 1) {
         expect((await login(unknown)).statusCode).toBe(401);
@@ -649,7 +649,7 @@ describe("Auth (e2e)", () => {
 
       await context.db
         .delete(loginThrottles)
-        .where(eq(loginThrottles.key, loginThrottleKey(email)));
+        .where(eq(loginThrottles.key, loginThrottleKey(email, null)));
       expect((await verifyCode(email, code)).statusCode).toBe(401);
     });
 

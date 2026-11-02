@@ -6,9 +6,12 @@ export const CurrentSite = createParamDecorator(
   (_data: unknown, context: ExecutionContext): RequestSite => {
     const request = context.switchToHttp().getRequest<FastifyRequest>();
 
+    const entry = request.headers["x-clinic-entry"];
+
     return {
       host: request.hostname.toLowerCase(),
       origin: `${request.protocol}://${request.host.toLowerCase()}`,
+      entry: typeof entry === "string" ? entry.trim().toLowerCase() : null,
     };
   },
 );

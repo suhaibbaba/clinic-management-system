@@ -11,6 +11,7 @@ import { Injectable, Logger, type OnApplicationShutdown } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { type Env } from "@api/config/env.schema";
 import {
+  hasDotSegment,
   sanitiseFilename,
   SignedUpload,
   SignedDownload,
@@ -53,7 +54,7 @@ export class StorageService implements OnApplicationShutdown {
   }
 
   isKeyOwnedBy(key: string, clinicId: string, patientId: string): boolean {
-    return key.startsWith(`clinic/${clinicId}/patients/${patientId}/`);
+    return !hasDotSegment(key) && key.startsWith(`clinic/${clinicId}/patients/${patientId}/`);
   }
 
   buildClinicObjectKey(input: { clinicId: string; category: string; filename: string }): string {
@@ -63,7 +64,7 @@ export class StorageService implements OnApplicationShutdown {
   }
 
   isClinicKeyOwnedBy(key: string, clinicId: string, category: string): boolean {
-    return key.startsWith(`clinic/${clinicId}/${category}/`);
+    return !hasDotSegment(key) && key.startsWith(`clinic/${clinicId}/${category}/`);
   }
 
   async createUploadUrl(key: string, mime: string): Promise<SignedUpload> {

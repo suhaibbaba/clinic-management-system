@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
+import { ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { eq, sql, type SQL } from "drizzle-orm";
 import { type PgColumn } from "drizzle-orm/pg-core";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
@@ -44,6 +44,16 @@ export class AppointmentAccessService {
   }
 
   async requireOwnCalendar(actor: AuthenticatedUser, doctorId: string): Promise<void> {
+    const [inClinic] = await this.db
+      .select({ id: doctors.id })
+      .from(doctors)
+      .where(this.scope.where(doctors, actor.clinicId, eq(doctors.id, doctorId)))
+      .limit(1);
+
+    if (!inClinic) {
+      throw new NotFoundException("Doctor not found");
+    }
+
     if (await this.seesAllCalendars(actor)) {
       return;
     }

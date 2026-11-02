@@ -40,6 +40,7 @@ import {
 import { type UserRow } from "@api/modules/auth/lib/auth";
 import { relyingParty, toPasskey, type RelyingParty } from "@api/modules/auth/lib/webauthn";
 import { inSignInClinic } from "@api/common/lib/sign-in-scope";
+import { inLiveClinic } from "@api/common/lib/live-clinic";
 
 type ChallengePurpose = (typeof AUTH_CHALLENGE_PURPOSE)[keyof typeof AUTH_CHALLENGE_PURPOSE];
 
@@ -93,7 +94,13 @@ export class PasskeyService {
       return undefined;
     }
 
-    const clinicId = (await this.hosts.clinicAt(site.host))?.id ?? null;
+    const scope = await this.hosts.signInScope(site);
+
+    if (!scope.open) {
+      return undefined;
+    }
+
+    const clinicId = scope.clinicId;
     const [found] = await this.db
       .select({ passkey: passkeys, user: users })
       .from(passkeys)
@@ -102,6 +109,7 @@ export class PasskeyService {
         and(
           eq(passkeys.credentialId, input.response.id),
           isNull(users.deletedAt),
+          inLiveClinic,
           inSignInClinic(clinicId),
         ),
       )

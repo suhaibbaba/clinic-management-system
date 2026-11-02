@@ -123,6 +123,10 @@ export class GoogleAuthService {
   }
 
   private async client(site: RequestSite): Promise<GoogleClient | undefined> {
+    if (!(await this.hosts.signInScope(site)).open) {
+      return undefined;
+    }
+
     const clinic = await this.hosts.clinicAt(site.host);
 
     if (clinic) {

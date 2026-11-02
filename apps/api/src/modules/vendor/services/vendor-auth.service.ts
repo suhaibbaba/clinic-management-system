@@ -25,7 +25,7 @@ export class VendorAuthService {
   ): Promise<{ token: string; expiresAt: Date; profile: VendorProfile }> {
     const identifier = `${VENDOR_THROTTLE_PREFIX}${input.email.toLowerCase()}`;
 
-    await this.throttle.assertOpen(identifier);
+    await this.throttle.assertOpen(identifier, null);
 
     const [user] = await this.db
       .select()
@@ -39,11 +39,11 @@ export class VendorAuthService {
       .limit(1);
 
     if (!user || !(await this.passwords.verify(user.passwordHash, input.password))) {
-      await this.throttle.recordFailure(identifier);
+      await this.throttle.recordFailure(identifier, null);
       throw new UnauthorizedException("Invalid credentials");
     }
 
-    await this.throttle.clear(identifier);
+    await this.throttle.clear(identifier, null);
 
     const token = generateVendorToken();
     const expiresAt = new Date(Date.now() + VENDOR_SESSION_HOURS * 60 * 60 * 1000);

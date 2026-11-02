@@ -8,7 +8,7 @@ import {
   type Money,
   type StatementQuery,
 } from "@clinic/shared";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { isolateLtr } from "@api/modules/billing/pdf/arabic-text";
 import {
   documentDate,
@@ -45,7 +45,10 @@ export class LabDocumentsService {
       .from(labOrders)
       .innerJoin(patients, eq(patients.id, labOrders.patientId))
       .innerJoin(labs, eq(labs.id, labOrders.labId))
-      .innerJoin(doctors, eq(doctors.id, labOrders.doctorId))
+      .innerJoin(
+        doctors,
+        and(eq(doctors.id, labOrders.doctorId), eq(doctors.clinicId, labOrders.clinicId)),
+      )
       .innerJoin(users, eq(users.id, doctors.userId))
       .leftJoin(labWorkTypes, eq(labWorkTypes.id, labOrders.workTypeId))
       .where(eq(labOrders.id, orderId))

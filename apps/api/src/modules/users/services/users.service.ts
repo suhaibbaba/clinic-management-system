@@ -263,9 +263,9 @@ export class UsersService implements OnModuleInit {
   async unlock(actor: AuthenticatedUser, id: string): Promise<void> {
     const target = await this.findInClinicOrFail(actor.clinicId, id);
     const identifiers = signInIdentifiers(target);
-    const locks = await this.loginThrottle.lockedUntil(identifiers);
+    const locks = await this.loginThrottle.lockedUntil(identifiers, actor.clinicId);
 
-    await this.loginThrottle.clearAll(identifiers);
+    await this.loginThrottle.clearAll(identifiers, actor.clinicId);
 
     if (locks.size === 0) {
       return;
@@ -423,7 +423,10 @@ export class UsersService implements OnModuleInit {
   }
 
   private async present(rows: readonly SafeUserRow[]): Promise<User[]> {
-    const locks = await this.loginThrottle.lockedUntil(rows.flatMap(signInIdentifiers));
+    const [first] = rows;
+    const locks = first
+      ? await this.loginThrottle.lockedUntil(rows.flatMap(signInIdentifiers), first.clinicId)
+      : new Map<string, Date>();
 
     return Promise.all(
       rows.map(async (row) =>

@@ -85,15 +85,21 @@ export class TokenService {
     return row;
   }
 
-  async revoke(id: string, replacedByTokenId?: string): Promise<void> {
+  async revoke(id: string): Promise<boolean> {
+    const claimed = await this.db
+      .update(refreshTokens)
+      .set({ revokedAt: new Date(), updatedAt: new Date() })
+      .where(and(eq(refreshTokens.id, id), isNull(refreshTokens.revokedAt)))
+      .returning({ id: refreshTokens.id });
+
+    return claimed.length === 1;
+  }
+
+  async linkReplacement(id: string, replacedByTokenId: string): Promise<void> {
     await this.db
       .update(refreshTokens)
-      .set({
-        revokedAt: new Date(),
-        replacedByTokenId: replacedByTokenId ?? null,
-        updatedAt: new Date(),
-      })
-      .where(and(eq(refreshTokens.id, id), isNull(refreshTokens.revokedAt)));
+      .set({ replacedByTokenId, updatedAt: new Date() })
+      .where(eq(refreshTokens.id, id));
   }
 
   async revokeAllForUser(userId: string): Promise<void> {

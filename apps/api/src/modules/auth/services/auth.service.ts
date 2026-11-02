@@ -51,11 +51,17 @@ export class AuthService {
   ) {}
 
   async login(input: LoginInput, site: RequestSite): Promise<LoginResponse & IssuedSession> {
-    await this.loginThrottle.assertOpen(input.identifier);
+    const scope = await this.hosts.signInScope(site);
 
-    const user = await this.findByIdentifier(input.identifier, await this.clinicAt(site));
+    if (!scope.open) {
+      throw new UnauthorizedException(INVALID_CREDENTIALS);
+    }
+
+    await this.loginThrottle.assertOpen(input.identifier, scope.clinicId);
+
+    const user = await this.findByIdentifier(input.identifier, scope.clinicId);
     const refuse = async (): Promise<never> => {
-      await this.loginThrottle.recordFailure(input.identifier);
+      await this.loginThrottle.recordFailure(input.identifier, scope.clinicId);
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     };
 
@@ -70,7 +76,7 @@ export class AuthService {
       return refuse();
     }
 
-    await this.loginThrottle.clear(input.identifier);
+    await this.loginThrottle.clear(input.identifier, scope.clinicId);
 
     return this.startSession(user, input.rememberMe ?? true);
   }
@@ -79,16 +85,22 @@ export class AuthService {
     input: VerifyLoginCodeInput,
     site: RequestSite,
   ): Promise<LoginResponse & IssuedSession> {
-    await this.loginThrottle.assertOpen(input.email);
+    const scope = await this.hosts.signInScope(site);
 
-    const user = await this.loginCodes.consume(input.email, input.code, await this.clinicAt(site));
-
-    if (!user?.isActive) {
-      await this.loginThrottle.recordFailure(input.email);
+    if (!scope.open) {
       throw new UnauthorizedException(AUTH_ERROR.CODE_INVALID);
     }
 
-    await this.loginThrottle.clear(input.email);
+    await this.loginThrottle.assertOpen(input.email, scope.clinicId);
+
+    const user = await this.loginCodes.consume(input.email, input.code, scope.clinicId);
+
+    if (!user?.isActive) {
+      await this.loginThrottle.recordFailure(input.email, scope.clinicId);
+      throw new UnauthorizedException(AUTH_ERROR.CODE_INVALID);
+    }
+
+    await this.loginThrottle.clear(input.email, scope.clinicId);
 
     return this.startSession(user, input.rememberMe ?? true);
   }
@@ -157,8 +169,14 @@ export class AuthService {
       throw new UnauthorizedException("Invalid refresh token");
     }
 
+    if (!(await this.tokenService.revoke(stored.id))) {
+      this.logger.warn(`Refresh token raced for user ${stored.userId}; revoking session`);
+      await this.tokenService.revokeAllForUser(stored.userId);
+      throw new UnauthorizedException("Invalid refresh token");
+    }
+
     const issued = await this.tokenService.issueRefreshToken(user, stored.persistent);
-    await this.tokenService.revoke(stored.id, issued.id);
+    await this.tokenService.linkReplacement(stored.id, issued.id);
 
     return {
       accessToken: await this.tokenService.createAccessToken(user),
@@ -206,10 +224,6 @@ export class AuthService {
       persistent,
       expiresIn: this.tokenService.accessTokenTtlSeconds,
     };
-  }
-
-  private async clinicAt(site: RequestSite): Promise<string | null> {
-    return (await this.hosts.clinicAt(site.host))?.id ?? null;
   }
 
   private async findByIdentifier(

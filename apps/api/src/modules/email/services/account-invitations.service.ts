@@ -12,6 +12,7 @@ import { typedPhoneMatches } from "@api/common/lib/phone";
 import { inSignInClinic, onlyMatch } from "@api/common/lib/sign-in-scope";
 import { type RequestSite } from "@api/common/types/request-site";
 import { ClinicHostService } from "@api/modules/auth/services/clinic-host.service";
+import { inLiveClinic } from "@api/common/lib/live-clinic";
 
 @Injectable()
 export class AccountInvitationsService {
@@ -54,7 +55,13 @@ export class AccountInvitationsService {
 
   async forgot(identifier: string, site: RequestSite): Promise<void> {
     const value = identifier.trim();
-    const clinicId = (await this.hosts.clinicAt(site.host))?.id ?? null;
+    const scope = await this.hosts.signInScope(site);
+
+    if (!scope.open) {
+      return;
+    }
+
+    const clinicId = scope.clinicId;
 
     const user = onlyMatch(
       await this.db
@@ -69,6 +76,7 @@ export class AccountInvitationsService {
         .where(
           and(
             isNull(users.deletedAt),
+            inLiveClinic,
             eq(users.isActive, true),
             value.includes("@")
               ? eq(sql`lower(${users.email})`, value.toLowerCase())
@@ -101,6 +109,7 @@ export class AccountInvitationsService {
           gt(users.passwordTokenExpiresAt, new Date()),
           eq(users.isActive, true),
           isNull(users.deletedAt),
+          inLiveClinic,
         ),
       )
       .limit(1);

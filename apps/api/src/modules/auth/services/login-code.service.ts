@@ -19,6 +19,7 @@ import {
 import { inSignInClinic, onlyMatch } from "@api/common/lib/sign-in-scope";
 import { type RequestSite } from "@api/common/types/request-site";
 import { ClinicHostService } from "@api/modules/auth/services/clinic-host.service";
+import { inLiveClinic } from "@api/common/lib/live-clinic";
 
 @Injectable()
 export class LoginCodeService {
@@ -31,7 +32,13 @@ export class LoginCodeService {
   ) {}
 
   async request(email: string, site: RequestSite): Promise<void> {
-    const user = await this.findByEmail(email, (await this.hosts.clinicAt(site.host))?.id ?? null);
+    const scope = await this.hosts.signInScope(site);
+
+    if (!scope.open) {
+      return;
+    }
+
+    const user = await this.findByEmail(email, scope.clinicId);
 
     if (!user?.email || !user.isActive) {
       this.logger.log("Sign-in code asked for an email with no live account; nothing sent.");
@@ -183,6 +190,7 @@ export class LoginCodeService {
         .where(
           and(
             isNull(users.deletedAt),
+            inLiveClinic,
             eq(sql`lower(${users.email})`, email.trim().toLowerCase()),
             inSignInClinic(clinicId),
           ),

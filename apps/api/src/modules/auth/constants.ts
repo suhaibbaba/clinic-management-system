@@ -48,3 +48,5 @@ export const AUTH_CHALLENGE_PURPOSE = {
 } as const;
 
 export const PASSKEYS_PER_USER = 20;
+
+export const STAFF_CLOSED_ENTRIES: readonly string[] = ["vendor", "site"];
