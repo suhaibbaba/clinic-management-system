@@ -9,7 +9,7 @@ coverage/
 *.tsbuildinfo
 
 # Environment — secrets never enter the repository. Only the *.example
-# templates are committed (.env.example, .env.sandbox.example); every real
+# templates are committed (.env.example); every real
 # .env, wherever it is deployed, stays out.
 .env
 .env.*

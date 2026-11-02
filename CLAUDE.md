@@ -334,7 +334,7 @@ through its `className` or a `data-part`, never a fork.
     see, and the session's tokens.
   - **Logic** with no rendering: a module's `lib/`, `hooks/` and `queries.ts`, `shared/lib/`, `i18n/`.
   No page, component, layout or browser-mode tests.
-- **Direction and spacing are still verified by a person on the sandbox.** A pull request that
+- **Direction and spacing are still verified by a person on a running build.** A pull request that
   changes what a screen looks like carries screenshots in its description, in Arabic RTL, at the
   widths it touches. Screenshots are never committed.
 
@@ -345,8 +345,10 @@ deploy and never stored. `APP_VERSION` reaches the API as an environment variabl
 build arg; without them the answer is `0.0.0-dev`. The API serves `/version`; the web shows the
 API's beside its own only when they differ.
 
-CI and the sandbox deploy run only when started by hand (`workflow_dispatch`); nothing runs on a
-push or a pull request.
+One install serves every clinic (`DEPLOY.md`): every clinic runs the same version, and a new
+clinic is a row from the vendor console, never a new environment. CI and the deploy run only when
+started by hand (`workflow_dispatch`), the deploy from `main` only; nothing runs on a push or a
+pull request, and the deploy never wipes data.
 
 ## Language, commits and comments
 

@@ -1,8 +1,8 @@
-# Sandbox stack for the shared VPS.
+# The server stack: one install on the shared VPS serves every clinic.
 #
-#   cd /opt/clinic/sandbox
-#   docker compose -p clinic-sandbox -f docker-compose.sandbox.yml build --pull
-#   docker compose -p clinic-sandbox -f docker-compose.sandbox.yml up -d
+#   cd /opt/clinic/app
+#   docker compose -p clinic -f docker-compose.server.yml build --pull
+#   docker compose -p clinic -f docker-compose.server.yml up -d
 #
 # This stack terminates nothing and proxies nothing. TLS and the public
 # hostnames are the host-level nginx's job (it already fronts other projects on
@@ -10,27 +10,21 @@
 # nginx reaches them over the loopback interface. Nothing here may listen on
 # 0.0.0.0 — see DEPLOY.md for the server blocks that sit in front.
 #
-# One file, one stack per environment: each environment is its own checkout
-# with its own .env, so it gets its own database, object store, containers and
-# images. STACK_NAME and the three ports below come from that .env; the
-# defaults are the sandbox's, which is why the sandbox's .env needs neither.
-#
-# Port map, fixed per environment because the machine is shared:
-#                  sandbox            kossai-jarrar
-#   api   :3000    127.0.0.1:15000    127.0.0.1:16000   (STACK_API_PORT)
-#   web   :80      127.0.0.1:15080    127.0.0.1:16080   (STACK_WEB_PORT)
-#   minio :9000    127.0.0.1:15900    127.0.0.1:16900   (STACK_S3_PORT; the console is not published)
+# Port map, fixed because the machine is shared:
+#   api   :3000    127.0.0.1:15000   (STACK_API_PORT)
+#   web   :80      127.0.0.1:15080   (STACK_WEB_PORT)
+#   minio :9000    127.0.0.1:15900   (STACK_S3_PORT; the console is not published)
 #   postgres       no host port at all, internal network only
 #
 # The api and web images are built on the server from this checkout — the VPS
-# holds the repository at /opt/clinic/sandbox, so this file sits at the root of
-# its own build context and there is no registry in the loop at all.
+# holds the repository at /opt/clinic/app, so this file sits at the root of its
+# own build context and there is no registry in the loop at all.
 #
 # Everything else — passwords, secrets, hostnames — comes from
-# /opt/clinic/sandbox/.env, which is also the file Compose reads for the
-# ${...} substitutions below. See .env.sandbox.example.
+# /opt/clinic/app/.env, which is also the file Compose reads for the ${...}
+# substitutions below. See .env.example.
 
-name: ${STACK_NAME:-clinic-sandbox}
+name: ${STACK_NAME:-clinic}
 
 services:
   postgres:
@@ -100,7 +94,7 @@ services:
     build:
       context: .
       dockerfile: docker/api.Dockerfile
-    image: ${STACK_NAME:-clinic-sandbox}-api
+    image: ${STACK_NAME:-clinic}-api
     restart: unless-stopped
     env_file: .env
     environment:
@@ -111,10 +105,9 @@ services:
     ports:
       - "127.0.0.1:${STACK_API_PORT:-15000}:3000"
     # Migrations run to completion before the server listens, so the stack
-    # never serves traffic against an un-migrated database. SEED_ON_BOOT=true
-    # additionally runs the demo seed (the sandbox); BOOTSTRAP_ON_BOOT=true
-    # creates a real clinic from BOOTSTRAP_* with no demo data. Both are
-    # idempotent and safe to repeat; an environment turns on one, never both.
+    # never serves traffic against an un-migrated database. Clinics are created
+    # from the vendor console; SEED_ON_BOOT (demo data) and BOOTSTRAP_ON_BOOT
+    # (one clinic from BOOTSTRAP_*) stay off on the server. Both are idempotent.
     command:
       - sh
       - -c
@@ -151,7 +144,7 @@ services:
         # disagree with /api/version, which is the whole point of showing both.
         VITE_APP_VERSION: ${APP_VERSION:-}
         VITE_STORAGE_ORIGIN: ${VITE_STORAGE_ORIGIN:-}
-    image: ${STACK_NAME:-clinic-sandbox}-web
+    image: ${STACK_NAME:-clinic}-web
     restart: unless-stopped
     ports:
       - "127.0.0.1:${STACK_WEB_PORT:-15080}:80"

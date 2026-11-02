@@ -210,7 +210,7 @@ jobs:
           docker compose config --quiet
           docker compose -f docker-compose.prod.yml config --quiet
           # Deployed verbatim, so a typo here would only surface on the server.
-          docker compose -f docker-compose.sandbox.yml config --quiet
+          docker compose -f docker-compose.server.yml config --quiet
 
       - name: Build web image
         uses: docker/build-push-action@v6

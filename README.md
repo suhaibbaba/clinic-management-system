@@ -82,10 +82,10 @@ pnpm dev:web
 ### Against a remote API
 
 The frontend does not need the rest of the stack. Point `API_PROXY_TARGET` at a
-deployed API — the sandbox, say — and `pnpm dev` proxies `/api` there:
+deployed API — the server, say — and `pnpm dev` proxies `/api` there:
 
 ```bash
-API_PROXY_TARGET=https://sandbox.example pnpm --filter @clinic/web dev
+API_PROXY_TARGET=https://clinic-managment.organza-moda.com pnpm --filter @clinic/web dev
 ```
 
 The proxy exists so the browser only ever sees one origin, which is what lets the
@@ -351,13 +351,13 @@ page would put the wrong side of the mouth on the wrong side of the screen.
 
 ### Patient file tabs
 
-| Tab                              | What it does                                                                                                                                           |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Tooth chart                      | The interactive FDI chart described above.                                                                                                             |
-| Visits                           | One card per encounter — complaint, examination, diagnosis — with the procedures carried out during it listed inside and editable there.               |
+| Tab                              | What it does                                                                                                                                                                                                                                  |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tooth chart                      | The interactive FDI chart described above.                                                                                                                                                                                                    |
+| Visits                           | One card per encounter — complaint, examination, diagnosis — with the procedures carried out during it listed inside and editable there.                                                                                                      |
 | Treatment plan                   | Every treatment of the patient in one list; each moves planned → in progress → done (or cancelled) and bills once work starts. Total, done and remaining are computed from the treatments, with a printable quote on the clinic's letterhead. |
-| Imaging                          | Grid of X-rays and documents. Uploads go presign → straight to storage → confirm; each thumbnail asks for its own short-lived signed URL.              |
-| Prescriptions, timeline, billing | Placeholders until their modules land.                                                                                                                 |
+| Imaging                          | Grid of X-rays and documents. Uploads go presign → straight to storage → confirm; each thumbnail asks for its own short-lived signed URL.                                                                                                     |
+| Prescriptions, timeline, billing | Placeholders until their modules land.                                                                                                                                                                                                        |
 
 Recording a procedure uses one form wherever it is done — from a tooth on the chart, or from a
 visit. What differs is the context the caller already knows (a tooth, a visit, or neither),
@@ -480,19 +480,20 @@ docker compose -f docker-compose.prod.yml logs -f
 docker compose -f docker-compose.prod.yml down
 ```
 
-## Sandbox
+## The server
 
-A deployed sandbox tracks `main` at
-<https://clinic-sandbox.organza-moda.com>. Pushing to `main` connects to the VPS over SSH,
-fast-forwards its checkout of this repository to `origin/main`, rebuilds both images there
-with `docker-compose.sandbox.yml`, and fails the run unless `/api/health` reports healthy
-afterwards. No registry is involved — the images are built and run on the same machine.
+One install serves every clinic, at <https://clinic-managment.organza-moda.com>; a clinic is
+created from the vendor console, never as a new environment. **Actions → Deploy**, run by hand
+from `main`, connects to the VPS over SSH, resets its checkout of this repository to `main`,
+rebuilds both images there with `docker-compose.server.yml`, and fails the run unless
+`/api/health` reports healthy afterwards. No registry is involved — the images are built and run
+on the same machine.
 
 It runs on a shared VPS behind a host-level nginx, so the stack itself carries no reverse
 proxy and no TLS and publishes every port to `127.0.0.1` only. Server prerequisites, the
 nginx blocks, the required GitHub secrets and how to restore a backup are in
 [DEPLOY.md](./DEPLOY.md); the environment template is
-[`.env.sandbox.example`](./.env.sandbox.example).
+[`.env.example`](./.env.example).
 
 ## Repository layout
 

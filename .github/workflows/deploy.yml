@@ -1,0 +1,196 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+
+# Never two at once, never cancelled: a half-applied migration is worse than a
+# queued deploy.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  REMOTE_DIR: /opt/clinic/app
+  COMPOSE_PROJECT: clinic
+  COMPOSE_FILE_NAME: docker-compose.server.yml
+  # Repository → Settings → Secrets and variables → Actions → Variables.
+  SITE_URL: ${{ vars.SITE_URL }}
+
+jobs:
+  deploy:
+    name: Deploy main to the VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Refuse anything but main, or a missing SITE_URL
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$REF_NAME" != "main" ]; then
+            echo "::error::the server runs main only — start the run from main"
+            exit 1
+          fi
+          if [ -z "$SITE_URL" ]; then
+            echo "::error::the SITE_URL repository variable is not set — see DEPLOY.md"
+            exit 1
+          fi
+
+      # Waits by signing in, not by knocking: a bare TCP probe drops the
+      # connection without an identification string, which fail2ban bans the
+      # runner for — so the old loop banned itself and then saw no answer.
+      - name: Wait for the VPS to accept SSH
+        env:
+          SSH_HOST: ${{ secrets.VPS_HOST }}
+          SSH_PORT: ${{ secrets.VPS_SSH_PORT || 22 }}
+          SSH_USER: ${{ secrets.VPS_USER }}
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -uo pipefail
+
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_probe
+          chmod 600 ~/.ssh/deploy_probe
+
+          for attempt in $(seq 1 12); do
+            if ssh -i ~/.ssh/deploy_probe -p "$SSH_PORT" \
+                 -o BatchMode=yes \
+                 -o ConnectTimeout=10 \
+                 -o StrictHostKeyChecking=accept-new \
+                 -o LogLevel=ERROR \
+                 "$SSH_USER@$SSH_HOST" true 2>/tmp/ssh-probe.err; then
+              echo "signed in after ${attempt} attempt(s)"
+              exit 0
+            fi
+
+            reason="$(tr -d '\r' < /tmp/ssh-probe.err | tail -1)"
+            echo "attempt ${attempt}: ${reason:-no answer}"
+
+            # Retrying cannot fix a refused key, and repeating one gets banned.
+            case "$reason" in
+              *"Permission denied"* | *"Too many authentication failures"* | *"no matching host key"*)
+                echo "::error::the VPS answered and refused the deploy key — this is not a blip, check the key and the authorized_keys on the server"
+                exit 1
+                ;;
+            esac
+
+            sleep 20
+          done
+
+          echo "::error::the VPS never accepted an SSH login on port ${SSH_PORT} — 12 attempts over about four minutes"
+          exit 1
+
+      # On the server: it has the sources, and .env is made by hand, never by CI.
+      - name: Build and restart the stack
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT || 22 }}
+          script_stop: true
+          # The dial, not the script: 30s expired on a box that was busy, not gone.
+          timeout: 60s
+          command_timeout: 30m
+          script: |
+            set -eu
+            cd ${{ env.REMOTE_DIR }}
+
+            git rev-parse --git-dir >/dev/null 2>&1 || {
+              echo "${{ env.REMOTE_DIR }} is not a git checkout — see DEPLOY.md"
+              exit 1
+            }
+
+            # Reset, not merge: the deploy lands exactly the branch. `.env` is gitignored.
+            git fetch origin main
+            git reset --hard FETCH_HEAD
+            echo "deploying $(git rev-parse --short HEAD)"
+
+            echo "==> Making sure the full history is here (the version is a commit count)"
+            if [ -f "$(git rev-parse --git-dir)/shallow" ]; then
+              echo "    shallow clone — unshallowing"
+              git fetch --unshallow origin main || git fetch --depth=2147483647 origin main
+            fi
+
+            echo "==> Resolving app version"
+            # Passed in: `.git` is outside the build context, so the images
+            # cannot work it out. Mirrors scripts/app-version.mjs for a VPS
+            # without node.
+            if command -v node >/dev/null 2>&1; then
+              APP_VERSION="$(node scripts/app-version.mjs)"
+            else
+              BASE="$(awk -F'"' '/"version"[[:space:]]*:/ { split($4, v, "."); print v[1] "." v[2]; exit }' package.json)"
+              APP_VERSION="${BASE:-0.0}.$(git rev-list --count HEAD)"
+            fi
+            export APP_VERSION
+            echo "    APP_VERSION=$APP_VERSION"
+
+            # Fail loudly rather than booting a stack with empty passwords.
+            test -f .env || { echo "missing ${{ env.REMOTE_DIR }}/.env — see DEPLOY.md"; exit 1; }
+
+            # --pull so a rebuild picks up base image security updates.
+            docker compose -p ${{ env.COMPOSE_PROJECT }} -f ${{ env.COMPOSE_FILE_NAME }} build --pull
+            docker compose -p ${{ env.COMPOSE_PROJECT }} -f ${{ env.COMPOSE_FILE_NAME }} up -d --remove-orphans
+
+            docker compose -p ${{ env.COMPOSE_PROJECT }} -f ${{ env.COMPOSE_FILE_NAME }} ps
+
+            # Dangling only: the machine is shared, and building here fills the
+            # disk with every previous build's layers.
+            docker image prune -f
+
+      # Over the public hostname: proves nginx, TLS, the /api proxy and the
+      # database, not just that a container started.
+      - name: Healthcheck through the public hostname
+        run: |
+          set -euo pipefail
+          url="${{ env.SITE_URL }}/api/health"
+
+          for attempt in $(seq 1 30); do
+            body=$(curl -fsS --max-time 10 "$url" 2>/dev/null) || body=""
+
+            if printf '%s' "$body" | grep -q '"status":"ok"'; then
+              echo "healthy after ${attempt} attempt(s)"
+              printf '%s\n' "$body"
+
+              # A reachable API over a dead database is not a successful deploy.
+              if ! printf '%s' "$body" | grep -q '"database":"up"'; then
+                echo "::error::API is up but reports the database down"
+                exit 1
+              fi
+
+              exit 0
+            fi
+
+            echo "attempt ${attempt}: not healthy yet"
+            sleep 5
+          done
+
+          echo "::error::${url} did not report healthy after 30 attempts, 5s apart"
+          echo "last response: ${body:-<no response>}"
+          exit 1
+
+      # "container is unhealthy" alone says nothing about what the container
+      # said. Two services only: this log is public.
+      - name: Container logs on failure
+        if: failure()
+        # A dump that cannot reach the server must not bury the real failure.
+        continue-on-error: true
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT || 22 }}
+          timeout: 60s
+          script_stop: false
+          script: |
+            cd ${{ env.REMOTE_DIR }} || exit 0
+
+            echo "───────── container states ─────────"
+            docker compose -p ${{ env.COMPOSE_PROJECT }} -f ${{ env.COMPOSE_FILE_NAME }} ps -a || true
+
+            for service in api postgres; do
+              echo
+              echo "───────── ${service} ─────────"
+              docker compose -p ${{ env.COMPOSE_PROJECT }} -f ${{ env.COMPOSE_FILE_NAME }} \
+                logs --tail=80 --no-color "${service}" || true
+            done
