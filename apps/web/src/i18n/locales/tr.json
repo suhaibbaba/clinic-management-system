@@ -757,7 +757,6 @@
     "title": "Hastalar",
     "visitedThisMonth": "Bu ay gelenler",
     "years": "{{count}} yaş",
-    "incomplete": "Profil eksik",
     "createNamed": "Yeni hasta: {{name}}",
     "createInline": "Yeni hasta kaydet",
     "createInlineHint": "Şimdilik ad ve telefon numarası yeterli; dosyanın geri kalanı hasta geldiğinde alınır.",

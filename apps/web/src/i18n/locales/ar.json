@@ -789,7 +789,6 @@
     "title": "المرضى",
     "visitedThisMonth": "زاروا هذا الشهر",
     "years": "{{count}} سنة",
-    "incomplete": "بيانات غير مكتملة",
     "createNamed": "مريض جديد: {{name}}",
     "createInline": "تسجيل مريض جديد",
     "createInlineHint": "يكفي الاسم والهاتف الآن؛ ويمكن استكمال بقية البيانات عند وصول المريض.",

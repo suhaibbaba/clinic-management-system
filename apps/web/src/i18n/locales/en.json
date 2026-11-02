@@ -757,7 +757,6 @@
     "title": "Patients",
     "visitedThisMonth": "Visited This Month",
     "years": "{{count}} years",
-    "incomplete": "Profile Incomplete",
     "createNamed": "New patient: {{name}}",
     "createInline": "Register a New Patient",
     "createInlineHint": "A name and a phone number are enough for now — the rest of the file is taken when they arrive.",
