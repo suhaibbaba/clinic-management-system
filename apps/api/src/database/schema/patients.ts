@@ -86,7 +86,7 @@ export const patients = pgTable(
     lastName: text("last_name").notNull(),
     fullName: text("full_name").notNull(),
     normalizedName: normalizedName("full_name"),
-    phone: text("phone").notNull(),
+    phone: text("phone"),
     whatsapp: text("whatsapp"),
     dateOfBirth: date("date_of_birth"),
     gender: genderEnum("gender"),

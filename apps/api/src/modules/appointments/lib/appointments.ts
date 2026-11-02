@@ -75,7 +75,7 @@ export interface CalendarRow {
   readonly patientName: string;
   readonly patientFirstName: string;
   readonly patientLastName: string;
-  readonly patientPhone: string;
+  readonly patientPhone: string | null;
   readonly patientFileNumber: string;
   readonly patientUnverified: boolean;
   readonly doctorName: LocalizedText;

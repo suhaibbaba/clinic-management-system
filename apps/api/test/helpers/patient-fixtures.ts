@@ -77,7 +77,7 @@ export function nameParts(fullName: string): {
 export async function createPatient(
   context: TestContext,
   token: string,
-  payload: { firstName: string; lastName: string; phone: string; [key: string]: unknown },
+  payload: { firstName: string; lastName: string; phone?: string | null; [key: string]: unknown },
 ): Promise<string> {
   const response = await context.app.inject({
     method: "POST",

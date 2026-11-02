@@ -103,7 +103,7 @@ export const conflictingAppointmentSchema = z.object({
   startsAt: z.iso.datetime(),
   durationMinutes: z.number().int().positive(),
   patientName: z.string(),
-  patientPhone: z.string(),
+  patientPhone: z.string().nullable(),
   doctorId: uuidSchema,
 });
 export type ConflictingAppointment = z.infer<typeof conflictingAppointmentSchema>;

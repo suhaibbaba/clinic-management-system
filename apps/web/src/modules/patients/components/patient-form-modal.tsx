@@ -102,7 +102,7 @@ export function PatientFormModal({
             emergencyContactPhone: patient.emergencyContactPhone,
             assignedDoctorId: patient.assignedDoctorId,
           }
-        : { firstName: "", middleName: "", lastName: "", phone: "" },
+        : { firstName: "", middleName: "", lastName: "" },
     );
   }, [open, patient, reset]);
 
@@ -223,6 +223,7 @@ export function PatientFormModal({
           htmlFor="patient-phone"
           error={errors.phone}
           errorKey={errors.phone ? "errors.validation.invalidPhone" : undefined}
+          optional
         >
           <Controller
             name="phone"

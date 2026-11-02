@@ -30,7 +30,7 @@ export const patientClinicalViewSchema = z.object({
   firstName: z.string(),
   middleName: z.string().nullable(),
   lastName: z.string(),
-  phone: z.string(),
+  phone: z.string().nullable(),
   whatsapp: z.string().nullable(),
   dateOfBirth: dateOnlySchema.nullable(),
   gender: z.enum(GENDERS).nullable(),
@@ -75,7 +75,7 @@ const nameParts = {
 
 const patientWritableFields = {
   ...nameParts,
-  phone: phoneSchema,
+  phone: phoneSchema.nullish(),
   whatsapp: phoneSchema.nullish(),
   dateOfBirth: pastDateSchema.nullish(),
   gender: z.enum(GENDERS).nullish(),
@@ -98,7 +98,7 @@ export type UpdatePatientInput = z.infer<typeof updatePatientSchema>;
 
 export const inlinePatientSchema = z.object({
   ...nameParts,
-  phone: patientWritableFields.phone,
+  phone: phoneSchema,
   gender: patientWritableFields.gender,
   dateOfBirth: patientWritableFields.dateOfBirth,
 });

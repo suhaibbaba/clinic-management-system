@@ -59,7 +59,9 @@ export class PatientRegistrationService {
     actor: AuthenticatedUser,
     input: CreatePatientInput,
   ): Promise<PatientRow> {
-    await this.assertPhoneIsFree(executor, actor, input.phone);
+    if (input.phone) {
+      await this.assertPhoneIsFree(executor, actor, input.phone);
+    }
 
     const row = await this.insertPatient(executor, actor, input);
 

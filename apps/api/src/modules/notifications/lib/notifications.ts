@@ -8,11 +8,15 @@ import {
 
 export interface SendNotification {
   readonly clinicId: string;
-  readonly to: string;
+  readonly to: string | null;
   readonly template: NotificationTemplate;
   readonly vars: NotificationVars;
   readonly channel?: NotificationChannel | undefined;
   readonly appointmentId?: string | undefined;
+}
+
+export interface AddressedNotification extends SendNotification {
+  readonly to: string;
 }
 
 export interface SendResult {

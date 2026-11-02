@@ -105,7 +105,7 @@ export const aiViewSchema = z.discriminatedUnion("type", [
       id: uuidSchema,
       fullName: z.string(),
       fileNumber: z.string(),
-      phone: z.string(),
+      phone: z.string().nullable(),
     }),
     balance: z.string().optional(),
     table: aiTableViewSchema,

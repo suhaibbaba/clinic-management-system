@@ -114,7 +114,7 @@ export const portalRecordSchema = z.object({
     id: uuidSchema,
     fullName: z.string(),
     fileNumber: z.string(),
-    phone: z.string(),
+    phone: z.string().nullable(),
     dateOfBirth: z.iso.date().nullable(),
     allergies: z.array(z.string()),
     chronicConditions: z.array(z.string()),

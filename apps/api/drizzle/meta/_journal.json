@@ -659,6 +659,13 @@
       "when": 1793646115625,
       "tag": "0093_users_unique_per_clinic",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1793652516064,
+      "tag": "0094_patient_phone_optional",
+      "breakpoints": true
     }
   ]
 }

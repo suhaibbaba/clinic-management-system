@@ -117,6 +117,27 @@ describe("Patients (e2e)", () => {
     });
   });
 
+  describe("phone", () => {
+    it("registers patients without a phone, and two of them never clash", async () => {
+      const first = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
+        ...nameParts("مريض بلا هاتف أول"),
+      });
+      const second = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
+        ...nameParts("مريض بلا هاتف ثان"),
+        phone: null,
+      });
+
+      const response = await context.app.inject({
+        method: "GET",
+        url: `/patients/${second}`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+      });
+
+      expect(first).not.toBe(second);
+      expect((response.json() as { phone: string | null }).phone).toBeNull();
+    });
+  });
+
   describe("search", () => {
     it("finds a patient by a fragment of the Arabic name", async () => {
       const result = await search("خالد");

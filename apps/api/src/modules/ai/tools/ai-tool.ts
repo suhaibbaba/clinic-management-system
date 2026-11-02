@@ -144,7 +144,11 @@ export function capped<TItem>(
   };
 }
 
-export const maskPhone = (phone: string): string => {
+export const maskPhone = (phone: string | null): string | null => {
+  if (phone === null) {
+    return null;
+  }
+
   const digits = phone.replace(/\D/g, "");
 
   return digits.length <= 4 ? "****" : `****${digits.slice(-4)}`;

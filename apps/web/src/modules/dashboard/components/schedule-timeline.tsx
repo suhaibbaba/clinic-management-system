@@ -81,12 +81,14 @@ export function ScheduleTimeline({
                         onClick={() => onConfirm(appointment)}
                       />
                     )}
-                    <QuickAction
-                      data-testid={`${testId}-call-${appointment.id}`}
-                      label={t("dashboard.call")}
-                      icon="phone"
-                      href={`tel:${appointment.patientPhone.replace(/[\s-]/g, "")}`}
-                    />
+                    {appointment.patientPhone && (
+                      <QuickAction
+                        data-testid={`${testId}-call-${appointment.id}`}
+                        label={t("dashboard.call")}
+                        icon="phone"
+                        href={`tel:${appointment.patientPhone.replace(/[\s-]/g, "")}`}
+                      />
+                    )}
                   </div>
                 )}
 

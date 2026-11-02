@@ -131,7 +131,7 @@ describe("Urgent requests (e2e)", () => {
       const phone = uniquePhone();
       await request({ phone, ...nameParts(`مريض ${phone.slice(-6)}`) });
 
-      const found = (await queue()).find((row) => row.patientPhone.endsWith(phone.slice(-6)));
+      const found = (await queue()).find((row) => row.patientPhone?.endsWith(phone.slice(-6)));
       expect(found).toBeDefined();
       entry = found as WaitingListEntry;
     });

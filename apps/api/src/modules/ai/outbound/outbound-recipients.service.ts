@@ -85,7 +85,7 @@ export class OutboundRecipientsService {
       .select({
         patientId: patients.id,
         name: patients.fullName,
-        phone: patients.phone,
+        phone: sql<string>`${patients.phone}`,
         oldest: sql<Date>`min(${labOrders.expectedAt})`,
       })
       .from(labOrders)
@@ -95,6 +95,7 @@ export class OutboundRecipientsService {
           eq(labOrders.clinicId, clinicId),
           isNull(labOrders.deletedAt),
           isNull(patients.deletedAt),
+          isNotNull(patients.phone),
           isNotNull(labOrders.expectedAt),
           lt(labOrders.expectedAt, cutoff),
           inArray(labOrders.status, [...LAB_ORDER_AWAITING_STATUSES]),
@@ -142,7 +143,7 @@ export class OutboundRecipientsService {
             where clinic_id = ${clinicId} and patient_id = p.id and deleted_at is null
           ), 0) as paid
         from patients p
-        where p.clinic_id = ${clinicId} and p.deleted_at is null
+        where p.clinic_id = ${clinicId} and p.deleted_at is null and p.phone is not null
       )
       select patient_id::text as patient_id, full_name, phone,
              (charged - paid)::text as balance
@@ -173,7 +174,7 @@ export class OutboundRecipientsService {
       .select({
         patientId: patients.id,
         name: patients.fullName,
-        phone: patients.phone,
+        phone: sql<string>`${patients.phone}`,
         startsAt: appointments.startsAt,
         doctorName: users.name,
       })
@@ -186,6 +187,7 @@ export class OutboundRecipientsService {
           eq(appointments.clinicId, clinicId),
           isNull(appointments.deletedAt),
           isNull(patients.deletedAt),
+          isNotNull(patients.phone),
           eq(appointments.status, APPOINTMENT_STATUS.CONFIRMED),
           gte(appointments.startsAt, from),
           lt(appointments.startsAt, to),
@@ -230,12 +232,17 @@ export class OutboundRecipientsService {
     }
 
     const rows = await this.db
-      .select({ patientId: patients.id, name: patients.fullName, phone: patients.phone })
+      .select({
+        patientId: patients.id,
+        name: patients.fullName,
+        phone: sql<string>`${patients.phone}`,
+      })
       .from(patients)
       .where(
         and(
           eq(patients.clinicId, clinicId),
           isNull(patients.deletedAt),
+          isNotNull(patients.phone),
           inArray(patients.id, [...new Set(patientIds)]),
         ),
       )

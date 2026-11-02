@@ -1,4 +1,4 @@
 export const whatsAppNumber = (patient: {
   readonly whatsapp?: string | null | undefined;
-  readonly phone: string;
-}): string => patient.whatsapp ?? patient.phone;
+  readonly phone: string | null;
+}): string | null => patient.whatsapp ?? patient.phone;

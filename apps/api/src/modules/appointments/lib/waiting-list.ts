@@ -6,7 +6,7 @@ export type WaitingListRow = typeof waitingList.$inferSelect;
 export interface WaitingListJoinedRow {
   readonly entry: WaitingListRow;
   readonly patientName: string;
-  readonly patientPhone: string;
+  readonly patientPhone: string | null;
   readonly doctorName: LocalizedText | null;
 }
 

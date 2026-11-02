@@ -27,7 +27,11 @@ import {
   type OutboundMessage,
 } from "@api/modules/notifications/lib/notification-provider";
 import { SecretsService } from "@api/modules/secrets/services/secrets.service";
-import { SendNotification, SendResult } from "@api/modules/notifications/lib/notifications";
+import {
+  AddressedNotification,
+  SendNotification,
+  SendResult,
+} from "@api/modules/notifications/lib/notifications";
 
 @Injectable()
 export class NotificationsService {
@@ -41,7 +45,15 @@ export class NotificationsService {
     private readonly config: ConfigService<Env, true>,
   ) {}
 
-  async send(input: SendNotification): Promise<SendResult | null> {
+  async send(request: SendNotification): Promise<SendResult | null> {
+    const { to } = request;
+
+    if (!to) {
+      return null;
+    }
+
+    const input: AddressedNotification = { ...request, to };
+
     const { settings, language } = await this.clinicFor(input.clinicId);
 
     if (!settings.enabled || inRehearsal()) {
@@ -84,7 +96,7 @@ export class NotificationsService {
 
   private async dispatch(
     id: string,
-    input: SendNotification,
+    input: AddressedNotification,
     channel: NotificationChannel,
     body: string,
     language: LanguageCode,

@@ -4,7 +4,7 @@ import { ApiError } from "@web/shared/lib/api-error";
 export interface PickedPatient {
   readonly id: string;
   readonly fullName: string;
-  readonly phone: string;
+  readonly phone: string | null;
   readonly fileNumber: string;
   readonly assignedDoctorId?: string | null;
 }

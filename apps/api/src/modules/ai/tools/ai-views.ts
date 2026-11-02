@@ -74,7 +74,7 @@ export function patientsView(
     id: string;
     fileNumber: string;
     fullName: string;
-    phone: string;
+    phone: string | null;
     lastVisitAt: string | null;
   }>,
   search: string,
@@ -99,7 +99,7 @@ export function patientsView(
 }
 
 export function patientView(
-  patient: { id: string; fullName: string; fileNumber: string; phone: string },
+  patient: { id: string; fullName: string; fileNumber: string; phone: string | null },
   balance: string | undefined,
   history: Capped<TimelineEntry>,
 ): AiView {
