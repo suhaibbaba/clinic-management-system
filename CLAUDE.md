@@ -128,7 +128,8 @@ a code, a chart type if it needs one, and its starter pack — never a branch in
   (`site_domain`), its **dashboard domain** (`app_domain`), and its own Resend sender and Google
   OAuth client (secrets sealed in `clinic_secrets`, shown only as their last four characters). On its
   dashboard domain the API resolves the clinic from the host (`ClinicHostService`), so Google
-  sign-in uses the clinic's client and admits only its staff, passkeys belong to that host and the
+  sign-in uses the clinic's client and admits only its staff, the sign-in page, app manifest and
+  icons carry its branding, passkeys belong to that host and the
   clinic's emails and booking links use its domains. A clinic without its own keys falls back to
   the server's `.env`. The shared address (`PUBLIC_BASE_URL`) is the vendor console only: the host
   nginx marks it `X-Clinic-Entry: vendor` and every page there goes to `/vendor`.

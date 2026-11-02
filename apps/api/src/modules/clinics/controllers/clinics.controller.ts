@@ -38,6 +38,8 @@ import {
   PresignAppIconDto,
   ConfirmAppIconDto,
 } from "@api/modules/clinics/dto/clinics.dto";
+import { CurrentSite } from "@api/common/decorators/request-site.decorator";
+import { type RequestSite } from "@api/common/types/request-site";
 
 @Controller("clinic")
 export class ClinicsController {
@@ -48,23 +50,27 @@ export class ClinicsController {
 
   @Get("branding")
   @Public()
-  branding(): Promise<ClinicBranding> {
-    return this.clinicsService.branding();
+  branding(@CurrentSite() site: RequestSite): Promise<ClinicBranding> {
+    return this.clinicsService.branding(site);
   }
 
   @Get("manifest.webmanifest")
   @Public()
-  async manifest(@Res() reply: FastifyReply): Promise<void> {
+  async manifest(@CurrentSite() site: RequestSite, @Res() reply: FastifyReply): Promise<void> {
     reply
       .type("application/manifest+json")
       .header("cache-control", `public, max-age=${MANIFEST_MAX_AGE_SECONDS}`)
-      .send(await this.clinicsService.manifest());
+      .send(await this.clinicsService.manifest(site));
   }
 
   @Get("icon/:name")
   @Public()
-  async icon(@Param("name") name: string, @Res() reply: FastifyReply): Promise<void> {
-    const url = await this.clinicsService.iconUrl(name);
+  async icon(
+    @Param("name") name: string,
+    @CurrentSite() site: RequestSite,
+    @Res() reply: FastifyReply,
+  ): Promise<void> {
+    const url = await this.clinicsService.iconUrl(name, site);
 
     if (!url) {
       throw new NotFoundException("Resource not found");

@@ -43,6 +43,8 @@ import {
   supplierPayments,
 } from "@api/database/schema";
 import { StorageService } from "@api/modules/storage/services/storage.service";
+import { ClinicHostService } from "@api/modules/auth/services/clinic-host.service";
+import { type RequestSite } from "@api/common/types/request-site";
 import { LOGO_CATEGORY } from "@api/modules/clinics/constants";
 import { CLINICS_ENTITY } from "@api/common/constants/audit-entities";
 import {
@@ -61,6 +63,7 @@ export class ClinicsService implements OnModuleInit {
     @Inject(DATABASE) private readonly db: Database,
     private readonly storage: StorageService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly hosts: ClinicHostService,
   ) {}
 
   onModuleInit(): void {
@@ -79,23 +82,10 @@ export class ClinicsService implements OnModuleInit {
     return this.withLogoUrl(await this.findOwnOrFail(actor.clinicId));
   }
 
-  async branding(): Promise<ClinicBranding> {
-    const rows = await this.db
-      .select({
-        name: clinics.name,
-        country: clinics.country,
-        currency: clinics.currency,
-        settings: clinics.settings,
-        logoKey: clinics.logoKey,
-        logoIconsAt: clinics.logoIconsAt,
-      })
-      .from(clinics)
-      .where(isNull(clinics.deletedAt))
-      .limit(2);
+  async branding(site: RequestSite): Promise<ClinicBranding> {
+    const only = await this.brandedClinic(site);
 
-    const [only] = rows;
-
-    if (rows.length !== 1 || !only) {
+    if (!only) {
       return { name: null, logoUrl: null, iconsAt: null, appName: "", locale: null };
     }
 
@@ -108,21 +98,8 @@ export class ClinicsService implements OnModuleInit {
     };
   }
 
-  async manifest(): Promise<ClinicManifest> {
-    const rows = await this.db
-      .select({
-        name: clinics.name,
-        country: clinics.country,
-        settings: clinics.settings,
-        logoKey: clinics.logoKey,
-        appIconKey: clinics.appIconKey,
-        logoIconsAt: clinics.logoIconsAt,
-      })
-      .from(clinics)
-      .where(isNull(clinics.deletedAt))
-      .limit(2);
-
-    const only = rows.length === 1 ? rows[0] : undefined;
+  async manifest(site: RequestSite): Promise<ClinicManifest> {
+    const only = (await this.brandedClinic(site)) ?? undefined;
     const language = only ? documentLanguage(only) : DEFAULT_LANGUAGE;
     const name = appName(only);
     const version = only?.logoIconsAt?.toISOString();
@@ -147,27 +124,17 @@ export class ClinicsService implements OnModuleInit {
     };
   }
 
-  async iconUrl(name: string): Promise<string | null> {
+  async iconUrl(name: string, site: RequestSite): Promise<string | null> {
     const icon = clinicIcon(name);
 
     if (!icon) {
       return null;
     }
 
-    const rows = await this.db
-      .select({
-        logoKey: clinics.logoKey,
-        appIconKey: clinics.appIconKey,
-        logoIconsAt: clinics.logoIconsAt,
-      })
-      .from(clinics)
-      .where(isNull(clinics.deletedAt))
-      .limit(2);
-
-    const [only] = rows;
+    const only = await this.brandedClinic(site);
     const source = only ? iconSource(only) : null;
 
-    if (rows.length !== 1 || !source || only?.logoIconsAt == null) {
+    if (!source || only?.logoIconsAt == null) {
       return null;
     }
 
@@ -258,6 +225,37 @@ export class ClinicsService implements OnModuleInit {
     return this.replaceSource(actor, await this.findOwnOrFail(actor.clinicId), {
       appIconKey: null,
     });
+  }
+
+  private async brandedClinic(site: RequestSite) {
+    const columns = {
+      name: clinics.name,
+      country: clinics.country,
+      currency: clinics.currency,
+      settings: clinics.settings,
+      logoKey: clinics.logoKey,
+      appIconKey: clinics.appIconKey,
+      logoIconsAt: clinics.logoIconsAt,
+    };
+    const atHost = await this.hosts.clinicAt(site.host);
+
+    if (atHost) {
+      const [clinic] = await this.db
+        .select(columns)
+        .from(clinics)
+        .where(eq(clinics.id, atHost.id))
+        .limit(1);
+
+      return clinic ?? null;
+    }
+
+    const rows = await this.db
+      .select(columns)
+      .from(clinics)
+      .where(isNull(clinics.deletedAt))
+      .limit(2);
+
+    return rows.length === 1 ? (rows[0] ?? null) : null;
   }
 
   private async replaceSource(
