@@ -104,6 +104,8 @@ services:
       APP_VERSION: ${APP_VERSION:-}
     ports:
       - "127.0.0.1:${STACK_API_PORT:-15000}:3000"
+    extra_hosts:
+      - "${STACK_S3_HOST:-clinic-managment-s3.organza-moda.com}:host-gateway"
     # Migrations run to completion before the server listens, so the stack
     # never serves traffic against an un-migrated database. Clinics are created
     # from the vendor console; SEED_ON_BOOT (demo data) and BOOTSTRAP_ON_BOOT

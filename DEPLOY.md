@@ -258,10 +258,11 @@ Two consequences:
   Host header of the request it receives, so a URL signed for the public
   hostname verifies as long as nginx does not rewrite it;
 - the API's own S3 calls — `HeadObject` when an upload is confirmed — also go
-  out to the public hostname and back in through nginx. That works on any VPS
-  whose containers have outbound DNS and internet access, which is the normal
-  case. If the host firewall blocks the hairpin, add a `hosts:` mapping on the
-  api service pointing the S3 hostname at the host's own address.
+  out to the public hostname and back in through nginx. The api service maps
+  that hostname (`STACK_S3_HOST`, defaulting to the one above) to the host
+  itself with `extra_hosts: …:host-gateway`, so these calls never depend on the
+  container's DNS — a failed lookup there answered every upload confirmation
+  with a 500. The host nginx must listen on all interfaces, not loopback only.
 
 ### First deploy and the vendor account
 
