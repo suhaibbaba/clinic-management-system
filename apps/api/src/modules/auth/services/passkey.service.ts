@@ -39,6 +39,7 @@ import {
 } from "@api/modules/auth/constants";
 import { type UserRow } from "@api/modules/auth/lib/auth";
 import { relyingParty, toPasskey, type RelyingParty } from "@api/modules/auth/lib/webauthn";
+import { inSignInClinic } from "@api/common/lib/sign-in-scope";
 
 type ChallengePurpose = (typeof AUTH_CHALLENGE_PURPOSE)[keyof typeof AUTH_CHALLENGE_PURPOSE];
 
@@ -92,11 +93,18 @@ export class PasskeyService {
       return undefined;
     }
 
+    const clinicId = (await this.hosts.clinicAt(site.host))?.id ?? null;
     const [found] = await this.db
       .select({ passkey: passkeys, user: users })
       .from(passkeys)
       .innerJoin(users, eq(users.id, passkeys.userId))
-      .where(and(eq(passkeys.credentialId, input.response.id), isNull(users.deletedAt)))
+      .where(
+        and(
+          eq(passkeys.credentialId, input.response.id),
+          isNull(users.deletedAt),
+          inSignInClinic(clinicId),
+        ),
+      )
       .limit(1);
 
     if (!found) {

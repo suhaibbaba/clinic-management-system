@@ -29,6 +29,8 @@ import { UserRow } from "@api/modules/auth/lib/auth";
 import { typedPhoneMatches } from "@api/common/lib/phone";
 import { inLiveClinic } from "@api/common/lib/live-clinic";
 import { type RequestSite } from "@api/common/types/request-site";
+import { inSignInClinic, onlyMatch } from "@api/common/lib/sign-in-scope";
+import { ClinicHostService } from "@api/modules/auth/services/clinic-host.service";
 
 @Injectable()
 export class AuthService {
@@ -45,12 +47,13 @@ export class AuthService {
     private readonly loginThrottle: LoginThrottleService,
     private readonly loginCodes: LoginCodeService,
     private readonly passkeys: PasskeyService,
+    private readonly hosts: ClinicHostService,
   ) {}
 
-  async login(input: LoginInput): Promise<LoginResponse & IssuedSession> {
+  async login(input: LoginInput, site: RequestSite): Promise<LoginResponse & IssuedSession> {
     await this.loginThrottle.assertOpen(input.identifier);
 
-    const user = await this.findByIdentifier(input.identifier);
+    const user = await this.findByIdentifier(input.identifier, await this.clinicAt(site));
     const refuse = async (): Promise<never> => {
       await this.loginThrottle.recordFailure(input.identifier);
       throw new UnauthorizedException(INVALID_CREDENTIALS);
@@ -72,10 +75,13 @@ export class AuthService {
     return this.startSession(user, input.rememberMe ?? true);
   }
 
-  async loginWithCode(input: VerifyLoginCodeInput): Promise<LoginResponse & IssuedSession> {
+  async loginWithCode(
+    input: VerifyLoginCodeInput,
+    site: RequestSite,
+  ): Promise<LoginResponse & IssuedSession> {
     await this.loginThrottle.assertOpen(input.email);
 
-    const user = await this.loginCodes.consume(input.email, input.code);
+    const user = await this.loginCodes.consume(input.email, input.code, await this.clinicAt(site));
 
     if (!user?.isActive) {
       await this.loginThrottle.recordFailure(input.email);
@@ -105,18 +111,20 @@ export class AuthService {
     persistent: boolean,
     clinicId: string | null,
   ): Promise<LoginResponse & IssuedSession> {
-    const [user] = await this.db
-      .select()
-      .from(users)
-      .where(
-        and(
-          isNull(users.deletedAt),
-          inLiveClinic,
-          eq(sql`lower(${users.email})`, email.toLowerCase()),
-          clinicId === null ? undefined : eq(users.clinicId, clinicId),
-        ),
-      )
-      .limit(1);
+    const user = onlyMatch(
+      await this.db
+        .select()
+        .from(users)
+        .where(
+          and(
+            isNull(users.deletedAt),
+            inLiveClinic,
+            eq(sql`lower(${users.email})`, email.toLowerCase()),
+            inSignInClinic(clinicId),
+          ),
+        )
+        .limit(2),
+    );
 
     if (!user?.isActive) {
       throw new UnauthorizedException(AUTH_ERROR.GOOGLE_NO_ACCOUNT);
@@ -200,23 +208,31 @@ export class AuthService {
     };
   }
 
-  private async findByIdentifier(identifier: string): Promise<UserRow | undefined> {
+  private async clinicAt(site: RequestSite): Promise<string | null> {
+    return (await this.hosts.clinicAt(site.host))?.id ?? null;
+  }
+
+  private async findByIdentifier(
+    identifier: string,
+    clinicId: string | null,
+  ): Promise<UserRow | undefined> {
     const trimmed = identifier.trim();
 
     if (trimmed.includes("@")) {
-      const [user] = await this.db
-        .select()
-        .from(users)
-        .where(
-          and(
-            isNull(users.deletedAt),
-            inLiveClinic,
-            eq(sql`lower(${users.email})`, trimmed.toLowerCase()),
-          ),
-        )
-        .limit(1);
-
-      return user;
+      return onlyMatch(
+        await this.db
+          .select()
+          .from(users)
+          .where(
+            and(
+              isNull(users.deletedAt),
+              inLiveClinic,
+              eq(sql`lower(${users.email})`, trimmed.toLowerCase()),
+              inSignInClinic(clinicId),
+            ),
+          )
+          .limit(2),
+      );
     }
 
     const national = nationalPhoneDigits(trimmed);
@@ -228,10 +244,17 @@ export class AuthService {
     const matches = await this.db
       .select()
       .from(users)
-      .where(and(isNull(users.deletedAt), inLiveClinic, typedPhoneMatches(users.phone, trimmed)))
+      .where(
+        and(
+          isNull(users.deletedAt),
+          inLiveClinic,
+          typedPhoneMatches(users.phone, trimmed),
+          inSignInClinic(clinicId),
+        ),
+      )
       .limit(2);
 
-    return matches.length === 1 ? matches[0] : undefined;
+    return onlyMatch(matches);
   }
 
   private async findActiveById(id: string): Promise<UserRow | undefined> {

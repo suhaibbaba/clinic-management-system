@@ -129,7 +129,13 @@ export class UsersService implements OnModuleInit {
     actor: AuthenticatedUser,
     input: Omit<CreateUserInput, "joinedOn"> & { readonly joinedOn?: string | null },
   ): Promise<SafeUserRow> {
-    await this.assertIdentifiersAreFree(input.phone, input.email ?? null, undefined, executor);
+    await this.assertIdentifiersAreFree(
+      actor.clinicId,
+      input.phone,
+      input.email ?? null,
+      undefined,
+      executor,
+    );
 
     const passwordHash = input.password ? await this.passwordService.hash(input.password) : null;
 
@@ -164,6 +170,7 @@ export class UsersService implements OnModuleInit {
 
     if (input.phone !== undefined || input.email !== undefined) {
       await this.assertIdentifiersAreFree(
+        actor.clinicId,
         input.phone ?? existing.phone,
         input.email === undefined ? existing.email : (input.email ?? null),
         id,
@@ -430,6 +437,7 @@ export class UsersService implements OnModuleInit {
   }
 
   private async assertIdentifiersAreFree(
+    clinicId: string,
     phone: string,
     email: string | null,
     excludeUserId?: string,
@@ -446,6 +454,7 @@ export class UsersService implements OnModuleInit {
       .where(
         and(
           isNull(users.deletedAt),
+          eq(users.clinicId, clinicId),
           identifierMatches,
           excludeUserId ? ne(users.id, excludeUserId) : undefined,
         ),

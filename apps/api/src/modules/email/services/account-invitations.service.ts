@@ -9,6 +9,9 @@ import { hashToken, type AccountEmailPurpose } from "@api/modules/email/lib/acco
 import { PasswordService } from "@api/modules/auth/services/password.service";
 import { TokenService } from "@api/modules/auth/services/token.service";
 import { typedPhoneMatches } from "@api/common/lib/phone";
+import { inSignInClinic, onlyMatch } from "@api/common/lib/sign-in-scope";
+import { type RequestSite } from "@api/common/types/request-site";
+import { ClinicHostService } from "@api/modules/auth/services/clinic-host.service";
 
 @Injectable()
 export class AccountInvitationsService {
@@ -19,6 +22,7 @@ export class AccountInvitationsService {
     private readonly email: AccountEmailService,
     private readonly passwords: PasswordService,
     private readonly tokens: TokenService,
+    private readonly hosts: ClinicHostService,
   ) {}
 
   async invite(userId: string, clinicId: string, purpose: AccountEmailPurpose): Promise<void> {
@@ -48,28 +52,32 @@ export class AccountInvitationsService {
     await this.issueAndSend({ id: user.id, name: user.name, email: user.email }, clinicId, purpose);
   }
 
-  async forgot(identifier: string): Promise<void> {
+  async forgot(identifier: string, site: RequestSite): Promise<void> {
     const value = identifier.trim();
+    const clinicId = (await this.hosts.clinicAt(site.host))?.id ?? null;
 
-    const [user] = await this.db
-      .select({
-        id: users.id,
-        clinicId: users.clinicId,
-        name: users.name,
-        email: users.email,
-        hasPassword: sql<boolean>`${users.passwordHash} is not null`,
-      })
-      .from(users)
-      .where(
-        and(
-          isNull(users.deletedAt),
-          eq(users.isActive, true),
-          value.includes("@")
-            ? eq(sql`lower(${users.email})`, value.toLowerCase())
-            : typedPhoneMatches(users.phone, value),
-        ),
-      )
-      .limit(1);
+    const user = onlyMatch(
+      await this.db
+        .select({
+          id: users.id,
+          clinicId: users.clinicId,
+          name: users.name,
+          email: users.email,
+          hasPassword: sql<boolean>`${users.passwordHash} is not null`,
+        })
+        .from(users)
+        .where(
+          and(
+            isNull(users.deletedAt),
+            eq(users.isActive, true),
+            value.includes("@")
+              ? eq(sql`lower(${users.email})`, value.toLowerCase())
+              : typedPhoneMatches(users.phone, value),
+            inSignInClinic(clinicId),
+          ),
+        )
+        .limit(2),
+    );
 
     if (!user?.email) {
       this.logger.log("Password reset asked for an identifier with no live account; nothing sent.");

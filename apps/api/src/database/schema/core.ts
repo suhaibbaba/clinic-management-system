@@ -126,9 +126,11 @@ export const users = pgTable(
   },
   (table) => [
     index("users_clinic_idx").on(table.clinicId),
-    uniqueIndex("users_phone_uniq").on(nationalPhoneDigitsOf(table.phone)).where(liveRows),
+    uniqueIndex("users_phone_uniq")
+      .on(table.clinicId, nationalPhoneDigitsOf(table.phone))
+      .where(liveRows),
     uniqueIndex("users_email_uniq")
-      .on(table.email)
+      .on(table.clinicId, table.email)
       .where(sql`deleted_at is null and email is not null`),
   ],
 );

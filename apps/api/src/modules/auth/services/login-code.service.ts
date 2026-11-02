@@ -16,6 +16,9 @@ import {
   hashLoginCode,
   loginCodeMatches,
 } from "@api/modules/auth/lib/login-code";
+import { inSignInClinic, onlyMatch } from "@api/common/lib/sign-in-scope";
+import { type RequestSite } from "@api/common/types/request-site";
+import { ClinicHostService } from "@api/modules/auth/services/clinic-host.service";
 
 @Injectable()
 export class LoginCodeService {
@@ -24,10 +27,11 @@ export class LoginCodeService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly email: AccountEmailService,
+    private readonly hosts: ClinicHostService,
   ) {}
 
-  async request(email: string): Promise<void> {
-    const user = await this.findByEmail(email);
+  async request(email: string, site: RequestSite): Promise<void> {
+    const user = await this.findByEmail(email, (await this.hosts.clinicAt(site.host))?.id ?? null);
 
     if (!user?.email || !user.isActive) {
       this.logger.log("Sign-in code asked for an email with no live account; nothing sent.");
@@ -58,8 +62,12 @@ export class LoginCodeService {
     });
   }
 
-  async consume(email: string, code: string): Promise<UserRow | undefined> {
-    const user = await this.findByEmail(email);
+  async consume(
+    email: string,
+    code: string,
+    clinicId: string | null,
+  ): Promise<UserRow | undefined> {
+    const user = await this.findByEmail(email, clinicId);
 
     if (!user) {
       return undefined;
@@ -167,15 +175,19 @@ export class LoginCodeService {
     );
   }
 
-  private async findByEmail(email: string): Promise<UserRow | undefined> {
-    const [user] = await this.db
-      .select()
-      .from(users)
-      .where(
-        and(isNull(users.deletedAt), eq(sql`lower(${users.email})`, email.trim().toLowerCase())),
-      )
-      .limit(1);
-
-    return user;
+  private async findByEmail(email: string, clinicId: string | null): Promise<UserRow | undefined> {
+    return onlyMatch(
+      await this.db
+        .select()
+        .from(users)
+        .where(
+          and(
+            isNull(users.deletedAt),
+            eq(sql`lower(${users.email})`, email.trim().toLowerCase()),
+            inSignInClinic(clinicId),
+          ),
+        )
+        .limit(2),
+    );
   }
 }

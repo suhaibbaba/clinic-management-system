@@ -131,7 +131,9 @@ a code, a chart type if it needs one, and its starter pack — never a branch in
   sign-in uses the clinic's client and admits only its staff, the sign-in page, app manifest and
   icons carry its branding, passkeys belong to that host and the
   clinic's emails and booking links use its domains. A clinic without its own keys falls back to
-  the server's `.env`. The shared address (`PUBLIC_BASE_URL`) is the vendor console only: the host
+  the server's `.env`. A staff email or phone is unique within its clinic, not across clinics: every
+  sign-in looks only in the clinic whose dashboard domain it arrived on. The shared address
+  (`PUBLIC_BASE_URL`) is the vendor console only: the host
   nginx marks it `X-Clinic-Entry: vendor` and every page there goes to `/vendor`.
 - **The vendor console** — `/vendor`, its own bundle (`src/vendor`) and its own sign-in
   (`vendor_users`, an opaque session in the `clinic_vendor_session` httpOnly cookie), never a clinic

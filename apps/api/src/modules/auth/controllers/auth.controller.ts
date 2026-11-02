@@ -67,9 +67,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() body: LoginDto,
+    @CurrentSite() site: RequestSite,
     @Res({ passthrough: true }) reply: FastifyReply,
   ): Promise<LoginResponse> {
-    const { refreshToken, persistent, ...response } = await this.authService.login(body);
+    const { refreshToken, persistent, ...response } = await this.authService.login(body, site);
     setRefreshCookie(reply, this.config, refreshToken, persistent);
 
     return response;
@@ -79,8 +80,11 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 15 * 60_000 } })
   @Post("login-code")
   @HttpCode(HttpStatus.NO_CONTENT)
-  async requestLoginCode(@Body() body: RequestLoginCodeDto): Promise<void> {
-    await this.loginCodes.request(body.email);
+  async requestLoginCode(
+    @Body() body: RequestLoginCodeDto,
+    @CurrentSite() site: RequestSite,
+  ): Promise<void> {
+    await this.loginCodes.request(body.email, site);
   }
 
   @Public()
@@ -89,9 +93,13 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async verifyLoginCode(
     @Body() body: VerifyLoginCodeDto,
+    @CurrentSite() site: RequestSite,
     @Res({ passthrough: true }) reply: FastifyReply,
   ): Promise<LoginResponse> {
-    const { refreshToken, persistent, ...response } = await this.authService.loginWithCode(body);
+    const { refreshToken, persistent, ...response } = await this.authService.loginWithCode(
+      body,
+      site,
+    );
     setRefreshCookie(reply, this.config, refreshToken, persistent);
 
     return response;
@@ -167,8 +175,11 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 15 * 60_000 } })
   @Post("forgot-password")
   @HttpCode(HttpStatus.NO_CONTENT)
-  async forgotPassword(@Body() body: ForgotPasswordDto): Promise<void> {
-    await this.invitations.forgot(body.identifier);
+  async forgotPassword(
+    @Body() body: ForgotPasswordDto,
+    @CurrentSite() site: RequestSite,
+  ): Promise<void> {
+    await this.invitations.forgot(body.identifier, site);
   }
 
   @Public()
