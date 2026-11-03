@@ -8,6 +8,7 @@ export interface EmptyStateProps extends TestIdProps {
   hint?: string | undefined;
   action?: ReactNode | undefined;
   icon?: IconName | undefined;
+  titleAs?: "p" | "h1" | "h2" | "h3" | undefined;
 }
 
 export function EmptyState({
@@ -15,6 +16,7 @@ export function EmptyState({
   hint,
   action,
   icon = "file",
+  titleAs: Title = "p",
   "data-testid": testId,
 }: EmptyStateProps): JSX.Element {
   const { t } = useTranslation();
@@ -32,9 +34,9 @@ export function EmptyState({
         <Icon name={icon} size="md" />
       </span>
 
-      <p {...part("title")} className="text-section font-medium text-ink">
+      <Title {...part("title")} className="text-section font-medium text-ink">
         {t(title)}
-      </p>
+      </Title>
       {hint !== undefined && (
         <p {...part("hint")} className="mt-1 text-label text-ink-muted">
           {t(hint)}

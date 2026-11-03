@@ -105,7 +105,7 @@ export function ExtraHoursPanel({ doctorId, canEdit }: ExtraHoursPanelProps): JS
         className="mb-3 flex flex-wrap items-center justify-between gap-2"
       >
         <div className="min-w-0">
-          <p className="text-value font-medium text-ink">{t("schedule.extraHours.title")}</p>
+          <h2 className="text-value font-medium text-ink">{t("schedule.extraHours.title")}</h2>
           <p className="text-label text-ink-muted">{t("schedule.extraHours.about")}</p>
         </div>
 

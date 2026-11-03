@@ -51,7 +51,7 @@ export function PortalPanel({
         data-part="head"
         className="flex items-center justify-between gap-3 border-b border-line px-5 py-4"
       >
-        <h3 className="flex items-center gap-2 text-heading font-bold text-primary-900">
+        <h2 className="flex items-center gap-2 text-heading font-bold text-primary-900">
           {icon && <SiteIcon name={icon} className="size-5 text-primary-600" />}
           {title}
           {paged && items.length > 0 && (
@@ -59,7 +59,7 @@ export function PortalPanel({
               {items.length}
             </span>
           )}
-        </h3>
+        </h2>
         {action}
       </div>
       {items.length > 0 ? (

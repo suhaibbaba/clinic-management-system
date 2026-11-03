@@ -1,4 +1,4 @@
-import type { PublicSite, SiteText } from "@clinic/shared";
+import type { SITE_BLOCK_TYPE, PublicSite, SiteBlockOf, SiteText } from "@clinic/shared";
 import { imageOf } from "@web/site/lib/images";
 
 export interface ShownCase {
@@ -7,8 +7,11 @@ export interface ShownCase {
   readonly title: SiteText;
 }
 
-export function completeCases(site: PublicSite): ShownCase[] {
-  return site.content.cases.items.flatMap((item) => {
+export function completeCases(
+  site: PublicSite,
+  items: SiteBlockOf<typeof SITE_BLOCK_TYPE.CASES>["items"],
+): ShownCase[] {
+  return items.flatMap((item) => {
     const before = imageOf(site, item.before);
     const after = imageOf(site, item.after);
 

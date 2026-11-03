@@ -81,17 +81,25 @@ export function DashboardCustomizePage(): JSX.Element {
   };
 
   if (layouts.isPending) {
-    return <Skeleton aria-hidden="true" className="h-[520px] w-full rounded-card" />;
+    return (
+      <>
+        <h1 className="sr-only">{t("dashboard.customize.title")}</h1>
+        <Skeleton aria-hidden="true" className="h-[520px] w-full rounded-card" />
+      </>
+    );
   }
 
   if (!entry) {
     return (
-      <EmptyState
-        icon="alert"
-        data-testid="dashboard-customize-error"
-        title="errors.unknown"
-        hint="dashboard.failed"
-      />
+      <>
+        <h1 className="sr-only">{t("dashboard.customize.title")}</h1>
+        <EmptyState
+          icon="alert"
+          data-testid="dashboard-customize-error"
+          title="errors.unknown"
+          hint="dashboard.failed"
+        />
+      </>
     );
   }
 

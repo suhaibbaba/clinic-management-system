@@ -69,7 +69,12 @@ export function PersonPayPage(): JSX.Element {
   const [editing, setEditing] = useState<SettlementTreatment | null>(null);
 
   if (payroll.isPending) {
-    return <SkeletonForm fields={5} />;
+    return (
+      <>
+        <h1 className="sr-only">{t("nav.payroll")}</h1>
+        <SkeletonForm fields={5} />
+      </>
+    );
   }
 
   if (!line) {

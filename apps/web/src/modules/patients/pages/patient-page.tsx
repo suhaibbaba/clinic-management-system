@@ -118,6 +118,7 @@ export function PatientPage(): JSX.Element {
         data-testid="patient-header"
         className="border border-line rounded-card bg-surface p-4 shadow-card"
       >
+        {!patient.data && <h1 className="sr-only">{t("nav.patients")}</h1>}
         {showSkeleton && <PatientHeaderSkeleton />}
 
         {patient.isError && (

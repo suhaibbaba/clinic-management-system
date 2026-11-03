@@ -15,12 +15,12 @@ export function SuccessView({ booking }: { readonly booking: ManagedBooking }): 
         >
           ✓
         </span>
-        <h1
+        <h3
           data-testid="booking-success-heading"
           className="text-title font-medium text-primary-900"
         >
           {t("success.heading")}
-        </h1>
+        </h3>
       </div>
 
       <BookingFacts booking={booking} />
@@ -49,12 +49,12 @@ export function PendingView({ booking }: { readonly booking?: ManagedBooking }):
         >
           ⏳
         </span>
-        <h1
+        <h3
           data-testid="booking-pending-heading"
           className="text-title font-medium text-primary-900"
         >
           {t("success.manual")}
-        </h1>
+        </h3>
         <p className="text-value text-ink-muted">{t("success.manualBody")}</p>
       </div>
 

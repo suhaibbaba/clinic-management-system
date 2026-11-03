@@ -18,11 +18,13 @@ const need = fieldNeeds(siteTestimonialSchema);
 const RATINGS = Array.from({ length: SITE_RATING_MAX }, (_, index) => SITE_RATING_MAX - index);
 
 export function TestimonialsField({
+  path,
   items,
   onChange,
   errors,
   leave,
 }: {
+  readonly path: string;
   readonly items: readonly SiteTestimonial[];
   readonly onChange: (items: SiteTestimonial[]) => void;
   readonly errors: FieldErrors;
@@ -39,7 +41,7 @@ export function TestimonialsField({
       )}
 
       {items.map((item, index) => {
-        const namePath = `testimonials.items.${index}.name`;
+        const namePath = `${path}.${index}.name`;
 
         return (
           <div
@@ -95,7 +97,7 @@ export function TestimonialsField({
             <TextPair
               id={`testimonial-${index}-text`}
               label="website.testimonials.text"
-              path={`testimonials.items.${index}.text`}
+              path={`${path}.${index}.text`}
               value={item.text}
               errors={errors}
               leave={leave}

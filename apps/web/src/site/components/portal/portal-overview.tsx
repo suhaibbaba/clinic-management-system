@@ -44,9 +44,9 @@ export function PortalOverview({
               <SiteIcon name="alert" className="size-5" />
             </span>
             <div className="flex min-w-0 flex-col gap-2">
-              <h3 id="portal-alerts-title" className="text-section font-bold text-warning-800">
+              <h2 id="portal-alerts-title" className="text-section font-bold text-warning-800">
                 {t("portal.medicalAlerts")}
-              </h3>
+              </h2>
               <ul className="flex flex-wrap gap-1.5">
                 {alerts.map((alert) => (
                   <li

@@ -36,53 +36,55 @@ export function PermissionSectionCard({
 
   return (
     <Card flush data-testid={testId} className="overflow-hidden">
-      <button
-        type="button"
-        data-testid={`${testId}-toggle`}
-        aria-expanded={expanded}
-        aria-controls={bodyId}
-        onClick={onToggle}
-        className={cn(
-          "flex w-full cursor-pointer items-start gap-3 px-5 py-4 text-start",
-          "transition-colors hover:bg-inset",
-        )}
-      >
-        <Icon
-          name={expanded ? "chevron-up" : "chevron-down"}
-          className="mt-0.5 size-5 shrink-0 text-ink-muted"
-        />
-
-        <span className="min-w-0 flex-1">
-          <span className="flex flex-wrap items-baseline gap-x-2">
-            <span className="text-heading font-medium text-ink">{section.title}</span>
-          </span>
-          {section.hint && (
-            <span className="mt-0.5 block text-meta text-ink-muted">{section.hint}</span>
+      <h2>
+        <button
+          type="button"
+          data-testid={`${testId}-toggle`}
+          aria-expanded={expanded}
+          aria-controls={bodyId}
+          onClick={onToggle}
+          className={cn(
+            "flex w-full cursor-pointer items-start gap-3 px-5 py-4 text-start",
+            "transition-colors hover:bg-inset",
           )}
-        </span>
-
-        <span
-          data-testid={`${testId}-summary`}
-          className="hidden shrink-0 flex-wrap justify-end gap-1.5 md:flex"
         >
-          {EDITABLE_ROLES.map((role) => {
-            const count = section.permissions.filter((row) => granted(role, row)).length;
+          <Icon
+            name={expanded ? "chevron-up" : "chevron-down"}
+            className="mt-0.5 size-5 shrink-0 text-ink-muted"
+          />
 
-            return (
-              <Badge
-                key={role}
-                data-testid={`${testId}-summary-${role}`}
-                tone={count === total ? "success" : count === 0 ? "neutral" : "info"}
-              >
-                {`${t(`roles.${role}`)} `}
-                <span className="tabular-nums">
-                  {count}/{total}
-                </span>
-              </Badge>
-            );
-          })}
-        </span>
-      </button>
+          <span className="min-w-0 flex-1">
+            <span className="flex flex-wrap items-baseline gap-x-2">
+              <span className="text-heading font-medium text-ink">{section.title}</span>
+            </span>
+            {section.hint && (
+              <span className="mt-0.5 block text-meta text-ink-muted">{section.hint}</span>
+            )}
+          </span>
+
+          <span
+            data-testid={`${testId}-summary`}
+            className="hidden shrink-0 flex-wrap justify-end gap-1.5 md:flex"
+          >
+            {EDITABLE_ROLES.map((role) => {
+              const count = section.permissions.filter((row) => granted(role, row)).length;
+
+              return (
+                <Badge
+                  key={role}
+                  data-testid={`${testId}-summary-${role}`}
+                  tone={count === total ? "success" : count === 0 ? "neutral" : "info"}
+                >
+                  {`${t(`roles.${role}`)} `}
+                  <span className="tabular-nums">
+                    {count}/{total}
+                  </span>
+                </Badge>
+              );
+            })}
+          </span>
+        </button>
+      </h2>
 
       {expanded && (
         <div id={bodyId} data-testid={bodyId} className="overflow-x-auto border-t border-line">

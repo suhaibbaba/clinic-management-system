@@ -138,7 +138,14 @@ export function ItemPage(): JSX.Element {
       <header data-testid="item-header" className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <h1 data-testid="item-name" className="truncate text-title font-medium text-primary-900">
-            {row ? <bdi>{row.name}</bdi> : <Skeleton className="h-7 w-56 max-w-full" />}
+            {row ? (
+              <bdi>{row.name}</bdi>
+            ) : (
+              <>
+                <span className="sr-only">{t("nav.inventory")}</span>
+                <Skeleton className="h-7 w-56 max-w-full" />
+              </>
+            )}
           </h1>
           {row && (
             <p className="mt-1 flex flex-wrap items-center gap-2 text-value text-ink-muted">

@@ -253,5 +253,29 @@
     "showMore": "Show {{count}} more",
     "showLess": "Show Less",
     "drugCount": "Medicines: {{count}}"
+  },
+  "editor": {
+    "blocks": {
+      "hero": "Home hero",
+      "servicesTeaser": "Services preview",
+      "aboutTeaser": "About preview",
+      "cases": "Before and after",
+      "doctorsTeaser": "Doctors preview",
+      "testimonials": "Patient reviews",
+      "pageHero": "Page header",
+      "servicesGrid": "Services list",
+      "doctorsGrid": "Doctors list",
+      "aboutPillars": "Mission and values",
+      "aboutValues": "Why us",
+      "gallery": "Clinic gallery",
+      "contactMain": "Contact details and form",
+      "contactWelcome": "Welcome and map",
+      "booking": "Booking form"
+    },
+    "edit": "Edit",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "remove": "Delete",
+    "insert": "Add a section here"
   }
 }

@@ -128,7 +128,7 @@ export function ChatComposer({
               "transition-colors duration-150",
               empty
                 ? "cursor-not-allowed bg-inset text-ink-faint"
-                : "cursor-pointer bg-primary-600 text-ink-inverse hover:bg-primary-500",
+                : "cursor-pointer bg-primary-600 text-ink-inverse hover:bg-primary-700",
             )}
           >
             <Icon name="send" className="size-4" />

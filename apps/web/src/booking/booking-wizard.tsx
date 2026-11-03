@@ -433,6 +433,7 @@ export function BookingWizard({
     return (
       <PageShell clinicName={undefined} logoUrl={logoUrl} inline={inline} language={language}>
         <FullPageMessage
+          level={inline ? 2 : 1}
           title={t(failureKey(clinic.error))}
           action={
             <Button variant="secondary" data-testid="booking-retry" onClick={clinic.reload}>
@@ -453,6 +454,7 @@ export function BookingWizard({
         language={language}
       >
         <FullPageMessage
+          level={inline ? 2 : 1}
           title={t("errors.closed")}
           {...(clinic.data.phone && { body: clinic.data.phone })}
         />

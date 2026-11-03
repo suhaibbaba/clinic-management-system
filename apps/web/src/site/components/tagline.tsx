@@ -11,8 +11,8 @@ export function Tagline({
   readonly tone?: "brand" | "inverse";
   readonly className?: string;
 }): JSX.Element | null {
-  const { site, language, languages } = useSite();
-  const tagline = pick(site.content.brand.tagline, language, languages);
+  const { siteDocument, language, languages } = useSite();
+  const tagline = pick(siteDocument.brand.tagline, language, languages);
 
   if (!tagline) {
     return null;
@@ -23,7 +23,7 @@ export function Tagline({
       data-testid="site-tagline"
       className={cx(
         "flex flex-col gap-3 text-section font-medium",
-        tone === "inverse" ? "text-ink-inverse/85" : "text-primary-500",
+        tone === "inverse" ? "text-ink-inverse/85" : "text-primary-700",
         className,
       )}
     >

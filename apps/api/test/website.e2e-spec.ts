@@ -1,16 +1,23 @@
 import {
   CHART_TYPE,
   CONTACT_MESSAGE_STATUS,
+  SITE_BLOCK_TYPE,
+  SITE_PAGE_KIND,
+  SITE_SECTION,
   USER_ROLE,
+  contentToDocument,
   defaultSiteContent,
+  siteBlock,
+  siteDocumentPage,
   type ContactMessage,
   type Paginated,
   type PublicSite,
   type SiteContent,
+  type SiteDocument,
   type WebsiteEditor,
 } from "@clinic/shared";
 import { and, eq } from "drizzle-orm";
-import { auditLog, clinics } from "@api/database/schema";
+import { auditLog, clinics, siteContent } from "@api/database/schema";
 import { seedClinicFixtures, uniquePhone } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
@@ -34,6 +41,12 @@ const content = (overrides: Partial<SiteContent> = {}): SiteContent => ({
   },
   ...overrides,
 });
+
+const document = (overrides: Partial<SiteContent> = {}): SiteDocument =>
+  contentToDocument(content(overrides));
+
+const heroTitle = (site: PublicSite): string | undefined =>
+  siteBlock(site.document, SITE_BLOCK_TYPE.HERO)?.title.ar;
 
 describe("Website (e2e)", () => {
   let context: TestContext;
@@ -89,7 +102,7 @@ describe("Website (e2e)", () => {
       expect((await inject("GET", "/website", admin)).statusCode).toBe(200);
       expect((await inject("GET", "/website", reception)).statusCode).toBe(403);
       expect((await inject("GET", "/website", doctor)).statusCode).toBe(403);
-      expect((await inject("PUT", "/website/draft", reception, content())).statusCode).toBe(403);
+      expect((await inject("PUT", "/website/draft", reception, document())).statusCode).toBe(403);
       expect((await inject("POST", "/website/publish", doctor)).statusCode).toBe(403);
     });
 
@@ -107,19 +120,19 @@ describe("Website (e2e)", () => {
 
     it("rejects a service without a name", async () => {
       const draft = content();
-      const broken = {
+      const broken = contentToDocument({
         ...draft,
         services: {
           ...draft.services,
           items: [{ ...draft.services.items[0]!, title: { ar: "", en: "" } }],
         },
-      };
+      });
 
       expect((await inject("PUT", "/website/draft", admin, broken)).statusCode).toBe(400);
     });
 
     it("rejects an image key that is not the clinic's", async () => {
-      const draft = content({
+      const draft = document({
         story: {
           ...defaultSiteContent().story,
           title: { ar: "قصة", en: "" },
@@ -131,7 +144,7 @@ describe("Website (e2e)", () => {
     });
 
     it("keeps a saved draft private until it is published", async () => {
-      const saved = await inject("PUT", "/website/draft", admin, content());
+      const saved = await inject("PUT", "/website/draft", admin, document());
 
       expect(saved.statusCode).toBe(200);
       expect(saved.json<WebsiteEditor>().publishedAt).toBeNull();
@@ -148,7 +161,7 @@ describe("Website (e2e)", () => {
       const site = await inject("GET", `/public/site/${clinic.slug}`);
 
       expect(site.statusCode).toBe(200);
-      expect(site.json<PublicSite>().content.hero.title.ar).toBe("ابتسامة أفضل");
+      expect(heroTitle(site.json<PublicSite>())).toBe("ابتسامة أفضل");
       expect(site.json<PublicSite>().doctors.map((entry) => entry.id)).toEqual([doctorId]);
       expect(site.json<PublicSite>().clinic.chartTypes).toEqual([CHART_TYPE.TOOTH_FDI]);
 
@@ -162,7 +175,7 @@ describe("Website (e2e)", () => {
     });
 
     it("leaves a hidden doctor out of the public answer, not only the page", async () => {
-      const draft = content({
+      const draft = document({
         doctors: { ...defaultSiteContent().doctors, hidden: [doctorId] },
       });
 
@@ -175,7 +188,7 @@ describe("Website (e2e)", () => {
     });
 
     it("never exposes the draft publicly", async () => {
-      const draft = content({
+      const draft = document({
         hero: { ...defaultSiteContent().hero, title: { ar: "مسودة سرية", en: "" } },
       });
 
@@ -184,7 +197,7 @@ describe("Website (e2e)", () => {
       const site = await inject("GET", `/public/site/${clinic.slug}`);
       const editor = await inject("GET", "/website", admin);
 
-      expect(site.json<PublicSite>().content.hero.title.ar).toBe("ابتسامة أفضل");
+      expect(heroTitle(site.json<PublicSite>())).toBe("ابتسامة أفضل");
       expect(editor.json<WebsiteEditor>().unpublished).toBe(true);
     });
 
@@ -213,6 +226,104 @@ describe("Website (e2e)", () => {
         .update(clinics)
         .set({ logoKey: null, logoIconsAt: null })
         .where(eq(clinics.id, clinic.id));
+    });
+  });
+
+  describe("the block document", () => {
+    let legacy: TestClinic;
+    let legacyAdmin: Record<string, string>;
+
+    beforeAll(async () => {
+      legacy = await context.createClinic();
+      legacyAdmin = auth(await context.login(legacy.phones[USER_ROLE.ADMIN]));
+    });
+
+    it("serves a row stored in the old content shape as a document", async () => {
+      const old = content({
+        sections: [SITE_SECTION.SERVICES, SITE_SECTION.PORTAL],
+        hero: { ...defaultSiteContent().hero, title: { ar: "المحتوى القديم", en: "" } },
+      });
+      const draft = { ...old, hero: { ...old.hero, title: { ar: "مسودة قديمة", en: "" } } };
+
+      await context.db.insert(siteContent).values({
+        clinicId: legacy.id,
+        draft,
+        published: old,
+        publishedAt: new Date(),
+      });
+
+      const site = (await inject("GET", `/public/site/${legacy.slug}`)).json<PublicSite>();
+
+      expect(heroTitle(site)).toBe("المحتوى القديم");
+      expect(site.document.portal).toBe(true);
+      expect(site.document.collections.services.items.map((item) => item.id)).toEqual(["cleaning"]);
+      expect(siteDocumentPage(site.document, SITE_PAGE_KIND.SERVICES)?.enabled).toBe(true);
+      expect(siteDocumentPage(site.document, SITE_PAGE_KIND.ABOUT)?.enabled).toBe(false);
+      expect(site).not.toHaveProperty("content");
+
+      const editor = (await inject("GET", "/website", legacyAdmin)).json<WebsiteEditor>();
+
+      expect(heroTitle(editor.site)).toBe("مسودة قديمة");
+      expect(editor.unpublished).toBe(true);
+    });
+
+    it("writes the document shape on the next save and publishes it", async () => {
+      const draft = document({
+        hero: { ...defaultSiteContent().hero, title: { ar: "صفحة بالكتل", en: "" } },
+      });
+      const home = siteDocumentPage(draft, SITE_PAGE_KIND.HOME)!;
+      const reordered: SiteDocument = {
+        ...draft,
+        pages: draft.pages.map((page) =>
+          page === home ? { ...page, blocks: [...page.blocks].reverse() } : page,
+        ),
+      };
+
+      expect((await inject("PUT", "/website/draft", legacyAdmin, reordered)).statusCode).toBe(200);
+      expect((await inject("POST", "/website/publish", legacyAdmin)).statusCode).toBe(200);
+
+      const [row] = await context.db
+        .select()
+        .from(siteContent)
+        .where(eq(siteContent.clinicId, legacy.id));
+
+      expect(row?.draft).toHaveProperty("pages");
+      expect(row?.published).toHaveProperty("pages");
+
+      const site = (await inject("GET", `/public/site/${legacy.slug}`)).json<PublicSite>();
+      const blocks = siteDocumentPage(site.document, SITE_PAGE_KIND.HOME)?.blocks ?? [];
+
+      expect(heroTitle(site)).toBe("صفحة بالكتل");
+      expect(blocks.map((entry) => entry.type)).toEqual(
+        home.blocks.map((entry) => entry.type).reverse(),
+      );
+      expect(site.document.portal).toBe(false);
+
+      const head = await inject("GET", `/public/site/head?slug=${legacy.slug}`);
+
+      expect(head.body).toContain("صفحة بالكتل");
+    });
+
+    it("refuses an unknown block, a broken block and a document without pages", async () => {
+      const draft = document();
+      const [home, ...rest] = draft.pages;
+      const withBlock = (extra: object) => ({
+        ...draft,
+        pages: [{ ...home!, blocks: [...home!.blocks, extra] }, ...rest],
+      });
+
+      const refused = [
+        withBlock({ id: "mystery", type: "mystery" }),
+        withBlock({ id: "Not An Id", type: SITE_BLOCK_TYPE.SERVICES_GRID }),
+        withBlock({ id: "booking-2", type: SITE_BLOCK_TYPE.BOOKING, title: {} }),
+        { ...draft, pages: [home, home] },
+        { brand: draft.brand, portal: false },
+        content(),
+      ];
+
+      for (const payload of refused) {
+        expect((await inject("PUT", "/website/draft", legacyAdmin, payload)).statusCode).toBe(400);
+      }
     });
   });
 
@@ -305,7 +416,7 @@ describe("Website (e2e)", () => {
         "PUT",
         "/website/draft",
         admin,
-        content({ contact: { ...defaultSiteContent().contact, formEnabled: false } }),
+        document({ contact: { ...defaultSiteContent().contact, formEnabled: false } }),
       );
       await inject("POST", "/website/publish", admin);
 

@@ -1,4 +1,9 @@
-import { SITE_SECTION } from "@clinic/shared";
+import {
+  SITE_PAGE_KIND,
+  sitePageEnabled,
+  type SITE_BLOCK_TYPE,
+  type SiteBlockOf,
+} from "@clinic/shared";
 import type { JSX } from "react";
 import { GlassLobe, WaveRibbon } from "@web/site/components/curves";
 import { PillLink } from "@web/site/components/pill-link";
@@ -9,17 +14,20 @@ import { imageOf } from "@web/site/lib/images";
 import { heroLines, orDefault, pick } from "@web/site/lib/text";
 import { SITE_PATH } from "@web/site/route";
 
-export function AboutTeaser(): JSX.Element | null {
-  const { site, language, languages, t } = useSite();
-  const { about, story } = site.content;
-  const summary = pick(about.body, language, languages).split(/\n{2,}/)[0] ?? "";
-  const badge = pick(story.badge, language, languages);
-  const image = imageOf(site, about.image) ?? imageOf(site, story.image);
+export function AboutTeaser({
+  block,
+}: {
+  readonly block: SiteBlockOf<typeof SITE_BLOCK_TYPE.ABOUT_TEASER>;
+}): JSX.Element | null {
+  const { site, siteDocument, language, languages, t } = useSite();
+  const summary = pick(block.body, language, languages).split(/\n{2,}/)[0] ?? "";
+  const badge = pick(block.badge, language, languages);
+  const image = imageOf(site, block.image) ?? imageOf(site, block.storyImage);
   const [lead, accent] = heroLines(
-    orDefault(story.title, language, t("about.subtitle"), languages),
+    orDefault(block.title, language, t("about.subtitle"), languages),
   );
 
-  if (!site.content.sections.includes(SITE_SECTION.ABOUT)) {
+  if (!sitePageEnabled(siteDocument, SITE_PAGE_KIND.ABOUT)) {
     return null;
   }
 
@@ -62,7 +70,7 @@ export function AboutTeaser(): JSX.Element | null {
           <div data-reveal className="flex flex-col items-start gap-4 lg:max-w-[32rem]">
             <p className="flex items-center gap-4 text-section font-medium text-primary-600">
               <span aria-hidden className="h-px w-12 bg-primary-600" />
-              {orDefault(about.title, language, t("about.title"), languages)}
+              {orDefault(block.eyebrow, language, t("about.title"), languages)}
             </p>
             <h2 id="about-teaser-title" className="text-headline font-bold text-primary-900">
               {lead}
@@ -73,14 +81,14 @@ export function AboutTeaser(): JSX.Element | null {
               {t("home.aboutLink")}
             </PillLink>
 
-            {about.stats.length > 0 && (
+            {block.stats.length > 0 && (
               <ul
                 data-testid="site-stats"
                 aria-label={t("home.statsLabel")}
                 data-reveal-group
                 className="mt-2 grid w-full grid-cols-2 gap-y-6 sm:grid-cols-4 sm:divide-x sm:divide-line"
               >
-                {about.stats.map((stat, position) => (
+                {block.stats.map((stat, position) => (
                   <li
                     key={position}
                     className="flex flex-col items-center gap-1.5 px-2 text-center"

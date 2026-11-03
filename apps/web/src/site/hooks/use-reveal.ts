@@ -2,8 +2,12 @@ import { useEffect } from "react";
 
 const TARGETS = "[data-reveal], [data-reveal-group]";
 
-export function useReveal(key: string): void {
+export function useReveal(key: string, enabled = true): void {
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     const root = document.getElementById("site-main");
 
     if (!root) {
@@ -36,5 +40,5 @@ export function useReveal(key: string): void {
     document.documentElement.classList.add("site-reveal");
 
     return () => observer.disconnect();
-  }, [key]);
+  }, [key, enabled]);
 }

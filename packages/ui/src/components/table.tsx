@@ -555,7 +555,7 @@ export function Pagination({
                 data-part="pagination-gap"
                 {...testid(testId, "gap")}
                 aria-hidden="true"
-                className="px-1 text-ink-faint"
+                className="px-1 text-ink-subtle"
               >
                 …
               </span>

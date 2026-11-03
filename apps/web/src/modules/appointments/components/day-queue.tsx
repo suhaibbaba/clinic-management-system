@@ -275,7 +275,7 @@ function NowMarker({ minute }: { readonly minute: number }): JSX.Element {
 
   return (
     <li data-part="now" role="separator" className="flex items-center gap-2 py-0.5">
-      <span className="pill-text inline-flex shrink-0 items-center gap-1 rounded-pill bg-success-600 px-2 py-0.5 text-micro font-medium text-ink-inverse">
+      <span className="pill-text inline-flex shrink-0 items-center gap-1 rounded-pill bg-success-800 px-2 py-0.5 text-micro font-medium text-ink-inverse">
         {t("appointments.queue.now")} · <Ltr className="tabular-nums">{formatMinute(minute)}</Ltr>
       </span>
       <span aria-hidden="true" className="h-px flex-1 bg-success-500" />

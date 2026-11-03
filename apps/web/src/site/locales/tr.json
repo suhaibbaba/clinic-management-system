@@ -253,5 +253,29 @@
     "showMore": "{{count}} tane daha göster",
     "showLess": "Daha az göster",
     "drugCount": "İlaçlar: {{count}}"
+  },
+  "editor": {
+    "blocks": {
+      "hero": "Ana sayfa girişi",
+      "servicesTeaser": "Hizmetler özeti",
+      "aboutTeaser": "Hakkımızda özeti",
+      "cases": "Önce ve sonra",
+      "doctorsTeaser": "Doktorlar özeti",
+      "testimonials": "Hasta yorumları",
+      "pageHero": "Sayfa başlığı",
+      "servicesGrid": "Hizmet listesi",
+      "doctorsGrid": "Doktor listesi",
+      "aboutPillars": "Misyon ve değerler",
+      "aboutValues": "Neden biz",
+      "gallery": "Klinik galerisi",
+      "contactMain": "İletişim bilgileri ve form",
+      "contactWelcome": "Karşılama ve harita",
+      "booking": "Randevu formu"
+    },
+    "edit": "Düzenle",
+    "moveUp": "Yukarı taşı",
+    "moveDown": "Aşağı taşı",
+    "remove": "Sil",
+    "insert": "Buraya bölüm ekle"
   }
 }

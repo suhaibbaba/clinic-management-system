@@ -112,7 +112,7 @@ export function BookingBoard({
       <aside
         id="booking-panel"
         data-testid="booking-panel"
-        aria-label={t("board.yourAppointment")}
+        aria-labelledby="booking-panel-title"
         data-direction={direction}
         className={cx(
           "booking-screen w-full shrink-0 scroll-mt-4 overflow-hidden rounded-card border border-line bg-surface shadow-float lg:sticky lg:top-[calc(var(--site-sticky-top,0rem)+1.5rem)] lg:w-96",
@@ -242,7 +242,7 @@ function StepPills({
                 className={cx(
                   "inline-flex size-6 items-center justify-center rounded-pill text-micro font-bold",
                   done || active
-                    ? "bg-primary-500 text-ink-inverse"
+                    ? "bg-primary-600 text-ink-inverse"
                     : tone === "dark"
                       ? "bg-ink-inverse/10 text-ink-inverse"
                       : "bg-canvas text-ink-muted",
@@ -263,19 +263,26 @@ export function FullPageMessage({
   title,
   body,
   action,
+  level = 1,
 }: {
   readonly title: string;
   readonly body?: string;
   readonly action?: ReactNode;
+  readonly level?: 1 | 2;
 }): JSX.Element {
+  const Heading = level === 2 ? "h2" : "h1";
+
   return (
     <div
       data-testid="booking-message"
       className="mt-10 flex flex-col items-center gap-3 text-center"
     >
-      <h1 data-testid="booking-message-title" className="text-title font-medium text-primary-900">
+      <Heading
+        data-testid="booking-message-title"
+        className="text-title font-medium text-primary-900"
+      >
         {title}
-      </h1>
+      </Heading>
       {body && (
         <p data-testid="booking-message-body" className="text-value text-ink-muted">
           {body}

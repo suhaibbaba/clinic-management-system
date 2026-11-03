@@ -12,7 +12,7 @@ import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { SITE_CONTENT_ENTITY } from "@api/common/constants/audit-entities";
 import { WebsiteService } from "@api/modules/website/services/website.service";
-import { PresignSiteImageDto, SiteContentDto } from "@api/modules/website/dto/website.dto";
+import { PresignSiteImageDto, SiteDocumentDto } from "@api/modules/website/dto/website.dto";
 import { ClinicFeature } from "@api/common/decorators/clinic-feature.decorator";
 
 @ClinicFeature(CLINIC_MODULE.WEBSITE)
@@ -31,7 +31,7 @@ export class WebsiteController {
   @Audit(SITE_CONTENT_ENTITY, AUDIT_ACTION.UPDATE, { entityIdSource: "clinic" })
   saveDraft(
     @CurrentUser() actor: AuthenticatedUser,
-    @Body() body: SiteContentDto,
+    @Body() body: SiteDocumentDto,
   ): Promise<WebsiteEditor> {
     return this.website.saveDraft(actor, body);
   }

@@ -3,6 +3,8 @@ import { Suspense, type JSX } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { PAGE_CAPABILITIES } from "@web/shared/lib/navigation";
 import { AppLayout } from "@web/app/layout/app-layout";
+import { FullPageLayout } from "@web/app/layout/full-page-layout";
+import { WEBSITE_EDITOR_PATH } from "@web/shared/constants/layout";
 import { RequireAuth, RequireCapability } from "@web/modules/auth/components/guards";
 import { ForgotPasswordPage } from "@web/modules/auth/pages/forgot-password-page";
 import { LoginCodePage } from "@web/modules/auth/pages/login-code-page";
@@ -52,6 +54,10 @@ const MyEarningsPage = lazyPage(async () => ({
   default: (await import("@web/modules/earnings/pages/my-earnings-page")).MyEarningsPage,
 }));
 
+const WebsiteEditorPage = lazyPage(async () => ({
+  default: (await import("@web/modules/website/pages/website-editor-page")).WebsiteEditorPage,
+}));
+
 const HOME = "/dashboard";
 
 function RedirectKeepingQuery({
@@ -96,6 +102,25 @@ export function AppRoutes(): JSX.Element {
       <Route path="/activate/:token" element={<SetPasswordPage purpose="activate" />} />
       <Route path="/reset/:token" element={<SetPasswordPage purpose="reset" />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+      <Route
+        element={
+          <RequireAuth>
+            <FullPageLayout />
+          </RequireAuth>
+        }
+      >
+        <Route
+          path={WEBSITE_EDITOR_PATH}
+          element={
+            <RequireCapability capabilities={PAGE_CAPABILITIES.websiteEditor} redirectTo={HOME}>
+              <Suspense fallback={null}>
+                <WebsiteEditorPage />
+              </Suspense>
+            </RequireCapability>
+          }
+        />
+      </Route>
 
       <Route
         element={

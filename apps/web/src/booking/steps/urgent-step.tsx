@@ -109,9 +109,9 @@ export function UrgentStep({
 export function UrgentSentView(): JSX.Element {
   return (
     <div data-testid="urgent-sent" className="flex flex-col gap-4 text-center">
-      <p data-testid="urgent-sent-heading" className="text-heading font-medium text-ink">
+      <h3 data-testid="urgent-sent-heading" className="text-heading font-medium text-ink">
         {t("urgent.sentHeading")}
-      </p>
+      </h3>
       <p className="text-value text-ink-muted">{t("urgent.sentBody")}</p>
     </div>
   );

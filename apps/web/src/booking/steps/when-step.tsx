@@ -90,11 +90,7 @@ function DayCard({
       <span
         className={cx(
           "text-micro font-medium",
-          active
-            ? "text-ink-inverse/85"
-            : relative && !closed
-              ? "text-primary-600"
-              : "text-ink-muted",
+          active ? "text-ink-inverse" : relative && !closed ? "text-primary-600" : "text-ink-muted",
           closed && "text-ink-faint",
         )}
       >
@@ -252,7 +248,7 @@ export function WhenStep({
         className="flex flex-col gap-5 rounded-card bg-sunken/60 p-4 sm:p-5"
       >
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <p className="text-heading font-bold text-ink">{dayTitle(date)}</p>
+          <h3 className="text-heading font-bold text-ink">{dayTitle(date)}</h3>
           {!week.loading && slots.length > 0 && (
             <p className="text-label text-success-700">{slotCount(slots.length)}</p>
           )}

@@ -18,7 +18,7 @@ export const abuObaidTheme: ThemeOverride = {
     "success-400": "#6dcfb1",
     "success-500": "#39ba97",
     "success-600": "#2ca886",
-    "success-700": "#22987a",
+    "success-700": "#1d7f64",
     "success-800": "#1e7a62",
     "success-900": "#0f7a5d",
 
@@ -42,8 +42,8 @@ export const abuObaidTheme: ThemeOverride = {
     "neutral-200": "#e0eaee",
     "neutral-300": "#c9d8de",
     "neutral-400": "#a3bac6",
-    "neutral-500": "#8fa6b0",
-    "neutral-600": "#5f7885",
+    "neutral-500": "#768d99",
+    "neutral-600": "#56707c",
     "neutral-700": "#4e6975",
     "neutral-900": "#12303f",
 

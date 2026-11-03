@@ -184,7 +184,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
         data-testid="time-off-panel"
         className="mb-3 flex flex-wrap items-center justify-between gap-2"
       >
-        <p className="text-value font-medium text-ink">{t("schedule.timeOff.title")}</p>
+        <h2 className="text-value font-medium text-ink">{t("schedule.timeOff.title")}</h2>
 
         {canEdit && (
           <Button

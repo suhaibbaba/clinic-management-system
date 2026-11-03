@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { SITE_SECTION } from "@clinic/shared";
 import {
+  joinPath,
+  missingTranslation,
   moveItem,
   removeAt,
   replaceAt,
-  sectionOrder,
-  setSectionVisible,
+  valueAt,
+  withValueAt,
 } from "@web/modules/website/lib/site-draft";
 
 describe("site draft lists", () => {
@@ -25,30 +26,30 @@ describe("site draft lists", () => {
   });
 });
 
-describe("site sections", () => {
-  it("lists the shown sections in their order, then the hidden ones", () => {
-    expect(sectionOrder([SITE_SECTION.CONTACT, SITE_SECTION.SERVICES])).toEqual([
-      SITE_SECTION.CONTACT,
-      SITE_SECTION.SERVICES,
-      SITE_SECTION.DOCTORS,
-      SITE_SECTION.ABOUT,
-      SITE_SECTION.BOOKING,
-      SITE_SECTION.PORTAL,
-    ]);
+describe("site draft paths", () => {
+  it("joins a scope and a field, skipping empty parts", () => {
+    expect(joinPath("", "brand.tagline")).toBe("brand.tagline");
+    expect(joinPath("pages.0.blocks.1", "")).toBe("pages.0.blocks.1");
+    expect(joinPath("pages.0.blocks.1", "title")).toBe("pages.0.blocks.1.title");
   });
 
-  it("hides a section and brings it back at the end, once", () => {
-    const hidden = setSectionVisible(
-      [SITE_SECTION.SERVICES, SITE_SECTION.DOCTORS],
-      SITE_SECTION.SERVICES,
-      false,
-    );
+  it("reads and writes by path, the empty path being the whole value", () => {
+    const source = { pages: [{ blocks: [{ title: { en: "A" } }] }] };
 
-    expect(hidden).toEqual([SITE_SECTION.DOCTORS]);
-    expect(setSectionVisible(hidden, SITE_SECTION.SERVICES, true)).toEqual([
-      SITE_SECTION.DOCTORS,
-      SITE_SECTION.SERVICES,
-    ]);
-    expect(setSectionVisible(hidden, SITE_SECTION.DOCTORS, true)).toEqual([SITE_SECTION.DOCTORS]);
+    expect(valueAt(source, "")).toBe(source);
+    expect(valueAt(source, "pages.0.blocks.0.title.en")).toBe("A");
+    expect(withValueAt(source, "pages.0.blocks.0.title", { en: "B" })).toEqual({
+      pages: [{ blocks: [{ title: { en: "B" } }] }],
+    });
+    expect(source.pages[0]?.blocks[0]?.title.en).toBe("A");
+  });
+});
+
+describe("missing translations", () => {
+  it("marks an empty language only when another one is written", () => {
+    expect(missingTranslation({ ar: "مرحبا" }, "en")).toBe(true);
+    expect(missingTranslation({ ar: "مرحبا", en: "Hi" }, "en")).toBe(false);
+    expect(missingTranslation({}, "en")).toBe(false);
+    expect(missingTranslation({ ar: "  " }, "en")).toBe(false);
   });
 });

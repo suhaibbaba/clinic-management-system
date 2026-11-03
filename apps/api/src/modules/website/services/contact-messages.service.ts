@@ -9,9 +9,11 @@ import {
 } from "@nestjs/common";
 import {
   CONTACT_MESSAGE_STATUS,
+  SITE_BLOCK_TYPE,
   WEBSITE_ERROR,
   localized,
   localizedValues,
+  siteBlock,
   type ContactMessage,
   type ContactMessageReceipt,
   type CreateContactMessageInput,
@@ -57,7 +59,9 @@ export class ContactMessagesService implements OnModuleInit {
   async create(slug: string, input: CreateContactMessageInput): Promise<ContactMessageReceipt> {
     const clinic = await this.website.requirePublishedClinic(slug);
 
-    if (!clinic.content.contact.formEnabled) {
+    const contact = siteBlock(clinic.document, SITE_BLOCK_TYPE.CONTACT_MAIN);
+
+    if (!contact?.formEnabled) {
       throw new HttpException(WEBSITE_ERROR.CONTACT_CLOSED, HttpStatus.FORBIDDEN);
     }
 
@@ -78,7 +82,7 @@ export class ContactMessagesService implements OnModuleInit {
 
     const wanted = input.topic;
     const topic = wanted
-      ? clinic.content.contact.topics.find((option) => localizedValues(option).includes(wanted))
+      ? contact.topics.find((option) => localizedValues(option).includes(wanted))
       : undefined;
 
     if (input.topic && !topic) {

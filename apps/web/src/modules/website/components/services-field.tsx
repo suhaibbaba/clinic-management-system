@@ -18,6 +18,7 @@ import {
 } from "@web/modules/website/lib/site-draft";
 
 export function ServicesField({
+  path,
   items,
   images,
   onChange,
@@ -25,6 +26,7 @@ export function ServicesField({
   errors,
   leave,
 }: {
+  readonly path: string;
   readonly items: readonly SiteService[];
   readonly images: Readonly<Record<string, string>>;
   readonly onChange: (items: SiteService[]) => void;
@@ -71,7 +73,7 @@ export function ServicesField({
           <TextPair
             id={`service-${item.id}-title`}
             label="website.services.name"
-            path={`services.items.${index}.title`}
+            path={`${path}.${index}.title`}
             value={item.title}
             errors={errors}
             leave={leave}
@@ -82,7 +84,7 @@ export function ServicesField({
           <TextPair
             id={`service-${item.id}-description`}
             label="website.services.description"
-            path={`services.items.${index}.description`}
+            path={`${path}.${index}.description`}
             value={item.description}
             errors={errors}
             leave={leave}

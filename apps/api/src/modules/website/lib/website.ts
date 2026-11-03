@@ -6,7 +6,9 @@ import {
   type ContactMessage,
   type LocalizedText,
   type PublicSite,
-  type SiteContent,
+  SITE_BLOCK_TYPE,
+  siteBlock,
+  type SiteDocument,
 } from "@clinic/shared";
 import { type contactMessages, type siteContent } from "@api/database/schema";
 import { SITE_DESCRIPTION_MAX } from "@api/modules/website/constants";
@@ -32,7 +34,7 @@ export function toContactMessage(row: ContactMessageRow, handler: HandlerRow): C
   };
 }
 
-export const sameContent = (a: SiteContent | null, b: SiteContent | null): boolean =>
+export const sameDocument = (a: SiteDocument | null, b: SiteDocument | null): boolean =>
   JSON.stringify(a) === JSON.stringify(b);
 
 export function siteHost(raw: string | undefined): string {
@@ -57,21 +59,23 @@ const clip = (value: string, max: number): string =>
 export type SiteIconLinks = { favicon: string; appleTouchIcon: string };
 
 export function siteHead(site: PublicSite, icons: SiteIconLinks | null): string {
-  const { clinic, content } = site;
+  const { clinic, document } = site;
   const language = clinic.locale.primaryLanguage;
   const text = (value: LocalizedText | null): string =>
     localized(value, language, clinic.locale.languages);
 
   const name = text(clinic.name);
   const address = text(clinic.address);
-  const title = text(content.hero.title) || name;
+  const hero = siteBlock(document, SITE_BLOCK_TYPE.HERO);
+  const about = siteBlock(document, SITE_BLOCK_TYPE.ABOUT_TEASER);
+  const title = text(hero?.title ?? null) || name;
   const description = clip(
-    text(content.hero.subtitle) || text(content.about.body) || address || name,
+    text(hero?.subtitle ?? null) || text(about?.body ?? null) || address || name,
     SITE_DESCRIPTION_MAX,
   );
 
   const [alternateName] = localizedValues(clinic.name).filter((value) => value !== name);
-  const firstImage = content.hero.images[0];
+  const firstImage = hero?.images[0];
   const image = (firstImage && site.images[firstImage]) ?? clinic.logoUrl;
 
   const structured = {

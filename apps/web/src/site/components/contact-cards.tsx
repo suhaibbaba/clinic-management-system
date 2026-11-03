@@ -25,7 +25,7 @@ function ContactCard({
       <span className="mb-2 inline-flex size-14 items-center justify-center rounded-pill bg-primary-600 text-ink-inverse shadow-nav-active transition-colors duration-300 group-hover:bg-surface group-hover:text-primary-700">
         <SiteIcon name={icon} className="size-6" />
       </span>
-      <h3 className="site-fill-ink text-heading font-bold text-primary-900">{title}</h3>
+      <h2 className="site-fill-ink text-heading font-bold text-primary-900">{title}</h2>
       <div className="site-fill-soft flex max-w-full min-w-0 flex-col items-center gap-1 text-label text-ink-muted">
         {children}
       </div>

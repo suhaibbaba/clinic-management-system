@@ -1,23 +1,27 @@
-import { languageDirection, SITE_SECTION, type PublicSite, type SiteSection } from "@clinic/shared";
+import {
+  languageDirection,
+  SITE_PAGE_KIND,
+  SITE_SECTION,
+  sitePageEnabled,
+  sitePageFor,
+  type PublicSite,
+  type SitePreviewEdit,
+  type SiteSection,
+} from "@clinic/shared";
 import { useCallback, useEffect, useMemo, type JSX } from "react";
 import { SITE_PARAM } from "@web/site/constants";
 import { usePortalAccount } from "@web/site/hooks/use-portal-account";
 import { useReveal } from "@web/site/hooks/use-reveal";
 import { useSiteLocation } from "@web/site/hooks/use-site-location";
 import { translator } from "@web/site/i18n";
+import { BlockPage } from "@web/site/blocks/block-page";
 import { SiteContext } from "@web/site/lib/site-context";
 import { pageTitle } from "@web/site/lib/page-title";
 import { PortalContext } from "@web/site/lib/portal-context";
 import { siteLanguage } from "@web/site/lib/text";
-import { AboutPage } from "@web/site/pages/about-page";
 import { AccountPage } from "@web/site/pages/account-page";
-import { BookingPage } from "@web/site/pages/booking-page";
-import { ContactPage } from "@web/site/pages/contact-page";
 import { DoctorPage } from "@web/site/pages/doctor-page";
-import { DoctorsPage } from "@web/site/pages/doctors-page";
-import { HomePage } from "@web/site/pages/home-page";
 import { NotFoundPage } from "@web/site/pages/not-found-page";
-import { ServicesPage } from "@web/site/pages/services-page";
 import { sitePage, type SitePageRoute } from "@web/site/route";
 import { SiteFooter } from "@web/site/sections/site-footer";
 import { SiteHeader } from "@web/site/sections/site-header";
@@ -35,19 +39,19 @@ const SECTION_OF: Partial<Record<SitePageRoute["kind"], SiteSection>> = {
 function PageFor({ page }: { readonly page: SitePageRoute }): JSX.Element {
   switch (page.kind) {
     case "home":
-      return <HomePage />;
+      return <BlockPage kind={SITE_PAGE_KIND.HOME} />;
     case "services":
-      return <ServicesPage />;
+      return <BlockPage kind={SITE_PAGE_KIND.SERVICES} />;
     case "doctors":
-      return <DoctorsPage />;
+      return <BlockPage kind={SITE_PAGE_KIND.DOCTORS} />;
     case "doctor":
       return <DoctorPage id={page.id} />;
     case "about":
-      return <AboutPage />;
+      return <BlockPage kind={SITE_PAGE_KIND.ABOUT} />;
     case "contact":
-      return <ContactPage />;
+      return <BlockPage kind={SITE_PAGE_KIND.CONTACT} />;
     case "booking":
-      return <BookingPage />;
+      return <BlockPage kind={SITE_PAGE_KIND.BOOKING} />;
     case "account":
       return <AccountPage />;
     case "notFound":
@@ -58,10 +62,12 @@ function PageFor({ page }: { readonly page: SitePageRoute }): JSX.Element {
 export function SitePage({
   site,
   preview,
+  edit,
   base,
 }: {
   readonly site: PublicSite;
   readonly preview: boolean;
+  readonly edit: SitePreviewEdit | null;
   readonly base: string;
 }): JSX.Element {
   const { pathname, params, navigate, setParams } = useSiteLocation();
@@ -69,15 +75,19 @@ export function SitePage({
   const { languages, primaryLanguage } = site.clinic.locale;
   const language = siteLanguage(requested, site.clinic.locale);
   const t = useMemo(() => translator(language), [language]);
+  const siteDocument = site.document;
   const routed = sitePage(pathname, base);
   const section = SECTION_OF[routed.kind];
+  const open =
+    edit !== null ||
+    (section === SITE_SECTION.PORTAL
+      ? siteDocument.portal
+      : section === undefined || sitePageEnabled(siteDocument, sitePageFor(section)));
   const page: SitePageRoute =
-    section !== undefined &&
-    (!site.content.sections.includes(section) ||
-      (section === SITE_SECTION.BOOKING && !site.clinic.bookingEnabled))
+    !open || (section === SITE_SECTION.BOOKING && !site.clinic.bookingEnabled)
       ? { kind: "notFound" }
       : routed;
-  const portal = usePortalAccount(!preview && site.content.sections.includes(SITE_SECTION.PORTAL));
+  const portal = usePortalAccount(!preview && siteDocument.portal);
 
   const href = useCallback(
     (path: string, extra: Record<string, string> = {}) => {
@@ -96,8 +106,34 @@ export function SitePage({
   );
 
   const value = useMemo(
-    () => ({ site, language, languages, t, preview, page, params, setParams, href, navigate }),
-    [site, language, languages, t, preview, page, params, setParams, href, navigate],
+    () => ({
+      site,
+      siteDocument,
+      language,
+      languages,
+      t,
+      preview,
+      edit,
+      page,
+      params,
+      setParams,
+      href,
+      navigate,
+    }),
+    [
+      site,
+      siteDocument,
+      language,
+      languages,
+      t,
+      preview,
+      edit,
+      page,
+      params,
+      setParams,
+      href,
+      navigate,
+    ],
   );
 
   useEffect(() => {
@@ -106,10 +142,10 @@ export function SitePage({
   }, [language]);
 
   useEffect(() => {
-    document.title = pageTitle(site, page, language, t);
-  }, [site, page, language, t]);
+    document.title = pageTitle(site, siteDocument, page, language, t);
+  }, [site, siteDocument, page, language, t]);
 
-  useReveal(page.kind === "doctor" ? `doctor-${page.id}` : page.kind);
+  useReveal(page.kind === "doctor" ? `doctor-${page.id}` : page.kind, edit === null);
 
   return (
     <SiteContext.Provider value={value}>

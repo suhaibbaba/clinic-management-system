@@ -1,23 +1,24 @@
-import { SITE_PREVIEW_MESSAGE, type PublicSite } from "@clinic/shared";
+import {
+  readSitePreviewMessage,
+  SITE_PREVIEW_MESSAGE,
+  type PublicSite,
+  type SitePreviewEdit,
+} from "@clinic/shared";
 import { useCallback, useEffect, useState } from "react";
 import { siteApi } from "@web/site/api";
 import type { SiteSource } from "@web/site/route";
 
 export interface SiteData {
   readonly site: PublicSite | undefined;
+  readonly edit: SitePreviewEdit | null;
   readonly error: unknown;
   readonly loading: boolean;
   readonly reload: () => void;
 }
 
-const isPreviewMessage = (data: unknown): data is { type: string; site: PublicSite } =>
-  typeof data === "object" &&
-  data !== null &&
-  (data as { type?: unknown }).type === SITE_PREVIEW_MESSAGE.SITE &&
-  typeof (data as { site?: unknown }).site === "object";
-
 export function useSiteData(route: SiteSource): SiteData {
   const [site, setSite] = useState<PublicSite>();
+  const [edit, setEdit] = useState<SitePreviewEdit | null>(null);
   const [error, setError] = useState<unknown>();
   const [attempt, setAttempt] = useState(0);
   const reload = useCallback(() => setAttempt((count) => count + 1), []);
@@ -28,8 +29,15 @@ export function useSiteData(route: SiteSource): SiteData {
     }
 
     const receive = (event: MessageEvent): void => {
-      if (event.origin === window.location.origin && isPreviewMessage(event.data)) {
-        setSite(event.data.site);
+      if (event.origin !== window.location.origin || event.source !== window.parent) {
+        return;
+      }
+
+      const payload = readSitePreviewMessage(event.data);
+
+      if (payload) {
+        setSite(payload.site);
+        setEdit(payload.edit);
       }
     };
 
@@ -64,5 +72,5 @@ export function useSiteData(route: SiteSource): SiteData {
     };
   }, [route, attempt]);
 
-  return { site, error, loading: site === undefined && error === undefined, reload };
+  return { site, edit, error, loading: site === undefined && error === undefined, reload };
 }

@@ -161,7 +161,7 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
       >
         <Icon name="upload" className="size-7 text-ink-subtle" />
 
-        <p className="text-value font-medium text-ink">{t("imaging.uploadTitle")}</p>
+        <h2 className="text-value font-medium text-ink">{t("imaging.uploadTitle")}</h2>
         <p className="text-label text-ink-muted">{t("imaging.dropHint")}</p>
 
         <input

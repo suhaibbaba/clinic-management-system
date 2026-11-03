@@ -62,7 +62,7 @@ export function ConversationItem({
           {title}
         </span>
         {timestamp !== undefined && (
-          <span {...part("time")} className="mt-0.5 block truncate text-micro text-ink-faint">
+          <span {...part("time")} className="mt-0.5 block truncate text-micro text-ink-subtle">
             {timestamp}
           </span>
         )}

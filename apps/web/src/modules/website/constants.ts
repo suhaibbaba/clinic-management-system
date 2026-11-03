@@ -1,4 +1,4 @@
-import type { SiteIcon, SiteSection, SiteSocial } from "@clinic/shared";
+import type { SiteIcon, SitePageKind, SiteSocial } from "@clinic/shared";
 import type { IconName } from "@clinic/ui";
 
 export const WEBSITE_TAB_CONTENT = "content";
@@ -8,17 +8,32 @@ export const PREVIEW_DEVICE_PARAM = "device";
 export const PREVIEW_DEVICE_DESKTOP = "desktop";
 export const PREVIEW_DEVICE_MOBILE = "mobile";
 
-export const PREVIEW_PAGE_PARAM = "page";
-
-export const PREVIEW_PAGES = [
-  { value: "home", path: "", label: "website.preview.pages.home" },
-  { value: "services", path: "/services", label: "website.preview.pages.services" },
-  { value: "doctors", path: "/doctors", label: "website.preview.pages.doctors" },
-  { value: "about", path: "/about", label: "website.preview.pages.about" },
-  { value: "contact", path: "/contact", label: "website.preview.pages.contact" },
-  { value: "booking", path: "/appointment", label: "website.preview.pages.booking" },
-  { value: "account", path: "/account", label: "website.preview.pages.account" },
+export const EDITOR_PAGE_PARAM = "page";
+export const EDITOR_EDIT_PARAM = "edit";
+export const EDITOR_SETTINGS_PARAM = "settings";
+export const EDITOR_SETTINGS_OPEN = "1";
+export const EDITOR_LANGUAGE_PARAM = "lang";
+export const EDITOR_PARAMS = [
+  EDITOR_PAGE_PARAM,
+  EDITOR_EDIT_PARAM,
+  EDITOR_SETTINGS_PARAM,
+  EDITOR_LANGUAGE_PARAM,
+  PREVIEW_DEVICE_PARAM,
 ] as const;
+
+export const SITE_LANGUAGE_QUERY = "lang";
+
+export const SITE_PAGE_PATHS: Record<SitePageKind, string> = {
+  home: "",
+  services: "/services",
+  doctors: "/doctors",
+  about: "/about",
+  contact: "/contact",
+  booking: "/appointment",
+};
+
+export const SERVICES_COLLECTION_PATH = "collections.services";
+export const DOCTORS_COLLECTION_PATH = "collections.doctors";
 
 export const MESSAGES_STATUS_PARAM = "status";
 
@@ -30,15 +45,6 @@ export const SITE_IMAGE_MIN_WIDTH = {
   CARD: 600,
   ICON: 240,
 } as const;
-
-export const SITE_SECTION_LABELS: Record<SiteSection, string> = {
-  services: "website.sections.services",
-  doctors: "website.sections.doctors",
-  about: "website.sections.about",
-  booking: "website.sections.booking",
-  contact: "website.sections.contact",
-  portal: "website.sections.portal",
-};
 
 export const SITE_SOCIAL_LABELS: Record<SiteSocial, string> = {
   instagram: "website.social.instagram",
@@ -68,3 +74,6 @@ export const SITE_ICON_GLYPHS: Record<SiteIcon, IconName> = {
   tooth: "tooth",
   bone: "bone",
 };
+
+export const MODAL_FORM_GRID =
+  "grid gap-4 md:grid-cols-2 md:[&>*]:col-span-2 md:[&>[data-span=half]]:col-span-1";

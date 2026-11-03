@@ -155,6 +155,8 @@ export function AssistantPage(): JSX.Element {
 
   return (
     <div data-testid="assistant-page" className="flex min-h-0 flex-1 overflow-hidden">
+      <h1 className="sr-only">{t("nav.assistant")}</h1>
+
       {railOpen && (
         <button
           type="button"
@@ -215,87 +217,92 @@ export function AssistantPage(): JSX.Element {
             </div>
           </div>
         ) : (
-          <ChatThread data-testid="assistant-thread" jumpLabel={t("assistant.jumpToLatest")}>
-            {stored.map((message: AiMessage) =>
-              message.view && !message.proposalId ? (
-                <AssistantView
-                  key={message.id}
-                  view={message.view}
-                  data-testid={`assistant-view-${message.id}`}
-                />
-              ) : message.proposalId ? (
-                message.toolName === AI_TOOL.DRAFT_BULK_MESSAGE ? (
-                  <ProposalCard key={message.id} id={message.proposalId} />
-                ) : (
-                  <ActionCard key={message.id} id={message.proposalId} onRedraft={redraft} />
-                )
-              ) : (
-                <ChatBubble
-                  key={message.id}
-                  data-testid={`assistant-message-${message.id}`}
-                  author={message.role === AI_MESSAGE_ROLE.USER ? "user" : "assistant"}
-                >
-                  {message.role === AI_MESSAGE_ROLE.USER ? (
-                    <span className="whitespace-pre-wrap">{message.content}</span>
-                  ) : (
-                    <MarkdownMessage content={message.content} />
-                  )}
-                </ChatBubble>
-              ),
-            )}
-
-            {stream.turn && (
-              <>
-                <ChatBubble author="user" data-testid="assistant-live-question">
-                  <span className="whitespace-pre-wrap">{stream.turn.question}</span>
-                </ChatBubble>
-
-                {stream.turn.proposals.map((proposal) =>
-                  proposal.kind === AI_PROPOSAL_KIND.MESSAGE ? (
-                    <ProposalCard key={proposal.id} id={proposal.id} initial={proposal} />
-                  ) : (
-                    <ActionCard
-                      key={proposal.id}
-                      id={proposal.id}
-                      initial={proposal}
-                      onRedraft={redraft}
-                    />
-                  ),
-                )}
-
-                {stream.turn.views.map(({ toolCallId, view }) => (
+          <>
+            <h2 className="sr-only">{t("assistant.thread")}</h2>
+            <ChatThread data-testid="assistant-thread" jumpLabel={t("assistant.jumpToLatest")}>
+              {stored.map((message: AiMessage) =>
+                message.view && !message.proposalId ? (
                   <AssistantView
-                    key={toolCallId}
-                    view={view}
-                    data-testid={`assistant-live-view-${toolCallId}`}
+                    key={message.id}
+                    view={message.view}
+                    data-testid={`assistant-view-${message.id}`}
                   />
-                ))}
-
-                {(stream.turn.error === null || stream.turn.answer.length > 0) && (
+                ) : message.proposalId ? (
+                  message.toolName === AI_TOOL.DRAFT_BULK_MESSAGE ? (
+                    <ProposalCard key={message.id} id={message.proposalId} />
+                  ) : (
+                    <ActionCard key={message.id} id={message.proposalId} onRedraft={redraft} />
+                  )
+                ) : (
                   <ChatBubble
-                    author="assistant"
-                    data-testid="assistant-live-answer"
-                    streaming={stream.turn.streaming && stream.turn.answer.length > 0}
-                    status={
-                      stream.turn.answer.length === 0
-                        ? ellipsis(
-                            stream.turn.tool
-                              ? t(toolStatusKey(stream.turn.tool))
-                              : t("assistant.thinking"),
-                          )
-                        : undefined
-                    }
+                    key={message.id}
+                    data-testid={`assistant-message-${message.id}`}
+                    author={message.role === AI_MESSAGE_ROLE.USER ? "user" : "assistant"}
                   >
-                    {stream.turn.answer.length > 0 ? (
-                      <MarkdownMessage content={stream.turn.answer} />
-                    ) : undefined}
+                    {message.role === AI_MESSAGE_ROLE.USER ? (
+                      <span className="whitespace-pre-wrap">{message.content}</span>
+                    ) : (
+                      <MarkdownMessage content={message.content} />
+                    )}
                   </ChatBubble>
-                )}
+                ),
+              )}
 
-                {stream.turn.error && <TurnError code={stream.turn.error} onRetry={stream.retry} />}
-              </>
-            )}
-          </ChatThread>
+              {stream.turn && (
+                <>
+                  <ChatBubble author="user" data-testid="assistant-live-question">
+                    <span className="whitespace-pre-wrap">{stream.turn.question}</span>
+                  </ChatBubble>
+
+                  {stream.turn.proposals.map((proposal) =>
+                    proposal.kind === AI_PROPOSAL_KIND.MESSAGE ? (
+                      <ProposalCard key={proposal.id} id={proposal.id} initial={proposal} />
+                    ) : (
+                      <ActionCard
+                        key={proposal.id}
+                        id={proposal.id}
+                        initial={proposal}
+                        onRedraft={redraft}
+                      />
+                    ),
+                  )}
+
+                  {stream.turn.views.map(({ toolCallId, view }) => (
+                    <AssistantView
+                      key={toolCallId}
+                      view={view}
+                      data-testid={`assistant-live-view-${toolCallId}`}
+                    />
+                  ))}
+
+                  {(stream.turn.error === null || stream.turn.answer.length > 0) && (
+                    <ChatBubble
+                      author="assistant"
+                      data-testid="assistant-live-answer"
+                      streaming={stream.turn.streaming && stream.turn.answer.length > 0}
+                      status={
+                        stream.turn.answer.length === 0
+                          ? ellipsis(
+                              stream.turn.tool
+                                ? t(toolStatusKey(stream.turn.tool))
+                                : t("assistant.thinking"),
+                            )
+                          : undefined
+                      }
+                    >
+                      {stream.turn.answer.length > 0 ? (
+                        <MarkdownMessage content={stream.turn.answer} />
+                      ) : undefined}
+                    </ChatBubble>
+                  )}
+
+                  {stream.turn.error && (
+                    <TurnError code={stream.turn.error} onRetry={stream.retry} />
+                  )}
+                </>
+              )}
+            </ChatThread>
+          </>
         )}
 
         <div className="px-3 pb-3 sm:px-6 sm:pb-5">

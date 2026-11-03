@@ -1,9 +1,9 @@
-import type { PublicSiteDoctor } from "@clinic/shared";
+import type { PublicSiteDoctor, SiteDocument } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar, Button, Icon, PersonName, Switch, usePersonName } from "@clinic/ui";
 import { DraftText } from "@web/modules/website/components/draft-text";
-import { useEditor } from "@web/modules/website/hooks/use-editor";
+import { useScoped } from "@web/modules/website/hooks/use-scoped";
 import { blankText } from "@web/modules/website/lib/site-draft";
 
 export function DoctorsField({
@@ -13,9 +13,9 @@ export function DoctorsField({
 }): JSX.Element {
   const { t } = useTranslation();
   const nameOf = usePersonName();
-  const { draft, update } = useEditor();
+  const { value, set } = useScoped<SiteDocument["collections"]["doctors"]>();
   const [open, setOpen] = useState<string | null>(null);
-  const { hidden, profiles } = draft.doctors;
+  const { hidden, profiles } = value;
 
   if (doctors.length === 0) {
     return (
@@ -32,16 +32,7 @@ export function DoctorsField({
     }
 
     if (!profiles.some((profile) => profile.doctorId === doctorId)) {
-      update((current) => ({
-        ...current,
-        doctors: {
-          ...current.doctors,
-          profiles: [
-            ...current.doctors.profiles,
-            { doctorId, title: blankText(), bio: blankText() },
-          ],
-        },
-      }));
+      set("profiles", [...profiles, { doctorId, title: blankText(), bio: blankText() }]);
     }
 
     setOpen(doctorId);
@@ -88,15 +79,10 @@ export function DoctorsField({
                   checked={shown}
                   label={t("website.doctors.show", { name: nameOf(doctor.name) })}
                   onCheckedChange={(checked) =>
-                    update((current) => ({
-                      ...current,
-                      doctors: {
-                        ...current.doctors,
-                        hidden: checked
-                          ? current.doctors.hidden.filter((id) => id !== doctor.id)
-                          : [...current.doctors.hidden, doctor.id],
-                      },
-                    }))
+                    set(
+                      "hidden",
+                      checked ? hidden.filter((id) => id !== doctor.id) : [...hidden, doctor.id],
+                    )
                   }
                 />
               </span>
@@ -105,15 +91,11 @@ export function DoctorsField({
             {open === doctor.id && index >= 0 && (
               <div className="mt-3 flex flex-col gap-3 rounded-panel border border-line bg-sunken p-3">
                 <DraftText
-                  path={`doctors.profiles.${index}.title`}
+                  path={`profiles.${index}.title`}
                   label="website.doctors.title"
                   hint="website.doctors.titleHint"
                 />
-                <DraftText
-                  path={`doctors.profiles.${index}.bio`}
-                  label="website.doctors.bio"
-                  multiline
-                />
+                <DraftText path={`profiles.${index}.bio`} label="website.doctors.bio" multiline />
               </div>
             )}
           </li>

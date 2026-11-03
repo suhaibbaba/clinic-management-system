@@ -1,4 +1,4 @@
-import { SITE_RATING_MAX } from "@clinic/shared";
+import { SITE_RATING_MAX, type SITE_BLOCK_TYPE, type SiteBlockOf } from "@clinic/shared";
 import type { JSX } from "react";
 import { cx } from "@web/booking/ui";
 import { ShowcaseHeading } from "@web/site/components/showcase-heading";
@@ -8,11 +8,14 @@ import { Slider } from "@web/site/components/slider";
 import { useSite } from "@web/site/hooks/use-site";
 import { orDefault, pick } from "@web/site/lib/text";
 
-export function TestimonialsSection(): JSX.Element | null {
-  const { site, language, languages, t } = useSite();
-  const { testimonials } = site.content;
+export function TestimonialsSection({
+  block,
+}: {
+  readonly block: SiteBlockOf<typeof SITE_BLOCK_TYPE.TESTIMONIALS>;
+}): JSX.Element | null {
+  const { language, languages, t } = useSite();
 
-  if (testimonials.items.length === 0) {
+  if (block.items.length === 0) {
     return null;
   }
 
@@ -24,15 +27,15 @@ export function TestimonialsSection(): JSX.Element | null {
     >
       <ShowcaseHeading
         id="testimonials"
-        title={orDefault(testimonials.title, language, t("testimonials.title"), languages)}
-        subtitle={pick(testimonials.subtitle, language, languages)}
+        title={orDefault(block.title, language, t("testimonials.title"), languages)}
+        subtitle={pick(block.subtitle, language, languages)}
       />
       <Slider
         label={t("testimonials.title")}
         item="w-[85%] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
         data-testid="site-testimonials-carousel"
       >
-        {testimonials.items.map((item, position) => (
+        {block.items.map((item, position) => (
           <figure
             key={position}
             data-testid={`site-testimonial-${position + 1}`}

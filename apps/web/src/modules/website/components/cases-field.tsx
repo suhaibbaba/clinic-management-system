@@ -12,6 +12,7 @@ import { blankText, moveItem, removeAt, replaceAt } from "@web/modules/website/l
 const SIDES = ["before", "after"] as const;
 
 export function CasesField({
+  path,
   items,
   images,
   onChange,
@@ -19,6 +20,7 @@ export function CasesField({
   errors,
   leave,
 }: {
+  readonly path: string;
   readonly items: readonly SiteCase[];
   readonly images: Readonly<Record<string, string>>;
   readonly onChange: (items: SiteCase[]) => void;
@@ -58,7 +60,7 @@ export function CasesField({
           <TextPair
             id={`case-${index}-title`}
             label="website.cases.title"
-            path={`cases.items.${index}.title`}
+            path={`${path}.${index}.title`}
             value={item.title}
             errors={errors}
             leave={leave}

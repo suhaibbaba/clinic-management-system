@@ -16,12 +16,12 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, Te
 }
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-primary-600 text-ink-inverse hover:bg-primary-500 active:bg-primary-700",
+  primary: "bg-primary-600 text-ink-inverse hover:bg-primary-700 active:bg-primary-800",
   secondary:
     "border border-line bg-surface text-ink hover:bg-inset hover:border-primary-600 hover:text-primary-700 active:bg-neutral-200",
   ghost: "bg-primary-100 text-primary-700 hover:bg-primary-200 active:bg-primary-300",
   quiet: "text-ink-muted hover:bg-inset hover:text-ink active:bg-neutral-200",
-  danger: "bg-danger-600 text-ink-inverse hover:bg-danger-500 active:bg-danger-700",
+  danger: "bg-danger-600 text-ink-inverse hover:bg-danger-700 active:bg-danger-800",
 };
 
 const SIZES: Record<ButtonSize, string> = {

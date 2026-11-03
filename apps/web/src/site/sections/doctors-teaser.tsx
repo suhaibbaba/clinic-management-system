@@ -1,4 +1,9 @@
-import { SITE_SECTION } from "@clinic/shared";
+import {
+  SITE_PAGE_KIND,
+  sitePageEnabled,
+  type SITE_BLOCK_TYPE,
+  type SiteBlockOf,
+} from "@clinic/shared";
 import type { JSX } from "react";
 import { PillLink } from "@web/site/components/pill-link";
 import { ShowcaseHeading } from "@web/site/components/showcase-heading";
@@ -12,12 +17,15 @@ import { profileOf, visibleDoctors } from "@web/site/lib/doctors";
 import { nameIn, orDefault, pick } from "@web/site/lib/text";
 import { SITE_PATH } from "@web/site/route";
 
-export function DoctorsTeaser(): JSX.Element | null {
-  const { site, language, languages, t } = useSite();
-  const { doctors: copy } = site.content;
-  const doctors = visibleDoctors(site);
+export function DoctorsTeaser({
+  block,
+}: {
+  readonly block: SiteBlockOf<typeof SITE_BLOCK_TYPE.DOCTORS_TEASER>;
+}): JSX.Element | null {
+  const { site, siteDocument, language, languages, t } = useSite();
+  const doctors = visibleDoctors(site, siteDocument);
 
-  if (!site.content.sections.includes(SITE_SECTION.DOCTORS) || doctors.length === 0) {
+  if (!sitePageEnabled(siteDocument, SITE_PAGE_KIND.DOCTORS) || doctors.length === 0) {
     return null;
   }
 
@@ -30,8 +38,8 @@ export function DoctorsTeaser(): JSX.Element | null {
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-14">
         <ShowcaseHeading
           id="doctors-teaser"
-          title={orDefault(copy.title, language, t("doctors.title"), languages)}
-          subtitle={orDefault(copy.subtitle, language, t("doctors.subtitle"), languages)}
+          title={orDefault(block.title, language, t("doctors.title"), languages)}
+          subtitle={orDefault(block.subtitle, language, t("doctors.subtitle"), languages)}
           action={
             <PillLink to={SITE_PATH.DOCTORS} tone="outline" data-testid="site-doctors-more">
               {t("home.doctorsAll")}
@@ -45,7 +53,7 @@ export function DoctorsTeaser(): JSX.Element | null {
         >
           {doctors.map((doctor) => {
             const name = nameIn(doctor.name, language, languages);
-            const profile = profileOf(site, doctor.id);
+            const profile = profileOf(siteDocument, doctor.id);
 
             return (
               <SiteLink
@@ -60,24 +68,24 @@ export function DoctorsTeaser(): JSX.Element | null {
                   className="aspect-[4/3.4] w-full"
                   fallback={<SiteIcon name="stethoscope" className="size-12" />}
                 />
-                <span className="relative isolate flex flex-1 items-start gap-2 p-4">
+                <div className="relative isolate flex flex-1 items-start gap-2 p-4">
                   <CardFill />
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="site-fill-ink text-section font-bold text-primary-900">
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <h3 className="site-fill-ink text-section font-bold text-primary-900">
                       {name}
-                    </span>
+                    </h3>
                     <span className="site-fill-soft text-label text-ink-muted">
                       {(profile && pick(profile.title, language, languages)) ||
                         pick(doctor.specialty, language, languages)}
                     </span>
-                  </span>
+                  </div>
                   <span
                     aria-hidden
                     className="inline-flex size-7 shrink-0 items-center justify-center rounded-pill border border-line text-primary-700 group-hover:border-ink-inverse/40 group-hover:bg-surface"
                   >
                     <SiteIcon name="arrow-end" className="size-4" />
                   </span>
-                </span>
+                </div>
               </SiteLink>
             );
           })}

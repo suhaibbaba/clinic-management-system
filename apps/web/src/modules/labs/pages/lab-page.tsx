@@ -65,7 +65,14 @@ export function LabPage(): JSX.Element {
       >
         <div className="min-w-0">
           <h1 data-testid="lab-name" className="truncate text-title font-medium text-primary-900">
-            {lab.data?.name ?? "…"}
+            {lab.data ? (
+              lab.data.name
+            ) : (
+              <>
+                <span aria-hidden="true">…</span>
+                <span className="sr-only">{t("nav.labs")}</span>
+              </>
+            )}
           </h1>
           <p className="mt-1 flex flex-wrap items-baseline gap-1.5 text-value text-ink-muted">
             {lab.data?.contactPerson && <span>{lab.data.contactPerson}</span>}

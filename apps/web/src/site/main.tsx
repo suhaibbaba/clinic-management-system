@@ -16,10 +16,10 @@ const requested = new URLSearchParams(window.location.search).get(SITE_PARAM.LAN
 const t = translator(isSiteLanguage(requested) ? requested : DEFAULT_LANGUAGE);
 
 function SiteApp(): JSX.Element {
-  const { site, error, loading, reload } = useSiteData(source);
+  const { site, edit, error, loading, reload } = useSiteData(source);
 
   if (site) {
-    return <SitePage site={site} preview={source.kind === "preview"} base={base} />;
+    return <SitePage site={site} preview={source.kind === "preview"} edit={edit} base={base} />;
   }
 
   if (loading) {

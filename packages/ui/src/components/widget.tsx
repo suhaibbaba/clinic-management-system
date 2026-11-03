@@ -6,6 +6,7 @@ export interface WidgetProps extends TestIdProps {
   readonly title?: ReactNode | undefined;
   readonly action?: ReactNode | undefined;
   readonly className?: string | undefined;
+  readonly level?: 2 | 3 | undefined;
   readonly children: ReactNode;
 }
 
@@ -13,10 +14,12 @@ export function Widget({
   title,
   action,
   className,
+  level = 2,
   children,
   "data-testid": testId,
 }: WidgetProps): JSX.Element {
   const part = parts("widget", testId);
+  const Heading = level === 3 ? "h3" : "h2";
 
   return (
     <div
@@ -27,13 +30,12 @@ export function Widget({
       )}
     >
       {title !== undefined && (
-        <h2
-          {...part("title")}
-          className="flex items-center justify-between gap-2 text-label font-semibold"
-        >
-          {title}
+        <div className="flex items-center justify-between gap-2 text-label font-semibold">
+          <Heading {...part("title")} className="flex items-center gap-2">
+            {title}
+          </Heading>
           {action}
-        </h2>
+        </div>
       )}
       {children}
     </div>

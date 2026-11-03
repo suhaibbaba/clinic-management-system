@@ -1,12 +1,14 @@
 import type { JSX } from "react";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { PageHeader, TabPanel, Tabs, useTabParam, type TabDefinition } from "@clinic/ui";
-import { SkeletonForm } from "@clinic/ui/components/skeleton";
+import { Skeleton } from "@clinic/ui/components/skeleton";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { canEditWebsite, seesContactMessages } from "@web/shared/permissions/website";
 import { useSession } from "@web/shared/providers/session";
 import { useOpenContactMessagesCount } from "@web/shared/queries/website";
 import { WEBSITE_TAB_CONTENT, WEBSITE_TAB_MESSAGES } from "@web/modules/website/constants";
-import { WebsiteContent } from "@web/modules/website/pages/website-content";
+import { WebsiteContentCard } from "@web/modules/website/components/website-content-card";
+import { editorAddress } from "@web/modules/website/lib/editor-page";
 import { WebsiteMessages } from "@web/modules/website/pages/website-messages";
 import { useWebsiteEditor } from "@web/modules/website/queries";
 
@@ -19,6 +21,7 @@ export function WebsitePage(): JSX.Element {
   const open = useOpenContactMessagesCount(mayRead);
   const editor = useWebsiteEditor(mayEdit);
   const showSkeleton = useDelayedLoading(editor.isPending);
+  const [params] = useSearchParams();
 
   const tabs: TabDefinition<WebsiteTab>[] = [
     ...(mayEdit ? [{ id: WEBSITE_TAB_CONTENT, label: "website.tabs.content" } as const] : []),
@@ -30,8 +33,13 @@ export function WebsitePage(): JSX.Element {
     "tab",
     tabs.map((tab) => tab.id),
     tabs[0]?.id ?? WEBSITE_TAB_MESSAGES,
-    ["page", "perPage", "status", "device"],
+    ["page", "perPage", "status"],
   );
+  const legacyEditor = mayEdit && active === WEBSITE_TAB_CONTENT ? editorAddress(params) : null;
+
+  if (legacyEditor !== null) {
+    return <Navigate to={legacyEditor} replace />;
+  }
 
   return (
     <div data-testid="website-page" className="flex flex-col gap-5">
@@ -50,9 +58,9 @@ export function WebsitePage(): JSX.Element {
       <TabPanel id={active} data-testid="website-panel">
         {active === WEBSITE_TAB_CONTENT &&
           (editor.data ? (
-            <WebsiteContent editor={editor.data} />
+            <WebsiteContentCard editor={editor.data} />
           ) : showSkeleton ? (
-            <SkeletonForm fields={6} />
+            <Skeleton aria-hidden="true" className="h-48 w-full max-w-(--form-max) rounded-card" />
           ) : null)}
         {active === WEBSITE_TAB_MESSAGES && <WebsiteMessages />}
       </TabPanel>

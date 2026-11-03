@@ -1,4 +1,4 @@
-import { SITE_SECTION, type SiteSection } from "@clinic/shared";
+import { SITE_SECTION, sitePageEnabled, sitePageFor, type SiteSection } from "@clinic/shared";
 import { useEffect, useRef, useState, type JSX } from "react";
 import { createPortal } from "react-dom";
 import { cx } from "@web/booking/ui";
@@ -17,7 +17,7 @@ import { SiteTopBar } from "@web/site/sections/site-top-bar";
 const LINKS: readonly {
   readonly to: string;
   readonly label: string;
-  readonly section: SiteSection | null;
+  readonly section: Exclude<SiteSection, "portal"> | null;
   readonly pages: readonly SitePageRoute["kind"][];
 }[] = [
   { to: "/", label: "nav.home", section: null, pages: ["home"] },
@@ -43,15 +43,15 @@ const LINKS: readonly {
 ];
 
 export function SiteHeader(): JSX.Element {
-  const { site, language, languages, t, page } = useSite();
+  const { site, siteDocument, language, languages, t, page } = useSite();
   const [open, setOpen] = useState(false);
   const account = usePortal();
   const name = nameIn(site.clinic.name, language, languages);
   const links = LINKS.filter(
-    (link) => link.section === null || site.content.sections.includes(link.section),
+    (link) => link.section === null || sitePageEnabled(siteDocument, sitePageFor(link.section)),
   );
   const bookable = useBookable();
-  const portal = site.content.sections.includes(SITE_SECTION.PORTAL);
+  const portal = siteDocument.portal;
   const header = useRef<HTMLElement>(null);
   const height = useMeasuredHeight(header);
   const trigger = useRef<HTMLButtonElement>(null);

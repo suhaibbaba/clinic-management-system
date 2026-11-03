@@ -54,7 +54,7 @@ export function Checkbox({
             "transition-colors duration-150",
             marked
               ? "border-primary-600 bg-primary-600 text-ink-inverse"
-              : "border-line-strong bg-surface",
+              : "border-neutral-500 bg-surface",
           )}
         >
           {checked ? (

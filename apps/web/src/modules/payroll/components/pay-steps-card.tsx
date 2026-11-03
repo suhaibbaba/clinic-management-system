@@ -47,7 +47,7 @@ export function PayStepsCard({
               aria-hidden
               className={cn(
                 "relative flex size-8 items-center justify-center rounded-pill text-label font-semibold",
-                step.ready ? "bg-success-100 text-success-700" : "bg-primary-100 text-primary-700",
+                step.ready ? "bg-success-100 text-success-800" : "bg-primary-100 text-primary-700",
               )}
             >
               {index + 1}

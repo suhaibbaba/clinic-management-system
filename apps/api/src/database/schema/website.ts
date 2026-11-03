@@ -1,4 +1,3 @@
-import { type SiteContent } from "@clinic/shared";
 import { index, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { clinics, users } from "@api/database/schema/core";
 
@@ -9,8 +8,8 @@ export const siteContent = pgTable(
     clinicId: uuid("clinic_id")
       .notNull()
       .references(() => clinics.id),
-    draft: jsonb("draft").$type<SiteContent>().notNull(),
-    published: jsonb("published").$type<SiteContent>(),
+    draft: jsonb("draft").$type<unknown>().notNull(),
+    published: jsonb("published").$type<unknown>(),
     publishedAt: timestamp("published_at", { withTimezone: true }),
     publishedBy: uuid("published_by").references(() => users.id),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

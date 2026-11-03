@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import { SiteImageField } from "@web/modules/website/components/site-image-field";
 import { useEditor } from "@web/modules/website/hooks/use-editor";
-import { valueAt, withValueAt } from "@web/modules/website/lib/site-draft";
+import { joinPath, valueAt, withValueAt } from "@web/modules/website/lib/site-draft";
 
 export function DraftImage({
   path,
@@ -12,21 +12,22 @@ export function DraftImage({
   readonly label: string;
   readonly minWidth: number;
 }): JSX.Element {
-  const { draft, update, images, remember } = useEditor();
-  const key = valueAt(draft, path) as string | null | undefined;
+  const { draft, update, images, remember, scope } = useEditor();
+  const full = joinPath(scope, path);
+  const key = valueAt(draft, full) as string | null | undefined;
 
   return (
     <SiteImageField
-      id={path.replaceAll(".", "-")}
+      id={full.replaceAll(".", "-")}
       label={label}
       minWidth={minWidth}
       hasImage={typeof key === "string"}
       url={key ? images[key] : undefined}
       onUpload={(next, url) => {
         remember(next, url);
-        update((current) => withValueAt(current, path, next));
+        update((current) => withValueAt(current, full, next));
       }}
-      onRemove={() => update((current) => withValueAt(current, path, null))}
+      onRemove={() => update((current) => withValueAt(current, full, null))}
     />
   );
 }

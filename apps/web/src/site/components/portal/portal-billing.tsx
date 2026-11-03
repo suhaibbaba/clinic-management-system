@@ -61,10 +61,10 @@ export function PortalBalanceSummary({
       data-testid="site-portal-balance-summary"
       className="flex flex-col gap-4 rounded-card border border-line bg-surface p-6 shadow-card"
     >
-      <h3 className="flex items-center gap-2 text-heading font-bold text-primary-900">
+      <h2 className="flex items-center gap-2 text-heading font-bold text-primary-900">
         <SiteIcon name="wallet" className="size-5 text-primary-600" />
         {t("portal.balanceSummary")}
-      </h3>
+      </h2>
       <div
         data-part="remaining"
         className={cx(

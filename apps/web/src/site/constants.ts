@@ -1,4 +1,9 @@
-import type { PhoneCountry, SiteLanguage } from "@clinic/shared";
+import {
+  SITE_BLOCK_TYPE,
+  type PhoneCountry,
+  type SiteBlockType,
+  type SiteLanguage,
+} from "@clinic/shared";
 
 export const ARABIC_FLAG_COUNTRIES: readonly PhoneCountry[] = [
   "PS",
@@ -52,3 +57,16 @@ export const PORTAL_GRID_PAGE_SIZE = 6;
 export const PORTAL_TILE_PAGE_SIZE = 8;
 
 export const PORTAL_PAGE_TAIL = 2;
+
+export const BODY_BLOCKS: ReadonlySet<SiteBlockType> = new Set([
+  SITE_BLOCK_TYPE.SERVICES_GRID,
+  SITE_BLOCK_TYPE.DOCTORS_GRID,
+  SITE_BLOCK_TYPE.ABOUT_PILLARS,
+  SITE_BLOCK_TYPE.ABOUT_VALUES,
+  SITE_BLOCK_TYPE.CONTACT_MAIN,
+  SITE_BLOCK_TYPE.CONTACT_WELCOME,
+]);
+
+export const BLOCK_BODY_CLASS = "mx-auto my-12 max-w-6xl px-4";
+
+export const MAP_SPAN = 0.006;

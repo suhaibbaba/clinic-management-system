@@ -41,6 +41,7 @@ export function MiniCalendar(): JSX.Element {
 
   return (
     <Widget data-testid="mini-calendar">
+      <h2 className="sr-only">{t("dashboard.widgets.calendar.title")}</h2>
       <div className="mb-2.5 flex items-center justify-between gap-2">
         <b data-testid="mini-calendar-month" className="text-section font-bold">
           {monthLabel}
