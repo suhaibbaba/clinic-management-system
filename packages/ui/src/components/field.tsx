@@ -10,14 +10,14 @@ export interface FieldState {
 
 export function fieldShell({ hasError = false, disabled = false }: FieldState): string {
   return cn(
-    "group flex w-full items-center gap-2 rounded-control border-[1.5px] px-3.5",
+    "group flex w-full items-center gap-2 rounded-control border px-3.5",
     "h-(--control-h) transition-[border-color,box-shadow,background-color] duration-150",
     disabled && "cursor-not-allowed border-transparent bg-inset",
     !disabled && "bg-surface",
     !disabled && hasError && "border-danger-600 shadow-field-error",
     !disabled &&
       !hasError &&
-      "border-neutral-500 hover:border-neutral-700 focus-within:border-primary-600",
+      "border-line-strong hover:border-neutral-400 focus-within:border-primary-600",
   );
 }
 
