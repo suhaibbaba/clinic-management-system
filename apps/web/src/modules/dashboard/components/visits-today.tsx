@@ -30,11 +30,13 @@ export function VisitsToday({ currency }: { readonly currency: string | undefine
       )}
 
       {visits.data?.items.length === 0 && (
-        <EmptyState
-          icon="stethoscope"
-          data-testid="dashboard-visits-empty"
-          title="dashboard.visits.empty"
-        />
+        <div className="mt-2">
+          <EmptyState
+            icon="stethoscope"
+            data-testid="dashboard-visits-empty"
+            title="dashboard.visits.empty"
+          />
+        </div>
       )}
 
       {visits.data && visits.data.items.length > 0 && (
