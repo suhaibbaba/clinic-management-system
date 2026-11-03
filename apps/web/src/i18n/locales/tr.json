@@ -2209,7 +2209,10 @@
       "pending": "Onay bekliyor",
       "pendingCaption": "Kimsenin yanıtlamadığı online randevular",
       "overdue": "Gecikmiş bakiyeler",
-      "overdueCaption": "{{count}} hasta"
+      "overdueCaption": "{{count}} hasta",
+      "visits": "Bugünkü ziyaretler",
+      "collected": "Bugün tahsil edilen",
+      "newPatients": "Bugünkü yeni hastalar"
     },
     "lastAppointment": "Son randevu",
     "schedule": {
@@ -2222,7 +2225,103 @@
       "arrived": "Geldi"
     },
     "subtitle": "Bugün klinikte olanlar, tek bakışta",
-    "title": "Panel"
+    "title": "Panel",
+    "customize": {
+      "title": "Panoyu özelleştir",
+      "subtitle": "Burada kaydettiğiniz, seçilen roldeki herkesin gördüğüdür",
+      "role": "Rol",
+      "reset": "Varsayılanı geri yükle",
+      "close": "Kapat",
+      "add": "Bileşen ekle",
+      "allShown": "Kullanılabilir tüm bileşenler gösteriliyor",
+      "zone": "Konum",
+      "width": "Genişlik",
+      "moveEarlier": "Öne al",
+      "moveLater": "Geri al",
+      "hide": "Gizle",
+      "keyNumbers": "Gösterilen sayılar, bu sırayla",
+      "saved": "Pano kaydedildi",
+      "zones": {
+        "top": "Üst",
+        "main": "Ana",
+        "side": "Yan"
+      },
+      "widths": {
+        "third": "⅓",
+        "half": "½",
+        "twoThirds": "⅔",
+        "full": "Tam"
+      }
+    },
+    "widgets": {
+      "greeting": {
+        "title": "Karşılama",
+        "description": "Selamlama ve bugünün tarihi; randevular açıksa ilk ve son randevu"
+      },
+      "keyNumbers": {
+        "title": "Temel sayılar",
+        "description": "Bugünün seçilen sayıları"
+      },
+      "schedule": {
+        "title": "Bugünün programı",
+        "description": "Doktor filtresiyle bugünün randevuları"
+      },
+      "calendar": {
+        "title": "Mini takvim",
+        "description": "Dolu günleriyle ay"
+      },
+      "notes": {
+        "title": "Hızlı notlar",
+        "description": "Kullanıcının notları"
+      },
+      "quickActions": {
+        "title": "Hızlı işlemler",
+        "description": "Yeni hasta, ziyaret kaydı, ödeme kaydı"
+      },
+      "visitsToday": {
+        "title": "Bugünkü ziyaretler",
+        "description": "Doktor ve hasta bakiyesiyle bugünkü ziyaretler"
+      },
+      "topDebts": {
+        "title": "En yüksek bakiyeler",
+        "description": "Gecikmiş en yüksek beş bakiye"
+      },
+      "newPatients": {
+        "title": "En yeni hastalar",
+        "description": "Kaydedilen son beş hasta"
+      },
+      "collections": {
+        "title": "Tahsilat — son 7 gün",
+        "description": "Her gün alınan ödemeler"
+      }
+    },
+    "layouts": {
+      "title": "Rol başına pano",
+      "hint": "Her rolün ana sayfada ne göreceğini seçin. Düzenleyici yeni sekmede açılır ve kaydedene kadar personel için hiçbir şey değişmez.",
+      "shown": "Gösterilen bileşenler: {{number}}",
+      "customizedAt": "Değiştirildi: {{when}}",
+      "standard": "Varsayılan",
+      "customize": "Özelleştir"
+    },
+    "quick": {
+      "patient": "Yeni hasta",
+      "visit": "Ziyaret kaydet",
+      "payment": "Ödeme kaydet"
+    },
+    "visits": {
+      "empty": "Bugün henüz ziyaret yok",
+      "settled": "Borç yok"
+    },
+    "debts": {
+      "all": "Tümü",
+      "empty": "Gecikmiş bakiye yok",
+      "neverPaid": "Henüz ödeme yapmadı",
+      "lastPaid": "Son ödeme {{when}}"
+    },
+    "newPatients": {
+      "empty": "Henüz hasta yok",
+      "file": "Dosya {{number}}"
+    }
   },
   "notes": {
     "title": "Hızlı notlar",

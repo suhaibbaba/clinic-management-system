@@ -3,6 +3,7 @@ import {
   CHART_TYPES,
   USER_ROLES,
   type ClinicModule,
+  type DashboardLayout,
   type LocalizedText,
   type WeeklySchedule,
 } from "@clinic/shared";
@@ -150,6 +151,20 @@ export const roleCapabilities = pgTable(
   (table) => [
     uniqueIndex("role_capabilities_uniq").on(table.clinicId, table.role, table.capability),
   ],
+);
+
+export const dashboardLayouts = pgTable(
+  "dashboard_layouts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    role: userRoleEnum("role").notNull(),
+    layout: jsonb("layout").$type<DashboardLayout>().notNull(),
+    ...auditColumns,
+  },
+  (table) => [uniqueIndex("dashboard_layouts_uniq").on(table.clinicId, table.role)],
 );
 
 export const doctors = pgTable(

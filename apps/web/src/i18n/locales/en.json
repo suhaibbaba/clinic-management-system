@@ -2209,7 +2209,10 @@
       "pending": "Awaiting Confirmation",
       "pendingCaption": "Online bookings nobody has answered",
       "overdue": "Overdue Balances",
-      "overdueCaption": "{{count}} patients"
+      "overdueCaption": "{{count}} patients",
+      "visits": "Visits today",
+      "collected": "Collected today",
+      "newPatients": "New patients today"
     },
     "lastAppointment": "Last Appointment",
     "schedule": {
@@ -2222,7 +2225,103 @@
       "arrived": "Arrived"
     },
     "subtitle": "Today at the clinic, at a glance",
-    "title": "Dashboard"
+    "title": "Dashboard",
+    "customize": {
+      "title": "Customize the dashboard",
+      "subtitle": "What you save here is what everyone in the chosen role sees",
+      "role": "Role",
+      "reset": "Restore the default",
+      "close": "Close",
+      "add": "Add a widget",
+      "allShown": "Every available widget is shown",
+      "zone": "Place",
+      "width": "Width",
+      "moveEarlier": "Move earlier",
+      "moveLater": "Move later",
+      "hide": "Hide",
+      "keyNumbers": "Numbers shown, in this order",
+      "saved": "Dashboard saved",
+      "zones": {
+        "top": "Top",
+        "main": "Main",
+        "side": "Side"
+      },
+      "widths": {
+        "third": "⅓",
+        "half": "½",
+        "twoThirds": "⅔",
+        "full": "Full"
+      }
+    },
+    "widgets": {
+      "greeting": {
+        "title": "Greeting",
+        "description": "The greeting and today's date, with the first and last appointment when appointments are on"
+      },
+      "keyNumbers": {
+        "title": "Key numbers",
+        "description": "Today's chosen numbers"
+      },
+      "schedule": {
+        "title": "Today's schedule",
+        "description": "Today's appointments with a doctor filter"
+      },
+      "calendar": {
+        "title": "Mini calendar",
+        "description": "The month with its booked days"
+      },
+      "notes": {
+        "title": "Quick notes",
+        "description": "The user's notes"
+      },
+      "quickActions": {
+        "title": "Quick actions",
+        "description": "New patient, record a visit, record a payment"
+      },
+      "visitsToday": {
+        "title": "Today's visits",
+        "description": "Today's visits with the doctor and the patient's balance"
+      },
+      "topDebts": {
+        "title": "Largest balances",
+        "description": "The five largest overdue balances"
+      },
+      "newPatients": {
+        "title": "Newest patients",
+        "description": "The last five patients registered"
+      },
+      "collections": {
+        "title": "Collections — last 7 days",
+        "description": "Payments received each day"
+      }
+    },
+    "layouts": {
+      "title": "The dashboard per role",
+      "hint": "Choose what each role sees on the home page. The editor opens in a new tab, and nothing changes for staff until you save.",
+      "shown": "Widgets shown: {{number}}",
+      "customizedAt": "Changed {{when}}",
+      "standard": "Default",
+      "customize": "Customize"
+    },
+    "quick": {
+      "patient": "New patient",
+      "visit": "Record a visit",
+      "payment": "Record a payment"
+    },
+    "visits": {
+      "empty": "No visits today yet",
+      "settled": "Nothing owed"
+    },
+    "debts": {
+      "all": "All",
+      "empty": "No overdue balances",
+      "neverPaid": "Has not paid yet",
+      "lastPaid": "Last paid {{when}}"
+    },
+    "newPatients": {
+      "empty": "No patients yet",
+      "file": "File {{number}}"
+    }
   },
   "notes": {
     "title": "Quick Notes",

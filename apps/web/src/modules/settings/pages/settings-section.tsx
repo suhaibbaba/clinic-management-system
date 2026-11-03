@@ -10,6 +10,10 @@ import { useSession } from "@web/shared/providers/session";
 const ClinicPage = lazyPage(async () => ({
   default: (await import("@web/modules/clinic/pages/clinic-page")).ClinicPage,
 }));
+const DashboardLayoutsPage = lazyPage(async () => ({
+  default: (await import("@web/modules/dashboard/pages/dashboard-layouts-page"))
+    .DashboardLayoutsPage,
+}));
 const WebsitePage = lazyPage(async () => ({
   default: (await import("@web/modules/website/pages/website-page")).WebsitePage,
 }));
@@ -30,6 +34,7 @@ export type SettingsView = (typeof SETTINGS_VIEWS)[number];
 
 const VIEWS: readonly TabDefinition<SettingsView>[] = [
   { id: "clinic", label: "nav.clinic" },
+  { id: "dashboard", label: "nav.dashboard" },
   { id: "website", label: "nav.website" },
   { id: "translations", label: "nav.translations" },
   { id: "assistant", label: "nav.assistant" },
@@ -63,6 +68,7 @@ export function SettingsSection(): JSX.Element {
           fallback={<Skeleton aria-hidden="true" className="h-[520px] w-full rounded-card" />}
         >
           {active === "clinic" && <ClinicPage />}
+          {active === "dashboard" && <DashboardLayoutsPage />}
           {active === "website" && <WebsitePage />}
           {active === "translations" && <TranslationsPage />}
           {active === "assistant" && <AssistantSettingsPage />}

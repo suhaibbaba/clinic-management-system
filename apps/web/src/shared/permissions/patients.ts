@@ -41,3 +41,5 @@ export const canDeleteVisit = (can: Can): boolean => can("visits.remove");
 export const canDeleteProcedure = (can: Can): boolean => can("procedures.remove");
 
 export const canSeeDoctorPay = (can: Can): boolean => can("patient-settlement-status.list");
+
+export const canRecordVisit = (can: Can): boolean => can("visits.create");

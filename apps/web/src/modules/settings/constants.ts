@@ -1,5 +1,6 @@
 export const SETTINGS_VIEWS = [
   "clinic",
+  "dashboard",
   "website",
   "translations",
   "assistant",

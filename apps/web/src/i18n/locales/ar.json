@@ -2341,7 +2341,10 @@
       "pending": "بانتظار التأكيد",
       "pendingCaption": "حجوزات إلكترونية لم يُردّ عليها",
       "overdue": "أرصدة متأخرة",
-      "overdueCaption": "{{count}} مريض"
+      "overdueCaption": "{{count}} مريض",
+      "visits": "زيارات اليوم",
+      "collected": "المُحصَّل اليوم",
+      "newPatients": "مرضى جدد اليوم"
     },
     "lastAppointment": "آخر موعد",
     "schedule": {
@@ -2354,7 +2357,103 @@
       "arrived": "وصل"
     },
     "subtitle": "ملخّص اليوم في العيادة",
-    "title": "لوحة التحكم"
+    "title": "لوحة التحكم",
+    "customize": {
+      "title": "تخصيص لوحة التحكم",
+      "subtitle": "ما تحفظه هنا يراه كل موظف في الدور المختار",
+      "role": "الدور",
+      "reset": "استعادة الافتراضي",
+      "close": "إغلاق",
+      "add": "إضافة ويدجيت",
+      "allShown": "كل الويدجيتات المتاحة معروضة",
+      "zone": "المكان",
+      "width": "العرض",
+      "moveEarlier": "تقديم",
+      "moveLater": "تأخير",
+      "hide": "إخفاء",
+      "keyNumbers": "الأرقام الظاهرة، بهذا الترتيب",
+      "saved": "حُفظت لوحة التحكم",
+      "zones": {
+        "top": "أعلى",
+        "main": "رئيسي",
+        "side": "جانبي"
+      },
+      "widths": {
+        "third": "⅓",
+        "half": "½",
+        "twoThirds": "⅔",
+        "full": "كامل"
+      }
+    },
+    "widgets": {
+      "greeting": {
+        "title": "الترحيب",
+        "description": "التحية وتاريخ اليوم، وأول وآخر موعد عند تفعيل المواعيد"
+      },
+      "keyNumbers": {
+        "title": "الأرقام الرئيسية",
+        "description": "أرقام اليوم المختارة"
+      },
+      "schedule": {
+        "title": "جدول اليوم",
+        "description": "مواعيد اليوم مع فلتر الطبيب"
+      },
+      "calendar": {
+        "title": "التقويم المصغّر",
+        "description": "الشهر مع الأيام المحجوزة"
+      },
+      "notes": {
+        "title": "ملاحظات سريعة",
+        "description": "ملاحظات المستخدم"
+      },
+      "quickActions": {
+        "title": "أزرار سريعة",
+        "description": "مريض جديد، تسجيل زيارة، تسجيل دفعة"
+      },
+      "visitsToday": {
+        "title": "زيارات اليوم",
+        "description": "زيارات اليوم مع الطبيب ورصيد المريض"
+      },
+      "topDebts": {
+        "title": "أعلى المديونيات",
+        "description": "أعلى خمسة أرصدة متأخرة"
+      },
+      "newPatients": {
+        "title": "أحدث المرضى",
+        "description": "آخر خمسة مرضى سُجّلوا"
+      },
+      "collections": {
+        "title": "التحصيل — آخر 7 أيام",
+        "description": "مجموع الدفعات لكل يوم"
+      }
+    },
+    "layouts": {
+      "title": "لوحة التحكم لكل دور",
+      "hint": "اختر ما يراه كل دور في الصفحة الرئيسية. يفتح المحرر في تبويب جديد، ولا يتغير شيء عند الموظفين قبل الحفظ.",
+      "shown": "الويدجيتات الظاهرة: {{number}}",
+      "customizedAt": "عُدّلت {{when}}",
+      "standard": "الافتراضية",
+      "customize": "تخصيص"
+    },
+    "quick": {
+      "patient": "مريض جديد",
+      "visit": "تسجيل زيارة",
+      "payment": "تسجيل دفعة"
+    },
+    "visits": {
+      "empty": "لا زيارات اليوم بعد",
+      "settled": "لا رصيد"
+    },
+    "debts": {
+      "all": "الكل",
+      "empty": "لا أرصدة متأخرة",
+      "neverPaid": "لم يدفع بعد",
+      "lastPaid": "آخر دفعة {{when}}"
+    },
+    "newPatients": {
+      "empty": "لا مرضى بعد",
+      "file": "ملف {{number}}"
+    }
   },
   "notes": {
     "title": "ملاحظات سريعة",

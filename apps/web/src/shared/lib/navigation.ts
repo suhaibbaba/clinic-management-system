@@ -18,6 +18,7 @@ export interface NavGroup {
 
 export const SETTINGS_VIEW_CAPABILITIES = {
   clinic: ["clinics.update"],
+  dashboard: ["dashboard.layoutsByRole"],
   website: ["website.editor", "website-messages.list"],
   translations: ["translations.list"],
   assistant: ["ai-actions.settings"],
