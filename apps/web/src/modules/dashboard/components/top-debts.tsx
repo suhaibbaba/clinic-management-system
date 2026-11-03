@@ -43,7 +43,7 @@ export function TopDebts({ currency }: { readonly currency: string | undefined }
       )}
 
       {debts.data && debts.data.items.length > 0 && (
-        <ul className="mt-2 flex flex-col divide-y divide-line">
+        <ul className="mt-2 flex flex-col gap-0.5">
           {debts.data.items.map((debt) => {
             const content = (
               <>
@@ -68,7 +68,7 @@ export function TopDebts({ currency }: { readonly currency: string | undefined }
                 {linked ? (
                   <Link
                     to={`/patients/${debt.patientId}`}
-                    className="flex min-h-(--control-h) items-center gap-3 py-2 hover:bg-inset"
+                    className="-mx-2 flex min-h-(--control-h) items-center gap-3 rounded-panel px-2 py-2 transition-colors duration-150 hover:bg-inset"
                   >
                     {content}
                   </Link>

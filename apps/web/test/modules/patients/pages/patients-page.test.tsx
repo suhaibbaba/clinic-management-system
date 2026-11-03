@@ -7,7 +7,6 @@ import ar from "@web/i18n/locales/ar.json";
 import { authTokens } from "@web/shared/lib/auth-tokens";
 import { makePatient, makeProfile, paginated, PATIENT_ID } from "@test/helpers/fixtures";
 import { mockApi, renderWithProviders, type MockResponse } from "@test/helpers/render";
-import { choose } from "@test/select";
 
 const PATIENTS = [
   makePatient(),

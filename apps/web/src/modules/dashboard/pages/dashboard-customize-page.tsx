@@ -1,11 +1,14 @@
 import {
   DASHBOARD_CUSTOMIZE_PARAM,
+  DASHBOARD_WIDGET,
   DASHBOARD_ZONE,
   DEFAULT_DASHBOARD_LAYOUT,
   USER_ROLE,
   USER_ROLES,
   sameDashboardLayout,
+  type DashboardKeyNumber,
   type DashboardLayout,
+  type DashboardQuickAction,
   type DashboardWidgetId,
   type DashboardWidgetPlacement,
   type DashboardZone,
@@ -29,6 +32,7 @@ import { useDashboardLayouts, useSaveDashboardLayouts } from "@web/modules/dashb
 import { DashboardZones } from "@web/modules/dashboard/components/dashboard-zones";
 import { WidgetFrame } from "@web/modules/dashboard/components/widget-frame";
 import { DashboardWidget } from "@web/modules/dashboard/components/dashboard-widget";
+import { DASHBOARD_KEY_NUMBER_LABEL } from "@web/modules/dashboard/constants";
 import {
   changeWidget,
   fitsZone,
@@ -38,6 +42,7 @@ import {
   standardLayoutFor,
   stepWidget,
   toggleKeyNumber,
+  toggleQuickAction,
 } from "@web/modules/dashboard/lib/layout-edits";
 
 type Drafts = Partial<Record<UserRole, DashboardLayout>>;
@@ -148,7 +153,12 @@ export function DashboardCustomizePage(): JSX.Element {
           icon={<Icon name="reset" />}
           onClick={() =>
             edit((current) =>
-              standardLayoutFor(current, DEFAULT_DASHBOARD_LAYOUT, entry.keyNumberOptions),
+              standardLayoutFor(
+                current,
+                DEFAULT_DASHBOARD_LAYOUT,
+                entry.keyNumberOptions,
+                entry.quickActionOptions,
+              ),
             )
           }
         >
@@ -196,9 +206,26 @@ export function DashboardCustomizePage(): JSX.Element {
             widget={widget}
             resizable={widget.zone === DASHBOARD_ZONE.MAIN}
             dragging={dragging === widget.id}
-            keyOptions={entry.keyNumberOptions}
-            keyNumbers={layout.keyNumbers}
-            onToggleKey={(key) => edit((current) => toggleKeyNumber(current, key))}
+            {...(widget.id === DASHBOARD_WIDGET.KEY_NUMBERS && {
+              choicesLabel: t("dashboard.customize.keyNumbers"),
+              choices: entry.keyNumberOptions.map((key) => ({
+                id: key,
+                label: t(DASHBOARD_KEY_NUMBER_LABEL[key] ?? key),
+                on: layout.keyNumbers.includes(key),
+              })),
+              onChoose: (id: string) =>
+                edit((current) => toggleKeyNumber(current, id as DashboardKeyNumber)),
+            })}
+            {...(widget.id === DASHBOARD_WIDGET.QUICK_ACTIONS && {
+              choicesLabel: t("dashboard.customize.quickActions"),
+              choices: entry.quickActionOptions.map((action) => ({
+                id: action,
+                label: t(`dashboard.quick.${action}`),
+                on: (layout.quickActions ?? []).includes(action),
+              })),
+              onChoose: (id: string) =>
+                edit((current) => toggleQuickAction(current, id as DashboardQuickAction)),
+            })}
             onHide={() => edit((current) => changeWidget(current, widget.id, { visible: false }))}
             onStep={(step) => edit((current) => stepWidget(current, widget.id, step))}
             onResize={(width) => edit((current) => changeWidget(current, widget.id, { width }))}
@@ -222,7 +249,11 @@ export function DashboardCustomizePage(): JSX.Element {
               setDragging(null);
             }}
           >
-            <DashboardWidget id={widget.id} keyNumbers={layout.keyNumbers} />
+            <DashboardWidget
+              id={widget.id}
+              keyNumbers={layout.keyNumbers}
+              quickActions={layout.quickActions ?? []}
+            />
           </WidgetFrame>
         )}
       />

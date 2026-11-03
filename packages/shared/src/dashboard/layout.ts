@@ -3,6 +3,8 @@ import {
   DASHBOARD_KEY_NUMBER,
   DASHBOARD_KEY_NUMBER_REQUIRES,
   DASHBOARD_KEY_NUMBERS,
+  DASHBOARD_QUICK_ACTION,
+  DASHBOARD_QUICK_ACTION_REQUIRES,
   DASHBOARD_WIDGET,
   DASHBOARD_WIDGET_IDS,
   DASHBOARD_WIDGETS,
@@ -10,6 +12,7 @@ import {
   DASHBOARD_WIDTH_COLUMNS,
   DASHBOARD_ZONE,
   type DashboardKeyNumber,
+  type DashboardQuickAction,
   type DashboardWidgetId,
   type DashboardWidth,
   type DashboardZone,
@@ -45,10 +48,21 @@ export const DEFAULT_DASHBOARD_LAYOUT: DashboardLayout = {
     DASHBOARD_KEY_NUMBER.COLLECTED_TODAY,
     DASHBOARD_KEY_NUMBER.OVERDUE,
   ],
+  quickActions: [
+    DASHBOARD_QUICK_ACTION.PATIENT,
+    DASHBOARD_QUICK_ACTION.APPOINTMENT,
+    DASHBOARD_QUICK_ACTION.VISIT,
+    DASHBOARD_QUICK_ACTION.PAYMENT,
+  ],
 };
 
 export const keyNumberAvailable = (key: DashboardKeyNumber, allows: DashboardAllows): boolean =>
   DASHBOARD_KEY_NUMBER_REQUIRES[key].every(allows);
+
+export const quickActionAvailable = (
+  action: DashboardQuickAction,
+  allows: DashboardAllows,
+): boolean => allows(DASHBOARD_QUICK_ACTION_REQUIRES[action]);
 
 export const dashboardWidgetAvailable = (
   id: DashboardWidgetId,
@@ -114,7 +128,11 @@ export function normalizeDashboardLayout(
     keyNumberAvailable(key, allows),
   );
 
-  return { widgets, keyNumbers };
+  const quickActions = [
+    ...new Set(layout.quickActions ?? DEFAULT_DASHBOARD_LAYOUT.quickActions ?? []),
+  ].filter((action) => quickActionAvailable(action, allows));
+
+  return { widgets, keyNumbers, quickActions };
 }
 
 export function dashboardRowSpans(widths: readonly DashboardWidth[]): number[] {

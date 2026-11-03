@@ -1,9 +1,7 @@
 import {
   DASHBOARD_GRID_COLUMNS,
-  DASHBOARD_WIDGET,
   DASHBOARD_WIDTH_COLUMNS,
   DASHBOARD_WIDTHS,
-  type DashboardKeyNumber,
   type DashboardWidgetPlacement,
   type DashboardWidth,
 } from "@clinic/shared";
@@ -20,15 +18,20 @@ import { useTranslation } from "react-i18next";
 import { Button, Icon } from "@clinic/ui";
 import { cn } from "@clinic/ui/lib/cn";
 import { documentDirection } from "@clinic/ui/lib/direction";
-import { DASHBOARD_KEY_NUMBER_LABEL } from "@web/modules/dashboard/constants";
+
+export interface WidgetChoice {
+  readonly id: string;
+  readonly label: string;
+  readonly on: boolean;
+}
 
 export interface WidgetFrameProps {
   readonly widget: DashboardWidgetPlacement;
   readonly resizable: boolean;
   readonly dragging: boolean;
-  readonly keyOptions: readonly DashboardKeyNumber[];
-  readonly keyNumbers: readonly DashboardKeyNumber[];
-  readonly onToggleKey: (key: DashboardKeyNumber) => void;
+  readonly choices?: readonly WidgetChoice[] | undefined;
+  readonly choicesLabel?: string | undefined;
+  readonly onChoose?: ((id: string) => void) | undefined;
   readonly onHide: () => void;
   readonly onStep: (step: -1 | 1) => void;
   readonly onResize: (width: DashboardWidth) => void;
@@ -60,9 +63,9 @@ export function WidgetFrame({
   widget,
   resizable,
   dragging,
-  keyOptions,
-  keyNumbers,
-  onToggleKey,
+  choices,
+  choicesLabel,
+  onChoose,
   onHide,
   onStep,
   onResize,
@@ -77,6 +80,8 @@ export function WidgetFrame({
   const resizeFrom = useRef<{ readonly x: number; readonly px: number } | null>(null);
   const [armed, setArmed] = useState(false);
   const [resizing, setResizing] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const editable = choices !== undefined && choices.length > 0;
   const testId = `dashboard-frame-${widget.id}`;
   const name = t(`dashboard.widgets.${widget.id}.title`);
   const rtl = documentDirection() === "rtl";
@@ -186,6 +191,19 @@ export function WidgetFrame({
           </span>
         </button>
 
+        {editable && (
+          <Button
+            variant={editing ? "ghost" : "quiet"}
+            size="sm"
+            data-testid={`${testId}-edit`}
+            aria-label={t("dashboard.customize.edit", { name })}
+            aria-pressed={editing}
+            aria-expanded={editing}
+            icon={<Icon name={editing ? "check" : "edit"} />}
+            onClick={() => setEditing((open) => !open)}
+          />
+        )}
+
         <Button
           variant="quiet"
           size="sm"
@@ -196,29 +214,29 @@ export function WidgetFrame({
         />
       </div>
 
-      {widget.id === DASHBOARD_WIDGET.KEY_NUMBERS && (
+      {editable && editing && (
         <div
           role="group"
-          aria-label={t("dashboard.customize.keyNumbers")}
-          className="flex flex-wrap gap-2 px-1"
+          aria-label={choicesLabel}
+          data-testid={`${testId}-choices`}
+          className="flex flex-col gap-2 rounded-panel bg-inset px-3 py-2"
         >
-          {keyOptions.map((key) => {
-            const on = keyNumbers.includes(key);
-
-            return (
+          <span className="text-label text-ink-muted">{choicesLabel}</span>
+          <div className="flex flex-wrap gap-2">
+            {choices.map((choice) => (
               <Button
-                key={key}
-                variant={on ? "ghost" : "secondary"}
+                key={choice.id}
+                variant={choice.on ? "ghost" : "secondary"}
                 size="sm"
-                data-testid={`${testId}-key-${key}`}
-                aria-pressed={on}
-                icon={<Icon name={on ? "check" : "plus"} />}
-                onClick={() => onToggleKey(key)}
+                data-testid={`${testId}-choice-${choice.id}`}
+                aria-pressed={choice.on}
+                icon={<Icon name={choice.on ? "check" : "plus"} />}
+                onClick={() => onChoose?.(choice.id)}
               >
-                {t(DASHBOARD_KEY_NUMBER_LABEL[key] ?? key)}
+                {choice.label}
               </Button>
-            );
-          })}
+            ))}
+          </div>
         </div>
       )}
 

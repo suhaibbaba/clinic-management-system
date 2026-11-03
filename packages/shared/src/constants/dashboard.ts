@@ -69,6 +69,21 @@ export const DASHBOARD_KEY_NUMBERS = Object.values(DASHBOARD_KEY_NUMBER) as [
   ...DashboardKeyNumber[],
 ];
 
+export const DASHBOARD_QUICK_ACTION = {
+  PATIENT: "patient",
+  APPOINTMENT: "appointment",
+  VISIT: "visit",
+  PAYMENT: "payment",
+} as const;
+
+export type DashboardQuickAction =
+  (typeof DASHBOARD_QUICK_ACTION)[keyof typeof DASHBOARD_QUICK_ACTION];
+
+export const DASHBOARD_QUICK_ACTIONS = Object.values(DASHBOARD_QUICK_ACTION) as [
+  DashboardQuickAction,
+  ...DashboardQuickAction[],
+];
+
 export const DASHBOARD_CAPABILITY = {
   VISITS_TODAY: "dashboard.visitsToday",
   COLLECTIONS: "dashboard.collections",
@@ -77,6 +92,7 @@ export const DASHBOARD_CAPABILITY = {
   CREATE_PATIENT: "patients.create",
   CREATE_VISIT: "visits.create",
   CREATE_PAYMENT: "payments.create",
+  CREATE_APPOINTMENT: "appointments.create",
 } as const;
 
 export interface DashboardWidgetDefinition {
@@ -110,6 +126,7 @@ export const DASHBOARD_WIDGETS: Readonly<Record<DashboardWidgetId, DashboardWidg
     requires: [],
     requiresAny: [
       DASHBOARD_CAPABILITY.CREATE_PATIENT,
+      DASHBOARD_CAPABILITY.CREATE_APPOINTMENT,
       DASHBOARD_CAPABILITY.CREATE_VISIT,
       DASHBOARD_CAPABILITY.CREATE_PAYMENT,
     ],
@@ -142,6 +159,13 @@ export const DASHBOARD_KEY_NUMBER_REQUIRES: Readonly<
   [DASHBOARD_KEY_NUMBER.VISITS_TODAY]: [DASHBOARD_CAPABILITY.VISITS_TODAY],
   [DASHBOARD_KEY_NUMBER.COLLECTED_TODAY]: [DASHBOARD_CAPABILITY.COLLECTIONS],
   [DASHBOARD_KEY_NUMBER.NEW_PATIENTS_TODAY]: [DASHBOARD_CAPABILITY.PATIENTS_LIST],
+};
+
+export const DASHBOARD_QUICK_ACTION_REQUIRES: Readonly<Record<DashboardQuickAction, string>> = {
+  [DASHBOARD_QUICK_ACTION.PATIENT]: DASHBOARD_CAPABILITY.CREATE_PATIENT,
+  [DASHBOARD_QUICK_ACTION.APPOINTMENT]: DASHBOARD_CAPABILITY.CREATE_APPOINTMENT,
+  [DASHBOARD_QUICK_ACTION.VISIT]: DASHBOARD_CAPABILITY.CREATE_VISIT,
+  [DASHBOARD_QUICK_ACTION.PAYMENT]: DASHBOARD_CAPABILITY.CREATE_PAYMENT,
 };
 
 export const DASHBOARD_CAPABILITIES: readonly string[] = [

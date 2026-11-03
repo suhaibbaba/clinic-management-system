@@ -7,6 +7,7 @@ import {
 import type {
   DashboardKeyNumber,
   DashboardLayout,
+  DashboardQuickAction,
   DashboardWidgetId,
   DashboardWidgetPlacement,
   DashboardZone,
@@ -68,10 +69,25 @@ export function toggleKeyNumber(layout: DashboardLayout, key: DashboardKeyNumber
   };
 }
 
+export function toggleQuickAction(
+  layout: DashboardLayout,
+  action: DashboardQuickAction,
+): DashboardLayout {
+  const shown = layout.quickActions ?? [];
+
+  return {
+    ...layout,
+    quickActions: shown.includes(action)
+      ? shown.filter((current) => current !== action)
+      : [...shown, action],
+  };
+}
+
 export function standardLayoutFor(
   current: DashboardLayout,
   standard: DashboardLayout,
   keyOptions: readonly DashboardKeyNumber[],
+  actionOptions: readonly DashboardQuickAction[],
 ): DashboardLayout {
   const available = new Set(current.widgets.map((widget) => widget.id));
   const fromStandard = standard.widgets.filter((widget) => available.has(widget.id));
@@ -85,6 +101,7 @@ export function standardLayoutFor(
         .map((widget) => ({ ...widget, visible: false })),
     ],
     keyNumbers: standard.keyNumbers.filter((key) => keyOptions.includes(key)),
+    quickActions: (standard.quickActions ?? []).filter((action) => actionOptions.includes(action)),
   };
 }
 

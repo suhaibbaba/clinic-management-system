@@ -2205,9 +2205,9 @@
       "pendingCaption": "Online bookings nobody has answered",
       "overdue": "Overdue Balances",
       "overdueCaption": "{{count}} patients",
-      "visits": "Visits today",
-      "collected": "Collected today",
-      "newPatients": "New patients today"
+      "visits": "Visits Today",
+      "collected": "Collected Today",
+      "newPatients": "New Patients Today"
     },
     "lastAppointment": "Last Appointment",
     "schedule": {
@@ -2222,12 +2222,12 @@
     "subtitle": "Today at the clinic, at a glance",
     "title": "Dashboard",
     "customize": {
-      "title": "Customize the dashboard",
+      "title": "Customize the Dashboard",
       "subtitle": "What you save here is what everyone in the chosen role sees",
       "role": "Role",
-      "reset": "Restore the default",
+      "reset": "Restore the Default",
       "close": "Close",
-      "add": "Add a widget",
+      "add": "Add a Widget",
       "allShown": "Every available widget is shown",
       "hide": "Hide",
       "keyNumbers": "Numbers shown, in this order",
@@ -2245,42 +2245,44 @@
       },
       "drag": "Drag {{name}} to move it",
       "moveHint": "The arrow keys move the widget earlier or later, and past the edge of an area into the next one",
-      "resize": "Width of {{name}}"
+      "resize": "Width of {{name}}",
+      "edit": "Edit {{name}}",
+      "quickActions": "Buttons shown, in this order"
     },
     "widgets": {
       "greeting": {
         "title": "Greeting"
       },
       "keyNumbers": {
-        "title": "Key numbers"
+        "title": "Key Numbers"
       },
       "schedule": {
-        "title": "Today's schedule"
+        "title": "Today's Schedule"
       },
       "calendar": {
-        "title": "Mini calendar"
+        "title": "Mini Calendar"
       },
       "notes": {
-        "title": "Quick notes"
+        "title": "Quick Notes"
       },
       "quickActions": {
-        "title": "Quick actions"
+        "title": "Quick Actions"
       },
       "visitsToday": {
-        "title": "Today's visits"
+        "title": "Today's Visits"
       },
       "topDebts": {
-        "title": "Largest balances"
+        "title": "Largest Balances"
       },
       "newPatients": {
-        "title": "Newest patients"
+        "title": "Newest Patients"
       },
       "collections": {
-        "title": "Collections — last 7 days"
+        "title": "Collections — Last 7 Days"
       }
     },
     "layouts": {
-      "title": "The dashboard per role",
+      "title": "Dashboard per Role",
       "hint": "Choose what each role sees on the home page. The editor opens in a new tab, and nothing changes for staff until you save.",
       "shown": "Widgets shown: {{number}}",
       "customizedAt": "Changed {{when}}",
@@ -2288,9 +2290,10 @@
       "customize": "Customize"
     },
     "quick": {
-      "patient": "New patient",
-      "visit": "Record a visit",
-      "payment": "Record a payment"
+      "patient": "New Patient",
+      "appointment": "New Appointment",
+      "visit": "Record a Visit",
+      "payment": "Record a Payment"
     },
     "visits": {
       "empty": "No visits today yet",

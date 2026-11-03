@@ -2245,7 +2245,9 @@
       },
       "drag": "{{name}} bileşenini taşımak için sürükleyin",
       "moveHint": "Ok tuşları bileşeni öne veya geriye alır, alanın sınırında bir sonraki alana taşır",
-      "resize": "{{name}} genişliği"
+      "resize": "{{name}} genişliği",
+      "edit": "{{name}} düzenle",
+      "quickActions": "Gösterilen düğmeler, bu sırayla"
     },
     "widgets": {
       "greeting": {
@@ -2289,6 +2291,7 @@
     },
     "quick": {
       "patient": "Yeni hasta",
+      "appointment": "Yeni randevu",
       "visit": "Ziyaret kaydet",
       "payment": "Ödeme kaydet"
     },

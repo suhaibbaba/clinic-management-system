@@ -25,6 +25,7 @@ const layouts: DashboardLayouts = {
     role,
     layout: DEFAULT_DASHBOARD_LAYOUT,
     keyNumberOptions: DEFAULT_DASHBOARD_LAYOUT.keyNumbers,
+    quickActionOptions: DEFAULT_DASHBOARD_LAYOUT.quickActions ?? [],
     customized: false,
     updatedAt: null,
   })),

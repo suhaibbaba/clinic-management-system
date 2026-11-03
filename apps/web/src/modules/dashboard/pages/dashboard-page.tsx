@@ -62,8 +62,13 @@ function DashboardView(): JSX.Element {
     [saved.data, can],
   );
 
-  const present = (widget: DashboardWidgetPlacement): boolean =>
-    widget.id !== DASHBOARD_WIDGET.KEY_NUMBERS || layout.keyNumbers.length > 0;
+  const present = (widget: DashboardWidgetPlacement): boolean => {
+    if (widget.id === DASHBOARD_WIDGET.KEY_NUMBERS) {
+      return layout.keyNumbers.length > 0;
+    }
+
+    return widget.id !== DASHBOARD_WIDGET.QUICK_ACTIONS || (layout.quickActions ?? []).length > 0;
+  };
 
   return (
     <div data-testid="dashboard-page" className="flex flex-col gap-4">
@@ -101,7 +106,13 @@ function DashboardView(): JSX.Element {
           data-testid="dashboard"
           layout={layout}
           present={present}
-          render={(widget) => <DashboardWidget id={widget.id} keyNumbers={layout.keyNumbers} />}
+          render={(widget) => (
+            <DashboardWidget
+              id={widget.id}
+              keyNumbers={layout.keyNumbers}
+              quickActions={layout.quickActions ?? []}
+            />
+          )}
         />
       )}
     </div>
