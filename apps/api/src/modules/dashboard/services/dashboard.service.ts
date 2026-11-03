@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import {
   APPOINTMENT_STATUS,
+  DASHBOARD_CAPABILITY,
   DASHBOARD_SCHEDULE_LIMIT,
   RULE,
   type DashboardSummary,
@@ -9,6 +10,7 @@ import { AppointmentAccessService } from "@api/modules/appointments/services/app
 import { AppointmentsService } from "@api/modules/appointments/services/appointments.service";
 import { OverdueService } from "@api/modules/billing/services/overdue.service";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
+import { DashboardActivityService } from "@api/modules/dashboard/services/dashboard-activity.service";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 
 @Injectable()
@@ -18,16 +20,29 @@ export class DashboardService {
     private readonly access: AppointmentAccessService,
     private readonly overdue: OverdueService,
     private readonly permissions: PermissionsService,
+    private readonly activity: DashboardActivityService,
   ) {}
 
   async summary(actor: AuthenticatedUser): Promise<DashboardSummary> {
     const date = await this.appointments.localToday(actor.clinicId);
-    const [pending, overdue] = await Promise.all([
+    const [pending, overdue, visitsToday, collectedToday, newPatientsToday] = await Promise.all([
       this.pendingBookings(actor),
       this.overdueTotal(actor),
+      this.when(actor, DASHBOARD_CAPABILITY.VISITS_TODAY, () =>
+        this.activity.visitsTodayCount(actor),
+      ),
+      this.when(actor, DASHBOARD_CAPABILITY.COLLECTIONS, () =>
+        this.activity.collectedToday(actor.clinicId),
+      ),
+      this.when(actor, [DASHBOARD_CAPABILITY.PATIENTS_LIST, RULE.PATIENTS_ALL], () =>
+        this.activity.newPatientsToday(actor.clinicId),
+      ),
     ]);
     const extras = {
       ...(pending !== undefined && { pendingBookings: pending }),
+      ...(visitsToday !== undefined && { visitsToday }),
+      ...(collectedToday !== undefined && { collectedToday }),
+      ...(newPatientsToday !== undefined && { newPatientsToday }),
       ...(overdue !== undefined && {
         overdueTotal: overdue.total,
         overduePatients: overdue.patients,
@@ -57,6 +72,22 @@ export class DashboardService {
       ...extras,
       schedule: today?.items ?? [],
     };
+  }
+
+  private async when<TValue>(
+    actor: AuthenticatedUser,
+    capabilities: string | readonly string[],
+    read: () => Promise<TValue>,
+  ): Promise<TValue | undefined> {
+    const needed = typeof capabilities === "string" ? [capabilities] : capabilities;
+
+    for (const capability of needed) {
+      if (!(await this.permissions.can(actor, capability))) {
+        return undefined;
+      }
+    }
+
+    return read();
   }
 
   private async pendingBookings(actor: AuthenticatedUser): Promise<number | undefined> {

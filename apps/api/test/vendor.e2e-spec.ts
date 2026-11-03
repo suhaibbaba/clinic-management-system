@@ -62,14 +62,20 @@ describe("Vendor console (e2e)", () => {
 
     expect(created.statusCode).toBe(204);
 
-    const list = await call("GET", "/vendor/plans?limit=100");
-    const plan = list.json<Paginated<Plan>>().items.find((item) => item.code === code);
+    for (let page = 1; ; page += 1) {
+      const list = (await call("GET", `/vendor/plans?limit=100&page=${page}`)).json<
+        Paginated<Plan>
+      >();
+      const plan = list.items.find((item) => item.code === code);
 
-    if (!plan) {
-      throw new Error("The plan was not listed");
+      if (plan) {
+        return plan;
+      }
+
+      if (page * list.limit >= list.total) {
+        throw new Error("The plan was not listed");
+      }
     }
-
-    return plan;
   };
 
   const subscription = (

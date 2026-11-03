@@ -10,6 +10,7 @@ import {
   Star,
   ArrowUp,
   GripVertical,
+  MoveHorizontal,
   MoreVertical,
   ListOrdered,
   Activity,
@@ -101,6 +102,7 @@ export type IconName =
   | "file"
   | "gear"
   | "grip"
+  | "move-horizontal"
   | "heart"
   | "gem"
   | "globe"
@@ -198,6 +200,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   file: FileText,
   gear: Settings,
   grip: GripVertical,
+  "move-horizontal": MoveHorizontal,
   heart: Heart,
   "more-vertical": MoreVertical,
   gem: Gem,

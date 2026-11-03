@@ -1,46 +1,52 @@
-import type { CalendarAppointment } from "@clinic/shared";
-import { useMemo, useState, type JSX, type ReactNode } from "react";
-import { useTranslation } from "react-i18next";
-import { Link, useSearchParams } from "react-router-dom";
 import {
-  Badge,
-  Button,
-  EmptyState,
-  Icon,
-  PageAction,
-  SegmentedControl,
-  StatCard,
-  usePersonName,
-  type StatTone,
-} from "@clinic/ui";
-import { RefreshBar, SkeletonKpi } from "@clinic/ui/components/skeleton";
+  DASHBOARD_CUSTOMIZE_PARAM,
+  DASHBOARD_WIDGET,
+  DEFAULT_DASHBOARD_LAYOUT,
+  normalizeDashboardLayout,
+  type DashboardWidgetPlacement,
+} from "@clinic/shared";
+import { Suspense, useMemo, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
+import { Button, EmptyState, Icon, PageAction } from "@clinic/ui";
+import { Skeleton } from "@clinic/ui/components/skeleton";
+import { lazyPage } from "@web/shared/lib/lazy-page";
 import { useSession } from "@web/shared/providers/session";
 import { AppointmentFormModal } from "@web/modules/appointments/components/appointment-form-modal";
-import {
-  canBookAppointment,
-  canMoveAppointment,
-  seesAppointments,
-} from "@web/shared/permissions/appointments";
-import { useAppointmentStep } from "@web/shared/queries/appointments";
-import { useNowMinute } from "@web/shared/hooks/use-now-minute";
+import { canBookAppointment } from "@web/shared/permissions/appointments";
+import { canCustomizeDashboard } from "@web/shared/permissions/dashboard";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-locale";
-import { Money } from "@web/shared/components/money";
 import { useClinic } from "@web/shared/queries/clinic";
-import { useDashboardSummary } from "@web/modules/dashboard/queries";
-import { MiniCalendar } from "@web/modules/dashboard/components/mini-calendar";
-import { ScheduleTimeline } from "@web/modules/dashboard/components/schedule-timeline";
-import { WelcomeBanner } from "@web/modules/dashboard/components/welcome-banner";
-import { NotesWidget } from "@web/modules/notes/components/notes-widget";
-import { canOpenPatientFile } from "@web/shared/permissions/patients";
-import { formatDate } from "@web/shared/lib/format";
-import { cn } from "@clinic/ui/lib/cn";
+import { useDashboardLayout, useDashboardSummary } from "@web/modules/dashboard/queries";
+import { DashboardZones } from "@web/modules/dashboard/components/dashboard-zones";
+import { DashboardWidget } from "@web/modules/dashboard/components/dashboard-widget";
 import { useDocumentTitle } from "@clinic/ui/lib/page-title";
-import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
-import { DASHBOARD_ALL_DOCTORS } from "@web/modules/dashboard/constants";
+
+const DashboardCustomizePage = lazyPage(async () => ({
+  default: (await import("@web/modules/dashboard/pages/dashboard-customize-page"))
+    .DashboardCustomizePage,
+}));
 
 export function DashboardPage(): JSX.Element {
+  const { can } = useSession();
+  const [params] = useSearchParams();
+
+  if (params.has(DASHBOARD_CUSTOMIZE_PARAM) && canCustomizeDashboard(can)) {
+    return (
+      <Suspense
+        fallback={<Skeleton aria-hidden="true" className="h-[520px] w-full rounded-card" />}
+      >
+        <DashboardCustomizePage />
+      </Suspense>
+    );
+  }
+
+  return <DashboardView />;
+}
+
+function DashboardView(): JSX.Element {
   const { t } = useTranslation();
-  const { user, can } = useSession();
+  const { can } = useSession();
   const [booking, setBooking] = useState(false);
 
   const clinic = useClinic();
@@ -49,18 +55,18 @@ export function DashboardPage(): JSX.Element {
   useDocumentTitle(t("dashboard.title"));
 
   const summary = useDashboardSummary();
-  const { showSkeleton, isRefreshing } = useQueryLoading(summary);
-  const data = summary.data;
-  const currency = clinic.data?.currency;
+  const saved = useDashboardLayout();
 
-  const overdue = data?.overdueTotal;
-  const pending = data?.pendingBookings;
-  const calendar = seesAppointments(can);
+  const layout = useMemo(
+    () => normalizeDashboardLayout(saved.data ?? DEFAULT_DASHBOARD_LAYOUT, can),
+    [saved.data, can],
+  );
+
+  const present = (widget: DashboardWidgetPlacement): boolean =>
+    widget.id !== DASHBOARD_WIDGET.KEY_NUMBERS || layout.keyNumbers.length > 0;
 
   return (
     <div data-testid="dashboard-page" className="flex flex-col gap-4">
-      <WelcomeBanner date={data?.date} schedule={data?.schedule ?? []} />
-
       {canBookAppointment(can) && (
         <PageAction>
           <Button
@@ -88,249 +94,16 @@ export function DashboardPage(): JSX.Element {
         />
       )}
 
-      <div className="grid items-start gap-4 min-[1220px]:grid-cols-[1fr_292px]">
-        <div className="flex min-w-0 flex-col gap-4">
-          {showSkeleton && <SkeletonKpi count={3} />}
-
-          {!showSkeleton && (
-            <div data-testid="dashboard-kpis" className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-              {calendar && (
-                <KpiLink to="/appointments" data-testid="dashboard-kpi-today-link">
-                  <StatCard
-                    icon="calendar"
-                    data-testid="dashboard-kpi-today"
-                    label={t("dashboard.kpi.today")}
-                    value={data?.appointmentsToday ?? "—"}
-                    caption={data ? formatDate(data.date) : undefined}
-                  />
-                </KpiLink>
-              )}
-
-              {pending !== undefined && (
-                <KpiLink to="/appointments?status=pending" data-testid="dashboard-kpi-pending-link">
-                  <StatCard
-                    icon="clock"
-                    data-testid="dashboard-kpi-pending"
-                    tone={toneFor(pending > 0, "warning")}
-                    label={t("dashboard.kpi.pending")}
-                    value={pending}
-                    caption={t("dashboard.kpi.pendingCaption")}
-                  />
-                </KpiLink>
-              )}
-
-              {overdue !== undefined && (
-                <KpiLink to="/patients?filter=balance" data-testid="dashboard-kpi-overdue-link">
-                  <StatCard
-                    icon="money"
-                    data-testid="dashboard-kpi-overdue"
-                    tone={toneFor(Number(overdue) > 0, "danger")}
-                    label={t("dashboard.kpi.overdue")}
-                    value={<Money amount={overdue} currency={currency} />}
-                    caption={t("dashboard.kpi.overdueCaption", {
-                      count: data?.overduePatients ?? 0,
-                    })}
-                  />
-                </KpiLink>
-              )}
-            </div>
-          )}
-
-          {calendar && (
-            <TodaySchedule
-              rows={data?.schedule ?? []}
-              isLoading={summary.isPending}
-              isRefreshing={isRefreshing}
-              linkPatients={user !== null && canOpenPatientFile(can)}
-            />
-          )}
-        </div>
-
-        <aside
-          data-testid="dashboard-side"
-          className="flex min-w-0 flex-col gap-4 max-[1219px]:flex-row max-[759px]:flex-col"
-        >
-          {calendar && <MiniCalendar />}
-          <NotesWidget />
-        </aside>
-      </div>
-    </div>
-  );
-}
-
-const toneFor = (active: boolean, tone: StatTone): StatTone => (active ? tone : "neutral");
-
-function KpiLink({
-  to,
-  children,
-  "data-testid": testId,
-}: {
-  readonly to: string;
-  readonly children: ReactNode;
-  readonly "data-testid"?: string | undefined;
-}): JSX.Element {
-  return (
-    <Link
-      to={to}
-      data-testid={testId}
-      className={cn("block rounded-card", "focus-visible:outline-none")}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function TodaySchedule({
-  rows,
-  isLoading,
-  isRefreshing,
-  linkPatients,
-}: {
-  readonly rows: readonly CalendarAppointment[];
-  readonly isLoading: boolean;
-  readonly isRefreshing: boolean;
-  readonly linkPatients: boolean;
-}): JSX.Element {
-  const { t } = useTranslation();
-  const { can } = useSession();
-  const confirm = useAppointmentStep();
-  const [doctorId, setDoctorId] = useDoctorFilter();
-
-  const doctors = useScheduleDoctors(rows);
-  const shown = doctorId === null ? rows : rows.filter((row) => row.doctorId === doctorId);
-  const nowMinute = useNowMinute();
-
-  const head = (
-    <>
-      <h2>
-        <Badge tone="wash" plain data-testid="dashboard-schedule-title">
-          {t("dashboard.schedule.title")}
-        </Badge>
-      </h2>
-
-      {doctors.length > 1 && (
-        <SegmentedControl
-          data-testid="dashboard-schedule-doctor"
-          label={t("dashboard.schedule.byDoctor")}
-          value={doctorId ?? DASHBOARD_ALL_DOCTORS}
-          onChange={(value) => setDoctorId(value === DASHBOARD_ALL_DOCTORS ? null : value)}
-          options={[
-            { value: DASHBOARD_ALL_DOCTORS, label: t("common.all") },
-            ...doctors.map((doctor) => ({ value: doctor.id, label: doctor.label })),
-          ]}
+      {saved.isPending ? (
+        <Skeleton aria-hidden="true" className="h-[520px] w-full rounded-card" />
+      ) : (
+        <DashboardZones
+          data-testid="dashboard"
+          layout={layout}
+          present={present}
+          render={(widget) => <DashboardWidget id={widget.id} keyNumbers={layout.keyNumbers} />}
         />
       )}
-
-      <Link
-        to="/appointments"
-        data-testid="dashboard-schedule-see-all"
-        className="inline-flex min-h-(--control-h) items-center gap-1 text-label font-medium text-primary-600 transition-colors duration-150 hover:text-primary-700 lg:min-h-0"
-      >
-        {t("dashboard.schedule.seeAll")}
-        <Icon name="chevron-end" className="size-4" />
-      </Link>
-    </>
-  );
-
-  if (isLoading) {
-    return <SkeletonTimeline />;
-  }
-
-  if (shown.length === 0) {
-    return (
-      <section
-        data-testid="dashboard-schedule"
-        aria-label={t("dashboard.schedule.title")}
-        className="flex flex-col gap-3"
-      >
-        <div className="flex flex-wrap items-center justify-between gap-3">{head}</div>
-        <EmptyState
-          icon="calendar"
-          data-testid="dashboard-schedule-empty"
-          title="dashboard.schedule.empty"
-          hint="dashboard.schedule.emptyHint"
-        />
-      </section>
-    );
-  }
-
-  return (
-    <section
-      data-testid="dashboard-schedule"
-      aria-label={t("dashboard.schedule.title")}
-      className="overflow-hidden rounded-card border border-line bg-surface shadow-card"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-[22px] py-[18px]">
-        {head}
-      </div>
-
-      <RefreshBar active={isRefreshing} />
-
-      <ScheduleTimeline
-        data-testid="dashboard-timeline"
-        rows={shown}
-        linkPatients={linkPatients}
-        nowMinute={nowMinute}
-        onConfirm={
-          canMoveAppointment(can, "confirm")
-            ? (appointment) => confirm.mutate({ id: appointment.id, step: "confirm" })
-            : undefined
-        }
-      />
-    </section>
-  );
-}
-
-function useScheduleDoctors(
-  rows: readonly CalendarAppointment[],
-): readonly { readonly id: string; readonly label: string }[] {
-  const displayName = usePersonName();
-
-  return useMemo(() => {
-    const byId = new Map<string, string>();
-
-    for (const row of rows) {
-      byId.set(row.doctorId, displayName(row.doctorName));
-    }
-
-    return [...byId.entries()].map(([id, label]) => ({ id, label }));
-  }, [rows, displayName]);
-}
-
-function useDoctorFilter(): readonly [string | null, (id: string | null) => void] {
-  const [params, setParams] = useSearchParams();
-  const raw = params.get("doctor");
-
-  const set = (id: string | null): void => {
-    const next = new URLSearchParams(params);
-
-    if (id === null) {
-      next.delete("doctor");
-    } else {
-      next.set("doctor", id);
-    }
-
-    setParams(next, { replace: true });
-  };
-
-  return [raw, set];
-}
-
-function SkeletonTimeline(): JSX.Element {
-  return (
-    <div
-      aria-hidden="true"
-      className="overflow-hidden rounded-card border border-line bg-surface shadow-card"
-    >
-      <div className="border-b border-line px-[22px] py-[18px]">
-        <span className="skeleton block h-(--control-h-sm) w-32 rounded-field" />
-      </div>
-
-      <div className="flex flex-col gap-4 px-[22px] pt-2 pb-[22px]">
-        {[0, 1, 2, 3, 4].map((row) => (
-          <span key={row} className="skeleton block h-[62px] rounded-panel" />
-        ))}
-      </div>
     </div>
   );
 }
