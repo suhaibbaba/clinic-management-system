@@ -45,8 +45,6 @@ export function QuickActions({ shown, currency }: QuickActionsProps): JSX.Elemen
     [DASHBOARD_QUICK_ACTION.PAYMENT]: canRecordPayment(can),
   };
   const actions = shown.filter((action) => allowed[action]);
-  const choosesPatient = (action: DashboardQuickAction): boolean =>
-    action === DASHBOARD_QUICK_ACTION.VISIT || action === DASHBOARD_QUICK_ACTION.PAYMENT;
 
   const close = (open: boolean): void => {
     if (!open) {
@@ -83,22 +81,17 @@ export function QuickActions({ shown, currency }: QuickActionsProps): JSX.Elemen
 
       <ChoosePatientModal
         data-testid="dashboard-quick-choose"
-        open={step !== null && choosesPatient(step.action) && step.patientId === null}
-        title={
-          step?.action === DASHBOARD_QUICK_ACTION.PAYMENT
-            ? "dashboard.quick.payment"
-            : "dashboard.quick.visit"
-        }
+        open={step?.action === DASHBOARD_QUICK_ACTION.PAYMENT && step.patientId === null}
+        title="dashboard.quick.payment"
         onOpenChange={close}
         onChosen={(patientId) => setStep((current) => current && { ...current, patientId })}
       />
 
-      {step?.action === DASHBOARD_QUICK_ACTION.VISIT && step.patientId !== null && (
+      {step?.action === DASHBOARD_QUICK_ACTION.VISIT && (
         <VisitFormModal
           data-testid="dashboard-quick-visit-modal"
           open
           onOpenChange={close}
-          patientId={step.patientId}
           doctors={doctors.data?.items ?? []}
           visit={null}
         />

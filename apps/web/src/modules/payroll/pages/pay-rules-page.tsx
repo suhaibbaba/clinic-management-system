@@ -23,8 +23,11 @@ import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { errorToast } from "@web/shared/lib/api-error";
 import { todayIso } from "@web/shared/lib/dates";
 import { schemaErrors } from "@web/shared/lib/form-errors";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
 import { formatMonth } from "@web/shared/lib/format";
 import { currentMonth, monthsFrom } from "@web/shared/lib/months";
+
+const need = fieldNeeds(payRulesInputSchema);
 
 export function PayRulesPage(): JSX.Element {
   const { t } = useTranslation();
@@ -100,7 +103,7 @@ export function PayRulesPage(): JSX.Element {
                 htmlFor="pay-rules-clinic"
                 hint="payroll.rules.clinicShareHint"
                 error={form.errors["clinicSharePercent"]}
-                required
+                {...need("clinicSharePercent")}
               >
                 <QuantityInput
                   id="pay-rules-clinic"
@@ -118,7 +121,7 @@ export function PayRulesPage(): JSX.Element {
                   htmlFor="pay-rules-tax"
                   hint="payroll.rules.taxHint"
                   error={form.errors["taxPercent"]}
-                  required
+                  {...need("taxPercent")}
                 >
                   <QuantityInput
                     id="pay-rules-tax"
@@ -135,7 +138,7 @@ export function PayRulesPage(): JSX.Element {
                   htmlFor="pay-rules-overhead"
                   hint="payroll.rules.overheadHint"
                   error={form.errors["overheadPercent"]}
-                  required
+                  {...need("overheadPercent")}
                 >
                   <QuantityInput
                     id="pay-rules-overhead"
@@ -147,7 +150,7 @@ export function PayRulesPage(): JSX.Element {
               </div>
             </div>
 
-            <FormField label="payroll.rules.basis" htmlFor="pay-rules-basis">
+            <FormField label="payroll.rules.basis" htmlFor="pay-rules-basis" {...need("basis")}>
               <SegmentedControl
                 data-testid="pay-rules-basis"
                 label={t("payroll.rules.basis")}
@@ -160,7 +163,11 @@ export function PayRulesPage(): JSX.Element {
               />
             </FormField>
 
-            <FormField label="payroll.rules.bearer" htmlFor="pay-rules-bearer">
+            <FormField
+              label="payroll.rules.bearer"
+              htmlFor="pay-rules-bearer"
+              {...need("labCostBearer")}
+            >
               <SegmentedControl
                 data-testid="pay-rules-bearer"
                 label={t("payroll.rules.bearer")}
@@ -174,7 +181,11 @@ export function PayRulesPage(): JSX.Element {
             </FormField>
 
             {changed && (
-              <FormField label="payroll.effectiveFrom" htmlFor="pay-rules-month">
+              <FormField
+                label="payroll.effectiveFrom"
+                htmlFor="pay-rules-month"
+                {...need("effectiveMonth")}
+              >
                 <Select
                   id="pay-rules-month"
                   data-testid="pay-rules-month"

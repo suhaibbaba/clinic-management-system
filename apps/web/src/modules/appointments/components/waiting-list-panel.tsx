@@ -43,6 +43,10 @@ import {
 import { errorToast } from "@web/shared/lib/api-error";
 import { formatDateTime } from "@web/shared/lib/format";
 import { WAITING_LIST_PRIORITY_TONES } from "@web/modules/appointments/constants";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const entryNeed = fieldNeeds(createWaitingListEntrySchema);
+const declineNeed = fieldNeeds(declineWaitingListEntrySchema);
 
 export interface WaitingListPanelProps {
   readonly open: boolean;
@@ -309,7 +313,7 @@ function AddWalkInModal({
             label="appointments.doctor"
             htmlFor="waiting-doctor"
             error={errors["doctorId"]}
-            optional
+            {...entryNeed("doctorId")}
           >
             <Select
               id="waiting-doctor"
@@ -349,7 +353,7 @@ function AddWalkInModal({
             label="appointments.reason"
             htmlFor="waiting-reason"
             error={errors["reason"]}
-            optional
+            {...entryNeed("reason")}
           >
             <Input
               id="waiting-reason"
@@ -425,7 +429,7 @@ function DeclineModal({
             htmlFor="decline-reason"
             error={form.errors["reason"]}
             hint={notify ? "appointments.waiting.declineNotifies" : undefined}
-            required
+            {...declineNeed("reason")}
           >
             <Textarea
               id="decline-reason"

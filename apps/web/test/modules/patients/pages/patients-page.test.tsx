@@ -263,8 +263,8 @@ describe("Patients list", () => {
       await userEvent.click(screen.getAllByRole("button", { name: ar.patients.create })[0]!);
 
       const dialog = await screen.findByRole("dialog");
-      await userEvent.type(within(dialog).getByLabelText(ar.patients.firstName), "سامر");
-      await userEvent.type(within(dialog).getByLabelText(ar.patients.lastName), "التلاوي");
+      await userEvent.type(within(dialog).getByLabelText(new RegExp(`^${ar.patients.firstName}`)), "سامر");
+      await userEvent.type(within(dialog).getByLabelText(new RegExp(`^${ar.patients.lastName}`)), "التلاوي");
       await userEvent.type(within(dialog).getByRole("textbox", { name: new RegExp(`^${ar.patients.phone}`) }), "+963944123456");
       await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
 
@@ -289,8 +289,8 @@ describe("Patients list", () => {
       await userEvent.click(screen.getAllByRole("button", { name: ar.patients.create })[0]!);
 
       const dialog = await screen.findByRole("dialog");
-      await userEvent.type(within(dialog).getByLabelText(ar.patients.firstName), "سامر");
-      await userEvent.type(within(dialog).getByLabelText(ar.patients.lastName), "التلاوي");
+      await userEvent.type(within(dialog).getByLabelText(new RegExp(`^${ar.patients.firstName}`)), "سامر");
+      await userEvent.type(within(dialog).getByLabelText(new RegExp(`^${ar.patients.lastName}`)), "التلاوي");
       await userEvent.type(within(dialog).getByRole("textbox", { name: new RegExp(`^${ar.patients.phone}`) }), "0599 123 456");
       await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
 

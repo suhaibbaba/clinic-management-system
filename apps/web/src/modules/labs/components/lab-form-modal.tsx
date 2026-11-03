@@ -7,6 +7,9 @@ import { useTranslation } from "react-i18next";
 import { Button, FormField, Input, Modal, PhoneInput, Textarea, useToast } from "@clinic/ui";
 import { useCreateLab, useUpdateLab } from "@web/modules/labs/queries";
 import { errorToast } from "@web/shared/lib/api-error";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createLabSchema);
 
 export function LabFormModal({
   open,
@@ -97,11 +100,20 @@ export function LabFormModal({
         className="flex flex-col gap-4"
         onSubmit={(event) => void submit(event)}
       >
-        <FormField label="labs.fields.name" htmlFor="lab-name" error={errors.name}>
+        <FormField
+          label="labs.fields.name"
+          htmlFor="lab-name"
+          error={errors.name}
+          {...need("name")}
+        >
           <Input id="lab-name" data-testid="lab-field-name" {...register("name")} />
         </FormField>
 
-        <FormField label="labs.fields.contactPerson" htmlFor="lab-contact" optional>
+        <FormField
+          label="labs.fields.contactPerson"
+          htmlFor="lab-contact"
+          {...need("contactPerson")}
+        >
           <Input id="lab-contact" data-testid="lab-field-contact" {...register("contactPerson")} />
         </FormField>
 
@@ -110,7 +122,7 @@ export function LabFormModal({
           htmlFor="lab-phone"
           error={errors.phone}
           errorKey={errors.phone ? "errors.validation.invalidPhone" : undefined}
-          optional
+          {...need("phone")}
         >
           <Controller
             name="phone"
@@ -128,11 +140,11 @@ export function LabFormModal({
           />
         </FormField>
 
-        <FormField label="labs.fields.address" htmlFor="lab-address" optional>
+        <FormField label="labs.fields.address" htmlFor="lab-address" {...need("address")}>
           <Input id="lab-address" data-testid="lab-field-address" {...register("address")} />
         </FormField>
 
-        <FormField label="labs.fields.notes" htmlFor="lab-notes" optional>
+        <FormField label="labs.fields.notes" htmlFor="lab-notes" {...need("notes")}>
           <Textarea id="lab-notes" data-testid="lab-field-notes" rows={2} {...register("notes")} />
         </FormField>
       </form>

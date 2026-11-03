@@ -755,7 +755,7 @@
     "years": "{{count}} yaş",
     "createNamed": "Yeni hasta: {{name}}",
     "createInline": "Yeni hasta kaydet",
-    "createInlineHint": "Şimdilik ad ve telefon numarası yeterli; dosyanın geri kalanı hasta geldiğinde alınır.",
+    "createInlineHint": "Şimdilik ad yeterli; dosyanın geri kalanı hasta geldiğinde alınır.",
     "phoneTaken": "Bu numara zaten şu hastaya kayıtlı: {{name}}",
     "useExisting": "Bu hastayı kullan",
     "firstName": "Ad",
@@ -938,7 +938,8 @@
       "payment": "Ödeme",
       "onAccount": "Hesaba",
       "recordedHint": "Bu ziyarette kaydedilen tedavilerin toplamı. Tutarı tedavilerden değiştirin veya iptal edin."
-    }
+    },
+    "patient": "Hasta"
   },
   "treatmentPlans": {
     "empty": "Henüz tedavi yok",

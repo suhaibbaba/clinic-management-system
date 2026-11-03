@@ -41,11 +41,18 @@ import {
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { errorToast } from "@web/shared/lib/api-error";
 import { schemaErrors } from "@web/shared/lib/form-errors";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
 import { formatMonth } from "@web/shared/lib/format";
 import { monthsFrom } from "@web/shared/lib/months";
 import { useCurrency } from "@web/shared/queries/clinic";
 
 const whole = (amount: string): string => String(Math.round(Number(amount)));
+
+const needPlan = fieldNeeds(payPlanInputSchema);
+const needSalary = fieldNeeds(salaryTermsInputSchema);
+const needShare = fieldNeeds(shareTermsInputSchema);
+const needClinicRate = fieldNeeds(settlementTermsSchema);
+const needCollection = fieldNeeds(collectionTermsInputSchema);
 
 const asNumber = (value: string): number => (value === "" ? Number.NaN : Number(value));
 
@@ -206,7 +213,11 @@ export function PaySettingsForm({
     <div className="grid gap-6 lg:grid-cols-[minmax(0,var(--form-max))_minmax(0,1fr)]">
       <Card data-testid="pay-settings" className="flex flex-col gap-4">
         <div ref={form.formRef} className="flex flex-col gap-4">
-          <FormField label="payroll.payType" htmlFor="pay-settings-kind">
+          <FormField
+            label="payroll.payType"
+            htmlFor="pay-settings-kind"
+            {...(line.planKinds.length > 1 ? needPlan("kind") : {})}
+          >
             {line.planKinds.length > 1 ? (
               <RadioGroup
                 id="pay-settings-kind"
@@ -237,7 +248,7 @@ export function PaySettingsForm({
                 label="payroll.monthlySalary"
                 htmlFor="pay-settings-salary"
                 error={form.errors["monthlyAmount"]}
-                required
+                {...needSalary("monthlyAmount")}
               >
                 <MoneyInput
                   id="pay-settings-salary"
@@ -255,6 +266,7 @@ export function PaySettingsForm({
               label="payroll.settings.basis"
               htmlFor="pay-settings-basis"
               hint={`payroll.settings.basisHints.${basis}`}
+              {...needShare("basis")}
             >
               <Select
                 id="pay-settings-basis"
@@ -303,7 +315,7 @@ export function PaySettingsForm({
                 label="payroll.settings.ownClinicPercent"
                 htmlFor="pay-settings-clinic"
                 error={form.errors["clinicSharePercent"]}
-                required
+                {...needClinicRate("clinicSharePercent")}
               >
                 <QuantityInput
                   id="pay-settings-clinic"
@@ -316,7 +328,11 @@ export function PaySettingsForm({
           )}
 
           {onTreatments && line.doctorId && (
-            <FormField label="payroll.settings.collector" htmlFor="pay-settings-collector">
+            <FormField
+              label="payroll.settings.collector"
+              htmlFor="pay-settings-collector"
+              {...needCollection("collector")}
+            >
               <RadioGroup
                 id="pay-settings-collector"
                 data-testid="pay-settings-collector"
@@ -338,7 +354,7 @@ export function PaySettingsForm({
                 label="payroll.settings.staffPercent"
                 htmlFor="pay-settings-staff"
                 error={form.errors["percent"]}
-                required
+                {...needShare("percent")}
               >
                 <QuantityInput
                   id="pay-settings-staff"
@@ -355,6 +371,7 @@ export function PaySettingsForm({
               label="payroll.effectiveFrom"
               htmlFor="pay-settings-month"
               hint="payroll.settings.fromHint"
+              {...needPlan("effectiveMonth")}
             >
               <Select
                 id="pay-settings-month"

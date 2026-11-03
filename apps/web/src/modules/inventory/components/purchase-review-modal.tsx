@@ -1,8 +1,16 @@
-import { formatMinorUnits, toMinorUnits, type InvoiceResult } from "@clinic/shared";
+import {
+  formatMinorUnits,
+  postPurchaseSchema,
+  toMinorUnits,
+  type InvoiceResult,
+} from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Ltr, Modal, Money, MoneyInput, Select } from "@clinic/ui";
 import type { PurchaseCounts } from "@web/modules/inventory/lib/purchase-form";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(postPurchaseSchema);
 
 export function PurchaseReviewModal({
   open,
@@ -127,7 +135,8 @@ export function PurchaseReviewModal({
               <FormField
                 label="inventory.movement.paidNow"
                 htmlFor="purchase-paid"
-                optional
+                {...need("paidNow")}
+
                 error={overpaid ? { type: "too_big" } : undefined}
                 {...(overpaid && { errorKey: "inventory.movement.paidTooMuch" })}
               >

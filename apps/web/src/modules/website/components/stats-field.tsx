@@ -1,4 +1,10 @@
-import { SITE_FEATURES_MAX, SITE_ICONS, type SiteIcon, type SiteStat } from "@clinic/shared";
+import {
+  SITE_FEATURES_MAX,
+  SITE_ICONS,
+  siteStatSchema,
+  type SiteIcon,
+  type SiteStat,
+} from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Icon, Input, Select } from "@clinic/ui";
@@ -7,6 +13,9 @@ import { RowTools } from "@web/modules/website/components/row-tools";
 import { SITE_ICON_GLYPHS } from "@web/modules/website/constants";
 import { useEditor } from "@web/modules/website/hooks/use-editor";
 import { blankText, moveItem, removeAt, replaceAt } from "@web/modules/website/lib/site-draft";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(siteStatSchema);
 
 export function StatsField(): JSX.Element {
   const { t } = useTranslation();
@@ -42,6 +51,7 @@ export function StatsField(): JSX.Element {
                 label="website.fields.statValue"
                 htmlFor={`stat-${index}-value`}
                 error={errors[`about.stats.${index}.value`]}
+                {...need("value")}
               >
                 <Input
                   id={`stat-${index}-value`}

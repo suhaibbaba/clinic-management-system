@@ -22,6 +22,7 @@ import { useSetTreatmentShare } from "@web/modules/payroll/queries";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { errorToast } from "@web/shared/lib/api-error";
 import { schemaErrors } from "@web/shared/lib/form-errors";
+import { fieldNeed } from "@web/shared/lib/schema-fields";
 import { moneyText } from "@web/shared/lib/format";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { useDoctors } from "@web/shared/queries/doctors";
@@ -132,7 +133,7 @@ export function TreatmentShareModal({
               suggested: moneyText(treatment?.suggestedMaterialCost ?? "0.00", currency),
             }}
             error={form.errors["materialCost"]}
-            optional
+            {...fieldNeed(updateTreatmentSettlementSchema, "materialCost")}
           >
             <MoneyInput
               id="settlement-material"
@@ -152,7 +153,7 @@ export function TreatmentShareModal({
             hint="doctors.settlement.percentHint"
             hintValues={{ percent: defaultPercent }}
             error={form.errors["clinicSharePercent"]}
-            optional
+            {...fieldNeed(updateTreatmentSettlementSchema, "clinicSharePercent")}
           >
             <QuantityInput
               id="settlement-percent"

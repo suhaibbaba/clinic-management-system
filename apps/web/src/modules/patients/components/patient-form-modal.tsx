@@ -31,6 +31,9 @@ import { errorToast } from "@web/shared/lib/api-error";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { formatList } from "@web/shared/lib/format";
 import { todayIso } from "@web/shared/lib/dates";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createPatientSchema);
 
 interface PatientFormModalProps {
   "data-testid"?: string | undefined;
@@ -185,6 +188,7 @@ export function PatientFormModal({
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField
             label="patients.firstName"
+            {...need("firstName")}
             htmlFor="patient-first-name"
             error={errors.firstName}
           >
@@ -198,7 +202,12 @@ export function PatientFormModal({
             />
           </FormField>
 
-          <FormField label="patients.lastName" htmlFor="patient-last-name" error={errors.lastName}>
+          <FormField
+            label="patients.lastName"
+            {...need("lastName")}
+            htmlFor="patient-last-name"
+            error={errors.lastName}
+          >
             <Input
               placeholder={t("common.placeholders.lastName")}
               id="patient-last-name"
@@ -210,8 +219,8 @@ export function PatientFormModal({
 
           <FormField
             label="patients.middleName"
+            {...need("middleName")}
             htmlFor="patient-middle-name"
-            optional
             error={errors.middleName}
           >
             <Input
@@ -225,10 +234,10 @@ export function PatientFormModal({
 
           <FormField
             label="patients.phone"
+            {...need("phone")}
             htmlFor="patient-phone"
             error={errors.phone}
             errorKey={errors.phone ? "errors.validation.invalidPhone" : undefined}
-            optional
           >
             <Controller
               name="phone"
@@ -254,7 +263,7 @@ export function PatientFormModal({
             error={errors.dateOfBirth}
             {...(needed("dateOfBirth")
               ? { note: "patients.neededToComplete" }
-              : { optional: true })}
+              : need("dateOfBirth"))}
           >
             <Controller
               control={control}
@@ -277,7 +286,7 @@ export function PatientFormModal({
             label="patients.gender"
             htmlFor="patient-gender"
             error={errors.gender}
-            {...(needed("gender") ? { note: "patients.neededToComplete" } : { optional: true })}
+            {...(needed("gender") ? { note: "patients.neededToComplete" } : need("gender"))}
           >
             <Controller
               name="gender"
@@ -301,10 +310,10 @@ export function PatientFormModal({
 
           <FormField
             label="patients.assignedDoctor"
+            {...need("assignedDoctorId")}
             htmlFor="patient-assigned-doctor"
             error={errors.assignedDoctorId}
             hint="patients.assignedDoctorHint"
-            optional
           >
             <Controller
               name="assignedDoctorId"
@@ -327,9 +336,9 @@ export function PatientFormModal({
 
           <FormField
             label="patients.address"
+            {...need("address")}
             htmlFor="patient-address"
             error={errors.address}
-            optional
           >
             <Input
               placeholder={t("common.placeholders.address")}
@@ -341,9 +350,9 @@ export function PatientFormModal({
 
           <FormField
             label="patients.emergencyContactName"
+            {...need("emergencyContactName")}
             htmlFor="patient-emergency-name"
             error={errors.emergencyContactName}
-            optional
           >
             <Input
               placeholder={t("common.placeholders.emergencyName")}
@@ -358,9 +367,9 @@ export function PatientFormModal({
 
           <FormField
             label="patients.emergencyContactPhone"
+            {...need("emergencyContactPhone")}
             htmlFor="patient-emergency-phone"
             error={errors.emergencyContactPhone}
-            optional
           >
             <Controller
               name="emergencyContactPhone"

@@ -253,10 +253,12 @@ describe("Patient page", () => {
       await user.click(await screen.findByRole("button", { name: ar.patients.rowMenu }));
       await user.click(await screen.findByRole("menuitem", { name: ar.patients.edit }));
 
-      expect(await screen.findByLabelText(ar.patients.firstName)).toHaveValue(
+      expect(await screen.findByLabelText(new RegExp(`^${ar.patients.firstName}`))).toHaveValue(
         makePatient().firstName,
       );
-      expect(screen.getByLabelText(ar.patients.lastName)).toHaveValue(makePatient().lastName);
+      expect(screen.getByLabelText(new RegExp(`^${ar.patients.lastName}`))).toHaveValue(
+        makePatient().lastName,
+      );
     });
 
     it("names what an incomplete file is missing, where the badge only says it is", async () => {
@@ -419,7 +421,10 @@ describe("Patient page", () => {
 
     async function submitProcedure() {
       const dialog = (await screen.findAllByRole("dialog")).at(-1) as HTMLElement;
-      await choose(within(dialog).getByLabelText(ar.chart.panel.procedure), CATALOG_NAME);
+      await choose(
+        within(dialog).getByLabelText(new RegExp(`^${ar.chart.panel.procedure}`)),
+        CATALOG_NAME,
+      );
       await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
     }
 
@@ -483,7 +488,10 @@ describe("Patient page", () => {
       await openAddForm();
 
       const dialog = screen.getByRole("dialog");
-      await choose(within(dialog).getByLabelText(ar.chart.panel.procedure), CATALOG_NAME);
+      await choose(
+        within(dialog).getByLabelText(new RegExp(`^${ar.chart.panel.procedure}`)),
+        CATALOG_NAME,
+      );
       await userEvent.type(
         within(dialog).getByLabelText(ar.chart.panel.discount, { exact: false }),
         "10.00",

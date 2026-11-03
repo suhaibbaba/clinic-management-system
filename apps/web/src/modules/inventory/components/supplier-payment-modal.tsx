@@ -22,6 +22,9 @@ import { Money } from "@web/shared/components/money";
 import { useLookupOptions } from "@web/shared/queries/lookups";
 import { usePaySupplier } from "@web/modules/inventory/queries";
 import { errorToast } from "@web/shared/lib/api-error";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createSupplierPaymentSchema);
 
 export function SupplierPaymentModal({
   supplier,
@@ -125,7 +128,7 @@ export function SupplierPaymentModal({
           label="inventory.suppliers.payment.amount"
           htmlFor="supplier-payment-amount"
           error={errors.amount}
-          required
+          {...need("amount")}
         >
           <MoneyInput
             id="supplier-payment-amount"
@@ -141,7 +144,11 @@ export function SupplierPaymentModal({
           control={control}
           name="method"
           render={({ field }) => (
-            <FormField label="inventory.suppliers.payment.method" htmlFor="supplier-payment-method">
+            <FormField
+              label="inventory.suppliers.payment.method"
+              htmlFor="supplier-payment-method"
+              {...need("method")}
+            >
               <Select
                 id="supplier-payment-method"
                 data-testid="supplier-payment-field-method"
@@ -156,7 +163,7 @@ export function SupplierPaymentModal({
         <FormField
           label="inventory.suppliers.payment.note"
           htmlFor="supplier-payment-note"
-          optional
+          {...need("note")}
         >
           <Textarea
             id="supplier-payment-note"

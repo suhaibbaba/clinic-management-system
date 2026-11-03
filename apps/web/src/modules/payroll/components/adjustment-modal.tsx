@@ -10,12 +10,15 @@ import { useAdjustPay } from "@web/modules/payroll/queries";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { errorToast } from "@web/shared/lib/api-error";
 import { schemaErrors } from "@web/shared/lib/form-errors";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
 import { useCurrency } from "@web/shared/queries/clinic";
 
 export interface AdjustmentTarget {
   readonly line: PayrollLine;
   readonly kind: PayrollAdjustmentKind;
 }
+
+const need = fieldNeeds(createPayrollAdjustmentSchema);
 
 export function AdjustmentModal({
   target,
@@ -93,7 +96,7 @@ export function AdjustmentModal({
             label="payroll.amount"
             htmlFor="payroll-adjustment-amount"
             error={form.errors["amount"]}
-            required
+            {...need("amount")}
           >
             <MoneyInput
               id="payroll-adjustment-amount"
@@ -110,7 +113,7 @@ export function AdjustmentModal({
             label="payroll.reason"
             htmlFor="payroll-adjustment-reason"
             error={form.errors["reason"]}
-            required
+            {...need("reason")}
           >
             <Input
               id="payroll-adjustment-reason"

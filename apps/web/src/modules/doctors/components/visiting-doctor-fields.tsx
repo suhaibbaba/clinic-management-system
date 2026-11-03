@@ -1,3 +1,4 @@
+import { createVisitingDoctorSchema } from "@clinic/shared";
 import type { JSX } from "react";
 import { Controller, type UseFormRegister } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -8,6 +9,9 @@ import { StaffNameFields, type StaffNameValues } from "@web/shared/components/st
 import { VISITING_DOCTOR_FORM_ID } from "@web/modules/doctors/constants";
 import type { VisitingDoctorForm } from "@web/modules/doctors/hooks/use-visiting-doctor-form";
 import { useLocalized } from "@web/shared/hooks/use-localized";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createVisitingDoctorSchema);
 
 export function VisitingDoctorFields({ form, submit }: VisitingDoctorForm): JSX.Element {
   const { t } = useTranslation();
@@ -39,6 +43,7 @@ export function VisitingDoctorFields({ form, submit }: VisitingDoctorForm): JSX.
         htmlFor="visiting-doctor-phone"
         error={errors.phone}
         errorKey={errors.phone ? "errors.validation.invalidPhone" : undefined}
+        {...need("phone")}
       >
         <Controller
           name="phone"
@@ -61,7 +66,7 @@ export function VisitingDoctorFields({ form, submit }: VisitingDoctorForm): JSX.
         label="users.email"
         htmlFor="visiting-doctor-email"
         hint="doctors.visiting.emailHint"
-        optional
+        {...need("email")}
         error={errors.email}
         errorKey={errors.email ? "errors.validation.invalidEmail" : undefined}
       >
@@ -85,7 +90,7 @@ export function VisitingDoctorFields({ form, submit }: VisitingDoctorForm): JSX.
               label="doctors.specialty"
               htmlFor="visiting-doctor-specialty"
               error={errors.specialtyId}
-              required
+              {...need("specialtyId")}
             >
               <Select
                 id="visiting-doctor-specialty"
@@ -109,6 +114,7 @@ export function VisitingDoctorFields({ form, submit }: VisitingDoctorForm): JSX.
           htmlFor="visiting-doctor-duration"
           hint="doctors.durationUnit"
           error={errors.defaultAppointmentDurationMinutes}
+          {...need("defaultAppointmentDurationMinutes")}
         >
           <Controller
             name="defaultAppointmentDurationMinutes"
@@ -134,7 +140,7 @@ export function VisitingDoctorFields({ form, submit }: VisitingDoctorForm): JSX.
           htmlFor="visiting-doctor-share"
           hint="doctors.visiting.clinicShareHint"
           error={errors.clinicSharePercent}
-          optional
+          {...need("clinicSharePercent")}
         >
           <Controller
             name="clinicSharePercent"

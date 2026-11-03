@@ -20,6 +20,9 @@ import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { useLookupList } from "@web/shared/queries/lookups";
 import { useSpecialties } from "@web/shared/queries/specialties";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createProcedureCatalogItemSchema);
 
 export function ProcedurePriceModal({
   open,
@@ -175,7 +178,7 @@ export function ProcedurePriceModal({
               label="priceList.code"
               htmlFor="price-code"
               hint={t("priceList.codeHint")}
-              required
+              {...need("code")}
             >
               <Input
                 id="price-code"
@@ -193,7 +196,7 @@ export function ProcedurePriceModal({
               error={form.errors["defaultPrice"]}
               label="priceList.price"
               htmlFor="price-amount"
-              required
+              {...need("defaultPrice")}
             >
               <MoneyInput
                 id="price-amount"
@@ -212,7 +215,7 @@ export function ProcedurePriceModal({
               error={form.errors["specialtyId"]}
               label="priceList.specialty"
               htmlFor="price-specialty"
-              required
+              {...need("specialtyId")}
             >
               <Select
                 id="price-specialty"

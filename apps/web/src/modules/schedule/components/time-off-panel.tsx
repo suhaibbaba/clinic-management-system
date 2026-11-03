@@ -32,6 +32,9 @@ import {
 } from "@web/modules/schedule/queries";
 import { errorToast } from "@web/shared/lib/api-error";
 import { formatDate, formatPeriod } from "@web/shared/lib/format";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createDoctorTimeOffSchema);
 
 export interface TimeOffPanelProps {
   readonly doctorId: string;
@@ -294,6 +297,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
                 label="schedule.timeOff.from"
                 htmlFor="time-off-from"
                 error={errors["from"] ?? errors["startsAt"]}
+                {...need("startsAt")}
               >
                 <DatePicker
                   id="time-off-from"
@@ -329,6 +333,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
                     label="schedule.from"
                     htmlFor="time-off-start"
                     error={errors["startTime"]}
+                    {...need("startsAt")}
                   >
                     <TimePicker
                       id="time-off-start"
@@ -345,6 +350,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
                     label="schedule.to"
                     htmlFor="time-off-end"
                     error={errors["endTime"] ?? errors["endsAt"]}
+                    {...need("endsAt")}
                   >
                     <TimePicker
                       id="time-off-end"
@@ -365,6 +371,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
               label="schedule.timeOff.reason"
               htmlFor="time-off-reason"
               error={errors["reason"]}
+              {...need("reason")}
             >
               <Input
                 id="time-off-reason"

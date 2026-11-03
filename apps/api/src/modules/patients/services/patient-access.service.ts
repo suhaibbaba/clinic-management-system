@@ -7,7 +7,7 @@ import {
   type ClinicScopedTable,
 } from "@api/common/database/clinic-scope.service";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
-import { DATABASE, type Database } from "@api/database/database.module";
+import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import { appointments, doctors, patients, performedProcedures } from "@api/database/schema";
 import { PatientRow } from "@api/modules/patients/lib/patient-access";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
@@ -43,8 +43,12 @@ export class PatientAccessService {
     return row;
   }
 
-  async requirePatientId(actor: AuthenticatedUser, patientId: string): Promise<string> {
-    const [row] = await this.db
+  async requirePatientId(
+    actor: AuthenticatedUser,
+    patientId: string,
+    executor: DatabaseExecutor = this.db,
+  ): Promise<string> {
+    const [row] = await executor
       .select({ id: patients.id })
       .from(patients)
       .where(

@@ -1,8 +1,12 @@
+import { reverseSupplierPaymentSchema } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Icon, Modal, Textarea, useToast } from "@clinic/ui";
 import { errorToast } from "@web/shared/lib/api-error";
 import { useReverseSupplierPayment } from "@web/modules/inventory/queries";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(reverseSupplierPaymentSchema);
 
 export function ReverseSupplierPaymentModal({
   paymentId,
@@ -64,7 +68,7 @@ export function ReverseSupplierPaymentModal({
       <FormField
         label="inventory.suppliers.payment.reverseReason"
         htmlFor="supplier-payment-reverse-reason"
-        required
+        {...need("reason")}
       >
         <Textarea
           id="supplier-payment-reverse-reason"
