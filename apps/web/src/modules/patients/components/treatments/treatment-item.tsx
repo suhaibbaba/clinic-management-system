@@ -1,5 +1,6 @@
 import type {
   Doctor,
+  Money as MoneyAmount,
   PerformedProcedure,
   PerformedProcedureStatus,
   TreatmentSettlementStatus,
@@ -18,6 +19,7 @@ import { useRegionLabel } from "@web/modules/patients/hooks/use-region-label";
 import { treatmentRegions } from "@web/modules/patients/lib/chart/body-regions";
 import { SETTLEMENT_STATUS_TONES } from "@web/shared/constants/settlement";
 import { formatDate, formatList } from "@web/shared/lib/format";
+import { afterLabCost } from "@web/shared/lib/lab-cost";
 
 const MOVE_ICONS: Record<PerformedProcedureStatus, IconName> = {
   planned: "reset",
@@ -39,6 +41,7 @@ export interface TreatmentItemProps {
   readonly onDelete: () => void;
   readonly onSendToLab?: (() => void) | undefined;
   readonly doctorPay?: readonly TreatmentSettlementStatus[] | undefined;
+  readonly labCost?: MoneyAmount | undefined;
 }
 
 export function TreatmentItem({
@@ -54,6 +57,7 @@ export function TreatmentItem({
   onDelete,
   onSendToLab,
   doctorPay,
+  labCost,
 }: TreatmentItemProps): JSX.Element {
   const { t } = useTranslation();
   const teeth = treatmentTeeth(treatment);
@@ -61,6 +65,7 @@ export function TreatmentItem({
   const regionLabel = useRegionLabel();
   const regions = treatmentRegions(treatment).map(regionLabel);
   const cancelled = treatment.status === "cancelled";
+  const hasLabCost = showPrice && labCost !== undefined && Number(labCost) !== 0;
   const hasMenu = mayChange || mayDelete || onSendToLab !== undefined;
 
   return (
@@ -163,6 +168,22 @@ export function TreatmentItem({
               )}
             </dd>
           </div>
+        )}
+        {hasLabCost && (
+          <>
+            <div className="flex gap-1" data-testid="treatment-lab-cost">
+              <dt>{t("treatments.labCost")}:</dt>
+              <dd>
+                <Money amount={labCost} currency={currency} />
+              </dd>
+            </div>
+            <div className="flex gap-1" data-testid="treatment-after-lab">
+              <dt>{t("treatments.afterLab")}:</dt>
+              <dd className="font-medium text-ink">
+                <Money amount={afterLabCost(netPrice(treatment), labCost)} currency={currency} />
+              </dd>
+            </div>
+          </>
         )}
       </dl>
 

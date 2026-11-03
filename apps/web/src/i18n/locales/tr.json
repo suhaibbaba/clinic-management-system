@@ -814,7 +814,8 @@
       "date": "Tarih",
       "openFile": "Dosyayı aç",
       "procedureCount_one": "{{count}} tedavi",
-      "procedureCount_other": "{{count}} tedavi"
+      "procedureCount_other": "{{count}} tedavi",
+      "labOrders": "Bu Dişin Laboratuvar Siparişleri"
     },
     "kind": "Şema",
     "kinds": {
@@ -985,7 +986,11 @@
       "unpaid": "Doktora henüz ödenmedi",
       "paid": "Doktora ödendi",
       "adjusted": "Doktorun payı için hesaplaşma gerekiyor"
-    }
+    },
+    "labCost": "Laboratuvar Maliyeti",
+    "afterLab": "Laboratuvar Sonrası",
+    "priceHint": "Laboratuvar maliyeti hariç tedavi ücretiniz. Laboratuvar maliyeti hastanın ödeyeceği tutara eklenir.",
+    "patientPays": "Hastanın Ödeyeceği"
   },
   "imaging": {
     "uploadTitle": "Röntgen veya belge ekle",
@@ -1461,13 +1466,31 @@
       "returnExpected": "Yeni beklenen tarih",
       "costKept": "İptale rağmen maliyet saklandı",
       "labBalance": "Laboratuvar bakiyesi",
-      "cancelReason": "İptal nedeni"
+      "cancelReason": "İptal nedeni",
+      "procedure": "Tedavi",
+      "selectProcedure": "Tedaviyi Seçin",
+      "noProcedure": "Bir tedaviye bağlı değil",
+      "procedureHint": "Maliyeti bu tedavinin tutarından ve hekimin payından düşülür",
+      "open": "Siparişi Aç",
+      "delete": "Siparişi Sil",
+      "deleted": "Sipariş Silindi",
+      "confirmDelete": {
+        "title": "“{{work}}” siparişi silinsin mi?",
+        "hidden": "Hasta dosyasından, laboratuvar listesinden ve tedavinin laboratuvar maliyetinden çıkar.",
+        "kept": "Arşivlenir, silinmez ve denetim kaydında kalır."
+      }
     },
     "section": {
       "label": "Laboratuvar görünümleri",
       "orders": "Devam eden işler",
       "done": "Biten",
       "directory": "Laboratuvarlar"
+    },
+    "work": {
+      "title": "Laboratuvar İşi",
+      "add": "Laboratuvar İşi Ekle",
+      "remove": "Bu Laboratuvar İşini Kaldır",
+      "number": "Laboratuvar İşi {{number}}"
     }
   },
   "inventory": {
@@ -3385,7 +3408,9 @@
       "paidFilters": {
         "partly": "Kısmen ödendi",
         "none": "Henüz ödenmedi"
-      }
+      },
+      "net": "Net",
+      "ofNet": "Netin %{{percent}}"
     },
     "entryKinds": {
       "extra": "Prim",
@@ -3461,7 +3486,8 @@
       },
       "share": {
         "title": "Payı",
-        "detail": "Klinik %{{percent}} alır ({{clinic}}); kalanı kendisinindir."
+        "detail": "Klinik %{{percent}} alır ({{clinic}}); kalanı kendisinindir.",
+        "detailMixed": "Klinik, her tedavinin kendi oranıyla {{clinic}} alır; kalanı kendisinindir."
       },
       "collected": {
         "title": "Hastaların kliniğe ödediği",
@@ -3471,7 +3497,7 @@
       },
       "collectedShare": {
         "title": "Hastaların ödediği tutardan payı",
-        "detail": "Payı, hastaların ödediği tutarın %{{percent}} kadarıdır. Bunun {{waiting}} kısmı, kalanlar ödeyince ödenir."
+        "detail": "Hastaların ödediği tedavilerden payı. Bunun {{waiting}} kısmı, kalanlar ödeyince ödenir."
       },
       "salary": {
         "title": "Aylık maaş",

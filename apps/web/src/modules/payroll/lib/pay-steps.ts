@@ -33,6 +33,7 @@ export interface PayStep {
   readonly amount: string;
   readonly ready?: boolean;
   readonly parts?: readonly PayStepPart[];
+  readonly detail?: "mixed";
   readonly values: Readonly<Record<string, string | number>>;
 }
 
@@ -52,6 +53,18 @@ function paidToClinic(settlement: DoctorSettlement): string {
       0,
     ),
   );
+}
+
+export function clinicPercentOf(settlement: DoctorSettlement): number | null {
+  const percents = new Set(
+    settlement.treatments.filter((row) => !isZero(row.net)).map((row) => row.clinicSharePercent),
+  );
+
+  if (percents.size === 0) {
+    return settlement.clinicSharePercent;
+  }
+
+  return percents.size === 1 ? [...percents][0]! : null;
 }
 
 function priceSteps(settlement: DoctorSettlement): PayStep[] {
@@ -74,6 +87,7 @@ function priceSteps(settlement: DoctorSettlement): PayStep[] {
       .map((row) => row.patientId),
   ).size;
   const follows = settlement.basis === PAY_BASIS.COLLECTED;
+  const clinicPercent = clinicPercentOf(settlement);
 
   return [
     {
@@ -85,7 +99,8 @@ function priceSteps(settlement: DoctorSettlement): PayStep[] {
     {
       key: "share",
       amount: totals.doctorShare,
-      values: { percent: settlement.clinicSharePercent, clinic: totals.clinicShare },
+      ...(clinicPercent === null && { detail: "mixed" as const }),
+      values: { percent: clinicPercent ?? 0, clinic: totals.clinicShare },
     },
     ...(follows
       ? [
@@ -103,10 +118,7 @@ function priceSteps(settlement: DoctorSettlement): PayStep[] {
             key: "collectedShare" as const,
             amount: totals.payable,
             ready: true,
-            values: {
-              percent: 100 - settlement.clinicSharePercent,
-              waiting: subtractMoney(totals.doctorShare, totals.payable),
-            },
+            values: { waiting: subtractMoney(totals.doctorShare, totals.payable) },
           },
         ]
       : []),

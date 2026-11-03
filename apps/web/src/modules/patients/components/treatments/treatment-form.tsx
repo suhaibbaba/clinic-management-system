@@ -1,10 +1,14 @@
 import {
   CHART_TYPE,
+  addMoney,
   createPerformedProcedureSchema,
+  subtractMoney,
+  type Money as MoneyAmount,
   updatePerformedProcedureSchema,
   type BodyRegionLocation,
   type CreatePerformedProcedureInput,
   type Doctor,
+  type LabOrderRow,
   type PerformedProcedure,
   type PerformedProcedureStatus,
   type ProcedureCatalogItem,
@@ -18,6 +22,7 @@ import {
   FormField,
   Icon,
   Input,
+  Money,
   MoneyInput,
   Select,
   Textarea,
@@ -44,6 +49,10 @@ import { useSession } from "@web/shared/providers/session";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { useLocalized } from "@web/shared/hooks/use-localized";
 import { fieldNeeds } from "@web/shared/lib/schema-fields";
+import { LabWorkSection } from "@web/modules/labs/components/lab-work-section";
+import { canCreateLabOrder, canSeeLabCost } from "@web/shared/permissions/labs";
+import { emptyLabWork, isLabWorkReady, type LabWorkDraft } from "@web/shared/lib/lab-work";
+import { labCostOf } from "@web/shared/lib/lab-cost";
 
 const need = fieldNeeds(createPerformedProcedureSchema);
 
@@ -66,7 +75,9 @@ export interface TreatmentFormProps {
   readonly defaults: TreatmentDefaults;
   readonly treatment?: PerformedProcedure | undefined;
   readonly formId: string;
-  readonly onSubmit: (values: TreatmentFormValues) => void;
+  readonly onSubmit: (values: TreatmentFormValues, labWork: readonly LabWorkDraft[]) => void;
+  readonly startWithLabWork?: boolean | undefined;
+  readonly labOrders?: readonly LabOrderRow[] | undefined;
   readonly onValidityChange?: ((valid: boolean) => void) | undefined;
 }
 
@@ -80,6 +91,8 @@ export function TreatmentForm({
   formId,
   onSubmit,
   onValidityChange,
+  startWithLabWork = false,
+  labOrders,
 }: TreatmentFormProps): JSX.Element {
   const { t } = useTranslation();
   const text = useLocalized();
@@ -87,7 +100,8 @@ export function TreatmentForm({
   const doctorName = usePersonName();
   const fieldId = useId();
   const isEdit = treatment !== undefined;
-  const { user } = useSession();
+  const { user, can } = useSession();
+  const mayOrderLabWork = canCreateLabOrder(can);
   const specialties = useSpecialties();
 
   const [procedureId, setProcedureId] = useState(treatment?.procedureId ?? "");
@@ -106,12 +120,27 @@ export function TreatmentForm({
   const [surfaces, setSurfaces] = useState<SelectableSurface[]>(
     treatment ? selectable(treatmentSurfaces(treatment)) : [],
   );
-  const [price, setPrice] = useState(treatment ? whole(treatment.price) : "");
+  const splitLab = showPrices && canSeeLabCost(can);
+  const existingLabCost = treatment && splitLab ? labCostOf(labOrders ?? [], treatment.id) : "0.00";
+  const [price, setPrice] = useState(
+    treatment ? whole(subtractMoney(treatment.price, existingLabCost)) : "",
+  );
   const [discount, setDiscount] = useState(
     treatment && Number(treatment.discount) !== 0 ? whole(treatment.discount) : "",
   );
   const [discountReason, setDiscountReason] = useState(treatment?.discountReason ?? "");
   const [notes, setNotes] = useState(treatment?.notes ?? "");
+  const [labWork, setLabWork] = useState<LabWorkDraft[]>(() =>
+    startWithLabWork && mayOrderLabWork ? [emptyLabWork(crypto.randomUUID())] : [],
+  );
+  const labWorkReady = labWork.every(isLabWorkReady);
+  const draftLabCost = labWork.reduce<MoneyAmount>(
+    (total, line) => (line.price.trim() === "" ? total : addMoney(total, line.price.trim())),
+    "0.00",
+  );
+  const labTotal = splitLab ? addMoney(existingLabCost, draftLabCost) : "0.00";
+  const ownPrice = price.trim() === "" ? "0.00" : price.trim();
+  const charged = addMoney(ownPrice, labTotal);
 
   const context = {
     specialties: specialties.data?.items ?? [],
@@ -131,6 +160,7 @@ export function TreatmentForm({
   const sideMissing =
     chartType === CHART_TYPE.BODY_REGION && region !== null && region.side === undefined;
   const hasDiscount = discount !== "" && discount !== "0" && discount !== "0.00";
+  const patientPays = hasDiscount ? subtractMoney(charged, discount) : charged;
 
   useEffect(() => {
     if (!isEdit) {
@@ -150,7 +180,7 @@ export function TreatmentForm({
     status,
     discount: hasDiscount ? discount : "0.00",
     notes: notes.trim() === "" ? null : notes.trim(),
-    ...(showPrices && price !== "" && { price }),
+    ...(showPrices && price !== "" && { price: whole(charged) }),
     ...(hasDiscount && { discountReason: discountReason.trim() }),
     ...(!isEdit && defaults.visitId !== undefined && { visitId: defaults.visitId }),
     ...(!isEdit && defaults.performedAt !== undefined && { performedAt: defaults.performedAt }),
@@ -174,17 +204,17 @@ export function TreatmentForm({
   const { errors } = form;
 
   useEffect(() => {
-    onValidityChange?.(form.isValid);
-  }, [form.isValid, onValidityChange]);
+    onValidityChange?.(form.isValid && labWorkReady);
+  }, [form.isValid, labWorkReady, onValidityChange]);
 
   const handleSubmit = (event: FormEvent): void => {
     event.preventDefault();
 
-    if (!form.check()) {
+    if (!form.check() || !labWorkReady) {
       return;
     }
 
-    onSubmit(values);
+    onSubmit(values, labWork);
   };
 
   return (
@@ -217,6 +247,26 @@ export function TreatmentForm({
             </FormField>
           </div>
 
+          <div onBlur={form.leave("doctorId")}>
+            <FormField
+              label="chart.panel.doctor"
+              htmlFor={`${fieldId}-doctor`}
+              error={errors["doctorId"]}
+              {...need("doctorId")}
+            >
+              <Select
+                id={`${fieldId}-doctor`}
+                data-testid="treatment-field-doctor"
+                value={doctorId}
+                onChange={(event) => setDoctorId(event.target.value)}
+                options={doctors.map((doctor) => ({
+                  value: doctor.id,
+                  label: doctorOptionLabel(doctor, doctorName(doctor.user.name), t),
+                }))}
+              />
+            </FormField>
+          </div>
+
           <div onBlur={form.leave("status")}>
             <FormField
               label="chart.panel.status"
@@ -236,35 +286,55 @@ export function TreatmentForm({
             </FormField>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <div onBlur={form.leave("doctorId")}>
+          {chartType === CHART_TYPE.TOOTH_FDI && (
+            <div onBlur={form.leave("chartMarks")}>
               <FormField
-                label="chart.panel.doctor"
-                htmlFor={`${fieldId}-doctor`}
-                error={errors["doctorId"]}
-                {...need("doctorId")}
+                label="visits.teeth"
+                htmlFor={`${fieldId}-teeth`}
+                hint={t("labs.order.toothHint")}
+                error={fieldError(errors, "chartMarks")}
+                {...need("chartMarks")}
               >
-                <Select
-                  id={`${fieldId}-doctor`}
-                  data-testid="treatment-field-doctor"
-                  value={doctorId}
-                  onChange={(event) => setDoctorId(event.target.value)}
-                  options={doctors.map((doctor) => ({
-                    value: doctor.id,
-                    label: doctorOptionLabel(doctor, doctorName(doctor.user.name), t),
-                  }))}
-                />
+                <TeethField id={`${fieldId}-teeth`} value={teeth} onChange={setTeeth} />
               </FormField>
             </div>
-          </div>
+          )}
         </div>
 
+        {chartType === CHART_TYPE.BODY_REGION && (
+          <div onBlur={form.leave("chartMarks")}>
+            <RegionField
+              id={`${fieldId}-region`}
+              value={region}
+              error={fieldError(errors, "chartMarks")}
+              onChange={setRegion}
+            />
+          </div>
+        )}
+
+        {chartType === CHART_TYPE.TOOTH_FDI && teeth.length === 1 && (
+          <div className="flex flex-col gap-1.5">
+            <span className="text-value font-medium text-ink">{t("chart.panel.surfaces")}</span>
+            <SurfaceSelector value={surfaces} onChange={setSurfaces} />
+          </div>
+        )}
+
+        {mayOrderLabWork && (
+          <LabWorkSection
+            idPrefix={fieldId}
+            value={labWork}
+            onChange={setLabWork}
+            existing={labOrders}
+          />
+        )}
+
         {showPrices && (
-          <div className="grid gap-4 @lg:grid-cols-2">
+          <div className="grid gap-4 border-t border-line pt-4 @lg:grid-cols-2">
             <div onBlur={form.leave("price")}>
               <FormField
                 label="chart.panel.price"
                 htmlFor={`${fieldId}-price`}
+                {...(splitLab && { hint: t("treatments.priceHint") })}
                 error={errors["price"]}
               >
                 <MoneyInput
@@ -319,37 +389,32 @@ export function TreatmentForm({
           </div>
         )}
 
-        {chartType === CHART_TYPE.TOOTH_FDI && (
-          <div className="max-w-(--field-max)">
-            <div onBlur={form.leave("chartMarks")}>
-              <FormField
-                label="visits.teeth"
-                htmlFor={`${fieldId}-teeth`}
-                error={fieldError(errors, "chartMarks")}
-                {...need("chartMarks")}
-              >
-                <TeethField id={`${fieldId}-teeth`} value={teeth} onChange={setTeeth} />
-              </FormField>
-            </div>
-          </div>
-        )}
-
-        {chartType === CHART_TYPE.BODY_REGION && (
-          <div onBlur={form.leave("chartMarks")}>
-            <RegionField
-              id={`${fieldId}-region`}
-              value={region}
-              error={fieldError(errors, "chartMarks")}
-              onChange={setRegion}
+        {showPrices && splitLab && Number(labTotal) !== 0 && (
+          <dl
+            data-testid="treatment-price-summary"
+            className="flex flex-wrap items-end gap-x-4 gap-y-2"
+          >
+            <PriceTerm label={t("treatments.labCost")} amount={labTotal} currency={currency} />
+            <PriceOperator sign="+" />
+            <PriceTerm label={t("chart.panel.price")} amount={ownPrice} currency={currency} />
+            {hasDiscount && (
+              <>
+                <PriceOperator sign="−" />
+                <PriceTerm
+                  label={t("chart.panel.discount")}
+                  amount={discount}
+                  currency={currency}
+                />
+              </>
+            )}
+            <PriceOperator sign="=" />
+            <PriceTerm
+              label={t("treatments.patientPays")}
+              amount={patientPays}
+              currency={currency}
+              total
             />
-          </div>
-        )}
-
-        {chartType === CHART_TYPE.TOOTH_FDI && teeth.length === 1 && (
-          <div className="flex flex-col gap-1.5">
-            <span className="text-value font-medium text-ink">{t("chart.panel.surfaces")}</span>
-            <SurfaceSelector value={surfaces} onChange={setSurfaces} />
-          </div>
+          </dl>
         )}
 
         <div onBlur={form.leave("notes")}>
@@ -371,6 +436,35 @@ export function TreatmentForm({
         </div>
       </form>
     </>
+  );
+}
+
+function PriceTerm({
+  label,
+  amount,
+  currency,
+  total = false,
+}: {
+  readonly label: string;
+  readonly amount: string;
+  readonly currency: string | undefined;
+  readonly total?: boolean | undefined;
+}): JSX.Element {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <dt className="text-label text-ink-muted">{label}</dt>
+      <dd className={total ? "text-section font-semibold text-primary-700" : "text-value text-ink"}>
+        <Money amount={amount} currency={currency} />
+      </dd>
+    </div>
+  );
+}
+
+function PriceOperator({ sign }: { readonly sign: string }): JSX.Element {
+  return (
+    <span aria-hidden="true" className="pb-0.5 text-value text-ink-subtle">
+      {sign}
+    </span>
   );
 }
 

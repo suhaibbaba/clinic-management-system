@@ -299,6 +299,8 @@ through its `className` or a `data-part`, never a fork.
   `window.confirm`; the title names the thing, the body says what goes with it. It is an
   `alertdialog` described by its consequences: Enter confirms, Tab cycles Cancel and Confirm, Esc
   closes. Confirm counts down five seconds before it answers, so nothing is confirmed by reflex.
+- **No tinted box inside a form or dialog.** Group with spacing, a heading and a `border-line`
+  divider; never a `bg-canvas`, `bg-inset` or other filled panel around fields, lines or totals.
 - **Two control heights and no third:** `--control-h` for a target (field, button, chip),
   `--control-h-sm` for a compact row (tab, segment, table-row button, badge). A third is a token
   change.

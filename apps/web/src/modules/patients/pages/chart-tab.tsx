@@ -1,4 +1,4 @@
-import { CHART_TYPE, type PatientClinicalView } from "@clinic/shared";
+import { CHART_TYPE } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { SegmentedControl, useTabParam } from "@clinic/ui";
@@ -10,11 +10,9 @@ import { useSession } from "@web/shared/providers/session";
 export function ChartTab({
   patientId,
   dateOfBirth,
-  patient,
 }: {
   readonly patientId: string;
   readonly dateOfBirth?: string | null | undefined;
-  readonly patient?: PatientClinicalView | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
   const { user } = useSession();
@@ -41,7 +39,7 @@ export function ChartTab({
       {chart === CHART_TYPE.BODY_REGION ? (
         <BodyChartTab patientId={patientId} />
       ) : (
-        <ToothChartTab patientId={patientId} dateOfBirth={dateOfBirth} patient={patient} />
+        <ToothChartTab patientId={patientId} dateOfBirth={dateOfBirth} />
       )}
     </div>
   );

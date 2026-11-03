@@ -850,7 +850,8 @@
       "procedureCount_two": "معالجتان",
       "procedureCount_few": "{{count}} معالجات",
       "procedureCount_many": "{{count}} معالجة",
-      "procedureCount_other": "{{count}} معالجة"
+      "procedureCount_other": "{{count}} معالجة",
+      "labOrders": "طلبات المخبر لهذا السن"
     },
     "kind": "المخطط",
     "kinds": {
@@ -1029,7 +1030,11 @@
       "unpaid": "لم تُدفع حصة الطبيب",
       "paid": "دُفعت حصة الطبيب",
       "adjusted": "حصة الطبيب تحتاج تسوية"
-    }
+    },
+    "labCost": "كلفة المخبر",
+    "afterLab": "الصافي بعد المخبر",
+    "priceHint": "سعر المعالجة بدون كلفة المخبر. تُضاف كلفة المخبر إلى ما يدفعه المريض.",
+    "patientPays": "يدفع المريض"
   },
   "imaging": {
     "uploadTitle": "أضف صورة أشعة أو مستنداً",
@@ -1496,7 +1501,7 @@
       "toothHint": "اكتب رقم السن بنظام FDI أو نطاقاً مثل 14-17 ثم اضغط Enter",
       "toothInvalid": "رقم سن أو نطاق غير صالح",
       "removeTooth": "إزالة السن {{tooth}}",
-      "shade": "Shade",
+      "shade": "درجة اللون",
       "material": "المادة",
       "price": "السعر",
       "instructions": "تعليمات للمختبر",
@@ -1525,13 +1530,31 @@
       "returnExpected": "موعد التسليم الجديد",
       "costKept": "التكلفة محتسبة رغم الإلغاء",
       "labBalance": "رصيد المختبر",
-      "cancelReason": "سبب الإلغاء"
+      "cancelReason": "سبب الإلغاء",
+      "procedure": "المعالجة",
+      "selectProcedure": "اختر المعالجة",
+      "noProcedure": "غير مرتبط بمعالجة",
+      "procedureHint": "تُخصم كلفته من مبلغ هذه المعالجة ومن حصة الطبيب",
+      "open": "فتح الطلب",
+      "delete": "حذف الطلب",
+      "deleted": "حُذف الطلب",
+      "confirmDelete": {
+        "title": "حذف طلب «{{work}}»؟",
+        "hidden": "يختفي من ملف المريض وقائمة المخبر وكلفة المخبر في المعالجة.",
+        "kept": "يُؤرشف ولا يُمحى، ويبقى في سجل التدقيق."
+      }
     },
     "section": {
       "label": "أقسام المختبرات",
       "orders": "أعمال جارية",
       "done": "المنتهية",
       "directory": "جهات المختبرات"
+    },
+    "work": {
+      "title": "أعمال المخبر",
+      "add": "إضافة عمل مخبر",
+      "remove": "إزالة عمل المخبر هذا",
+      "number": "عمل المخبر {{number}}"
     }
   },
   "inventory": {
@@ -3545,7 +3568,9 @@
       "paidFilters": {
         "partly": "دفع جزءًا",
         "none": "لم يدفع بعد"
-      }
+      },
+      "net": "الصافي",
+      "ofNet": "{{percent}}% من الصافي"
     },
     "entryKinds": {
       "extra": "مكافأة",
@@ -3637,7 +3662,8 @@
       },
       "share": {
         "title": "حصته منها",
-        "detail": "العيادة تأخذ {{percent}}% ({{clinic}})، والباقي له."
+        "detail": "العيادة تأخذ {{percent}}% ({{clinic}})، والباقي له.",
+        "detailMixed": "العيادة تأخذ {{clinic}} بنسبة كل علاج كما ضُبطت، والباقي له."
       },
       "collected": {
         "title": "ما دفعه المرضى للعيادة",
@@ -3650,7 +3676,7 @@
       },
       "collectedShare": {
         "title": "ما دفعه المرضى من حصته",
-        "detail": "حصته {{percent}}% مما دفعه المرضى. {{waiting}} من حصته تُصرف حين يدفع الباقون."
+        "detail": "حصته من العلاجات التي دفعها المرضى. {{waiting}} من حصته تُصرف حين يدفع الباقون."
       },
       "salary": {
         "title": "راتبه الشهري",

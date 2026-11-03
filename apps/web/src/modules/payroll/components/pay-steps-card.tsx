@@ -57,7 +57,10 @@ export function PayStepsCard({
                 {t(`payroll.steps.${step.key}.title`)}
               </p>
               <p className="mt-0.5 text-meta text-ink-muted">
-                {t(`payroll.steps.${step.key}.detail`, values(step.values))}
+                {t(
+                  `payroll.steps.${step.key}.${step.detail === "mixed" ? "detailMixed" : "detail"}`,
+                  values(step.values),
+                )}
               </p>
               {step.parts && (
                 <dl className="mt-2 flex flex-col gap-1 rounded-panel bg-inset px-3 py-2 text-meta">
