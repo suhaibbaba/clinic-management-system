@@ -1,4 +1,9 @@
-import { SITE_SECTION } from "@clinic/shared";
+import {
+  SITE_PAGE_KIND,
+  sitePageEnabled,
+  type SITE_BLOCK_TYPE,
+  type SiteBlockOf,
+} from "@clinic/shared";
 import type { JSX } from "react";
 import { cx } from "@web/booking/ui";
 import { HeroDipRibbon, HeroRibbon, HeroSwoosh, HeroWave } from "@web/site/components/curves";
@@ -13,21 +18,25 @@ import { useSlides } from "@web/site/hooks/use-slides";
 import { nameIn, orDefault, pick, heroLines } from "@web/site/lib/text";
 import { SITE_PATH } from "@web/site/route";
 
-export function HeroSection(): JSX.Element {
-  const { site, language, languages, t } = useSite();
-  const { hero, story, highlights } = site.content;
-  const slides = hero.images
+export function HeroSection({
+  block,
+}: {
+  readonly block: SiteBlockOf<typeof SITE_BLOCK_TYPE.HERO>;
+}): JSX.Element {
+  const { site, siteDocument, language, languages, t } = useSite();
+  const { highlights } = block;
+  const slides = block.images
     .map((key) => site.images[key])
     .filter((url): url is string => url !== undefined);
   const { active, playing, show, hold } = useSlides(slides.length);
   const bookable = useBookable();
-  const eyebrow = pick(story.eyebrow, language, languages);
+  const eyebrow = pick(block.eyebrow, language, languages);
   const [lead, accent] = heroLines(
-    orDefault(hero.title, language, nameIn(site.clinic.name, language, languages), languages),
+    orDefault(block.title, language, nameIn(site.clinic.name, language, languages), languages),
   );
-  const statLabel = pick(hero.stat.label, language, languages);
+  const statLabel = pick(block.stat.label, language, languages);
   const faces = site.doctors.filter((doctor) => doctor.photoUrl !== null).slice(0, HERO_FACES_MAX);
-  const showServices = site.content.sections.includes(SITE_SECTION.SERVICES);
+  const showServices = sitePageEnabled(siteDocument, SITE_PAGE_KIND.SERVICES);
 
   return (
     <section
@@ -89,12 +98,12 @@ export function HeroSection(): JSX.Element {
           </div>
           <HeroDipRibbon className="absolute inset-0 size-full overflow-visible lg:hidden" />
           <HeroRibbon className="absolute inset-0 hidden size-full overflow-visible lg:block" />
-          {hero.stat.value && (
+          {block.stat.value && (
             <div
               data-testid="site-hero-stat"
               className="absolute end-4 bottom-[16%] flex flex-col items-center gap-0.5 rounded-t-[999px] rounded-b-card border border-surface/80 bg-surface/70 px-7 pt-5 pb-3 shadow-float backdrop-blur-md lg:start-[13%] lg:end-auto lg:bottom-24"
             >
-              <bdi className="text-title font-bold text-primary-700">{hero.stat.value}</bdi>
+              <bdi className="text-title font-bold text-primary-700">{block.stat.value}</bdi>
               {statLabel && <span className="text-label text-ink-muted">{statLabel}</span>}
               {faces.length > 0 && (
                 <span aria-hidden className="mt-2 flex items-center -space-x-2 rtl:space-x-reverse">
@@ -128,7 +137,7 @@ export function HeroSection(): JSX.Element {
               {accent && <span className="block text-primary-600">{accent}</span>}
             </h1>
             <p className="text-heading text-ink-muted">
-              {orDefault(hero.subtitle, language, t("hero.subtitle"), languages)}
+              {orDefault(block.subtitle, language, t("hero.subtitle"), languages)}
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-2">
               {bookable && (

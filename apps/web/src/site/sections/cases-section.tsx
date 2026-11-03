@@ -1,3 +1,4 @@
+import type { SITE_BLOCK_TYPE, SiteBlockOf } from "@clinic/shared";
 import type { JSX } from "react";
 import { CompareCard } from "@web/site/components/compare-card";
 import { ShowcaseHeading } from "@web/site/components/showcase-heading";
@@ -6,10 +7,13 @@ import { useSite } from "@web/site/hooks/use-site";
 import { completeCases } from "@web/site/lib/showcase";
 import { orDefault, pick } from "@web/site/lib/text";
 
-export function CasesSection(): JSX.Element | null {
+export function CasesSection({
+  block,
+}: {
+  readonly block: SiteBlockOf<typeof SITE_BLOCK_TYPE.CASES>;
+}): JSX.Element | null {
   const { site, language, languages, t } = useSite();
-  const { cases } = site.content;
-  const items = completeCases(site);
+  const items = completeCases(site, block.items);
 
   if (items.length === 0) {
     return null;
@@ -23,8 +27,8 @@ export function CasesSection(): JSX.Element | null {
     >
       <ShowcaseHeading
         id="cases"
-        title={orDefault(cases.title, language, t("cases.title"), languages)}
-        subtitle={pick(cases.subtitle, language, languages)}
+        title={orDefault(block.title, language, t("cases.title"), languages)}
+        subtitle={pick(block.subtitle, language, languages)}
       />
       <Slider
         label={t("cases.title")}

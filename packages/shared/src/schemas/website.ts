@@ -1,15 +1,7 @@
 import { z } from "zod";
-import { localizedTextSchema } from "@shared/locale/localized-text";
-import { clinicLocaleSchema } from "@shared/locale/profile";
 import { LANGUAGE_CODES, languageCodeSchema, type LanguageCode } from "@shared/locale/languages";
 import type { LocalizedText } from "@shared/locale/localized-text";
-import { CHART_TYPES } from "@shared/enums";
-import {
-  dayScheduleSchema,
-  paginationQuerySchema,
-  phoneSchema,
-  uuidSchema,
-} from "@shared/schemas/common";
+import { paginationQuerySchema, phoneSchema, uuidSchema } from "@shared/schemas/common";
 import { clinicLogoMimeSchema } from "@shared/schemas/clinics";
 import { personNameSchema } from "@shared/schemas/person-name";
 
@@ -344,50 +336,14 @@ export function siteImageKeys(content: SiteContent): string[] {
   return [...new Set(keys.filter((key): key is string => key !== null))];
 }
 
-export const publicSiteDoctorSchema = z.object({
-  id: uuidSchema,
-  name: personNameSchema,
-  specialty: localizedTextSchema,
-  photoUrl: z.url().nullable(),
-});
-export type PublicSiteDoctor = z.infer<typeof publicSiteDoctorSchema>;
-
-export const publicSiteClinicSchema = z.object({
-  name: personNameSchema,
-  slug: z.string(),
-  logoUrl: z.url().nullable(),
-  phone: z.string().nullable(),
-  country: z.string(),
-  email: z.string().nullable(),
-  address: localizedTextSchema.nullable(),
-  latitude: z.number().nullable(),
-  longitude: z.number().nullable(),
-  workingHours: z.array(dayScheduleSchema),
-  bookingEnabled: z.boolean(),
-  chartTypes: z.array(z.enum(CHART_TYPES)),
-  locale: clinicLocaleSchema,
-});
-export type PublicSiteClinic = z.infer<typeof publicSiteClinicSchema>;
-
-export const publicSiteSchema = z.object({
-  clinic: publicSiteClinicSchema,
-  doctors: z.array(publicSiteDoctorSchema),
-  content: siteContentSchema,
-  images: z.record(z.string(), z.url()),
-});
-export type PublicSite = z.infer<typeof publicSiteSchema>;
-
 export const SITE_PREVIEW_MESSAGE = {
   READY: "clinic-site-preview-ready",
   SITE: "clinic-site-preview",
+  EDIT: "clinic-site-preview-edit",
+  MOVE: "clinic-site-preview-move",
+  REMOVE: "clinic-site-preview-remove",
+  INSERT: "clinic-site-preview-insert",
 } as const;
-
-export const websiteEditorSchema = z.object({
-  site: publicSiteSchema,
-  publishedAt: z.iso.datetime().nullable(),
-  unpublished: z.boolean(),
-});
-export type WebsiteEditor = z.infer<typeof websiteEditorSchema>;
 
 export const presignSiteImageSchema = z.object({
   filename: z.string().trim().min(1).max(255),

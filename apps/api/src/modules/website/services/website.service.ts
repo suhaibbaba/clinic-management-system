@@ -9,20 +9,19 @@ import {
   ALLOWED_CLINIC_LOGO_MIME_TYPES,
   CLINIC_MODULE,
   MAX_SITE_IMAGE_BYTES,
-  SITE_SECTION,
   USER_ROLE,
   bookingSettings,
   clinicLocale,
-  defaultSiteContent,
-  siteContentSchema,
-  siteImageKeys,
+  defaultSiteDocument,
+  readSiteDocument,
+  siteDocumentImageKeys,
   type ClinicLocale,
   type PersonName,
   type PresignSiteImageInput,
   type PresignSiteImageResponse,
   type PublicSite,
   type PublicSiteDoctor,
-  type SiteContent,
+  type SiteDocument,
   type WebsiteEditor,
 } from "@clinic/shared";
 import { and, asc, eq, isNull, ne, sql, type SQL } from "drizzle-orm";
@@ -36,7 +35,7 @@ import { StorageService } from "@api/modules/storage/services/storage.service";
 import { ClinicsService } from "@api/modules/clinics/services/clinics.service";
 import { SITE_IMAGE_CATEGORY } from "@api/modules/website/constants";
 import {
-  sameContent,
+  sameDocument,
   siteHead,
   siteHost,
   type SiteContentRow,
@@ -79,12 +78,6 @@ const offersWebsite = sql`${CLINIC_MODULE.WEBSITE} = any(${clinics.modules})`;
 
 const toNumber = (value: string | null): number | null => (value === null ? null : Number(value));
 
-const readContent = (stored: unknown): SiteContent => {
-  const parsed = siteContentSchema.safeParse(stored);
-
-  return parsed.success ? parsed.data : defaultSiteContent();
-};
-
 @Injectable()
 export class WebsiteService implements OnModuleInit {
   constructor(
@@ -107,24 +100,24 @@ export class WebsiteService implements OnModuleInit {
   async editor(actor: AuthenticatedUser): Promise<WebsiteEditor> {
     const clinic = await this.clinicById(actor.clinicId);
     const row = await this.contentRow(actor.clinicId);
-    const draft = row ? readContent(row.draft) : defaultSiteContent();
-    const published = row?.published ? readContent(row.published) : null;
+    const draft = row ? readSiteDocument(row.draft) : defaultSiteDocument();
+    const published = row?.published ? readSiteDocument(row.published) : null;
 
     return {
-      site: await this.assemble(clinic, draft, published ? siteImageKeys(published) : []),
+      site: await this.assemble(clinic, draft, published ? siteDocumentImageKeys(published) : []),
       publishedAt: row?.publishedAt?.toISOString() ?? null,
-      unpublished: !sameContent(draft, published),
+      unpublished: !sameDocument(draft, published),
     };
   }
 
-  async saveDraft(actor: AuthenticatedUser, content: SiteContent): Promise<WebsiteEditor> {
+  async saveDraft(actor: AuthenticatedUser, document: SiteDocument): Promise<WebsiteEditor> {
     const existing = await this.contentRow(actor.clinicId);
     const known = new Set([
-      ...(existing ? siteImageKeys(readContent(existing.draft)) : []),
-      ...(existing?.published ? siteImageKeys(readContent(existing.published)) : []),
+      ...(existing ? siteDocumentImageKeys(readSiteDocument(existing.draft)) : []),
+      ...(existing?.published ? siteDocumentImageKeys(readSiteDocument(existing.published)) : []),
     ]);
 
-    for (const key of siteImageKeys(content)) {
+    for (const key of siteDocumentImageKeys(document)) {
       if (!known.has(key)) {
         await this.verifyUploadedImage(key, actor.clinicId);
       }
@@ -134,13 +127,13 @@ export class WebsiteService implements OnModuleInit {
       .insert(siteContent)
       .values({
         clinicId: actor.clinicId,
-        draft: content,
+        draft: document,
         createdBy: actor.id,
         updatedBy: actor.id,
       })
       .onConflictDoUpdate({
         target: siteContent.clinicId,
-        set: { draft: content, updatedAt: new Date(), updatedBy: actor.id },
+        set: { draft: document, updatedAt: new Date(), updatedBy: actor.id },
       });
 
     return this.editor(actor);
@@ -153,11 +146,10 @@ export class WebsiteService implements OnModuleInit {
       throw new BadRequestException("There is no draft to publish");
     }
 
-    const draft = readContent(row.draft);
+    const draft = readSiteDocument(row.draft);
+    const kept = new Set(siteDocumentImageKeys(draft));
     const retired = row.published
-      ? siteImageKeys(readContent(row.published)).filter(
-          (key) => !siteImageKeys(draft).includes(key),
-        )
+      ? siteDocumentImageKeys(readSiteDocument(row.published)).filter((key) => !kept.has(key))
       : [];
 
     await this.db
@@ -228,7 +220,7 @@ export class WebsiteService implements OnModuleInit {
 
   async requirePublishedClinic(
     slug: string,
-  ): Promise<{ id: string; content: SiteContent; locale: ClinicLocale }> {
+  ): Promise<{ id: string; document: SiteDocument; locale: ClinicLocale }> {
     const clinic = await this.liveClinic(eq(clinics.slug, slug));
     const row = await this.contentRow(clinic.id);
 
@@ -236,7 +228,11 @@ export class WebsiteService implements OnModuleInit {
       throw new NotFoundException("Clinic not found");
     }
 
-    return { id: clinic.id, content: readContent(row.published), locale: clinicLocale(clinic) };
+    return {
+      id: clinic.id,
+      document: readSiteDocument(row.published),
+      locale: clinicLocale(clinic),
+    };
   }
 
   async requirePortalClinic(slug: string): Promise<{ id: string; name: PersonName }> {
@@ -257,9 +253,7 @@ export class WebsiteService implements OnModuleInit {
       .where(and(eq(siteContent.clinicId, clinicId), isNull(clinics.deletedAt), offersWebsite))
       .limit(1);
 
-    return Boolean(
-      row?.published && readContent(row.published).sections.includes(SITE_SECTION.PORTAL),
-    );
+    return Boolean(row?.published && readSiteDocument(row.published).portal);
   }
 
   private async publicSite(clinic: ClinicRow): Promise<PublicSite> {
@@ -269,19 +263,19 @@ export class WebsiteService implements OnModuleInit {
       throw new NotFoundException("Clinic not found");
     }
 
-    const content = readContent(row.published);
-    const site = await this.assemble(clinic, content, []);
-    const hidden = new Set(content.doctors.hidden);
+    const document = readSiteDocument(row.published);
+    const site = await this.assemble(clinic, document, []);
+    const hidden = new Set(document.collections.doctors.hidden);
 
     return { ...site, doctors: site.doctors.filter((doctor) => !hidden.has(doctor.id)) };
   }
 
   private async assemble(
     clinic: ClinicRow,
-    content: SiteContent,
+    document: SiteDocument,
     extraImages: readonly string[],
   ): Promise<PublicSite> {
-    const keys = [...new Set([...siteImageKeys(content), ...extraImages])];
+    const keys = [...new Set([...siteDocumentImageKeys(document), ...extraImages])];
     const signed = await Promise.all(
       keys.map(async (key) => [key, (await this.storage.createBrandingUrl(key)).url] as const),
     );
@@ -305,7 +299,7 @@ export class WebsiteService implements OnModuleInit {
         locale,
       },
       doctors: await this.doctors(clinic.id),
-      content,
+      document,
       images: Object.fromEntries(signed),
     };
   }

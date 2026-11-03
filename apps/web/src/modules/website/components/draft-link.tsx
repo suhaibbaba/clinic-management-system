@@ -1,8 +1,8 @@
-import { siteContentSchema } from "@clinic/shared";
+import { siteDocumentSchema } from "@clinic/shared";
 import type { JSX } from "react";
 import { FormField, Input } from "@clinic/ui";
 import { useEditor } from "@web/modules/website/hooks/use-editor";
-import { valueAt, withValueAt } from "@web/modules/website/lib/site-draft";
+import { joinPath, valueAt, withValueAt } from "@web/modules/website/lib/site-draft";
 import { fieldNeed } from "@web/shared/lib/schema-fields";
 
 export function DraftLink({
@@ -20,18 +20,19 @@ export function DraftLink({
   readonly maxLength?: number;
   readonly adornment?: "globe";
 }): JSX.Element {
-  const { draft, update, errors, leave } = useEditor();
-  const id = path.replaceAll(".", "-");
-  const value = (valueAt(draft, path) as string | undefined) ?? "";
+  const { draft, update, errors, leave, scope } = useEditor();
+  const full = joinPath(scope, path);
+  const id = full.replaceAll(".", "-");
+  const value = (valueAt(draft, full) as string | undefined) ?? "";
 
   return (
-    <div onBlur={leave(path)}>
+    <div onBlur={leave(full)}>
       <FormField
         label={label}
         htmlFor={id}
-        error={errors[path]}
+        error={errors[full]}
         errorKey="website.fields.invalidLink"
-        {...fieldNeed(siteContentSchema, path)}
+        {...fieldNeed(siteDocumentSchema, full)}
         {...(hint !== undefined && { hint })}
       >
         <Input
@@ -43,9 +44,9 @@ export function DraftLink({
           value={value}
           {...(placeholder !== undefined && { placeholder })}
           {...(adornment === "globe" && { adornment: "globe" as const })}
-          hasError={errors[path] !== undefined}
+          hasError={errors[full] !== undefined}
           onChange={(event) =>
-            update((current) => withValueAt(current, path, event.target.value.trim()))
+            update((current) => withValueAt(current, full, event.target.value.trim()))
           }
         />
       </FormField>

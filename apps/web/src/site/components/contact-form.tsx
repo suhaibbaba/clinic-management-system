@@ -4,6 +4,7 @@ import {
   joinPhone,
   type PhoneCountry,
 } from "@shared/constants/phone";
+import type { SITE_BLOCK_TYPE, SiteBlockOf } from "@shared/schemas/site-blocks";
 import { createContactMessageSchema } from "@shared/schemas/website";
 import { useId, useRef, useState, type FormEvent, type JSX } from "react";
 import { Alert, Button, cx } from "@web/booking/ui";
@@ -19,13 +20,16 @@ const EMPTY = { name: "", phone: "", topic: "", message: "" };
 
 type ContactField = keyof typeof EMPTY;
 
-export function ContactForm(): JSX.Element {
+export function ContactForm({
+  topics,
+}: {
+  readonly topics: SiteBlockOf<typeof SITE_BLOCK_TYPE.CONTACT_MAIN>["topics"];
+}): JSX.Element {
   const { site, language, languages, t, preview } = useSite();
   const base = useId();
   const [country, setCountry] = useState<PhoneCountry>(
     isPhoneCountry(site.clinic.country) ? site.clinic.country : DEFAULT_PHONE_COUNTRY,
   );
-  const topics = site.content.contact.topics;
   const [values, setValues] = useState(EMPTY);
   const [touched, setTouched] = useState(false);
   const [busy, setBusy] = useState(false);

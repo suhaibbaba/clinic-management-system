@@ -3547,37 +3547,14 @@
       "publishedAt": "Last published: {{at}}"
     },
     "cards": {
-      "sections": "Sections",
-      "sectionsHint": "Show or hide each section and order them as they appear on the page.",
-      "hero": "Hero",
-      "heroHint": "The first thing a visitor sees: a title, a description and up to three rotating photos.",
-      "story": "Home introduction",
-      "storyHint": "A picture with a badge, a title, the highlight cards and a link to About us.",
       "services": "Services",
       "servicesHint": "What the clinic offers. Services are also the first booking step.",
       "doctors": "Doctors",
       "doctorsHint": "Names, specialties and photos come from the doctors' accounts. Hide anyone you do not want shown.",
-      "about": "About us",
-      "aboutHint": "An introduction to the clinic, its values and a short quote.",
-      "gallery": "Clinic gallery",
-      "galleryHint": "Three photos of the clinic with a short title and text, shown on the home page.",
-      "booking": "Booking",
-      "bookingHint": "The online booking form itself, with the rules set in the booking settings.",
-      "contact": "Contact",
-      "contactHint": "Phone, email, address, hours and the map come from the clinic details.",
       "brand": "Brand and links",
-      "brandHint": "A short line shown over pictures, and the clinic's social accounts in the footer.",
-      "cases": "Before and after",
-      "casesHint": "Real cases with a photo before treatment and one after, shown on the home page. A case appears once both photos are in.",
-      "testimonials": "Patient reviews",
-      "testimonialsHint": "What patients said about the clinic, with their rating, shown on the home page."
+      "brandHint": "A short line shown over pictures, and the clinic's social accounts in the footer."
     },
     "sections": {
-      "services": "Services",
-      "doctors": "Doctors",
-      "about": "About us",
-      "booking": "Booking",
-      "contact": "Contact",
       "portal": "Patient account"
     },
     "fields": {
@@ -3618,9 +3595,6 @@
       "ctaTitle": "Booking call-out title",
       "ctaSubtitle": "Booking call-out text",
       "ctaImage": "Booking call-out picture"
-    },
-    "placeholders": {
-      "servicesTitle": "Our services"
     },
     "language": {
       "ar": "In Arabic",
@@ -3698,8 +3672,7 @@
         "doctors": "Doctors",
         "about": "About us",
         "contact": "Contact",
-        "booking": "Booking",
-        "account": "Patient account"
+        "booking": "Booking"
       }
     },
     "messages": {
@@ -3746,6 +3719,113 @@
       "stars_one": "{{count}} star",
       "stars_other": "{{count}} stars",
       "add": "Add a review"
+    },
+    "editor": {
+      "missing": "Missing",
+      "toolbar": "Editor tools",
+      "pageShown": "Shown on the site",
+      "language": "Preview language",
+      "unsaved": "Unsaved changes",
+      "invalid": "Fix a problem first",
+      "saveDraft": "Save draft",
+      "siteSettings": "Site settings",
+      "remove": "Delete",
+      "bookingOff": "Online booking is off for the clinic, so the booking page stays hidden. Turn booking on in the booking settings first.",
+      "fields": {
+        "highlights": "Highlight cards",
+        "storyImage": "Picture used when the first one is empty",
+        "showTagline": "Show the tagline over the picture",
+        "features": "Feature cards",
+        "pillarsNote": "Line under the cards",
+        "quoteImage": "Quote picture"
+      },
+      "settings": {
+        "pages": "Pages",
+        "pagesHint": "Show or hide each page of the site. The home page is always shown.",
+        "bookingBand": "Booking call-out",
+        "bookingBandHint": "The band inviting visitors to book, shown at the bottom of the pages."
+      },
+      "library": {
+        "title": "Add a section",
+        "description": "Pick a section to add at this place on the page."
+      },
+      "removeConfirm": {
+        "title": "Delete the “{{name}}” section?",
+        "consequence": "The section and everything written in it leave this page when you save."
+      },
+      "publishConfirm": {
+        "title": "Publish the website?",
+        "consequence": "Visitors see these changes as soon as they are published."
+      },
+      "blocks": {
+        "hero": {
+          "name": "Home hero",
+          "description": "The first thing a visitor sees: a title, a description, rotating photos and highlight cards."
+        },
+        "servicesTeaser": {
+          "name": "Services preview",
+          "description": "A heading over the first services, with a link to the services page."
+        },
+        "aboutTeaser": {
+          "name": "About preview",
+          "description": "A picture with a badge, a short introduction, numbers and a link to About us."
+        },
+        "cases": {
+          "name": "Before and after",
+          "description": "Real cases with a photo before treatment and one after. A case appears once both photos are in."
+        },
+        "doctorsTeaser": {
+          "name": "Doctors preview",
+          "description": "A heading over the clinic's doctors, with a link to the doctors page."
+        },
+        "testimonials": {
+          "name": "Patient reviews",
+          "description": "What patients said about the clinic, with their rating."
+        },
+        "pageHero": {
+          "name": "Page header",
+          "description": "The title, introduction and picture at the top of the page."
+        },
+        "servicesGrid": {
+          "name": "Services list",
+          "description": "Every service the clinic offers. Services are also the first booking step."
+        },
+        "doctorsGrid": {
+          "name": "Doctors list",
+          "description": "Names, specialties and photos come from the doctors' accounts. Hide anyone you do not want shown."
+        },
+        "aboutPillars": {
+          "name": "Mission and values",
+          "description": "Up to four cards, a short line and a quote."
+        },
+        "aboutValues": {
+          "name": "Why us",
+          "description": "Reasons to choose the clinic, beside a picture."
+        },
+        "gallery": {
+          "name": "Clinic gallery",
+          "description": "Up to three photos of the clinic with a short title and text."
+        },
+        "contactMain": {
+          "name": "Contact details and form",
+          "description": "Phone, email, address and hours come from the clinic details; the form sends a message to the clinic."
+        },
+        "contactWelcome": {
+          "name": "Welcome and map",
+          "description": "A welcome line and picture over the clinic's map."
+        },
+        "booking": {
+          "name": "Booking form",
+          "description": "The online booking form, with the rules set in the booking settings."
+        }
+      },
+      "title": "Website editor",
+      "exit": "Exit"
+    },
+    "content": {
+      "title": "Website content",
+      "hint": "The editor opens in a new tab, with the site filling the screen.",
+      "edit": "Edit website"
     }
   },
   "finance": {

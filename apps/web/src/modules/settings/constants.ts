@@ -16,7 +16,6 @@ export const SETTINGS_INNER_PARAMS = [
   "trigger",
   "outcome",
   "status",
-  "device",
   "page",
   "perPage",
 ];

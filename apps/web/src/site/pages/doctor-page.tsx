@@ -12,8 +12,8 @@ import { nameIn, pick } from "@web/site/lib/text";
 import { SITE_PATH } from "@web/site/route";
 
 export function DoctorPage({ id }: { readonly id: string }): JSX.Element {
-  const { site, language, languages, t } = useSite();
-  const doctor = visibleDoctors(site).find((candidate) => candidate.id === id);
+  const { site, siteDocument, language, languages, t } = useSite();
+  const doctor = visibleDoctors(site, siteDocument).find((candidate) => candidate.id === id);
   const bookable = useBookable();
 
   if (!doctor) {
@@ -26,7 +26,7 @@ export function DoctorPage({ id }: { readonly id: string }): JSX.Element {
   }
 
   const name = nameIn(doctor.name, language, languages);
-  const profile = profileOf(site, doctor.id);
+  const profile = profileOf(siteDocument, doctor.id);
   const bio = profile ? pick(profile.bio, language, languages) : "";
 
   return (

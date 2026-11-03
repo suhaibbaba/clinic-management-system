@@ -1,4 +1,4 @@
-import type { ContactMessageStatus, PresignSiteImageInput, SiteContent } from "@clinic/shared";
+import type { ContactMessageStatus, PresignSiteImageInput, SiteDocument } from "@clinic/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CONTACT_MESSAGES_KEY, WEBSITE_EDITOR_KEY } from "@web/shared/constants/query-keys";
 import { uploadToStorage } from "@web/shared/lib/upload";
@@ -12,7 +12,7 @@ export function useSaveSiteDraft() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (content: SiteContent) => websiteApi.saveDraft(content),
+    mutationFn: (document: SiteDocument) => websiteApi.saveDraft(document),
     onSuccess: (editor) => queryClient.setQueryData([WEBSITE_EDITOR_KEY], editor),
   });
 }
@@ -21,8 +21,8 @@ export function usePublishSite() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (content: SiteContent) => {
-      await websiteApi.saveDraft(content);
+    mutationFn: async (document: SiteDocument) => {
+      await websiteApi.saveDraft(document);
 
       return websiteApi.publish();
     },

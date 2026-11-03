@@ -1,4 +1,9 @@
-import { SITE_SECTION } from "@clinic/shared";
+import {
+  SITE_PAGE_KIND,
+  sitePageEnabled,
+  type SITE_BLOCK_TYPE,
+  type SiteBlockOf,
+} from "@clinic/shared";
 import type { JSX } from "react";
 import { cx } from "@web/booking/ui";
 import { PillLink } from "@web/site/components/pill-link";
@@ -9,10 +14,13 @@ import { imageOf } from "@web/site/lib/images";
 import { orDefault, pick } from "@web/site/lib/text";
 import { SITE_PATH } from "@web/site/route";
 
-export function GallerySection(): JSX.Element | null {
-  const { site, language, languages, t } = useSite();
-  const { gallery } = site.content;
-  const photos = gallery.images
+export function GallerySection({
+  block,
+}: {
+  readonly block: SiteBlockOf<typeof SITE_BLOCK_TYPE.GALLERY>;
+}): JSX.Element | null {
+  const { site, siteDocument, language, languages, t } = useSite();
+  const photos = block.images
     .map((key) => imageOf(site, key))
     .filter((url): url is string => url !== undefined);
 
@@ -27,11 +35,11 @@ export function GallerySection(): JSX.Element | null {
     >
       <SectionHeading
         id="gallery"
-        eyebrow={orDefault(gallery.eyebrow, language, t("home.galleryEyebrow"), languages)}
-        title={orDefault(gallery.title, language, t("home.galleryTitle"), languages)}
-        subtitle={pick(gallery.body, language, languages)}
+        eyebrow={orDefault(block.eyebrow, language, t("home.galleryEyebrow"), languages)}
+        title={orDefault(block.title, language, t("home.galleryTitle"), languages)}
+        subtitle={pick(block.body, language, languages)}
       >
-        {site.content.sections.includes(SITE_SECTION.ABOUT) && (
+        {sitePageEnabled(siteDocument, SITE_PAGE_KIND.ABOUT) && (
           <PillLink
             to={SITE_PATH.ABOUT}
             tone="outline"

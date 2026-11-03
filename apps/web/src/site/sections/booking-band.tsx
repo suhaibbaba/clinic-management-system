@@ -66,10 +66,10 @@ function ContactChip({
 }
 
 export function BookingBand(): JSX.Element {
-  const { site, language, languages, t } = useSite();
+  const { site, siteDocument, language, languages, t } = useSite();
   const glyph = useSiteGlyph();
   const { clinic } = site;
-  const { cta } = site.content.about;
+  const cta = siteDocument.bookingBand;
   const bookable = useBookable();
   const image = imageOf(site, cta.image);
   const address = pick(clinic.address, language, languages);

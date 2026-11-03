@@ -18,9 +18,9 @@ export function DoctorCard({
   readonly doctor: PublicSiteDoctor;
   readonly bookable: boolean;
 }): JSX.Element {
-  const { site, language, languages, t } = useSite();
+  const { siteDocument, language, languages, t } = useSite();
   const name = nameIn(doctor.name, language, languages);
-  const profile = profileOf(site, doctor.id);
+  const profile = profileOf(siteDocument, doctor.id);
   const title =
     (profile && pick(profile.title, language, languages)) ||
     pick(doctor.specialty, language, languages);

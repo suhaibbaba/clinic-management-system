@@ -12,8 +12,8 @@ const BRAND: Record<SiteSocial, string> = {
 };
 
 export function SocialLinks({ plain = false }: { readonly plain?: boolean }): JSX.Element | null {
-  const { site, t } = useSite();
-  const links = SITE_SOCIALS.filter((name) => site.content.brand.social[name] !== "");
+  const { siteDocument, t } = useSite();
+  const links = SITE_SOCIALS.filter((name) => siteDocument.brand.social[name] !== "");
 
   if (links.length === 0) {
     return null;
@@ -28,7 +28,7 @@ export function SocialLinks({ plain = false }: { readonly plain?: boolean }): JS
       {links.map((name) => (
         <li key={name}>
           <a
-            href={site.content.brand.social[name]}
+            href={siteDocument.brand.social[name]}
             target="_blank"
             rel="noreferrer noopener"
             aria-label={t(`footer.socials.${name}`)}

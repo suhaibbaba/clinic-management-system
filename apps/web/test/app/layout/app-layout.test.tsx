@@ -1,6 +1,8 @@
 import { USER_ROLE, type UserRole } from "@clinic/shared";
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { JSX } from "react";
+import { useLocation } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { AppRoutes } from "@web/app/router";
 import ar from "@web/i18n/locales/ar.json";
@@ -56,6 +58,12 @@ async function renderAs(
 
   renderWithProviders(<AppRoutes />, { route });
   await screen.findAllByText(`مستخدم ${role}`);
+}
+
+function LocationProbe(): JSX.Element {
+  const { pathname, search } = useLocation();
+
+  return <output data-testid="location">{`${pathname}${search}`}</output>;
 }
 
 const nav = (): HTMLElement => screen.getByRole("navigation", { name: ar.nav.menu });
@@ -360,6 +368,86 @@ describe("The website inbox", () => {
       within(nav()).queryByRole("link", { name: ar.nav.settingsPage }),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: ar.nav.clinic })).not.toBeInTheDocument();
+  });
+});
+
+describe("The website editor", () => {
+  const websiteCapabilities = SHIPPED_CAPABILITIES[USER_ROLE.ADMIN].filter((capability) =>
+    capability.startsWith("website"),
+  );
+
+  async function openEditor(
+    role: UserRole,
+    route: string,
+    capabilities: readonly string[] = SHIPPED_CAPABILITIES[role],
+  ): Promise<void> {
+    authTokens.clear();
+    mockApi(handlers(role, capabilities));
+    renderWithProviders(
+      <>
+        <AppRoutes />
+        <LocationProbe />
+      </>,
+      { route },
+    );
+  }
+
+  it("opens full screen, outside the app shell, for a role that may edit the site", async () => {
+    await openEditor(USER_ROLE.ADMIN, "/website/edit");
+
+    expect(await screen.findByTestId("website-editor-page")).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: ar.nav.menu })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("app-topbar")).not.toBeInTheDocument();
+  });
+
+  it("opens for a role the clinic granted the editor to", async () => {
+    await openEditor(USER_ROLE.DOCTOR, "/website/edit", [
+      ...SHIPPED_CAPABILITIES[USER_ROLE.DOCTOR],
+      "website.editor",
+    ]);
+
+    expect(await screen.findByTestId("website-editor-page")).toBeInTheDocument();
+  });
+
+  it.each([
+    USER_ROLE.DOCTOR,
+    USER_ROLE.VISITING_DOCTOR,
+    USER_ROLE.TECHNICIAN,
+    USER_ROLE.RECEPTIONIST,
+  ])("sends %s, who may not edit the site, onto the dashboard", async (role) => {
+    await renderAs(role, "/website/edit");
+
+    expect(
+      await screen.findByRole("region", { name: ar.dashboard.schedule.title }),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("website-editor-page")).not.toBeInTheDocument();
+  });
+
+  it("sends the admin of a clinic without the website module onto the dashboard", async () => {
+    await renderAs(
+      USER_ROLE.ADMIN,
+      "/website/edit",
+      SHIPPED_CAPABILITIES[USER_ROLE.ADMIN].filter(
+        (capability) => !websiteCapabilities.includes(capability),
+      ),
+    );
+
+    expect(
+      await screen.findByRole("region", { name: ar.dashboard.schedule.title }),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("website-editor-page")).not.toBeInTheDocument();
+  });
+
+  it("carries the retired editor address on the content tab into the editor", async () => {
+    await openEditor(
+      USER_ROLE.ADMIN,
+      "/settings?view=website&tab=content&page=about&edit=about.hero&device=mobile",
+    );
+
+    expect(await screen.findByTestId("website-editor-page")).toBeInTheDocument();
+    expect(screen.getByTestId("location")).toHaveTextContent(
+      "/website/edit?page=about&edit=about.hero&device=mobile",
+    );
   });
 });
 

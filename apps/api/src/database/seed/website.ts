@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { CLINIC_ICONS, CLINIC_MODULE, siteContentSchema } from "@clinic/shared";
+import { CLINIC_ICONS, CLINIC_MODULE, contentToDocument, siteContentSchema } from "@clinic/shared";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import type { Database } from "@api/database/database.module";
 import { clinics, doctors, siteContent, users } from "@api/database/schema";
@@ -187,16 +187,18 @@ async function seedSiteContent(
     return doctorId && profile ? [{ doctorId, ...profile }] : [];
   });
 
-  const content = siteContentSchema.parse(
-    buildSiteContent((name) => {
-      const key = keys.get(name);
+  const content = contentToDocument(
+    siteContentSchema.parse(
+      buildSiteContent((name) => {
+        const key = keys.get(name);
 
-      if (!key) {
-        throw new Error(`The seed has no website photo named ${name}`);
-      }
+        if (!key) {
+          throw new Error(`The seed has no website photo named ${name}`);
+        }
 
-      return key;
-    }, profiles),
+        return key;
+      }, profiles),
+    ),
   );
 
   const now = new Date();

@@ -3547,37 +3547,14 @@
       "publishedAt": "Son yayın: {{at}}"
     },
     "cards": {
-      "sections": "Bölümler",
-      "sectionsHint": "Her bölümü gösterin veya gizleyin, sayfadaki sıralarını belirleyin.",
-      "hero": "Ana görsel",
-      "heroHint": "Ziyaretçinin ilk gördüğü alan: bir başlık, bir açıklama ve dönüşümlü en fazla üç fotoğraf.",
-      "story": "Ana sayfa tanıtımı",
-      "storyHint": "Rozetli bir görsel, bir başlık, öne çıkan kartlar ve Hakkımızda bağlantısı.",
       "services": "Hizmetler",
       "servicesHint": "Kliniğin sunduğu hizmetler. Hizmetler aynı zamanda randevunun ilk adımıdır.",
       "doctors": "Doktorlar",
       "doctorsHint": "Adlar, uzmanlıklar ve fotoğraflar doktorların hesaplarından gelir. Göstermek istemediğiniz kişileri gizleyin.",
-      "about": "Hakkımızda",
-      "aboutHint": "Kliniğin tanıtımı, değerleri ve kısa bir alıntı.",
-      "gallery": "Klinik galerisi",
-      "galleryHint": "Kliniğin kısa başlık ve metinli üç fotoğrafı; ana sayfada gösterilir.",
-      "booking": "Randevu",
-      "bookingHint": "Online randevu formunun kendisi; kuralları randevu ayarlarından belirlenir.",
-      "contact": "İletişim",
-      "contactHint": "Telefon, e-posta, adres, saatler ve harita klinik bilgilerinden gelir.",
       "brand": "Marka ve bağlantılar",
-      "brandHint": "Görsellerin üzerinde görünen kısa bir cümle ve altbilgideki klinik sosyal medya hesapları.",
-      "cases": "Öncesi ve sonrası",
-      "casesHint": "Tedavi öncesi ve sonrası fotoğraflı gerçek vakalar; ana sayfada gösterilir. Vaka, iki fotoğraf da eklenince görünür.",
-      "testimonials": "Hasta yorumları",
-      "testimonialsHint": "Hastaların klinik hakkındaki görüşleri ve puanları; ana sayfada gösterilir."
+      "brandHint": "Görsellerin üzerinde görünen kısa bir cümle ve altbilgideki klinik sosyal medya hesapları."
     },
     "sections": {
-      "services": "Hizmetler",
-      "doctors": "Doktorlar",
-      "about": "Hakkımızda",
-      "booking": "Randevu",
-      "contact": "İletişim",
       "portal": "Hasta hesabı"
     },
     "fields": {
@@ -3618,9 +3595,6 @@
       "ctaTitle": "Randevu çağrısı başlığı",
       "ctaSubtitle": "Randevu çağrısı metni",
       "ctaImage": "Randevu çağrısı görseli"
-    },
-    "placeholders": {
-      "servicesTitle": "Hizmetlerimiz"
     },
     "language": {
       "ar": "Arapça",
@@ -3698,8 +3672,7 @@
         "doctors": "Doktorlar",
         "about": "Hakkımızda",
         "contact": "İletişim",
-        "booking": "Randevu",
-        "account": "Hasta hesabı"
+        "booking": "Randevu"
       }
     },
     "messages": {
@@ -3746,6 +3719,113 @@
       "stars_one": "{{count}} yıldız",
       "stars_other": "{{count}} yıldız",
       "add": "Yorum ekle"
+    },
+    "editor": {
+      "missing": "Eksik",
+      "toolbar": "Düzenleyici araçları",
+      "pageShown": "Sitede gösterilir",
+      "language": "Önizleme dili",
+      "unsaved": "Kaydedilmemiş değişiklikler",
+      "invalid": "Önce bir sorunu düzeltin",
+      "saveDraft": "Taslağı kaydet",
+      "siteSettings": "Site ayarları",
+      "remove": "Sil",
+      "bookingOff": "Klinikte çevrimiçi randevu kapalı, bu yüzden randevu sayfası gizli kalır. Önce randevu ayarlarından randevuyu açın.",
+      "fields": {
+        "highlights": "Öne çıkan kartlar",
+        "storyImage": "İlki boşken kullanılan resim",
+        "showTagline": "Sloganı resmin üzerinde göster",
+        "features": "Özellik kartları",
+        "pillarsNote": "Kartların altındaki satır",
+        "quoteImage": "Alıntı resmi"
+      },
+      "settings": {
+        "pages": "Sayfalar",
+        "pagesHint": "Sitenin her sayfasını gösterin veya gizleyin. Ana sayfa her zaman gösterilir.",
+        "bookingBand": "Randevu çağrısı",
+        "bookingBandHint": "Ziyaretçileri randevuya davet eden, sayfaların altındaki bant."
+      },
+      "library": {
+        "title": "Bölüm ekle",
+        "description": "Sayfanın bu yerine eklenecek bir bölüm seçin."
+      },
+      "removeConfirm": {
+        "title": "“{{name}}” bölümü silinsin mi?",
+        "consequence": "Bölüm ve içine yazılan her şey kaydettiğinizde bu sayfadan kalkar."
+      },
+      "publishConfirm": {
+        "title": "Web sitesi yayınlansın mı?",
+        "consequence": "Ziyaretçiler bu değişiklikleri yayınlanır yayınlanmaz görür."
+      },
+      "blocks": {
+        "hero": {
+          "name": "Ana sayfa girişi",
+          "description": "Ziyaretçinin ilk gördüğü: başlık, açıklama, dönen fotoğraflar ve öne çıkan kartlar."
+        },
+        "servicesTeaser": {
+          "name": "Hizmetler özeti",
+          "description": "İlk hizmetlerin üzerinde bir başlık ve hizmetler sayfasına bağlantı."
+        },
+        "aboutTeaser": {
+          "name": "Hakkımızda özeti",
+          "description": "Rozetli bir resim, kısa bir tanıtım, rakamlar ve Hakkımızda bağlantısı."
+        },
+        "cases": {
+          "name": "Önce ve sonra",
+          "description": "Tedavi öncesi ve sonrası fotoğraflı gerçek vakalar. Vaka iki fotoğraf da eklenince görünür."
+        },
+        "doctorsTeaser": {
+          "name": "Doktorlar özeti",
+          "description": "Kliniğin doktorlarının üzerinde bir başlık ve doktorlar sayfasına bağlantı."
+        },
+        "testimonials": {
+          "name": "Hasta yorumları",
+          "description": "Hastaların klinik hakkında söyledikleri ve puanları."
+        },
+        "pageHero": {
+          "name": "Sayfa başlığı",
+          "description": "Sayfanın üstündeki başlık, giriş ve resim."
+        },
+        "servicesGrid": {
+          "name": "Hizmet listesi",
+          "description": "Kliniğin sunduğu tüm hizmetler. Hizmetler aynı zamanda randevunun ilk adımıdır."
+        },
+        "doctorsGrid": {
+          "name": "Doktor listesi",
+          "description": "İsimler, uzmanlıklar ve fotoğraflar doktor hesaplarından gelir. Göstermek istemediğiniz kişiyi gizleyin."
+        },
+        "aboutPillars": {
+          "name": "Misyon ve değerler",
+          "description": "En fazla dört kart, kısa bir satır ve bir alıntı."
+        },
+        "aboutValues": {
+          "name": "Neden biz",
+          "description": "Kliniği seçme nedenleri, bir resmin yanında."
+        },
+        "gallery": {
+          "name": "Klinik galerisi",
+          "description": "Kısa bir başlık ve metinle kliniğin en fazla üç fotoğrafı."
+        },
+        "contactMain": {
+          "name": "İletişim bilgileri ve form",
+          "description": "Telefon, e-posta, adres ve saatler klinik bilgilerinden gelir; form kliniğe mesaj gönderir."
+        },
+        "contactWelcome": {
+          "name": "Karşılama ve harita",
+          "description": "Kliniğin haritası üzerinde bir karşılama satırı ve resim."
+        },
+        "booking": {
+          "name": "Randevu formu",
+          "description": "Randevu ayarlarındaki kurallarla çevrimiçi randevu formu."
+        }
+      },
+      "title": "Web sitesi düzenleyici",
+      "exit": "Çık"
+    },
+    "content": {
+      "title": "Web sitesi içeriği",
+      "hint": "Düzenleyici, site tüm ekranı kaplayacak şekilde yeni bir sekmede açılır.",
+      "edit": "Web sitesini düzenle"
     }
   },
   "finance": {

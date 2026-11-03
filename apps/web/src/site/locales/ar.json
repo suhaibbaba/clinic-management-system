@@ -253,5 +253,29 @@
     "showMore": "عرض {{count}} أخرى",
     "showLess": "عرض أقل",
     "drugCount": "عدد الأدوية: {{count}}"
+  },
+  "editor": {
+    "blocks": {
+      "hero": "واجهة الصفحة الرئيسية",
+      "servicesTeaser": "لمحة عن الخدمات",
+      "aboutTeaser": "لمحة عن العيادة",
+      "cases": "قبل وبعد",
+      "doctorsTeaser": "لمحة عن الأطباء",
+      "testimonials": "آراء المرضى",
+      "pageHero": "رأس الصفحة",
+      "servicesGrid": "قائمة الخدمات",
+      "doctorsGrid": "قائمة الأطباء",
+      "aboutPillars": "الرسالة والقيم",
+      "aboutValues": "لماذا نحن",
+      "gallery": "معرض العيادة",
+      "contactMain": "بيانات التواصل والنموذج",
+      "contactWelcome": "الترحيب والخريطة",
+      "booking": "نموذج الحجز"
+    },
+    "edit": "تعديل",
+    "moveUp": "نقل للأعلى",
+    "moveDown": "نقل للأسفل",
+    "remove": "حذف",
+    "insert": "إضافة قسم هنا"
   }
 }

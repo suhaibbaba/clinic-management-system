@@ -1,5 +1,6 @@
 import type { IconName } from "@clinic/ui/components/icon";
 import type { Can } from "@web/shared/providers/session";
+import { WEBSITE_EDITOR_PATH } from "@web/shared/constants/layout";
 
 export interface NavItem {
   readonly to: string;
@@ -55,6 +56,7 @@ export const PAGE_CAPABILITIES = {
   myEarnings: ["my-settlement.statement"],
   catalog: Object.values(CATALOG_VIEW_CAPABILITIES).flat(),
   settings: Object.values(SETTINGS_VIEW_CAPABILITIES).flat(),
+  websiteEditor: ["website.editor"],
   settingsMenu: Object.values({
     ...SETTINGS_VIEW_CAPABILITIES,
     website: ["website.editor"],
@@ -196,6 +198,7 @@ export function activeNavItem(pathname: string): NavItem | undefined {
 
 const OFF_NAV_TITLES: Readonly<Record<string, string>> = {
   "/login": "auth.loginTitle",
+  [WEBSITE_EDITOR_PATH]: "website.editor.title",
 };
 
 export function routeTitle(pathname: string): string | undefined {

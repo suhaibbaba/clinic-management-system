@@ -8,16 +8,16 @@ import {
   USER_ROLE,
   addDays,
   defaultSiteContent,
+  defaultSiteDocument,
   instantFromLocal,
   localDate,
   localWeekday,
   type PortalAccount,
   type PortalBookingReceipt,
   type PortalRecord,
-  type SiteSection,
 } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-import { appointments, attachments, clinics, portalCodes } from "@api/database/schema";
+import { appointments, attachments, clinics, portalCodes, siteContent } from "@api/database/schema";
 import type { SendNotification } from "@api/modules/notifications/lib/notifications";
 import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
 import { PORTAL_COOKIE_NAME } from "@api/modules/portal/constants";
@@ -61,9 +61,15 @@ describe("Patient portal (e2e)", () => {
 
   const publish = async (
     headers: Record<string, string>,
-    sections: readonly SiteSection[],
+    portal: boolean,
+    pagesEnabled = true,
   ): Promise<void> => {
-    const draft = { ...defaultSiteContent(), sections: [...sections] };
+    const base = defaultSiteDocument();
+    const draft = {
+      ...base,
+      portal,
+      pages: base.pages.map((page) => ({ ...page, enabled: pagesEnabled })),
+    };
 
     expect((await inject("PUT", "/website/draft", headers, draft)).statusCode).toBe(200);
     expect((await inject("POST", "/website/publish", headers)).statusCode).toBe(200);
@@ -174,8 +180,8 @@ describe("Patient portal (e2e)", () => {
       phone: familyPhone,
     });
 
-    await publish(admin, SITE_SECTIONS);
-    await publish(auth(neighbourAdminToken), SITE_SECTIONS);
+    await publish(admin, true);
+    await publish(auth(neighbourAdminToken), true);
   });
 
   beforeEach(() => context.resetThrottle());
@@ -188,10 +194,7 @@ describe("Patient portal (e2e)", () => {
     const closed = await context.createClinic();
     const headers = auth(await context.login(closed.phones[USER_ROLE.ADMIN]));
 
-    await publish(
-      headers,
-      SITE_SECTIONS.filter((section) => section !== SITE_SECTION.PORTAL),
-    );
+    await publish(headers, false);
 
     const response = await inject(
       "POST",
@@ -201,6 +204,49 @@ describe("Patient portal (e2e)", () => {
     );
 
     expect(response.statusCode).toBe(404);
+  });
+
+  it("takes the switch from the document's portal flag, not from its pages", async () => {
+    const other = await context.createClinic();
+    const headers = auth(await context.login(other.phones[USER_ROLE.ADMIN]));
+    const askCode = async () =>
+      (await inject("POST", `/public/portal/${other.slug}/code`, {}, { phone: uniquePhone() }))
+        .statusCode;
+
+    await publish(headers, true, false);
+    expect(await askCode()).toBe(202);
+
+    await publish(headers, false, true);
+    expect(await askCode()).toBe(404);
+  });
+
+  it("opens the account for a clinic whose stored website is still the old content", async () => {
+    const other = await context.createClinic();
+    const askCode = async () =>
+      (await inject("POST", `/public/portal/${other.slug}/code`, {}, { phone: uniquePhone() }))
+        .statusCode;
+    const store = (sections: readonly string[]) =>
+      context.db
+        .insert(siteContent)
+        .values({
+          clinicId: other.id,
+          draft: { ...defaultSiteContent(), sections },
+          published: { ...defaultSiteContent(), sections },
+          publishedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: siteContent.clinicId,
+          set: {
+            draft: { ...defaultSiteContent(), sections },
+            published: { ...defaultSiteContent(), sections },
+          },
+        });
+
+    await store(SITE_SECTIONS);
+    expect(await askCode()).toBe(202);
+
+    await store(SITE_SECTIONS.filter((section) => section !== SITE_SECTION.PORTAL));
+    expect(await askCode()).toBe(404);
   });
 
   it("answers the same for a phone with no patient, and sends nothing", async () => {
@@ -494,10 +540,7 @@ describe("Patient portal (e2e)", () => {
 
     expect((await inject("GET", "/public/portal/account", { cookie })).statusCode).toBe(200);
 
-    await publish(
-      neighbourAdmin,
-      SITE_SECTIONS.filter((section) => section !== SITE_SECTION.PORTAL),
-    );
+    await publish(neighbourAdmin, false);
 
     expect((await inject("GET", "/public/portal/account", { cookie })).statusCode).toBe(401);
   });

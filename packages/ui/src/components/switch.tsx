@@ -9,6 +9,7 @@ export interface SwitchProps extends TestIdProps {
   label: string;
   hideLabel?: boolean | undefined;
   disabled?: boolean | undefined;
+  "aria-disabled"?: boolean | undefined;
   id?: string | undefined;
 }
 
@@ -18,6 +19,7 @@ export function Switch({
   label,
   hideLabel = false,
   disabled = false,
+  "aria-disabled": unavailable = false,
   id,
   "data-testid": testId,
 }: SwitchProps): JSX.Element {
@@ -29,8 +31,13 @@ export function Switch({
       {...part()}
       id={id}
       checked={checked}
-      onCheckedChange={onCheckedChange}
+      onCheckedChange={(next) => {
+        if (!unavailable) {
+          onCheckedChange(next);
+        }
+      }}
       disabled={disabled}
+      aria-disabled={unavailable || undefined}
       {...(hideLabel ? { "aria-label": label } : { "aria-labelledby": labelId })}
       className={cn(
         "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full",
@@ -38,6 +45,7 @@ export function Switch({
         "after:absolute after:inset-x-0 after:top-1/2 after:h-(--control-h) after:-translate-y-1/2",
         'after:content-[""] lg:after:hidden',
         "disabled:cursor-not-allowed disabled:opacity-50",
+        "aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
         checked ? "bg-primary-600" : "bg-neutral-500",
       )}
     >

@@ -3,7 +3,7 @@ import type {
   ContactMessageStatus,
   PresignSiteImageInput,
   PresignSiteImageResponse,
-  SiteContent,
+  SiteDocument,
   WebsiteEditor,
 } from "@clinic/shared";
 import { apiRequest } from "@web/shared/lib/api-client";
@@ -11,8 +11,8 @@ import { apiRequest } from "@web/shared/lib/api-client";
 export const websiteApi = {
   editor: () => apiRequest<WebsiteEditor>("/website"),
 
-  saveDraft: (content: SiteContent) =>
-    apiRequest<WebsiteEditor>("/website/draft", { method: "PUT", body: content }),
+  saveDraft: (document: SiteDocument) =>
+    apiRequest<WebsiteEditor>("/website/draft", { method: "PUT", body: document }),
 
   publish: () => apiRequest<WebsiteEditor>("/website/publish", { method: "POST" }),
 

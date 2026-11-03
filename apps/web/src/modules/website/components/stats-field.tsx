@@ -12,6 +12,7 @@ import { DraftText } from "@web/modules/website/components/draft-text";
 import { RowTools } from "@web/modules/website/components/row-tools";
 import { SITE_ICON_GLYPHS } from "@web/modules/website/constants";
 import { useEditor } from "@web/modules/website/hooks/use-editor";
+import { useScoped } from "@web/modules/website/hooks/use-scoped";
 import { blankText, moveItem, removeAt, replaceAt } from "@web/modules/website/lib/site-draft";
 import { fieldNeeds } from "@web/shared/lib/schema-fields";
 
@@ -19,10 +20,10 @@ const need = fieldNeeds(siteStatSchema);
 
 export function StatsField(): JSX.Element {
   const { t } = useTranslation();
-  const { draft, update, errors, leave } = useEditor();
-  const stats = draft.about.stats;
-  const write = (next: SiteStat[]): void =>
-    update((current) => ({ ...current, about: { ...current.about, stats: next } }));
+  const { errors, leave } = useEditor();
+  const { value, path, set } = useScoped<{ readonly stats: SiteStat[] }>();
+  const stats = value.stats;
+  const write = (next: SiteStat[]): void => set("stats", next);
 
   return (
     <div data-testid="stats-field" className="flex flex-col gap-3">
@@ -46,11 +47,11 @@ export function StatsField(): JSX.Element {
                 write(replaceAt(stats, index, { ...stat, icon: event.target.value as SiteIcon }))
               }
             />
-            <div className="w-32" onBlur={leave(`about.stats.${index}.value`)}>
+            <div className="w-32" onBlur={leave(path(`stats.${index}.value`))}>
               <FormField
                 label="website.fields.statValue"
                 htmlFor={`stat-${index}-value`}
-                error={errors[`about.stats.${index}.value`]}
+                error={errors[path(`stats.${index}.value`)]}
                 {...need("value")}
               >
                 <Input
@@ -73,11 +74,7 @@ export function StatsField(): JSX.Element {
               onRemove={() => write(removeAt(stats, index))}
             />
           </div>
-          <DraftText
-            path={`about.stats.${index}.label`}
-            label="website.fields.statLabel"
-            required
-          />
+          <DraftText path={`stats.${index}.label`} label="website.fields.statLabel" required />
         </div>
       ))}
       {stats.length < SITE_FEATURES_MAX && (

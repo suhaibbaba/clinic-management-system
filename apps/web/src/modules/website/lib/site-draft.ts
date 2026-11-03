@@ -1,4 +1,4 @@
-import { SITE_SECTIONS, type SiteSection, type SiteText } from "@clinic/shared";
+import type { SiteText } from "@clinic/shared";
 
 export const blankText = (): SiteText => ({});
 
@@ -27,25 +27,20 @@ export const replaceAt = <TItem>(list: readonly TItem[], index: number, item: TI
 export const removeAt = <TItem>(list: readonly TItem[], index: number): TItem[] =>
   list.filter((_, position) => position !== index);
 
-export function sectionOrder(visible: readonly SiteSection[]): SiteSection[] {
-  return [...visible, ...SITE_SECTIONS.filter((section) => !visible.includes(section))];
-}
+export const joinPath = (scope: string, path: string): string =>
+  [scope, path].filter((part) => part !== "").join(".");
 
-export function setSectionVisible(
-  visible: readonly SiteSection[],
-  section: SiteSection,
-  shown: boolean,
-): SiteSection[] {
-  if (!shown) {
-    return visible.filter((current) => current !== section);
-  }
-
-  return visible.includes(section) ? [...visible] : [...visible, section];
-}
+export const missingTranslation = (text: SiteText, language: string): boolean =>
+  !text[language as keyof SiteText] &&
+  Object.values(text).some((value) => typeof value === "string" && value.trim() !== "");
 
 type Tree = Readonly<Record<string, unknown>> | readonly unknown[];
 
 export function valueAt(source: unknown, path: string): unknown {
+  if (path === "") {
+    return source;
+  }
+
   return path
     .split(".")
     .reduce<unknown>(

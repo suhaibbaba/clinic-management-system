@@ -1,18 +1,17 @@
-import { SITE_TOPICS_MAX } from "@clinic/shared";
+import { SITE_TOPICS_MAX, type SiteText } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Icon } from "@clinic/ui";
 import { DraftText } from "@web/modules/website/components/draft-text";
 import { RowTools } from "@web/modules/website/components/row-tools";
-import { useEditor } from "@web/modules/website/hooks/use-editor";
+import { useScoped } from "@web/modules/website/hooks/use-scoped";
 import { blankText, moveItem, removeAt } from "@web/modules/website/lib/site-draft";
 
 export function TopicsField(): JSX.Element {
   const { t } = useTranslation();
-  const { draft, update } = useEditor();
-  const topics = draft.contact.topics;
-  const write = (next: typeof topics): void =>
-    update((current) => ({ ...current, contact: { ...current.contact, topics: next } }));
+  const { value, set } = useScoped<{ readonly topics: SiteText[] }>();
+  const topics = value.topics;
+  const write = (next: SiteText[]): void => set("topics", next);
 
   return (
     <div data-testid="topics-field" className="flex flex-col gap-3">
@@ -25,8 +24,9 @@ export function TopicsField(): JSX.Element {
         >
           <div className="min-w-0 flex-1">
             <DraftText
-              path={`contact.topics.${index}`}
-              label={t("website.fields.topic", { number: index + 1 })}
+              path={`topics.${index}`}
+              label="website.fields.topic"
+              labelValues={{ number: index + 1 }}
               required
             />
           </div>

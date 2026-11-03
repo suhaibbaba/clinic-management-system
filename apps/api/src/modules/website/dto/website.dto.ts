@@ -4,12 +4,12 @@ import {
   idParamSchema,
   listContactMessagesQuerySchema,
   presignSiteImageSchema,
-  siteContentSchema,
+  siteDocumentSchema,
   siteSlugParamSchema,
   updateContactMessageSchema,
 } from "@clinic/shared";
 
-export class SiteContentDto extends createZodDto(siteContentSchema) {}
+export class SiteDocumentDto extends createZodDto(siteDocumentSchema) {}
 
 export class PresignSiteImageDto extends createZodDto(presignSiteImageSchema) {}
 
