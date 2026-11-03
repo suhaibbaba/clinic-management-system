@@ -7,10 +7,12 @@ import { cx, Img } from "@web/booking/ui";
 export function AppointmentPanel({
   doctor,
   startsAt,
+  back,
   children,
 }: {
   readonly doctor: PublicDoctor | undefined;
   readonly startsAt: string | undefined;
+  readonly back?: ReactNode;
   readonly children: ReactNode;
 }): JSX.Element {
   const name = doctor ? bookingName(doctor.name) : undefined;
@@ -21,6 +23,7 @@ export function AppointmentPanel({
         data-part="summary"
         className="flex flex-col gap-3.5 border-b border-primary-100 bg-primary-50 px-5 py-4"
       >
+        {back}
         <p className="text-label font-bold text-primary-700">{t("board.yourAppointment")}</p>
 
         <div className="flex items-center gap-3">

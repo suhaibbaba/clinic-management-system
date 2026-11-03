@@ -43,6 +43,25 @@
   --slide-from: 1;
 }
 
+@media (max-width: 63.98rem) {
+  .booking-screen {
+    --slide-from: 1;
+    animation: booking-slide-in 280ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .booking-screen[data-direction="back"] {
+    --slide-from: -1;
+  }
+
+  [dir="rtl"] .booking-screen {
+    --slide-from: -1;
+  }
+
+  [dir="rtl"] .booking-screen[data-direction="back"] {
+    --slide-from: 1;
+  }
+}
+
 .booking-progress {
   transition: width 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
@@ -57,7 +76,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .booking-step,
-  .booking-stage {
+  .booking-stage,
+  .booking-screen {
     animation: none;
   }
 

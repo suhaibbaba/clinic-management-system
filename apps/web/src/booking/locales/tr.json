@@ -72,6 +72,7 @@
   },
   "otp": {
     "heading": "Doğrulama kodunu girin",
+    "headingWhatsapp": "WhatsApp mesajlarınızı kontrol edin",
     "inputLabel": "6 haneli doğrulama kodu",
     "digitLabel": "6 haneden {{index}}. hane",
     "verify": "Onayla",
@@ -81,9 +82,8 @@
     "spent": "Deneme hakkınız bitti. Randevuyu baştan başlatın.",
     "expired": "Kodun süresi doldu. Yeni kod isteyin.",
     "skipHint": "Bu adımı atlayabilirsiniz; klinik resepsiyon görevlisi randevuyu onaylamak için sizinle iletişime geçecek.",
-    "skip": "Atla, resepsiyon görevlisi onaylasın",
+    "skip": "Bu adımı atla",
     "sentWhatsapp": "6 haneli doğrulama kodunu WhatsApp ile şu numaraya gönderdik:",
-    "sentSms": "6 haneli doğrulama kodunu SMS ile şu numaraya gönderdik:",
     "notArrived": "Kod size ulaşmadı mı?",
     "skipIn": "{{seconds}} saniye sonra atlayabilirsiniz"
   },

@@ -72,6 +72,7 @@
   },
   "otp": {
     "heading": "Enter the confirmation code",
+    "headingWhatsapp": "Check your WhatsApp",
     "inputLabel": "6-digit confirmation code",
     "digitLabel": "Digit {{index}} of 6",
     "verify": "Confirm",
@@ -81,9 +82,8 @@
     "spent": "No attempts left. Please start the booking again.",
     "expired": "The code has expired. Request a new one.",
     "skipHint": "You can skip this step, and the clinic receptionist will contact you to confirm the appointment.",
-    "skip": "Skip; the receptionist will confirm the booking",
+    "skip": "Skip this step",
     "sentWhatsapp": "We sent a 6-digit confirmation code on WhatsApp to",
-    "sentSms": "We sent a 6-digit confirmation code by text message to",
     "notArrived": "Didn't get the code?",
     "skipIn": "You can skip in {{seconds}} seconds"
   },

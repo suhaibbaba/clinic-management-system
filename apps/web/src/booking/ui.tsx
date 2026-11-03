@@ -21,6 +21,33 @@ const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   danger: "bg-danger-600 text-ink-inverse hover:bg-danger-700 active:bg-danger-800",
 };
 
+export function Glyph({
+  path,
+  weight = 1.75,
+  filled = false,
+  className,
+}: {
+  readonly path: string;
+  readonly weight?: number;
+  readonly filled?: boolean;
+  readonly className?: string;
+}): JSX.Element {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      stroke={filled ? "none" : "currentColor"}
+      strokeWidth={weight}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cx("size-4 shrink-0", className)}
+    >
+      <path d={path} />
+    </svg>
+  );
+}
+
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   readonly variant?: ButtonVariant;
   readonly busy?: boolean;
