@@ -2845,6 +2845,7 @@
   },
   "assistant": {
     "conversations": "Conversations",
+    "thread": "Current Conversation",
     "newConversation": "New Conversation",
     "rename": "Rename Conversation",
     "title": "Conversation Name",

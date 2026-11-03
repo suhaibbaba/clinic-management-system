@@ -77,11 +77,21 @@ export function ClinicPage({
     );
 
   if (clinic.isError) {
-    return <p className="text-ink-muted">{t(vendorErrorKey(clinic.error))}</p>;
+    return (
+      <>
+        <h1 className="sr-only">{t("vendor.clinics.columns.clinic")}</h1>
+        <p className="text-ink-muted">{t(vendorErrorKey(clinic.error))}</p>
+      </>
+    );
   }
 
   if (!clinic.data || !plans.data) {
-    return <div className="skeleton h-64 rounded-card" aria-hidden="true" />;
+    return (
+      <>
+        <h1 className="sr-only">{t("vendor.clinics.columns.clinic")}</h1>
+        <div className="skeleton h-64 rounded-card" aria-hidden="true" />
+      </>
+    );
   }
 
   const detail = clinic.data;

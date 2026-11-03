@@ -91,7 +91,14 @@ export function SupplierPage(): JSX.Element {
             data-testid="supplier-name"
             className="truncate text-title font-medium text-primary-900"
           >
-            {row ? <bdi>{row.name}</bdi> : <Skeleton className="h-7 w-56 max-w-full" />}
+            {row ? (
+              <bdi>{row.name}</bdi>
+            ) : (
+              <>
+                <span className="sr-only">{t("inventory.suppliers.title")}</span>
+                <Skeleton className="h-7 w-56 max-w-full" />
+              </>
+            )}
           </h1>
           {row && (
             <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-value text-ink-muted">

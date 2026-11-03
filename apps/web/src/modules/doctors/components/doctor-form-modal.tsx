@@ -447,7 +447,7 @@ export function DoctorFormModal({
             </div>
 
             <div>
-              <p className="mb-1 text-value font-medium text-ink">{t("doctors.schedule")}</p>
+              <h3 className="mb-1 text-value font-medium text-ink">{t("doctors.schedule")}</h3>
               {!isEdit && (
                 <p className="mb-2 text-label text-ink-muted">{t("doctors.scheduleDefault")}</p>
               )}

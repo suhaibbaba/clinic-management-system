@@ -102,9 +102,9 @@ export function ContactPage(): JSX.Element {
           className="site-panel-wash grid items-stretch overflow-hidden rounded-card shadow-card md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1.1fr)]"
         >
           <div className="flex flex-col justify-center gap-2 p-6 md:p-8">
-            <p className="text-title font-bold text-primary-900 md:text-headline">
+            <h2 className="text-title font-bold text-primary-900 md:text-headline">
               {orDefault(contact.welcome, language, t("contact.welcome"), languages)}
-            </p>
+            </h2>
             {pick(contact.welcomeBody, language, languages) && (
               <p className="text-value text-ink-muted">
                 {pick(contact.welcomeBody, language, languages)}

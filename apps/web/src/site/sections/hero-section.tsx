@@ -106,7 +106,7 @@ export function HeroSection(): JSX.Element {
                       className="size-10 shrink-0 rounded-pill border-2 border-surface"
                     />
                   ))}
-                  <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-pill border-2 border-surface bg-primary-500 text-ink-inverse">
+                  <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-pill border-2 border-surface bg-primary-600 text-ink-inverse">
                     <SiteIcon name="plus" className="size-4" />
                   </span>
                 </span>

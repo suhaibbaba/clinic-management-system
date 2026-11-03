@@ -34,10 +34,10 @@ export function PortalNextVisit({
     >
       {appointment ? (
         <>
-          <h3 className="flex items-center gap-2 text-heading font-bold text-primary-900">
+          <h2 className="flex items-center gap-2 text-heading font-bold text-primary-900">
             <SiteIcon name="calendar-clock" className="size-5 text-primary-600" />
             {t("portal.nextVisitTitle")}
-          </h3>
+          </h2>
           <div className="flex items-center gap-4">
             <PortalDateBlock
               iso={appointment.startsAt}
@@ -74,7 +74,7 @@ export function PortalNextVisit({
             <SiteIcon name="calendar-plus" className={compact ? "size-5" : "size-7"} />
           </span>
           <div className={cx("flex flex-col", compact ? "min-w-0 flex-1" : "items-center gap-2")}>
-            <h3 className="text-heading font-bold text-primary-900">{t("portal.noUpcoming")}</h3>
+            <p className="text-heading font-bold text-primary-900">{t("portal.noUpcoming")}</p>
             <p className="text-label text-ink-muted">{t("portal.noUpcomingHint")}</p>
           </div>
           {bookable && (

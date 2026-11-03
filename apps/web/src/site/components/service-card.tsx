@@ -20,9 +20,9 @@ export function ServiceCard({ service }: { readonly service: SiteService }): JSX
     >
       <CardFill />
       <div className="flex min-w-0 flex-1 flex-col items-start gap-2 p-5">
-        <h3 className="site-fill-ink text-heading font-bold text-primary-900">
+        <h2 className="site-fill-ink text-heading font-bold text-primary-900">
           {pick(service.title, language, languages)}
-        </h3>
+        </h2>
         {description && <p className="site-fill-soft text-label text-ink-muted">{description}</p>}
       </div>
       <SiteImage

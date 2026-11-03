@@ -36,7 +36,7 @@ export function AboutPage(): JSX.Element {
           >
             {note && (
               <p className="flex items-center gap-4 text-title font-bold text-primary-900">
-                <span aria-hidden className="flex flex-col items-center gap-2 text-primary-500">
+                <span aria-hidden className="flex flex-col items-center gap-2 text-primary-600">
                   <SiteIcon name="sparkles" className="size-5" />
                   <span className="h-12 w-0.5 rounded-pill bg-primary-500" />
                 </span>
@@ -85,12 +85,12 @@ export function AboutPage(): JSX.Element {
                     <span className="inline-flex size-16 shrink-0 items-center justify-center rounded-pill bg-primary-50 text-primary-700">
                       <SiteIcon name={value.icon} className="size-7" />
                     </span>
-                    <span className="flex min-w-0 flex-col gap-1">
-                      <span className="text-section font-bold text-primary-900">
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <h3 className="text-section font-bold text-primary-900">
                         {pick(value.label, language, languages)}
-                      </span>
+                      </h3>
                       {text && <span className="text-label text-ink-muted">{text}</span>}
-                    </span>
+                    </div>
                   </li>
                 );
               })}

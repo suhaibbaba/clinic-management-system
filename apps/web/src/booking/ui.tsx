@@ -276,7 +276,7 @@ export function Field({
   const describedBy = cx(error && errorId, hint && hintId) || undefined;
   const shellTone = error
     ? "border-danger-600 shadow-field-error"
-    : "border-line-strong hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus focus-within:border-primary-600 focus-within:shadow-field-focus";
+    : "border-neutral-500 hover:border-neutral-700 focus:border-primary-600 focus:shadow-field-focus focus-within:border-primary-600 focus-within:shadow-field-focus";
 
   const input = (
     <input

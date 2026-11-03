@@ -2981,6 +2981,7 @@
   },
   "assistant": {
     "conversations": "المحادثات",
+    "thread": "المحادثة الحالية",
     "newConversation": "محادثة جديدة",
     "rename": "إعادة تسمية المحادثة",
     "title": "اسم المحادثة",

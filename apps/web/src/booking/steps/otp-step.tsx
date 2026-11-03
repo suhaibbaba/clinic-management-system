@@ -180,7 +180,7 @@ export function OtpStep({
                   ? "border-danger-600 bg-danger-50"
                   : digit
                     ? "border-primary-600 bg-primary-50"
-                    : "border-line bg-surface hover:border-line-strong",
+                    : "border-neutral-500 bg-surface hover:border-neutral-700",
               )}
             />
           ))}

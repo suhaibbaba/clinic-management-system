@@ -2845,6 +2845,7 @@
   },
   "assistant": {
     "conversations": "Konuşmalar",
+    "thread": "Geçerli Konuşma",
     "newConversation": "Yeni konuşma",
     "rename": "Konuşmayı yeniden adlandır",
     "title": "Konuşma adı",

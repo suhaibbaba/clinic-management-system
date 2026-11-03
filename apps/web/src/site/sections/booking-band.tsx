@@ -87,7 +87,7 @@ export function BookingBand(): JSX.Element {
       )}
       <div
         className={cx(
-          "relative overflow-hidden max-md:site-wave-both md:site-wave-bottom from-primary-900 via-primary-700 via-55% to-primary-500 text-ink-inverse ltr:bg-linear-to-l rtl:bg-linear-to-r",
+          "relative overflow-hidden max-md:site-wave-both md:site-wave-bottom from-primary-900 via-primary-800 via-55% to-primary-700 text-ink-inverse ltr:bg-linear-to-l rtl:bg-linear-to-r",
           image && "lg:ms-[22%] lg:rounded-s-[14rem]",
         )}
       >
@@ -129,7 +129,7 @@ export function BookingBand(): JSX.Element {
             <h2 id="booking-band-title" className="text-title font-bold md:text-headline">
               {orDefault(cta.title, language, t("home.ctaTitle"), languages)}
             </h2>
-            <p className="max-w-md text-heading text-ink-inverse/90">
+            <p className="max-w-md text-heading text-ink-inverse">
               {pick(cta.subtitle, language, languages) || t("home.ctaSubtitle")}
             </p>
             {bookable && (

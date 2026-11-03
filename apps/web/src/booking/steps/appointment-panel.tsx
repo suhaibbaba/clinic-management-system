@@ -24,7 +24,9 @@ export function AppointmentPanel({
         className="flex flex-col gap-3.5 border-b border-primary-100 bg-primary-50 px-5 py-4"
       >
         {back}
-        <p className="text-label font-bold text-primary-700">{t("board.yourAppointment")}</p>
+        <h2 id="booking-panel-title" className="text-label font-bold text-primary-700">
+          {t("board.yourAppointment")}
+        </h2>
 
         <div className="flex items-center gap-3">
           <span className="overflow-hidden rounded-panel">
@@ -71,7 +73,7 @@ export function AppointmentPanel({
                 : "border-primary-100 bg-surface text-ink",
             )}
           >
-            <dt className={cx("text-micro", startsAt ? "text-ink-inverse/80" : "text-ink-muted")}>
+            <dt className={cx("text-micro", startsAt ? "text-ink-inverse" : "text-ink-muted")}>
               {t("board.time")}
             </dt>
             <dd data-testid="appointment-panel-time" className="text-value font-bold">

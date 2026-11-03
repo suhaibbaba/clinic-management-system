@@ -60,7 +60,7 @@ export function IconInput({
           "flex min-h-(--control-h) items-stretch overflow-hidden transition-[border-color,box-shadow]",
           error
             ? "border-danger-600 shadow-field-error"
-            : "border-line-strong hover:border-neutral-400 focus-within:border-primary-600 focus-within:shadow-field-focus",
+            : "border-neutral-500 hover:border-neutral-700 focus-within:border-primary-600 focus-within:shadow-field-focus",
           "[&_[data-part=select]]:h-auto [&_[data-part=select]]:w-auto [&_[data-part=select]]:rounded-none [&_[data-part=select]]:border-0 [&_[data-part=select]]:bg-transparent [&_[data-part=select]]:ps-3 [&_[data-part=select]]:pe-2 [&_[data-part=select]]:shadow-none [&_[data-part=select]]:hover:bg-primary-50",
         )}
       >

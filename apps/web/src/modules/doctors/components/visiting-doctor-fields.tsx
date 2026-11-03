@@ -161,7 +161,7 @@ export function VisitingDoctorFields({ form, submit }: VisitingDoctorForm): JSX.
       </div>
 
       <div>
-        <p className="text-value font-medium text-ink">{t("doctors.schedule")}</p>
+        <h3 className="text-value font-medium text-ink">{t("doctors.schedule")}</h3>
         <p className="mb-2 text-label text-ink-muted">{t("doctors.visiting.scheduleHint")}</p>
         <Controller
           name="weeklySchedule"

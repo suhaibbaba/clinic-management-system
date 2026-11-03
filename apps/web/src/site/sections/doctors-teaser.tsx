@@ -60,24 +60,24 @@ export function DoctorsTeaser(): JSX.Element | null {
                   className="aspect-[4/3.4] w-full"
                   fallback={<SiteIcon name="stethoscope" className="size-12" />}
                 />
-                <span className="relative isolate flex flex-1 items-start gap-2 p-4">
+                <div className="relative isolate flex flex-1 items-start gap-2 p-4">
                   <CardFill />
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="site-fill-ink text-section font-bold text-primary-900">
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <h3 className="site-fill-ink text-section font-bold text-primary-900">
                       {name}
-                    </span>
+                    </h3>
                     <span className="site-fill-soft text-label text-ink-muted">
                       {(profile && pick(profile.title, language, languages)) ||
                         pick(doctor.specialty, language, languages)}
                     </span>
-                  </span>
+                  </div>
                   <span
                     aria-hidden
                     className="inline-flex size-7 shrink-0 items-center justify-center rounded-pill border border-line text-primary-700 group-hover:border-ink-inverse/40 group-hover:bg-surface"
                   >
                     <SiteIcon name="arrow-end" className="size-4" />
                   </span>
-                </span>
+                </div>
               </SiteLink>
             );
           })}

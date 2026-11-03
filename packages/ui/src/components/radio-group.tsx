@@ -67,7 +67,7 @@ export function RadioGroup<TValue extends string>({
               aria-hidden
               className={cn(
                 "flex size-4 shrink-0 items-center justify-center rounded-full border-2",
-                isSelected ? "border-primary-600" : "border-line-strong",
+                isSelected ? "border-primary-600" : "border-neutral-500",
               )}
             >
               {isSelected && <span className="size-2 rounded-full bg-primary-600" />}

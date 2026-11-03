@@ -124,6 +124,7 @@ export function KeyNumbers({ shown, data, currency, isLoading }: KeyNumbersProps
       data-testid="dashboard-kpis"
       className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,190px),1fr))] gap-4"
     >
+      <h2 className="sr-only">{t("dashboard.widgets.keyNumbers.title")}</h2>
       {shown.map(card)}
     </div>
   );

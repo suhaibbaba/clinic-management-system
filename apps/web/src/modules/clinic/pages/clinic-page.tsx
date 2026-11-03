@@ -444,12 +444,12 @@ export function ClinicPage(): JSX.Element {
           </div>
 
           <div data-testid="clinic-logo-section" className="mt-6 border-t border-line pt-4">
-            <p className="text-value font-medium text-ink">{t("clinic.logo")}</p>
+            <h2 className="text-value font-medium text-ink">{t("clinic.logo")}</h2>
             <LogoField src={clinic.data?.logoUrl ?? null} canEdit={canEdit} />
           </div>
 
           <div data-testid="clinic-app-icon-section" className="mt-6 border-t border-line pt-4">
-            <p className="text-value font-medium text-ink">{t("clinic.appIcon")}</p>
+            <h2 className="text-value font-medium text-ink">{t("clinic.appIcon")}</h2>
             <AppIconField src={clinic.data?.appIconUrl ?? null} canEdit={canEdit} />
           </div>
         </section>
@@ -741,7 +741,7 @@ function AboutSection(): JSX.Element {
       data-testid="clinic-about"
       className="border border-line rounded-card bg-surface shadow-card p-4"
     >
-      <p className="mb-3 text-value font-medium text-ink">{t("clinic.about")}</p>
+      <h2 className="mb-3 text-value font-medium text-ink">{t("clinic.about")}</h2>
 
       <dl className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between gap-4">

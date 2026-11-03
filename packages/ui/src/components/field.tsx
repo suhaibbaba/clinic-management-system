@@ -17,7 +17,7 @@ export function fieldShell({ hasError = false, disabled = false }: FieldState): 
     !disabled && hasError && "border-danger-600 shadow-field-error",
     !disabled &&
       !hasError &&
-      "border-line hover:border-line-strong focus-within:border-primary-600",
+      "border-neutral-500 hover:border-neutral-700 focus-within:border-primary-600",
   );
 }
 

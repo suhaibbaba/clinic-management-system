@@ -36,6 +36,7 @@ export interface EntityCardProps extends TestIdProps {
     | undefined;
   readonly menu?: ReactNode | undefined;
   readonly isSelected?: boolean | undefined;
+  readonly level?: 2 | 3 | undefined;
   readonly className?: string | undefined;
   readonly children?: ReactNode | undefined;
 }
@@ -50,11 +51,13 @@ export function EntityCard({
   action,
   menu,
   isSelected = false,
+  level = 2,
   className,
   children,
   "data-testid": testId,
 }: EntityCardProps): JSX.Element {
   const part = parts("entity-card", testId);
+  const Heading = level === 3 ? "h3" : "h2";
 
   return (
     <article
@@ -76,7 +79,7 @@ export function EntityCard({
           <Icon name={icon} />
         </span>
         <div className="min-w-0 flex-1">
-          <h3 {...part("title")} className="break-words text-label font-semibold text-ink">
+          <Heading {...part("title")} className="break-words text-label font-semibold text-ink">
             {action === undefined ? (
               <bdi>{title}</bdi>
             ) : (
@@ -91,7 +94,7 @@ export function EntityCard({
                 <bdi>{title}</bdi>
               </button>
             )}
-          </h3>
+          </Heading>
           {subtitle !== undefined && (
             <p {...part("subtitle")} className="mt-0.5 break-words text-meta text-ink-muted">
               {subtitle}

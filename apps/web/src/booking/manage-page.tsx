@@ -144,7 +144,7 @@ export function ManagePage({
               onChange={(event) => setReason(event.target.value)}
               className={cx(
                 "mt-1.5 min-h-(--control-h) w-full rounded-control border-[1.5px] px-3 text-field",
-                "border-line-strong bg-surface transition-[border-color,box-shadow] duration-150",
+                "border-neutral-500 bg-surface transition-[border-color,box-shadow] duration-150",
                 "hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus",
                 "outline-none",
               )}

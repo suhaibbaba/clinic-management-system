@@ -121,7 +121,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
         data-testid="closures-panel"
         className="mb-3 flex flex-wrap items-center justify-between gap-2"
       >
-        <p className="text-value font-medium text-ink">{t("schedule.closures.title")}</p>
+        <h2 className="text-value font-medium text-ink">{t("schedule.closures.title")}</h2>
 
         {canEdit && (
           <Button

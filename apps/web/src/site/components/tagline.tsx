@@ -23,7 +23,7 @@ export function Tagline({
       data-testid="site-tagline"
       className={cx(
         "flex flex-col gap-3 text-section font-medium",
-        tone === "inverse" ? "text-ink-inverse/85" : "text-primary-500",
+        tone === "inverse" ? "text-ink-inverse/85" : "text-primary-700",
         className,
       )}
     >

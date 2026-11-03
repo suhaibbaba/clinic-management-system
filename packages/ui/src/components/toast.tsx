@@ -17,7 +17,7 @@ type ToastTone = "success" | "warning" | "error";
 
 const TONES: Record<ToastTone, { chip: string; tint: string; line: string; icon: IconName }> = {
   success: {
-    chip: "bg-success-600",
+    chip: "bg-success-800",
     tint: "[--toast-tint:var(--color-success-100)]",
     line: "bg-success-500",
     icon: "check",

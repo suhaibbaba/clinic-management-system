@@ -70,6 +70,7 @@ export function ConversationRail({
       className={cn("flex min-h-0 flex-col gap-3 border-line", className)}
     >
       {dialog}
+      <h2 className="sr-only">{t("assistant.conversations")}</h2>
       <Button
         icon={<Icon name="plus" />}
         data-testid="assistant-new-conversation"
@@ -96,7 +97,7 @@ export function ConversationRail({
               >
                 <h3
                   id={`assistant-group-${group}-title`}
-                  className="px-3 pb-1 text-micro font-medium text-ink-faint"
+                  className="px-3 pb-1 text-micro font-medium text-ink-subtle"
                 >
                   {t(`assistant.groups.${group}`)}
                 </h3>

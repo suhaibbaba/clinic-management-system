@@ -38,7 +38,7 @@ export function Switch({
         "after:absolute after:inset-x-0 after:top-1/2 after:h-(--control-h) after:-translate-y-1/2",
         'after:content-[""] lg:after:hidden',
         "disabled:cursor-not-allowed disabled:opacity-50",
-        checked ? "bg-primary-600" : "bg-neutral-300",
+        checked ? "bg-primary-600" : "bg-neutral-500",
       )}
     >
       <SwitchPrimitive.Thumb

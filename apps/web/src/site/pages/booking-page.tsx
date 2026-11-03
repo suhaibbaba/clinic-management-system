@@ -39,7 +39,7 @@ export function BookingPage(): JSX.Element {
             fallback={<SiteIcon name="calendar" className="size-10" />}
           />
           <p className="flex items-center gap-2 px-5 py-4 text-heading sm:ps-0 font-bold text-primary-900">
-            <SiteIcon name="sparkles" className="size-5 text-primary-500" />
+            <SiteIcon name="sparkles" className="size-5 text-primary-600" />
             {t("booking.aside")}
           </p>
         </div>

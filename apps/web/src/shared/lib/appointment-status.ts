@@ -16,7 +16,7 @@ export const APPOINTMENT_STATUS_STYLES: Record<AppointmentStatus, StatusStyle> =
   [APPOINTMENT_STATUS.REQUESTED]: block("warning"),
   [APPOINTMENT_STATUS.CONFIRMED]: block("info"),
   [APPOINTMENT_STATUS.ARRIVED]: block("success"),
-  [APPOINTMENT_STATUS.IN_PROGRESS]: block("success", "border-success-500 bg-success-200"),
+  [APPOINTMENT_STATUS.IN_PROGRESS]: block("success", "border-success-500 bg-success-100"),
   [APPOINTMENT_STATUS.COMPLETED]: block("neutral"),
   [APPOINTMENT_STATUS.NO_SHOW]: block("danger"),
   [APPOINTMENT_STATUS.CANCELLED]: block("neutral", "bg-surface line-through"),

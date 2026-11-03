@@ -42,7 +42,7 @@ export function DoctorCard({
       </SiteLink>
       <div className="relative isolate flex flex-1 flex-col items-center gap-1.5 p-4 text-center">
         <CardFill />
-        <h3 className="site-fill-ink text-heading font-bold text-primary-900">{name}</h3>
+        <h2 className="site-fill-ink text-heading font-bold text-primary-900">{name}</h2>
         <p className="site-fill-soft text-label font-medium text-primary-600">{title}</p>
         {bio && <p className="site-fill-soft line-clamp-2 text-label text-ink-muted">{bio}</p>}
         <div className="mt-auto grid w-full grid-cols-[repeat(auto-fit,minmax(6.5rem,1fr))] gap-2 pt-4">

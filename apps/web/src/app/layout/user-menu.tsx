@@ -43,7 +43,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
           data-testid="user-menu-avatar"
           name={displayName(user.name)}
           size={38}
-          className="bg-success-100 text-success-700"
+          className="bg-success-100 text-success-800"
         />
 
         <span className="flex min-w-0 flex-1 flex-col leading-label text-start">

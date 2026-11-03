@@ -304,9 +304,10 @@ function VisitCard({
         <DateBlock iso={visit.visitDate} />
 
         <div className="min-w-0 flex-1">
-          <p data-testid="visit-time" className="text-value font-medium text-ink">
+          <h2 data-testid="visit-time" className="text-value font-medium text-ink">
+            <span className="sr-only">{formatDate(visit.visitDate)} </span>
             {t("visits.visit")} · <Ltr className="tabular-nums">{time}</Ltr>
-          </p>
+          </h2>
           <PersonName
             name={doctor?.user.name}
             data-testid="visit-doctor"
@@ -424,6 +425,7 @@ function DateBlock({ iso }: { readonly iso: string }): JSX.Element {
   return (
     <span
       data-testid="visit-date"
+      aria-hidden="true"
       className="flex min-w-14 shrink-0 flex-col items-center rounded-field bg-primary-50 px-2 py-1 text-primary-700"
     >
       <Ltr className="text-section font-semibold tabular-nums">{date.day}</Ltr>

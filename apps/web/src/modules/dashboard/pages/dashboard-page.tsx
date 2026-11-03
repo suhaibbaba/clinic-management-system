@@ -28,13 +28,19 @@ const DashboardCustomizePage = lazyPage(async () => ({
 }));
 
 export function DashboardPage(): JSX.Element {
+  const { t } = useTranslation();
   const { can } = useSession();
   const [params] = useSearchParams();
 
   if (params.has(DASHBOARD_CUSTOMIZE_PARAM) && canCustomizeDashboard(can)) {
     return (
       <Suspense
-        fallback={<Skeleton aria-hidden="true" className="h-[520px] w-full rounded-card" />}
+        fallback={
+          <>
+            <h1 className="sr-only">{t("dashboard.customize.title")}</h1>
+            <Skeleton aria-hidden="true" className="h-[520px] w-full rounded-card" />
+          </>
+        }
       >
         <DashboardCustomizePage />
       </Suspense>
@@ -72,6 +78,8 @@ function DashboardView(): JSX.Element {
 
   return (
     <div data-testid="dashboard-page" className="flex flex-col gap-4">
+      <h1 className="sr-only">{t("dashboard.title")}</h1>
+
       {canBookAppointment(can) && (
         <PageAction>
           <Button

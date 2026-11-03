@@ -37,11 +37,12 @@ export function TodaySchedule({
 
   const head = (
     <>
-      <h2>
+      <h2 className="sr-only">{t("dashboard.schedule.title")}</h2>
+      <span aria-hidden="true" className="contents">
         <Badge tone="wash" plain data-testid="dashboard-schedule-title">
           {t("dashboard.schedule.title")}
         </Badge>
-      </h2>
+      </span>
 
       {doctors.length > 1 && (
         <SegmentedControl

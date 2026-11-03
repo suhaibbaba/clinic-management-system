@@ -29,6 +29,7 @@ function PageFailed(): JSX.Element {
     <EmptyState
       icon="alert"
       data-testid="page-failed"
+      titleAs="h1"
       title="errors.pageFailed.title"
       hint="errors.pageFailed.hint"
       action={

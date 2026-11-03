@@ -27,7 +27,7 @@ export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Eleme
       </div>
 
       <div className="relative z-10 min-w-0">
-        <h1
+        <p
           data-testid="welcome-banner-greeting"
           className="flex items-center gap-2.5 text-title font-medium text-primary-900"
         >
@@ -40,7 +40,7 @@ export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Eleme
           ) : (
             t("dashboard.title")
           )}
-        </h1>
+        </p>
 
         <p
           data-testid="welcome-banner-date"

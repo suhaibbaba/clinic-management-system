@@ -14,7 +14,7 @@
   --color-success-400: #6dcfb1;
   --color-success-500: #39ba97;
   --color-success-600: #2ca886;
-  --color-success-700: #22987a;
+  --color-success-700: #1d7f64;
   --color-success-800: #1e7a62;
   --color-success-900: #0f7a5d;
 
@@ -38,8 +38,8 @@
   --color-neutral-200: #e0eaee;
   --color-neutral-300: #c9d8de;
   --color-neutral-400: #a3bac6;
-  --color-neutral-500: #8fa6b0;
-  --color-neutral-600: #5f7885;
+  --color-neutral-500: #768d99;
+  --color-neutral-600: #56707c;
   --color-neutral-700: #4e6975;
   --color-neutral-900: #12303f;
 }
@@ -84,7 +84,7 @@
   --color-banner-from: #eaf7f2;
   --color-banner-mid: #e3eef6;
   --color-banner-to: #dceaf4;
-  --color-banner-ink: #5b7a8a;
+  --color-banner-ink: #4d6a79;
 
   --color-note-bg: #fbf8ec;
   --color-note-line: #f0e6c6;
