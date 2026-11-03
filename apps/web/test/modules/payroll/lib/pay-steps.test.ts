@@ -1,6 +1,6 @@
 import type { DoctorSettlement, PayrollLine, SettlementTreatment } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
-import { paySteps } from "@web/modules/payroll/lib/pay-steps";
+import { clinicPercentOf, paySteps } from "@web/modules/payroll/lib/pay-steps";
 import { DOCTOR_ID } from "@test/helpers/fixtures";
 
 const PATIENT_A = "11111111-1111-4111-8111-111111111111";
@@ -197,5 +197,37 @@ describe("paySteps", () => {
       ["remitted", "225.00"],
     ]);
     expect({ owed, owesClinic }).toEqual({ owed: "0.00", owesClinic: false });
+  });
+});
+
+describe("clinicPercentOf", () => {
+  const withPercent = (row: SettlementTreatment, clinicSharePercent: number) => ({
+    ...row,
+    clinicSharePercent,
+  });
+
+  it("reads the percent the treatments carry, not the doctor's general one", () => {
+    const month = {
+      ...settlement([withPercent(treatment(PATIENT_A, "150.00", 0), 50)]),
+      clinicSharePercent: 0,
+    };
+
+    expect(clinicPercentOf(month)).toBe(50);
+  });
+
+  it("has no single percent when the treatments differ", () => {
+    const month = settlement([
+      withPercent(treatment(PATIENT_A, "150.00", 0), 50),
+      withPercent(treatment(PATIENT_B, "300.00", 0), 0),
+    ]);
+
+    expect(clinicPercentOf(month)).toBeNull();
+    expect(paySteps(line(), month).steps.find((step) => step.key === "share")?.detail).toBe(
+      "mixed",
+    );
+  });
+
+  it("falls back to the doctor's percent for a month with nothing priced", () => {
+    expect(clinicPercentOf({ ...settlement([]), clinicSharePercent: 30 })).toBe(30);
   });
 });

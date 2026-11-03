@@ -36,11 +36,13 @@ import { SETTLEMENT_STATUS_TONES } from "@web/shared/constants/settlement";
 import { formatDate } from "@web/shared/lib/format";
 import { canOpenPatientFile } from "@web/shared/permissions/patients";
 import { useSession } from "@web/shared/providers/session";
+import { treatmentNet } from "@web/modules/payroll/lib/treatment-net";
 import { useCurrency } from "@web/shared/queries/clinic";
 
 const ALL = "all";
 
 const FIGURE = "w-28";
+const AMOUNT = "w-56";
 const STATUS = "w-36";
 
 export function SharePatients({
@@ -109,8 +111,8 @@ export function SharePatients({
       key: "amount",
       header: "payroll.patients.amount",
       align: "numeric",
-      className: FIGURE,
-      render: (row) => <Money amount={row.revenue} currency={currency} />,
+      className: AMOUNT,
+      render: (row) => <TreatmentAmount row={row} currency={currency} />,
     },
     {
       key: "patientPaid",
@@ -147,6 +149,14 @@ export function SharePatients({
           {row.split && (
             <span className="text-meta text-ink-muted">
               {t("doctors.settlement.workShare", { percent: row.workPercent })}
+            </span>
+          )}
+          {treatmentNet(row).deductions.length > 0 && (
+            <span
+              data-testid={`share-patient-percent-${row.id}`}
+              className="whitespace-nowrap text-meta text-ink-muted"
+            >
+              {t("payroll.patients.ofNet", { percent: treatmentNet(row).doctorPercent })}
             </span>
           )}
         </span>
@@ -392,5 +402,45 @@ function PagedTable<TFilter extends string>({
         onPerPageChange: params.setPerPage,
       }}
     />
+  );
+}
+
+function TreatmentAmount({
+  row,
+  currency,
+}: {
+  readonly row: SettlementTreatment;
+  readonly currency: string | undefined;
+}): JSX.Element {
+  const { t } = useTranslation();
+  const { deductions, net } = treatmentNet(row);
+
+  if (deductions.length === 0) {
+    return <Money amount={row.revenue} currency={currency} />;
+  }
+
+  return (
+    <dl data-testid={`share-patient-net-${row.id}`} className="flex flex-col items-end gap-0.5">
+      <div>
+        <dt className="sr-only">{t("payroll.patients.amount")}</dt>
+        <dd>
+          <Money amount={row.revenue} currency={currency} />
+        </dd>
+      </div>
+      {deductions.map((deduction) => (
+        <div key={deduction.key} className="flex gap-1 whitespace-nowrap text-meta text-ink-muted">
+          <dt>− {t(`payroll.steps.parts.${deduction.key}`)}</dt>
+          <dd>
+            <Money amount={deduction.amount} currency={currency} />
+          </dd>
+        </div>
+      ))}
+      <div className="flex gap-1 whitespace-nowrap border-t border-line pt-0.5 text-meta font-medium text-ink">
+        <dt>= {t("payroll.patients.net")}</dt>
+        <dd>
+          <Money amount={net} currency={currency} />
+        </dd>
+      </div>
+    </dl>
   );
 }
