@@ -1490,7 +1490,12 @@
       "title": "Laboratuvar İşi",
       "add": "Laboratuvar İşi Ekle",
       "remove": "Bu Laboratuvar İşini Kaldır",
-      "number": "Laboratuvar İşi {{number}}"
+      "edit": "Laboratuvar İşini Düzenle",
+      "save": "Tedaviye Ekle",
+      "description": "Tedaviyle birlikte, dişleri ve hekimiyle taslak laboratuvar siparişi olarak kaydedilir.",
+      "new": "Yeni",
+      "removeFile": "{{name}} kaldır",
+      "uploadFailed": "Tedavi kaydedildi, ancak bazı ekler yüklenemedi. Bunları laboratuvar siparişinden ekleyin."
     }
   },
   "inventory": {

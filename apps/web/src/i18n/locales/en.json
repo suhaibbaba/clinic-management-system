@@ -1490,7 +1490,12 @@
       "title": "Lab Work",
       "add": "Add Lab Work",
       "remove": "Remove This Lab Work",
-      "number": "Lab Work {{number}}"
+      "edit": "Edit Lab Work",
+      "save": "Add to the Treatment",
+      "description": "Saved as a draft lab order with the treatment, on its teeth and doctor.",
+      "new": "New",
+      "removeFile": "Remove {{name}}",
+      "uploadFailed": "The treatment was saved, but some attachments did not upload. Add them from the lab order."
     }
   },
   "inventory": {

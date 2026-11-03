@@ -51,7 +51,7 @@ import { useLocalized } from "@web/shared/hooks/use-localized";
 import { fieldNeeds } from "@web/shared/lib/schema-fields";
 import { LabWorkSection } from "@web/modules/labs/components/lab-work-section";
 import { canCreateLabOrder, canSeeLabCost } from "@web/shared/permissions/labs";
-import { emptyLabWork, isLabWorkReady, type LabWorkDraft } from "@web/shared/lib/lab-work";
+import { isLabWorkReady, type LabWorkDraft } from "@web/shared/lib/lab-work";
 import { labCostOf } from "@web/shared/lib/lab-cost";
 
 const need = fieldNeeds(createPerformedProcedureSchema);
@@ -130,9 +130,7 @@ export function TreatmentForm({
   );
   const [discountReason, setDiscountReason] = useState(treatment?.discountReason ?? "");
   const [notes, setNotes] = useState(treatment?.notes ?? "");
-  const [labWork, setLabWork] = useState<LabWorkDraft[]>(() =>
-    startWithLabWork && mayOrderLabWork ? [emptyLabWork(crypto.randomUUID())] : [],
-  );
+  const [labWork, setLabWork] = useState<LabWorkDraft[]>([]);
   const labWorkReady = labWork.every(isLabWorkReady);
   const draftLabCost = labWork.reduce<MoneyAmount>(
     (total, line) => (line.price.trim() === "" ? total : addMoney(total, line.price.trim())),
@@ -321,7 +319,7 @@ export function TreatmentForm({
 
         {mayOrderLabWork && (
           <LabWorkSection
-            idPrefix={fieldId}
+            startAdding={startWithLabWork}
             value={labWork}
             onChange={setLabWork}
             existing={labOrders}
