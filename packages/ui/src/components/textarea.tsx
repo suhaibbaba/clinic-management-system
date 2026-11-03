@@ -24,7 +24,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
         "text-field text-ink placeholder:text-ink-subtle",
         "transition-[border-color,box-shadow,background-color] duration-150 outline-none",
         disabled
-          ? "cursor-not-allowed border-transparent bg-inset text-ink-faint"
+          ? "cursor-not-allowed border-dashed border-line-strong bg-surface text-ink-faint"
           : cn(
               "bg-surface",
               hasError

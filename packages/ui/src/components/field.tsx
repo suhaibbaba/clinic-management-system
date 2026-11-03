@@ -12,7 +12,7 @@ export function fieldShell({ hasError = false, disabled = false }: FieldState): 
   return cn(
     "group flex w-full items-center gap-2 rounded-control border px-3.5",
     "h-(--control-h) transition-[border-color,box-shadow,background-color] duration-150",
-    disabled && "cursor-not-allowed border-transparent bg-inset",
+    disabled && "cursor-not-allowed border-dashed border-line-strong bg-surface",
     !disabled && "bg-surface",
     !disabled && hasError && "border-danger-600 shadow-field-error",
     !disabled &&
