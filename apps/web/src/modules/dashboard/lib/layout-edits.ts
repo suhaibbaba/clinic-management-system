@@ -1,3 +1,9 @@
+import {
+  DASHBOARD_WIDGETS,
+  DASHBOARD_WIDTH,
+  DASHBOARD_ZONE,
+  DASHBOARD_ZONES,
+} from "@clinic/shared";
 import type {
   DashboardKeyNumber,
   DashboardLayout,
@@ -80,4 +86,70 @@ export function standardLayoutFor(
     ],
     keyNumbers: standard.keyNumbers.filter((key) => keyOptions.includes(key)),
   };
+}
+
+export const fitsZone = (id: DashboardWidgetId, zone: DashboardZone): boolean =>
+  DASHBOARD_WIDGETS[id].zones.includes(zone);
+
+export function placeWidget(
+  layout: DashboardLayout,
+  id: DashboardWidgetId,
+  zone: DashboardZone,
+  beforeId: DashboardWidgetId | null,
+): DashboardLayout {
+  const moving = layout.widgets.find((widget) => widget.id === id);
+
+  if (!moving || !fitsZone(id, zone) || beforeId === id) {
+    return layout;
+  }
+
+  const placed: DashboardWidgetPlacement = {
+    ...moving,
+    zone,
+    width: zone === DASHBOARD_ZONE.MAIN ? moving.width : DASHBOARD_WIDTH.FULL,
+  };
+  const rest = layout.widgets.filter((widget) => widget.id !== id);
+  const lastInZone = rest.findLastIndex((widget) => widget.visible && widget.zone === zone);
+  const at =
+    beforeId === null
+      ? lastInZone === -1
+        ? rest.length
+        : lastInZone + 1
+      : rest.findIndex((widget) => widget.id === beforeId);
+
+  if (at === -1) {
+    return layout;
+  }
+
+  return { ...layout, widgets: [...rest.slice(0, at), placed, ...rest.slice(at)] };
+}
+
+export function stepWidget(
+  layout: DashboardLayout,
+  id: DashboardWidgetId,
+  step: -1 | 1,
+): DashboardLayout {
+  const target = layout.widgets.find((widget) => widget.id === id);
+
+  if (!target) {
+    return layout;
+  }
+
+  const zone = shownIn(layout, target.zone);
+  const index = zone.indexOf(target);
+
+  if (zone[index + step]) {
+    return moveWidget(layout, id, step);
+  }
+
+  const zones = DASHBOARD_ZONES.filter((candidate) => fitsZone(id, candidate));
+  const next = zones[zones.indexOf(target.zone) + step];
+
+  if (next === undefined) {
+    return layout;
+  }
+
+  const neighbours = shownIn(layout, next);
+
+  return placeWidget(layout, id, next, step === 1 ? (neighbours[0]?.id ?? null) : null);
 }

@@ -2234,10 +2234,6 @@
       "close": "Kapat",
       "add": "Bileşen ekle",
       "allShown": "Kullanılabilir tüm bileşenler gösteriliyor",
-      "zone": "Konum",
-      "width": "Genişlik",
-      "moveEarlier": "Öne al",
-      "moveLater": "Geri al",
       "hide": "Gizle",
       "keyNumbers": "Gösterilen sayılar, bu sırayla",
       "saved": "Pano kaydedildi",
@@ -2251,48 +2247,41 @@
         "half": "½",
         "twoThirds": "⅔",
         "full": "Tam"
-      }
+      },
+      "drag": "{{name}} bileşenini taşımak için sürükleyin",
+      "moveHint": "Ok tuşları bileşeni öne veya geriye alır, alanın sınırında bir sonraki alana taşır",
+      "resize": "{{name}} genişliği"
     },
     "widgets": {
       "greeting": {
-        "title": "Karşılama",
-        "description": "Selamlama ve bugünün tarihi; randevular açıksa ilk ve son randevu"
+        "title": "Karşılama"
       },
       "keyNumbers": {
-        "title": "Temel sayılar",
-        "description": "Bugünün seçilen sayıları"
+        "title": "Temel sayılar"
       },
       "schedule": {
-        "title": "Bugünün programı",
-        "description": "Doktor filtresiyle bugünün randevuları"
+        "title": "Bugünün programı"
       },
       "calendar": {
-        "title": "Mini takvim",
-        "description": "Dolu günleriyle ay"
+        "title": "Mini takvim"
       },
       "notes": {
-        "title": "Hızlı notlar",
-        "description": "Kullanıcının notları"
+        "title": "Hızlı notlar"
       },
       "quickActions": {
-        "title": "Hızlı işlemler",
-        "description": "Yeni hasta, ziyaret kaydı, ödeme kaydı"
+        "title": "Hızlı işlemler"
       },
       "visitsToday": {
-        "title": "Bugünkü ziyaretler",
-        "description": "Doktor ve hasta bakiyesiyle bugünkü ziyaretler"
+        "title": "Bugünkü ziyaretler"
       },
       "topDebts": {
-        "title": "En yüksek bakiyeler",
-        "description": "Gecikmiş en yüksek beş bakiye"
+        "title": "En yüksek bakiyeler"
       },
       "newPatients": {
-        "title": "En yeni hastalar",
-        "description": "Kaydedilen son beş hasta"
+        "title": "En yeni hastalar"
       },
       "collections": {
-        "title": "Tahsilat — son 7 gün",
-        "description": "Her gün alınan ödemeler"
+        "title": "Tahsilat — son 7 gün"
       }
     },
     "layouts": {

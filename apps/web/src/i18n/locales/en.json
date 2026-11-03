@@ -2234,10 +2234,6 @@
       "close": "Close",
       "add": "Add a widget",
       "allShown": "Every available widget is shown",
-      "zone": "Place",
-      "width": "Width",
-      "moveEarlier": "Move earlier",
-      "moveLater": "Move later",
       "hide": "Hide",
       "keyNumbers": "Numbers shown, in this order",
       "saved": "Dashboard saved",
@@ -2251,48 +2247,41 @@
         "half": "½",
         "twoThirds": "⅔",
         "full": "Full"
-      }
+      },
+      "drag": "Drag {{name}} to move it",
+      "moveHint": "The arrow keys move the widget earlier or later, and past the edge of an area into the next one",
+      "resize": "Width of {{name}}"
     },
     "widgets": {
       "greeting": {
-        "title": "Greeting",
-        "description": "The greeting and today's date, with the first and last appointment when appointments are on"
+        "title": "Greeting"
       },
       "keyNumbers": {
-        "title": "Key numbers",
-        "description": "Today's chosen numbers"
+        "title": "Key numbers"
       },
       "schedule": {
-        "title": "Today's schedule",
-        "description": "Today's appointments with a doctor filter"
+        "title": "Today's schedule"
       },
       "calendar": {
-        "title": "Mini calendar",
-        "description": "The month with its booked days"
+        "title": "Mini calendar"
       },
       "notes": {
-        "title": "Quick notes",
-        "description": "The user's notes"
+        "title": "Quick notes"
       },
       "quickActions": {
-        "title": "Quick actions",
-        "description": "New patient, record a visit, record a payment"
+        "title": "Quick actions"
       },
       "visitsToday": {
-        "title": "Today's visits",
-        "description": "Today's visits with the doctor and the patient's balance"
+        "title": "Today's visits"
       },
       "topDebts": {
-        "title": "Largest balances",
-        "description": "The five largest overdue balances"
+        "title": "Largest balances"
       },
       "newPatients": {
-        "title": "Newest patients",
-        "description": "The last five patients registered"
+        "title": "Newest patients"
       },
       "collections": {
-        "title": "Collections — last 7 days",
-        "description": "Payments received each day"
+        "title": "Collections — last 7 days"
       }
     },
     "layouts": {

@@ -1,138 +1,259 @@
 import {
-  DASHBOARD_WIDGETS,
+  DASHBOARD_GRID_COLUMNS,
   DASHBOARD_WIDGET,
+  DASHBOARD_WIDTH_COLUMNS,
   DASHBOARD_WIDTHS,
-  DASHBOARD_ZONE,
   type DashboardKeyNumber,
   type DashboardWidgetPlacement,
   type DashboardWidth,
-  type DashboardZone,
 } from "@clinic/shared";
-import type { JSX } from "react";
+import {
+  useId,
+  useRef,
+  useState,
+  type JSX,
+  type KeyboardEvent,
+  type PointerEvent,
+  type ReactNode,
+} from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Icon, SegmentedControl } from "@clinic/ui";
+import { Button, Icon } from "@clinic/ui";
 import { cn } from "@clinic/ui/lib/cn";
-import type { WidgetChange } from "@web/modules/dashboard/lib/layout-edits";
+import { documentDirection } from "@clinic/ui/lib/direction";
 import { DASHBOARD_KEY_NUMBER_LABEL } from "@web/modules/dashboard/constants";
 
 export interface WidgetFrameProps {
   readonly widget: DashboardWidgetPlacement;
-  readonly first: boolean;
-  readonly last: boolean;
+  readonly resizable: boolean;
+  readonly dragging: boolean;
   readonly keyOptions: readonly DashboardKeyNumber[];
   readonly keyNumbers: readonly DashboardKeyNumber[];
-  readonly onChange: (change: WidgetChange) => void;
-  readonly onMove: (step: -1 | 1) => void;
   readonly onToggleKey: (key: DashboardKeyNumber) => void;
+  readonly onHide: () => void;
+  readonly onStep: (step: -1 | 1) => void;
+  readonly onResize: (width: DashboardWidth) => void;
+  readonly onDragStart: () => void;
+  readonly onDragOver: () => void;
+  readonly onDragEnd: () => void;
+  readonly children: ReactNode;
 }
+
+const columnsWidth = (grid: HTMLElement): ((width: DashboardWidth) => number) => {
+  const style = getComputedStyle(grid);
+  const gap = parseFloat(style.columnGap) || 0;
+  const inner =
+    grid.clientWidth -
+    (parseFloat(style.paddingInlineStart) || 0) -
+    (parseFloat(style.paddingInlineEnd) || 0);
+  const column = (inner - (DASHBOARD_GRID_COLUMNS - 1) * gap) / DASHBOARD_GRID_COLUMNS;
+
+  return (width) =>
+    DASHBOARD_WIDTH_COLUMNS[width] * column + (DASHBOARD_WIDTH_COLUMNS[width] - 1) * gap;
+};
+
+const nearestWidth = (px: number, span: (width: DashboardWidth) => number): DashboardWidth =>
+  DASHBOARD_WIDTHS.reduce((best, width) =>
+    Math.abs(span(width) - px) < Math.abs(span(best) - px) ? width : best,
+  );
 
 export function WidgetFrame({
   widget,
-  first,
-  last,
+  resizable,
+  dragging,
   keyOptions,
   keyNumbers,
-  onChange,
-  onMove,
   onToggleKey,
+  onHide,
+  onStep,
+  onResize,
+  onDragStart,
+  onDragOver,
+  onDragEnd,
+  children,
 }: WidgetFrameProps): JSX.Element {
   const { t } = useTranslation();
+  const hintId = useId();
+  const frame = useRef<HTMLElement>(null);
+  const resizeFrom = useRef<{ readonly x: number; readonly px: number } | null>(null);
+  const [armed, setArmed] = useState(false);
+  const [resizing, setResizing] = useState(false);
   const testId = `dashboard-frame-${widget.id}`;
-  const zones = DASHBOARD_WIDGETS[widget.id].zones;
+  const name = t(`dashboard.widgets.${widget.id}.title`);
+  const rtl = documentDirection() === "rtl";
+
+  const moveByKey = (event: KeyboardEvent<HTMLButtonElement>): void => {
+    const earlier = ["ArrowUp", rtl ? "ArrowRight" : "ArrowLeft"];
+    const later = ["ArrowDown", rtl ? "ArrowLeft" : "ArrowRight"];
+
+    if (earlier.includes(event.key)) {
+      event.preventDefault();
+      onStep(-1);
+    } else if (later.includes(event.key)) {
+      event.preventDefault();
+      onStep(1);
+    }
+  };
+
+  const startResize = (event: PointerEvent<HTMLButtonElement>): void => {
+    if (!frame.current) {
+      return;
+    }
+
+    resizeFrom.current = { x: event.clientX, px: frame.current.getBoundingClientRect().width };
+    setResizing(true);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const moveResize = (event: PointerEvent<HTMLButtonElement>): void => {
+    const from = resizeFrom.current;
+    const grid = frame.current?.closest<HTMLElement>("[data-zone]");
+
+    if (!from || !grid) {
+      return;
+    }
+
+    const span = columnsWidth(grid);
+    const delta = (event.clientX - from.x) * (rtl ? -1 : 1);
+    const next = nearestWidth(from.px + delta, span);
+
+    if (next !== widget.width) {
+      onResize(next);
+    }
+  };
+
+  const endResize = (): void => {
+    resizeFrom.current = null;
+    setResizing(false);
+  };
+
+  const resizeByKey = (event: KeyboardEvent<HTMLButtonElement>): void => {
+    const grow = rtl ? "ArrowLeft" : "ArrowRight";
+    const shrink = rtl ? "ArrowRight" : "ArrowLeft";
+    const step = event.key === grow ? 1 : event.key === shrink ? -1 : 0;
+    const next = DASHBOARD_WIDTHS[DASHBOARD_WIDTHS.indexOf(widget.width) + step];
+
+    if (step !== 0) {
+      event.preventDefault();
+    }
+
+    if (step !== 0 && next !== undefined) {
+      onResize(next);
+    }
+  };
 
   return (
     <section
+      ref={frame}
       data-testid={testId}
-      aria-label={t(`dashboard.widgets.${widget.id}.title`)}
-      className="flex flex-col gap-3 rounded-card border-2 border-dashed border-primary-600/30 bg-surface p-3.5"
+      aria-label={name}
+      draggable={armed}
+      onDragStart={(event) => {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", widget.id);
+        onDragStart();
+      }}
+      onDragEnter={(event) => {
+        event.preventDefault();
+        onDragOver();
+      }}
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={(event) => event.preventDefault()}
+      onDragEnd={() => {
+        setArmed(false);
+        onDragEnd();
+      }}
+      className={cn(
+        "relative flex h-full flex-col gap-2 rounded-card border-2 border-dashed border-primary-600/30 bg-canvas p-2 transition-[border-color,opacity] duration-150",
+        dragging && "border-primary-600 opacity-50",
+        resizing && "border-solid border-primary-600",
+      )}
     >
-      <div className="flex flex-wrap items-center gap-2">
-        <Icon name="grip" className="size-4 shrink-0 text-ink-muted" />
-        <h2 className="min-w-0 flex-1 text-label font-semibold">
-          {t(`dashboard.widgets.${widget.id}.title`)}
-        </h2>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          data-testid={`${testId}-handle`}
+          aria-label={t("dashboard.customize.drag", { name })}
+          aria-describedby={hintId}
+          onPointerDown={() => setArmed(true)}
+          onPointerUp={() => setArmed(false)}
+          onKeyDown={moveByKey}
+          className="flex min-h-(--control-h-sm) min-w-0 flex-1 cursor-grab items-center gap-2 rounded-pill ps-1 pe-3 text-start active:cursor-grabbing"
+        >
+          <Icon name="grip" className="size-4 shrink-0 text-ink-muted" />
+          <span className="truncate text-label font-semibold">{name}</span>
+          <span id={hintId} className="sr-only">
+            {t("dashboard.customize.moveHint")}
+          </span>
+        </button>
 
-        {zones.length > 1 && (
-          <SegmentedControl<DashboardZone>
-            data-testid={`${testId}-zone`}
-            label={t("dashboard.customize.zone")}
-            value={widget.zone}
-            onChange={(zone) => onChange({ zone })}
-            options={zones.map((zone) => ({
-              value: zone,
-              label: t(`dashboard.customize.zones.${zone}`),
-            }))}
-          />
-        )}
-
-        {widget.zone === DASHBOARD_ZONE.MAIN && (
-          <SegmentedControl<DashboardWidth>
-            data-testid={`${testId}-width`}
-            label={t("dashboard.customize.width")}
-            value={widget.width}
-            onChange={(width) => onChange({ width })}
-            options={DASHBOARD_WIDTHS.map((width) => ({
-              value: width,
-              label: t(`dashboard.customize.widths.${width}`),
-            }))}
-          />
-        )}
-
-        <Button
-          variant="secondary"
-          size="sm"
-          data-testid={`${testId}-earlier`}
-          aria-label={t("dashboard.customize.moveEarlier")}
-          aria-disabled={first}
-          icon={<Icon name="arrow-up" />}
-          onClick={() => !first && onMove(-1)}
-        />
-        <Button
-          variant="secondary"
-          size="sm"
-          data-testid={`${testId}-later`}
-          aria-label={t("dashboard.customize.moveLater")}
-          aria-disabled={last}
-          icon={<Icon name="arrow-down" />}
-          onClick={() => !last && onMove(1)}
-        />
         <Button
           variant="quiet"
           size="sm"
           data-testid={`${testId}-hide`}
           aria-label={t("dashboard.customize.hide")}
           icon={<Icon name="eye-off" />}
-          onClick={() => onChange({ visible: false })}
+          onClick={onHide}
         />
       </div>
 
-      {widget.id === DASHBOARD_WIDGET.KEY_NUMBERS ? (
-        <div className="flex flex-col gap-2">
-          <p className="text-label text-ink-muted">{t("dashboard.customize.keyNumbers")}</p>
-          <div className="flex flex-wrap gap-2">
-            {keyOptions.map((key) => {
-              const on = keyNumbers.includes(key);
+      {widget.id === DASHBOARD_WIDGET.KEY_NUMBERS && (
+        <div
+          role="group"
+          aria-label={t("dashboard.customize.keyNumbers")}
+          className="flex flex-wrap gap-2 px-1"
+        >
+          {keyOptions.map((key) => {
+            const on = keyNumbers.includes(key);
 
-              return (
-                <Button
-                  key={key}
-                  variant={on ? "ghost" : "secondary"}
-                  size="sm"
-                  data-testid={`${testId}-key-${key}`}
-                  aria-pressed={on}
-                  icon={<Icon name={on ? "check" : "plus"} />}
-                  onClick={() => onToggleKey(key)}
-                >
-                  {t(DASHBOARD_KEY_NUMBER_LABEL[key] ?? key)}
-                </Button>
-              );
-            })}
-          </div>
+            return (
+              <Button
+                key={key}
+                variant={on ? "ghost" : "secondary"}
+                size="sm"
+                data-testid={`${testId}-key-${key}`}
+                aria-pressed={on}
+                icon={<Icon name={on ? "check" : "plus"} />}
+                onClick={() => onToggleKey(key)}
+              >
+                {t(DASHBOARD_KEY_NUMBER_LABEL[key] ?? key)}
+              </Button>
+            );
+          })}
         </div>
-      ) : (
-        <p className={cn("rounded-panel bg-inset px-3 py-4 text-label text-ink-muted")}>
-          {t(`dashboard.widgets.${widget.id}.description`)}
-        </p>
+      )}
+
+      <div inert className="pointer-events-none flex-1 select-none">
+        {children}
+      </div>
+
+      {resizable && (
+        <button
+          type="button"
+          role="slider"
+          data-testid={`${testId}-resize`}
+          aria-label={t("dashboard.customize.resize", { name })}
+          aria-orientation="horizontal"
+          aria-valuemin={1}
+          aria-valuemax={DASHBOARD_WIDTHS.length}
+          aria-valuenow={DASHBOARD_WIDTHS.indexOf(widget.width) + 1}
+          aria-valuetext={t(`dashboard.customize.widths.${widget.width}`)}
+          onPointerDown={startResize}
+          onPointerMove={moveResize}
+          onPointerUp={endResize}
+          onPointerCancel={endResize}
+          onKeyDown={resizeByKey}
+          className={cn(
+            "absolute -end-3 -bottom-3 z-10 flex h-(--control-h-sm) min-w-(--control-h-sm) cursor-ew-resize touch-none items-center justify-center gap-1 rounded-pill border border-line bg-surface px-2 text-ink-muted shadow-card hover:text-primary-700 max-lg:hidden",
+            resizing && "border-primary-600 text-primary-700",
+          )}
+        >
+          {resizing && (
+            <span className="text-micro font-medium">
+              {t(`dashboard.customize.widths.${widget.width}`)}
+            </span>
+          )}
+          <Icon name="move-horizontal" className="size-3.5" />
+        </button>
       )}
     </section>
   );

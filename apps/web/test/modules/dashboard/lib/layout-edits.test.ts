@@ -13,7 +13,9 @@ import { describe, expect, it } from "vitest";
 import {
   changeWidget,
   moveWidget,
+  placeWidget,
   shownIn,
+  stepWidget,
   standardLayoutFor,
   toggleKeyNumber,
 } from "@web/modules/dashboard/lib/layout-edits";
@@ -170,5 +172,35 @@ describe("editing a draft layout", () => {
 
     expect(restored.widgets).toEqual(DEFAULT_DASHBOARD_LAYOUT.widgets);
     expect(restored.keyNumbers).toEqual([DASHBOARD_KEY_NUMBER.OVERDUE]);
+  });
+
+  it("drops a widget before another in a different zone and widens nothing in the side", () => {
+    const moved = placeWidget(
+      draft,
+      DASHBOARD_WIDGET.NOTES,
+      DASHBOARD_ZONE.MAIN,
+      DASHBOARD_WIDGET.SCHEDULE,
+    );
+
+    expect(ids(moved, DASHBOARD_ZONE.MAIN).slice(0, 2)).toEqual([
+      DASHBOARD_WIDGET.KEY_NUMBERS,
+      DASHBOARD_WIDGET.NOTES,
+    ]);
+    expect(ids(moved, DASHBOARD_ZONE.SIDE)).not.toContain(DASHBOARD_WIDGET.NOTES);
+    expect(placeWidget(draft, DASHBOARD_WIDGET.SCHEDULE, DASHBOARD_ZONE.SIDE, null)).toBe(draft);
+  });
+
+  it("steps a widget past the edge of its zone into the next one it may sit in", () => {
+    const intoSide = stepWidget(draft, DASHBOARD_WIDGET.VISITS_TODAY, 1);
+    const intoTop = stepWidget(draft, DASHBOARD_WIDGET.KEY_NUMBERS, -1);
+
+    expect(ids(intoSide, DASHBOARD_ZONE.MAIN)).toContain(DASHBOARD_WIDGET.VISITS_TODAY);
+    expect(ids(intoTop, DASHBOARD_ZONE.TOP)).toEqual([
+      DASHBOARD_WIDGET.GREETING,
+      DASHBOARD_WIDGET.KEY_NUMBERS,
+    ]);
+    expect(
+      ids(stepWidget(draft, DASHBOARD_WIDGET.QUICK_ACTIONS, -1), DASHBOARD_ZONE.MAIN).at(-1),
+    ).toBe(DASHBOARD_WIDGET.QUICK_ACTIONS);
   });
 });
