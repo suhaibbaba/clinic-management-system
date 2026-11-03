@@ -28,6 +28,9 @@ import { UserPhotoField } from "@web/modules/users/components/user-photo-field";
 import { assignableRoles } from "@web/modules/users/lib/roles";
 import { errorToast } from "@web/shared/lib/api-error";
 import { Modal } from "@clinic/ui/components/modal";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createUserSchema);
 
 interface UserFormModalProps {
   "data-testid"?: string | undefined;
@@ -189,6 +192,7 @@ export function UserFormModal({
           htmlFor="user-phone"
           error={errors.phone}
           errorKey={errors.phone ? "errors.validation.invalidPhone" : undefined}
+          {...need("phone")}
         >
           <Controller
             name="phone"
@@ -225,7 +229,12 @@ export function UserFormModal({
           />
         </FormField>
 
-        <FormField label="users.joinedOn" htmlFor="user-joined-on" error={errors.joinedOn} required>
+        <FormField
+          label="users.joinedOn"
+          htmlFor="user-joined-on"
+          error={errors.joinedOn}
+          {...need("joinedOn")}
+        >
           <Controller
             name="joinedOn"
             control={control}
@@ -245,7 +254,7 @@ export function UserFormModal({
           />
         </FormField>
 
-        <FormField label="users.role" htmlFor="user-role" error={errors.role}>
+        <FormField label="users.role" htmlFor="user-role" error={errors.role} {...need("role")}>
           <Controller
             name="role"
             control={control}

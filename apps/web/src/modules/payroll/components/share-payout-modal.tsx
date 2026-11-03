@@ -29,6 +29,7 @@ import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { errorToast } from "@web/shared/lib/api-error";
 import { todayIso } from "@web/shared/lib/dates";
 import { schemaErrors } from "@web/shared/lib/form-errors";
+import { fieldNeed } from "@web/shared/lib/schema-fields";
 import { formatDate } from "@web/shared/lib/format";
 
 type PayoutMode = (typeof PAYOUT_MODES)[number];
@@ -245,7 +246,11 @@ export function SharePayoutModal({
           </div>
         )}
 
-        <FormField label="labs.payment.method" htmlFor="doctor-payout-method">
+        <FormField
+          label="labs.payment.method"
+          htmlFor="doctor-payout-method"
+          {...fieldNeed(createSettlementPayoutSchema, "method")}
+        >
           <Select
             id="doctor-payout-method"
             data-testid="doctor-payout-field-method"
@@ -255,7 +260,11 @@ export function SharePayoutModal({
           />
         </FormField>
 
-        <FormField label="labs.payment.note" htmlFor="doctor-payout-note" optional>
+        <FormField
+          label="labs.payment.note"
+          htmlFor="doctor-payout-note"
+          {...fieldNeed(createSettlementPayoutSchema, "note")}
+        >
           <Textarea
             id="doctor-payout-note"
             data-testid="doctor-payout-field-note"

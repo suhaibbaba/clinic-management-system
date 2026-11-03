@@ -18,6 +18,9 @@ import { todayIso } from "@web/shared/lib/dates";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { useLookupOptions } from "@web/shared/queries/lookups";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createExpenseSchema);
 
 export function ExpenseModal({
   open,
@@ -109,7 +112,7 @@ export function ExpenseModal({
             label="expenses.date"
             htmlFor="expense-date"
             error={form.errors["spentOn"]}
-            required
+            {...need("spentOn")}
           >
             <DatePicker
               id="expense-date"
@@ -128,7 +131,7 @@ export function ExpenseModal({
             label="expenses.category"
             htmlFor="expense-category"
             error={form.errors["category"]}
-            required
+            {...need("category")}
           >
             <Select
               id="expense-category"
@@ -146,7 +149,7 @@ export function ExpenseModal({
             label="expenses.amount"
             htmlFor="expense-amount"
             error={form.errors["amount"]}
-            required
+            {...need("amount")}
           >
             <MoneyInput
               id="expense-amount"
@@ -159,7 +162,7 @@ export function ExpenseModal({
           </FormField>
         </div>
 
-        <FormField label="labs.payment.method" htmlFor="expense-method">
+        <FormField label="labs.payment.method" htmlFor="expense-method" {...need("method")}>
           <Select
             id="expense-method"
             data-testid="expense-field-method"
@@ -169,7 +172,7 @@ export function ExpenseModal({
           />
         </FormField>
 
-        <FormField label="labs.payment.note" htmlFor="expense-note" optional>
+        <FormField label="labs.payment.note" htmlFor="expense-note" {...need("note")}>
           <Textarea
             id="expense-note"
             data-testid="expense-field-note"

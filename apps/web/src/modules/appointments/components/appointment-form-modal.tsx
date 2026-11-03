@@ -47,6 +47,9 @@ import { SlotPicker } from "@web/modules/appointments/components/slot-picker";
 import { isIsoDate, toIsoDate, todayIso } from "@web/shared/lib/dates";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { errorToast } from "@web/shared/lib/api-error";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createAppointmentSchema);
 
 export interface AppointmentFormModalProps {
   readonly "data-testid"?: string | undefined;
@@ -314,6 +317,7 @@ export function AppointmentFormModal({
               label="appointments.doctor"
               htmlFor="appointment-doctor"
               error={errors["doctorId"]}
+              {...need("doctorId")}
             >
               <Select
                 id="appointment-doctor"
@@ -385,6 +389,7 @@ export function AppointmentFormModal({
             htmlFor="appointment-slot"
             error={errors["startsAt"]}
             hint="appointments.slots.hint"
+            {...need("startsAt")}
           >
             <SlotPicker
               availability={availability.data}
@@ -401,7 +406,7 @@ export function AppointmentFormModal({
             label="appointments.reason"
             htmlFor="appointment-reason"
             error={errors["reason"]}
-            optional
+            {...need("reason")}
           >
             <Input
               id="appointment-reason"
@@ -418,7 +423,7 @@ export function AppointmentFormModal({
             label="appointments.notes"
             htmlFor="appointment-notes"
             error={errors["notes"]}
-            optional
+            {...need("notes")}
           >
             <Textarea
               id="appointment-notes"

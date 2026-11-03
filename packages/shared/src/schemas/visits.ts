@@ -2,6 +2,11 @@ import { z } from "zod";
 import { paginationQuerySchema } from "@shared/schemas/common";
 import { lookupCodeSchema } from "@shared/schemas/lookups";
 import { wholeMoneySchema } from "@shared/schemas/money";
+import {
+  hasExactlyOnePatient,
+  PATIENT_REF_MESSAGE,
+  patientRefFields,
+} from "@shared/schemas/patients";
 
 export const visitSchema = z.object({
   id: z.uuid(),
@@ -34,12 +39,16 @@ export const visitFeeSchema = z.object({
 });
 export type VisitFeeInput = z.infer<typeof visitFeeSchema>;
 
-export const createVisitSchema = z.object({
+export const visitDetailsSchema = z.object({
   ...visitWritableFields,
-  patientId: z.uuid(),
   visitDate: z.iso.datetime().optional(),
   fee: visitFeeSchema.optional(),
 });
+export type VisitDetailsInput = z.infer<typeof visitDetailsSchema>;
+
+export const createVisitSchema = visitDetailsSchema
+  .extend(patientRefFields)
+  .refine(hasExactlyOnePatient, PATIENT_REF_MESSAGE);
 export type CreateVisitInput = z.infer<typeof createVisitSchema>;
 
 export const updateVisitSchema = z

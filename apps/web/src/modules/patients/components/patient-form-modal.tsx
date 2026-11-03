@@ -1,12 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  createPatientSchema,
   GENDERS,
   missingProfileFields,
   type ProfileCompletionField,
   type CreatePatientInput,
   type PatientClinicalView,
 } from "@clinic/shared";
-import { useEffect, useMemo, type JSX } from "react";
+import { useEffect, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { revealFirstError } from "@web/shared/lib/form-errors";
 import { WhatsAppPhoneInput } from "@web/shared/components/whatsapp-phone-input";
@@ -30,8 +31,9 @@ import { errorToast } from "@web/shared/lib/api-error";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { formatList } from "@web/shared/lib/format";
 import { todayIso } from "@web/shared/lib/dates";
-import { patientFormSchema } from "@web/modules/patients/lib/patient-form";
-import { useSession } from "@web/shared/providers/session";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createPatientSchema);
 
 interface PatientFormModalProps {
   "data-testid"?: string | undefined;
@@ -54,8 +56,6 @@ export function PatientFormModal({
   const createPatient = useCreatePatient();
   const updatePatient = useUpdatePatient(patient?.id ?? "");
   const displayName = usePersonName();
-  const country = useSession().user?.clinic.country ?? "";
-  const schema = useMemo(() => patientFormSchema(country), [country]);
   const doctors = useDoctors({ limit: 100 });
   const doctorChoices = (doctors.data?.items ?? [])
     .filter((doctor) => doctor.user.isActive || doctor.id === patient?.assignedDoctorId)
@@ -71,10 +71,13 @@ export function PatientFormModal({
     formState: { errors, isSubmitting, isValid },
     control,
     watch,
+    getValues,
+    setValue,
   } = useForm<CreatePatientInput>({
     mode: "onTouched",
-    resolver: zodResolver(schema),
+    resolver: zodResolver(createPatientSchema),
   });
+  const onlyDoctor = doctorChoices.length === 1 ? doctorChoices[0]?.value : undefined;
 
   const missing = editing
     ? missingProfileFields({ dateOfBirth: watch("dateOfBirth"), gender: watch("gender") })
@@ -97,7 +100,6 @@ export function PatientFormModal({
             dateOfBirth: patient.dateOfBirth,
             gender: patient.gender,
             address: patient.address,
-            nationalId: patient.nationalId,
             emergencyContactName: patient.emergencyContactName,
             emergencyContactPhone: patient.emergencyContactPhone,
             assignedDoctorId: patient.assignedDoctorId,
@@ -105,6 +107,12 @@ export function PatientFormModal({
         : { firstName: "", middleName: "", lastName: "" },
     );
   }, [open, patient, reset]);
+
+  useEffect(() => {
+    if (open && onlyDoctor !== undefined && !getValues("assignedDoctorId")) {
+      setValue("assignedDoctorId", onlyDoctor, { shouldDirty: true, shouldValidate: true });
+    }
+  }, [open, onlyDoctor, getValues, setValue]);
 
   const onSubmit = handleSubmit(
     async (values) => {
@@ -133,6 +141,7 @@ export function PatientFormModal({
       open={open}
       onOpenChange={onOpenChange}
       title={editing ? "patients.edit" : "patients.create"}
+      size="lg"
       footer={
         <>
           <Button
@@ -179,6 +188,7 @@ export function PatientFormModal({
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField
             label="patients.firstName"
+            {...need("firstName")}
             htmlFor="patient-first-name"
             error={errors.firstName}
           >
@@ -192,7 +202,12 @@ export function PatientFormModal({
             />
           </FormField>
 
-          <FormField label="patients.lastName" htmlFor="patient-last-name" error={errors.lastName}>
+          <FormField
+            label="patients.lastName"
+            {...need("lastName")}
+            htmlFor="patient-last-name"
+            error={errors.lastName}
+          >
             <Input
               placeholder={t("common.placeholders.lastName")}
               id="patient-last-name"
@@ -201,218 +216,178 @@ export function PatientFormModal({
               {...register("lastName")}
             />
           </FormField>
+
+          <FormField
+            label="patients.middleName"
+            {...need("middleName")}
+            htmlFor="patient-middle-name"
+            error={errors.middleName}
+          >
+            <Input
+              placeholder={t("common.placeholders.middleName")}
+              id="patient-middle-name"
+              data-testid="patient-field-middle-name"
+              hasError={Boolean(errors.middleName)}
+              {...register("middleName")}
+            />
+          </FormField>
+
+          <FormField
+            label="patients.phone"
+            {...need("phone")}
+            htmlFor="patient-phone"
+            error={errors.phone}
+            errorKey={errors.phone ? "errors.validation.invalidPhone" : undefined}
+          >
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => (
+                <WhatsAppPhoneInput
+                  check={!getValues("whatsapp")}
+                  placeholder={t("common.placeholders.phone")}
+                  id="patient-phone"
+                  data-testid="patient-field-phone"
+                  hasError={Boolean(errors.phone)}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
+              )}
+            />
+          </FormField>
+
+          <FormField
+            label="patients.dateOfBirth"
+            htmlFor="patient-dob"
+            error={errors.dateOfBirth}
+            {...(needed("dateOfBirth")
+              ? { note: "patients.neededToComplete" }
+              : need("dateOfBirth"))}
+          >
+            <Controller
+              control={control}
+              name="dateOfBirth"
+              render={({ field }) => (
+                <DatePicker
+                  id="patient-dob"
+                  data-testid="patient-field-dob"
+                  label={t("patients.dateOfBirth")}
+                  value={field.value ?? ""}
+                  max={todayIso()}
+                  hasError={errors.dateOfBirth !== undefined}
+                  onChange={(value) => field.onChange(value === "" ? null : value)}
+                />
+              )}
+            />
+          </FormField>
+
+          <FormField
+            label="patients.gender"
+            htmlFor="patient-gender"
+            error={errors.gender}
+            {...(needed("gender") ? { note: "patients.neededToComplete" } : need("gender"))}
+          >
+            <Controller
+              name="gender"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  id="patient-gender"
+                  data-testid="patient-field-gender"
+                  placeholder={t("common.none")}
+                  options={GENDERS.map((gender) => ({
+                    value: gender,
+                    label: t(`patients.${gender}`),
+                  }))}
+                  value={field.value ?? ""}
+                  onBlur={field.onBlur}
+                  onChange={(event) => field.onChange(event.target.value || null)}
+                />
+              )}
+            />
+          </FormField>
+
+          <FormField
+            label="patients.assignedDoctor"
+            {...need("assignedDoctorId")}
+            htmlFor="patient-assigned-doctor"
+            error={errors.assignedDoctorId}
+            hint="patients.assignedDoctorHint"
+          >
+            <Controller
+              name="assignedDoctorId"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  id="patient-assigned-doctor"
+                  data-testid="patient-field-assigned-doctor"
+                  placeholder={t("common.none")}
+                  searchable={doctorChoices.length > 8}
+                  disabled={onlyDoctor !== undefined}
+                  options={doctorChoices}
+                  value={field.value ?? ""}
+                  onBlur={field.onBlur}
+                  onChange={(event) => field.onChange(event.target.value || null)}
+                />
+              )}
+            />
+          </FormField>
+
+          <FormField
+            label="patients.address"
+            {...need("address")}
+            htmlFor="patient-address"
+            error={errors.address}
+          >
+            <Input
+              placeholder={t("common.placeholders.address")}
+              id="patient-address"
+              data-testid="patient-field-address"
+              {...register("address", { setValueAs: (value) => (value === "" ? null : value) })}
+            />
+          </FormField>
+
+          <FormField
+            label="patients.emergencyContactName"
+            {...need("emergencyContactName")}
+            htmlFor="patient-emergency-name"
+            error={errors.emergencyContactName}
+          >
+            <Input
+              placeholder={t("common.placeholders.emergencyName")}
+              adornment="user"
+              id="patient-emergency-name"
+              data-testid="patient-field-emergency-name"
+              {...register("emergencyContactName", {
+                setValueAs: (value) => (value === "" ? null : value),
+              })}
+            />
+          </FormField>
+
+          <FormField
+            label="patients.emergencyContactPhone"
+            {...need("emergencyContactPhone")}
+            htmlFor="patient-emergency-phone"
+            error={errors.emergencyContactPhone}
+          >
+            <Controller
+              name="emergencyContactPhone"
+              control={control}
+              render={({ field }) => (
+                <PhoneInput
+                  placeholder={t("common.placeholders.phone")}
+                  id="patient-emergency-phone"
+                  data-testid="patient-field-emergency-phone"
+                  hasError={Boolean(errors.emergencyContactPhone)}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
+              )}
+            />
+          </FormField>
         </div>
-
-        <FormField
-          label="patients.middleName"
-          htmlFor="patient-middle-name"
-          optional
-          error={errors.middleName}
-        >
-          <Input
-            placeholder={t("common.placeholders.middleName")}
-            id="patient-middle-name"
-            data-testid="patient-field-middle-name"
-            hasError={Boolean(errors.middleName)}
-            {...register("middleName")}
-          />
-        </FormField>
-
-        <FormField
-          label="patients.phone"
-          htmlFor="patient-phone"
-          error={errors.phone}
-          errorKey={errors.phone ? "errors.validation.invalidPhone" : undefined}
-          optional
-        >
-          <Controller
-            name="phone"
-            control={control}
-            render={({ field }) => (
-              <WhatsAppPhoneInput
-                check={!watch("whatsapp")}
-                placeholder={t("common.placeholders.phone")}
-                id="patient-phone"
-                data-testid="patient-field-phone"
-                hasError={Boolean(errors.phone)}
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-              />
-            )}
-          />
-        </FormField>
-
-        <FormField
-          label="patients.whatsapp"
-          htmlFor="patient-whatsapp"
-          error={errors.whatsapp}
-          errorKey={errors.whatsapp ? "errors.validation.invalidPhone" : undefined}
-          hint="patients.whatsappHint"
-          optional
-        >
-          <Controller
-            name="whatsapp"
-            control={control}
-            render={({ field }) => (
-              <WhatsAppPhoneInput
-                check
-                placeholder={t("common.placeholders.phone")}
-                id="patient-whatsapp"
-                data-testid="patient-field-whatsapp"
-                hasError={Boolean(errors.whatsapp)}
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-              />
-            )}
-          />
-        </FormField>
-
-        <FormField
-          label="patients.dateOfBirth"
-          htmlFor="patient-dob"
-          error={errors.dateOfBirth}
-          {...(needed("dateOfBirth") ? { note: "patients.neededToComplete" } : { optional: true })}
-        >
-          <Controller
-            control={control}
-            name="dateOfBirth"
-            render={({ field }) => (
-              <DatePicker
-                id="patient-dob"
-                data-testid="patient-field-dob"
-                label={t("patients.dateOfBirth")}
-                value={field.value ?? ""}
-                max={todayIso()}
-                hasError={errors.dateOfBirth !== undefined}
-                onChange={(value) => field.onChange(value === "" ? null : value)}
-              />
-            )}
-          />
-        </FormField>
-
-        <FormField
-          label="patients.gender"
-          htmlFor="patient-gender"
-          error={errors.gender}
-          {...(needed("gender") ? { note: "patients.neededToComplete" } : { optional: true })}
-        >
-          <Controller
-            name="gender"
-            control={control}
-            render={({ field }) => (
-              <Select
-                id="patient-gender"
-                data-testid="patient-field-gender"
-                placeholder={t("common.none")}
-                options={GENDERS.map((gender) => ({
-                  value: gender,
-                  label: t(`patients.${gender}`),
-                }))}
-                value={field.value ?? ""}
-                onBlur={field.onBlur}
-                onChange={(event) => field.onChange(event.target.value || null)}
-              />
-            )}
-          />
-        </FormField>
-
-        <FormField
-          label="patients.assignedDoctor"
-          htmlFor="patient-assigned-doctor"
-          error={errors.assignedDoctorId}
-          hint="patients.assignedDoctorHint"
-          optional
-        >
-          <Controller
-            name="assignedDoctorId"
-            control={control}
-            render={({ field }) => (
-              <Select
-                id="patient-assigned-doctor"
-                data-testid="patient-field-assigned-doctor"
-                placeholder={t("common.none")}
-                searchable={doctorChoices.length > 8}
-                options={doctorChoices}
-                value={field.value ?? ""}
-                onBlur={field.onBlur}
-                onChange={(event) => field.onChange(event.target.value || null)}
-              />
-            )}
-          />
-        </FormField>
-
-        <FormField
-          label="patients.address"
-          htmlFor="patient-address"
-          error={errors.address}
-          optional
-        >
-          <Input
-            placeholder={t("common.placeholders.address")}
-            id="patient-address"
-            data-testid="patient-field-address"
-            {...register("address", { setValueAs: (value) => (value === "" ? null : value) })}
-          />
-        </FormField>
-
-        <FormField
-          label="patients.nationalId"
-          htmlFor="patient-national-id"
-          error={errors.nationalId}
-          errorKey={errors.nationalId ? "errors.validation.nationalIdInvalid" : undefined}
-          optional
-        >
-          <Input
-            id="patient-national-id"
-            data-testid="patient-field-national-id"
-            dir="ltr"
-            maxLength={64}
-            hasError={Boolean(errors.nationalId)}
-            {...register("nationalId", { setValueAs: (value) => (value === "" ? null : value) })}
-          />
-        </FormField>
-
-        <FormField
-          label="patients.emergencyContactName"
-          htmlFor="patient-emergency-name"
-          error={errors.emergencyContactName}
-          optional
-        >
-          <Input
-            placeholder={t("common.placeholders.emergencyName")}
-            adornment="user"
-            id="patient-emergency-name"
-            data-testid="patient-field-emergency-name"
-            {...register("emergencyContactName", {
-              setValueAs: (value) => (value === "" ? null : value),
-            })}
-          />
-        </FormField>
-
-        <FormField
-          label="patients.emergencyContactPhone"
-          htmlFor="patient-emergency-phone"
-          error={errors.emergencyContactPhone}
-          optional
-        >
-          <Controller
-            name="emergencyContactPhone"
-            control={control}
-            render={({ field }) => (
-              <PhoneInput
-                placeholder={t("common.placeholders.phone")}
-                id="patient-emergency-phone"
-                data-testid="patient-field-emergency-phone"
-                hasError={Boolean(errors.emergencyContactPhone)}
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-              />
-            )}
-          />
-        </FormField>
       </form>
     </Modal>
   );

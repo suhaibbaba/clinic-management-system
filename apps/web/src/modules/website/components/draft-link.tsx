@@ -1,7 +1,9 @@
+import { siteContentSchema } from "@clinic/shared";
 import type { JSX } from "react";
 import { FormField, Input } from "@clinic/ui";
 import { useEditor } from "@web/modules/website/hooks/use-editor";
 import { valueAt, withValueAt } from "@web/modules/website/lib/site-draft";
+import { fieldNeed } from "@web/shared/lib/schema-fields";
 
 export function DraftLink({
   path,
@@ -29,7 +31,7 @@ export function DraftLink({
         htmlFor={id}
         error={errors[path]}
         errorKey="website.fields.invalidLink"
-        optional
+        {...fieldNeed(siteContentSchema, path)}
         {...(hint !== undefined && { hint })}
       >
         <Input

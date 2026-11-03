@@ -20,6 +20,9 @@ import { capitalizeWords } from "@web/modules/inventory/lib/capitalize-words";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { useSession } from "@web/shared/providers/session";
 import { canSeeCosts } from "@web/shared/permissions/inventory";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createSupplierSchema);
 
 export function SupplierFormModal({
   open,
@@ -132,7 +135,7 @@ export function SupplierFormModal({
             error={form.errors["name"]}
             label="inventory.suppliers.name"
             htmlFor="supplier-name"
-            required
+            {...need("name")}
           >
             <Input
               id="supplier-name"
@@ -149,7 +152,7 @@ export function SupplierFormModal({
             error={form.errors["phone"]}
             label="inventory.suppliers.phone"
             htmlFor="supplier-phone"
-            optional
+            {...need("phone")}
           >
             <PhoneInput
               id="supplier-phone"
@@ -165,7 +168,7 @@ export function SupplierFormModal({
             error={form.errors["contactPerson"]}
             label="inventory.suppliers.contact"
             htmlFor="supplier-contact"
-            optional
+            {...need("contactPerson")}
           >
             <Input
               id="supplier-contact"
@@ -182,7 +185,7 @@ export function SupplierFormModal({
             error={form.errors["notes"]}
             label="inventory.notes"
             htmlFor="supplier-notes"
-            optional
+            {...need("notes")}
           >
             <Textarea
               id="supplier-notes"
@@ -201,7 +204,7 @@ export function SupplierFormModal({
               label="inventory.suppliers.openingBalance"
               hint="inventory.suppliers.openingBalanceHint"
               htmlFor="supplier-opening-balance"
-              optional
+              {...need("openingBalance")}
             >
               <MoneyInput
                 id="supplier-opening-balance"

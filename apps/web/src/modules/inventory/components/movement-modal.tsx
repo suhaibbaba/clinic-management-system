@@ -31,6 +31,9 @@ import { type UsageMovementType } from "@web/modules/inventory/constants";
 import { errorToast } from "@web/shared/lib/api-error";
 import { REQUIRED, schemaErrors, type FieldErrors } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
+import { fieldNeed, fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const consumeNeed = fieldNeeds(consumeStockSchema);
 
 export interface MovementModalProps {
   readonly "data-testid"?: string | undefined;
@@ -88,6 +91,7 @@ export function MovementModal({
     quantity.trim() !== "" &&
     toThousandths(quantity.trim()) < 1000;
 
+  const movementSchema = type === MOVEMENT_TYPE.CONSUME ? consumeStockSchema : adjustStockSchema;
   const itemId = item?.id ?? "";
   const consumeBody = {
     itemId,
@@ -215,7 +219,7 @@ export function MovementModal({
               error={form.errors["itemId"]}
               label="inventory.movement.item"
               htmlFor="movement-item"
-              required
+              {...fieldNeed(movementSchema, "itemId")}
             >
               <Select
                 searchable
@@ -279,7 +283,7 @@ export function MovementModal({
             }
             {...(overdrawn && { errorKey: "inventory.movement.overStock" })}
             {...(belowOne && { errorKey: "inventory.movement.atLeastOne" })}
-            required
+            {...fieldNeed(movementSchema, "quantity")}
           >
             <QuantityInput
               id="movement-quantity"
@@ -296,7 +300,7 @@ export function MovementModal({
               error={form.errors["patientId"]}
               label="inventory.movement.patient"
               htmlFor="movement-patient"
-              optional
+              {...consumeNeed("patientId")}
             >
               <PatientPicker
                 id="movement-patient"
@@ -313,7 +317,7 @@ export function MovementModal({
               error={form.errors["doctorId"]}
               label="inventory.movement.doctor"
               htmlFor="movement-doctor"
-              optional
+              {...consumeNeed("doctorId")}
             >
               <Select
                 id="movement-doctor"
@@ -345,9 +349,8 @@ export function MovementModal({
                 : "inventory.movement.note"
             }
             htmlFor="movement-reason"
-            {...(type === MOVEMENT_TYPE.ADJUST
-              ? { required: true, hint: t("inventory.movement.reasonHint") }
-              : { optional: true })}
+            {...fieldNeed(movementSchema, "reason")}
+            {...(type === MOVEMENT_TYPE.ADJUST && { hint: t("inventory.movement.reasonHint") })}
           >
             <Textarea
               id="movement-reason"

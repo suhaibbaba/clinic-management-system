@@ -1,5 +1,6 @@
 import {
   DASHBOARD_KEY_NUMBER,
+  DASHBOARD_QUICK_ACTION,
   DASHBOARD_WIDGET,
   DASHBOARD_WIDTH,
   DASHBOARD_ZONE,
@@ -18,6 +19,7 @@ import {
   stepWidget,
   standardLayoutFor,
   toggleKeyNumber,
+  toggleQuickAction,
 } from "@web/modules/dashboard/lib/layout-edits";
 
 const everything = (): boolean => true;
@@ -166,12 +168,45 @@ describe("editing a draft layout", () => {
       DASHBOARD_WIDGET.GREETING,
       { visible: false },
     );
-    const restored = standardLayoutFor(changed, DEFAULT_DASHBOARD_LAYOUT, [
-      DASHBOARD_KEY_NUMBER.OVERDUE,
-    ]);
+    const restored = standardLayoutFor(
+      changed,
+      DEFAULT_DASHBOARD_LAYOUT,
+      [DASHBOARD_KEY_NUMBER.OVERDUE],
+      [DASHBOARD_QUICK_ACTION.PATIENT, DASHBOARD_QUICK_ACTION.PAYMENT],
+    );
 
     expect(restored.widgets).toEqual(DEFAULT_DASHBOARD_LAYOUT.widgets);
     expect(restored.keyNumbers).toEqual([DASHBOARD_KEY_NUMBER.OVERDUE]);
+    expect(restored.quickActions).toEqual([
+      DASHBOARD_QUICK_ACTION.PATIENT,
+      DASHBOARD_QUICK_ACTION.PAYMENT,
+    ]);
+  });
+
+  it("shows, hides and orders quick actions as they are picked", () => {
+    const layout = { ...draft, quickActions: [DASHBOARD_QUICK_ACTION.VISIT] };
+
+    expect(toggleQuickAction(layout, DASHBOARD_QUICK_ACTION.PATIENT).quickActions).toEqual([
+      DASHBOARD_QUICK_ACTION.VISIT,
+      DASHBOARD_QUICK_ACTION.PATIENT,
+    ]);
+    expect(toggleQuickAction(layout, DASHBOARD_QUICK_ACTION.VISIT).quickActions).toEqual([]);
+  });
+
+  it("keeps only the quick actions a role may use, and fills an old layout with the default", () => {
+    const allows = (capability: string): boolean => capability !== "appointments.create";
+
+    expect(normalizeDashboardLayout({ widgets: [], keyNumbers: [] }, allows).quickActions).toEqual([
+      DASHBOARD_QUICK_ACTION.PATIENT,
+      DASHBOARD_QUICK_ACTION.VISIT,
+      DASHBOARD_QUICK_ACTION.PAYMENT,
+    ]);
+    expect(
+      normalizeDashboardLayout(
+        { widgets: [], keyNumbers: [], quickActions: [DASHBOARD_QUICK_ACTION.APPOINTMENT] },
+        allows,
+      ).quickActions,
+    ).toEqual([]);
   });
 
   it("drops a widget before another in a different zone and widens nothing in the side", () => {

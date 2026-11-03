@@ -35,7 +35,6 @@ export const patientClinicalViewSchema = z.object({
   dateOfBirth: dateOnlySchema.nullable(),
   gender: z.enum(GENDERS).nullable(),
   address: z.string().nullable(),
-  nationalId: z.string().nullable(),
   emergencyContactName: z.string().nullable(),
   emergencyContactPhone: z.string().nullable(),
   notes: z.string().nullable(),
@@ -80,7 +79,6 @@ const patientWritableFields = {
   dateOfBirth: pastDateSchema.nullish(),
   gender: z.enum(GENDERS).nullish(),
   address: z.string().trim().max(500).nullish(),
-  nationalId: z.string().trim().max(64).nullish(),
   emergencyContactName: z.string().trim().max(160).nullish(),
   emergencyContactPhone: phoneSchema.nullish(),
   notes: z.string().trim().max(2000).nullish(),
@@ -96,22 +94,14 @@ export const updatePatientSchema = z
   .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdatePatientInput = z.infer<typeof updatePatientSchema>;
 
-export const inlinePatientSchema = z.object({
-  ...nameParts,
-  phone: phoneSchema,
-  gender: patientWritableFields.gender,
-  dateOfBirth: patientWritableFields.dateOfBirth,
-});
-export type InlinePatientInput = z.infer<typeof inlinePatientSchema>;
-
 export const patientRefFields = {
   patientId: uuidSchema.optional(),
-  newPatient: inlinePatientSchema.optional(),
+  newPatient: createPatientSchema.optional(),
 };
 
 export const hasExactlyOnePatient = (input: {
   readonly patientId?: string | undefined;
-  readonly newPatient?: InlinePatientInput | undefined;
+  readonly newPatient?: CreatePatientInput | undefined;
 }): boolean => (input.patientId === undefined) !== (input.newPatient === undefined);
 
 export const PATIENT_REF_MESSAGE = "Provide either patientId or newPatient";

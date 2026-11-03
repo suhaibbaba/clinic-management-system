@@ -1,11 +1,19 @@
-import { SITE_RATING_MAX, SITE_TESTIMONIALS_MAX, type SiteTestimonial } from "@clinic/shared";
+import {
+  SITE_RATING_MAX,
+  SITE_TESTIMONIALS_MAX,
+  siteTestimonialSchema,
+  type SiteTestimonial,
+} from "@clinic/shared";
 import type { FocusEvent, JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Icon, Input, Select } from "@clinic/ui";
 import type { FieldErrors } from "@web/shared/lib/form-errors";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
 import { RowTools } from "@web/modules/website/components/row-tools";
 import { TextPair } from "@web/modules/website/components/text-pair";
 import { blankText, moveItem, removeAt, replaceAt } from "@web/modules/website/lib/site-draft";
+
+const need = fieldNeeds(siteTestimonialSchema);
 
 const RATINGS = Array.from({ length: SITE_RATING_MAX }, (_, index) => SITE_RATING_MAX - index);
 
@@ -70,7 +78,7 @@ export function TestimonialsField({
                 label="website.testimonials.name"
                 htmlFor={`testimonial-${index}-name`}
                 error={errors[namePath]}
-                required
+                {...need("name")}
               >
                 <Input
                   id={`testimonial-${index}-name`}

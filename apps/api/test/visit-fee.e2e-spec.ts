@@ -3,6 +3,7 @@ import {
   USER_ROLE,
   type Paginated,
   type PatientBalance,
+  type PatientView,
   type Payment,
   type PerformedProcedure,
   type Visit,
@@ -13,6 +14,7 @@ import {
   createPatient,
   nameParts,
   seedClinicFixtures,
+  uniquePhone,
   type PatientFixtures,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
@@ -118,6 +120,72 @@ describe("Visit fee (e2e)", () => {
     expect(visits.items).toHaveLength(0);
     expect(procedures.items).toHaveLength(0);
     expect(payments.items).toHaveLength(0);
+  });
+
+  describe("a visit for a patient registered in the same save", () => {
+    const visitWithNewPatient = (payload: Record<string, unknown>) =>
+      context.app.inject({
+        method: "POST",
+        url: "/visits",
+        headers: auth(adminToken),
+        payload: {
+          doctorId: fixtures.doctorId,
+          visitDate: new Date().toISOString(),
+          ...payload,
+        },
+      });
+
+    it("registers the patient, records the visit and charges the fee", async () => {
+      const phone = uniquePhone();
+      const response = await visitWithNewPatient({
+        newPatient: { ...nameParts("سارة يوسف"), phone },
+        fee: { procedureId: fixtures.catalogId, price: "50.00", paidWith: PAYMENT_METHOD.CASH },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const visit = response.json() as Visit;
+      const patient = await get<PatientView>(`/patients/${visit.patientId}`);
+      const { balance } = await ledgerOf(visit.patientId);
+
+      expect(patient).toMatchObject({ fullName: "سارة يوسف", phone });
+      expect(balance).toMatchObject({ charged: "50.00", paid: "50.00", balance: "0.00" });
+    });
+
+    it("refuses a visit with both a patient and a new one, or neither", async () => {
+      const both = await visitWithNewPatient({
+        patientId: await newPatient(),
+        newPatient: { ...nameParts("سارة يوسف"), phone: uniquePhone() },
+      });
+      const neither = await visitWithNewPatient({});
+
+      expect([both.statusCode, neither.statusCode]).toEqual([400, 400]);
+    });
+
+    it("registers no patient when the visit fails", async () => {
+      const phone = uniquePhone();
+      const response = await visitWithNewPatient({
+        newPatient: { ...nameParts("سارة يوسف"), phone },
+        fee: { procedureId: fixtures.catalogId, paidWith: "not-a-method" },
+      });
+      const found = await get<Paginated<PatientView>>(
+        `/patients?search=${encodeURIComponent(phone)}`,
+      );
+
+      expect(response.statusCode).toBe(400);
+      expect(found.items).toHaveLength(0);
+    });
+
+    it("answers a phone that belongs to another patient with who it is", async () => {
+      const phone = uniquePhone();
+      await createPatient(context, adminToken, { ...nameParts("رامي سعيد"), phone });
+
+      const response = await visitWithNewPatient({
+        newPatient: { ...nameParts("رامي سعيد"), phone },
+      });
+
+      expect(response.statusCode).toBe(409);
+      expect(response.json()).toMatchObject({ existingPatient: { phone } });
+    });
   });
 
   it("refuses to take the payment from a role that may not record one", async () => {

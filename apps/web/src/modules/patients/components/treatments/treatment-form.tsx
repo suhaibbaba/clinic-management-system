@@ -43,6 +43,9 @@ import { useSpecialties } from "@web/shared/queries/specialties";
 import { useSession } from "@web/shared/providers/session";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { useLocalized } from "@web/shared/hooks/use-localized";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createPerformedProcedureSchema);
 
 export type TreatmentFormValues = Omit<CreatePerformedProcedureInput, "patientId">;
 
@@ -200,6 +203,7 @@ export function TreatmentForm({
               label="chart.panel.procedure"
               htmlFor={`${fieldId}-procedure`}
               error={errors["procedureId"]}
+              {...need("procedureId")}
             >
               <Select
                 searchable
@@ -238,6 +242,7 @@ export function TreatmentForm({
                 label="chart.panel.doctor"
                 htmlFor={`${fieldId}-doctor`}
                 error={errors["doctorId"]}
+                {...need("doctorId")}
               >
                 <Select
                   id={`${fieldId}-doctor`}
@@ -278,7 +283,7 @@ export function TreatmentForm({
                 label="chart.panel.discount"
                 htmlFor={`${fieldId}-discount`}
                 error={errors["discount"]}
-                optional
+                {...need("discount")}
               >
                 <MoneyInput
                   id={`${fieldId}-discount`}
@@ -321,7 +326,7 @@ export function TreatmentForm({
                 label="visits.teeth"
                 htmlFor={`${fieldId}-teeth`}
                 error={fieldError(errors, "chartMarks")}
-                optional
+                {...need("chartMarks")}
               >
                 <TeethField id={`${fieldId}-teeth`} value={teeth} onChange={setTeeth} />
               </FormField>
@@ -352,7 +357,7 @@ export function TreatmentForm({
             label="visits.notes"
             htmlFor={`${fieldId}-notes`}
             error={errors["notes"]}
-            optional
+            {...need("notes")}
           >
             <Textarea
               id={`${fieldId}-notes`}

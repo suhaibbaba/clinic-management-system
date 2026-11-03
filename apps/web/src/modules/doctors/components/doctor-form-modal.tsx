@@ -46,6 +46,9 @@ import { ellipsis } from "@web/i18n/ellipsis";
 import { STAFF_NAME_LABELS, STAFF_NAME_PARTS } from "@web/shared/constants/staff";
 import { useClinicLanguages } from "@web/shared/hooks/use-clinic-languages";
 import { useLocalized } from "@web/shared/hooks/use-localized";
+import { fieldNeed, fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createDoctorSchema);
 
 interface DoctorFormModalProps {
   "data-testid"?: string | undefined;
@@ -310,7 +313,7 @@ export function DoctorFormModal({
                         htmlFor="doctor-phone"
                         error={errors["newUser.phone"]}
                         errorKey="errors.validation.invalidPhone"
-                        required
+                        {...fieldNeed(createDoctorSchema, "newUser.phone")}
                       >
                         <PhoneInput
                           id="doctor-phone"
@@ -327,7 +330,7 @@ export function DoctorFormModal({
                         label="users.joinedOn"
                         htmlFor="doctor-joined-on"
                         error={errors["newUser.joinedOn"]}
-                        required
+                        {...fieldNeed(createDoctorSchema, "newUser.joinedOn")}
                       >
                         <DatePicker
                           id="doctor-joined-on"
@@ -346,7 +349,7 @@ export function DoctorFormModal({
                         htmlFor="doctor-email"
                         error={errors["newUser.email"]}
                         errorKey="errors.validation.invalidEmail"
-                        optional
+                        {...fieldNeed(createDoctorSchema, "newUser.email")}
                       >
                         <Input
                           id="doctor-email"
@@ -369,7 +372,7 @@ export function DoctorFormModal({
                         hint="doctors.roleLocked"
                         error={errors["newUser.password"]}
                         errorKey="errors.validation.passwordMin"
-                        required
+                        {...fieldNeed(createDoctorSchema, "newUser.password")}
                       >
                         <PasswordInput
                           id="doctor-password"
@@ -411,7 +414,7 @@ export function DoctorFormModal({
                 label="doctors.specialty"
                 htmlFor="doctor-specialty"
                 error={errors["specialtyId"]}
-                required
+                {...need("specialtyId")}
               >
                 <Select
                   id="doctor-specialty"

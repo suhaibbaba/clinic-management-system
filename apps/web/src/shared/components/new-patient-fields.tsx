@@ -1,4 +1,4 @@
-import { GENDERS } from "@clinic/shared";
+import { createPatientSchema, GENDERS } from "@clinic/shared";
 import type { FocusEvent, JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, DatePicker, FormField, Icon, Input, Select } from "@clinic/ui";
@@ -6,6 +6,9 @@ import { WhatsAppPhoneInput } from "@web/shared/components/whatsapp-phone-input"
 import { todayIso } from "@web/shared/lib/dates";
 import type { PatientDraft, PickedPatient } from "@web/shared/lib/patient-draft";
 import type { FieldErrors } from "@web/shared/lib/form-errors";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createPatientSchema);
 
 export function NewPatientFields({
   id,
@@ -69,9 +72,9 @@ export function NewPatientFields({
         <div onBlur={onLeave?.("firstName")}>
           <FormField
             label="patients.firstName"
+            {...need("firstName")}
             htmlFor={`${id}-first-name`}
             error={errors["firstName"]}
-            required
           >
             <Input
               id={`${id}-first-name`}
@@ -85,9 +88,9 @@ export function NewPatientFields({
         <div onBlur={onLeave?.("lastName")}>
           <FormField
             label="patients.lastName"
+            {...need("lastName")}
             htmlFor={`${id}-last-name`}
             error={errors["lastName"]}
-            required
           >
             <Input
               id={`${id}-last-name`}
@@ -99,26 +102,44 @@ export function NewPatientFields({
         </div>
       </div>
 
-      <div onBlur={onLeave?.("phone")}>
-        <FormField
-          label="patients.phone"
-          htmlFor={`${id}-phone`}
-          error={errors["phone"]}
-          errorKey="errors.validation.invalidPhone"
-          required
-        >
-          <WhatsAppPhoneInput
-            check
-            id={`${id}-phone`}
-            data-testid="new-patient-phone"
-            value={draft.phone}
-            onChange={(phone) => onChange({ ...draft, phone: phone ?? "" })}
-          />
-        </FormField>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div onBlur={onLeave?.("middleName")}>
+          <FormField
+            label="patients.middleName"
+            {...need("middleName")}
+            htmlFor={`${id}-middle-name`}
+            error={errors["middleName"]}
+          >
+            <Input
+              id={`${id}-middle-name`}
+              data-testid="new-patient-middle-name"
+              value={draft.middleName ?? ""}
+              onChange={(event) => onChange({ ...draft, middleName: event.target.value })}
+            />
+          </FormField>
+        </div>
+
+        <div onBlur={onLeave?.("phone")}>
+          <FormField
+            label="patients.phone"
+            {...need("phone")}
+            htmlFor={`${id}-phone`}
+            error={errors["phone"]}
+            errorKey="errors.validation.invalidPhone"
+          >
+            <WhatsAppPhoneInput
+              check
+              id={`${id}-phone`}
+              data-testid="new-patient-phone"
+              value={draft.phone}
+              onChange={(phone) => onChange({ ...draft, phone: phone ?? "" })}
+            />
+          </FormField>
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <FormField label="patients.gender" htmlFor={`${id}-gender`} optional>
+        <FormField label="patients.gender" {...need("gender")} htmlFor={`${id}-gender`}>
           <Select
             id={`${id}-gender`}
             data-testid="new-patient-gender"
@@ -135,9 +156,9 @@ export function NewPatientFields({
         <div onBlur={onLeave?.("dateOfBirth")}>
           <FormField
             label="patients.dateOfBirth"
+            {...need("dateOfBirth")}
             htmlFor={`${id}-dob`}
             error={errors["dateOfBirth"]}
-            optional
           >
             <DatePicker
               id={`${id}-dob`}

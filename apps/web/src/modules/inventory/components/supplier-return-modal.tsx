@@ -1,4 +1,4 @@
-import { DEFAULT_TIME_ZONE, LOOKUP_LIST, localDate } from "@clinic/shared";
+import { DEFAULT_TIME_ZONE, LOOKUP_LIST, localDate, supplierReturnSchema } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -16,6 +16,10 @@ import { errorToast } from "@web/shared/lib/api-error";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { useLookupLabels } from "@web/shared/queries/lookups";
 import { useInventoryItems, useReturnToSupplier } from "@web/modules/inventory/queries";
+import { fieldNeed, fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(supplierReturnSchema);
+const lineNeed = fieldNeeds(supplierReturnSchema.shape.lines.element);
 
 export function SupplierReturnModal({
   supplierId,
@@ -112,7 +116,11 @@ export function SupplierReturnModal({
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <FormField label="inventory.movement.item" htmlFor="supplier-return-item" required>
+          <FormField
+            label="inventory.movement.item"
+            htmlFor="supplier-return-item"
+            {...lineNeed("itemId")}
+          >
             <Select
               searchable
               id="supplier-return-item"
@@ -127,7 +135,11 @@ export function SupplierReturnModal({
             />
           </FormField>
         </div>
-        <FormField label="inventory.movement.quantity" htmlFor="supplier-return-quantity" required>
+        <FormField
+          label="inventory.movement.quantity"
+          htmlFor="supplier-return-quantity"
+          {...lineNeed("quantity")}
+        >
           <QuantityInput
             id="supplier-return-quantity"
             data-testid="supplier-return-quantity"
@@ -136,7 +148,11 @@ export function SupplierReturnModal({
             onChange={(event) => setQuantity(event.target.value)}
           />
         </FormField>
-        <FormField label="inventory.movement.batchNo" htmlFor="supplier-return-batch" optional>
+        <FormField
+          label="inventory.movement.batchNo"
+          htmlFor="supplier-return-batch"
+          {...lineNeed("batchNo")}
+        >
           <Input
             id="supplier-return-batch"
             data-testid="supplier-return-batch"
@@ -165,7 +181,7 @@ export function SupplierReturnModal({
             <FormField
               label="inventory.purchase.supplierRef"
               htmlFor="supplier-return-ref"
-              optional
+              {...fieldNeed(supplierReturnSchema, "credit.supplierRef")}
             >
               <Input
                 id="supplier-return-ref"
@@ -178,7 +194,7 @@ export function SupplierReturnModal({
           </>
         )}
       </div>
-      <FormField label="inventory.notes" htmlFor="supplier-return-note" optional>
+      <FormField label="inventory.notes" htmlFor="supplier-return-note" {...need("note")}>
         <Textarea
           id="supplier-return-note"
           data-testid="supplier-return-note"

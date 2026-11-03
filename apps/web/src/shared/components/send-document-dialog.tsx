@@ -5,6 +5,9 @@ import { Button, FormField, Icon, Modal, PhoneInput, useToast } from "@clinic/ui
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { errorToast } from "@web/shared/lib/api-error";
 import { schemaErrors } from "@web/shared/lib/form-errors";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(sendDocumentSchema);
 
 export function SendDocumentDialog({
   open,
@@ -87,7 +90,7 @@ export function SendDocumentDialog({
             error={form.errors["to"]}
             label="documents.to"
             htmlFor={`${testId}-to`}
-            required
+            {...need("to")}
           >
             <PhoneInput
               id={`${testId}-to`}

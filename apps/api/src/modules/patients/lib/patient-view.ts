@@ -23,7 +23,6 @@ export function toClinicalView(row: PatientRow): PatientClinicalView {
     dateOfBirth: row.dateOfBirth,
     gender: row.gender,
     address: row.address,
-    nationalId: row.nationalId,
     emergencyContactName: row.emergencyContactName,
     emergencyContactPhone: row.emergencyContactPhone,
     notes: row.notes,

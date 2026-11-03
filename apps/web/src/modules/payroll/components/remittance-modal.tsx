@@ -16,11 +16,14 @@ import { useRemit } from "@web/modules/payroll/queries";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { errorToast } from "@web/shared/lib/api-error";
 import { schemaErrors } from "@web/shared/lib/form-errors";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
 import { useLookupOptions } from "@web/shared/queries/lookups";
 import { useCurrency } from "@web/shared/queries/clinic";
 
 const owedByDoctor = (line: PayrollLine): string =>
   String(Math.max(0, Math.round(-Number(line.owed))));
+
+const need = fieldNeeds(createRemittanceSchema);
 
 export function RemittanceModal({
   line,
@@ -118,7 +121,7 @@ export function RemittanceModal({
             label="payroll.amount"
             htmlFor="remittance-amount"
             error={form.errors["amount"]}
-            required
+            {...need("amount")}
           >
             <MoneyInput
               id="remittance-amount"
@@ -130,7 +133,7 @@ export function RemittanceModal({
           </FormField>
         </div>
 
-        <FormField label="labs.payment.method" htmlFor="remittance-method">
+        <FormField label="labs.payment.method" htmlFor="remittance-method" {...need("method")}>
           <Select
             id="remittance-method"
             data-testid="remittance-field-method"
@@ -140,7 +143,7 @@ export function RemittanceModal({
           />
         </FormField>
 
-        <FormField label="labs.payment.note" htmlFor="remittance-note" optional>
+        <FormField label="labs.payment.note" htmlFor="remittance-note" {...need("note")}>
           <Textarea
             id="remittance-note"
             data-testid="remittance-field-note"

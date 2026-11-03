@@ -48,6 +48,9 @@ import {
 } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { useCurrency } from "@web/shared/queries/clinic";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createLabOrderSchema);
 
 export interface LabOrderDefaults {
   readonly patient?: PickedPatient | undefined;
@@ -286,7 +289,7 @@ export function OrderFormModal({
               error={form.errors["labId"]}
               label="labs.order.lab"
               htmlFor="lab-order-lab"
-              required
+              {...need("labId")}
             >
               <Select
                 id="lab-order-lab"
@@ -331,7 +334,7 @@ export function OrderFormModal({
               error={form.errors["doctorId"]}
               label="labs.order.doctor"
               htmlFor="lab-order-doctor"
-              required
+              {...need("doctorId")}
             >
               <Select
                 id="lab-order-doctor"
@@ -353,7 +356,7 @@ export function OrderFormModal({
               error={form.errors["expectedAt"]}
               label="labs.order.expected"
               htmlFor="lab-order-expected"
-              optional
+              {...need("expectedAt")}
             >
               <DatePicker
                 id="lab-order-expected"
@@ -373,7 +376,7 @@ export function OrderFormModal({
               error={form.errors["teeth"]}
               label="labs.order.teeth"
               htmlFor="lab-order-teeth"
-              optional
+              {...need("teeth")}
             >
               <TeethField id="lab-order-teeth" value={teeth} onChange={setTeeth} />
             </FormField>
@@ -387,7 +390,7 @@ export function OrderFormModal({
                 error={form.errors["shade"]}
                 label="labs.order.shade"
                 htmlFor="lab-order-shade"
-                optional
+                {...need("shade")}
               >
                 <Input
                   id="lab-order-shade"
@@ -405,7 +408,7 @@ export function OrderFormModal({
               error={form.errors["material"]}
               label="labs.order.material"
               htmlFor="lab-order-material"
-              optional
+              {...need("material")}
             >
               <Input
                 id="lab-order-material"
@@ -442,7 +445,7 @@ export function OrderFormModal({
             error={form.errors["instructions"]}
             label="labs.order.instructions"
             htmlFor="lab-order-instructions"
-            optional
+            {...need("instructions")}
           >
             <Textarea
               id="lab-order-instructions"

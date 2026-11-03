@@ -102,7 +102,7 @@ export class PaymentsService implements OnModuleInit {
     input: CreatePaymentInput,
     executor: DatabaseExecutor = this.db,
   ): Promise<Payment> {
-    await this.patientAccess.requirePatientId(actor, input.patientId);
+    await this.patientAccess.requirePatientId(actor, input.patientId, executor);
     await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.PAYMENT_METHOD, input.method);
 
     if (

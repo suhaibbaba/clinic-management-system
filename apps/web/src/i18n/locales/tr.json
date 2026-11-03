@@ -579,8 +579,7 @@
       "passwordMin": "Şifre en az 8 karakter olmalıdır",
       "yearOutOfRange": "Bu yıl doğru değil; 1900 ile 2100 arasında bir tarih girin",
       "dateInFuture": "Bu tarih gelecekte olamaz",
-      "dateInPast": "Bu tarih geçmişte olamaz",
-      "nationalIdInvalid": "Geçerli bir kimlik numarası değil"
+      "dateInPast": "Bu tarih geçmişte olamaz"
     },
     "clinicalDelete": {
       "hasPayments": "Silinemez; ödemeler bunu kapsıyor. Önce ödemelerin ters kaydını oluşturun veya bir düzeltme kaydedin."
@@ -675,9 +674,6 @@
     "clinic": {
       "currencyLocked": "Klinikte bir tutar kaydedildikten sonra para birimi değiştirilemez.",
       "suspended": "Kliniğin aboneliği askıya alındı: kayıtları görebilir ama değiştiremezsiniz. Yenilemek için sağlayıcınızla iletişime geçin."
-    },
-    "patient": {
-      "nationalIdInvalid": "Kimlik numarası kliniğin ülkesi için geçerli değil"
     }
   },
   "patients": {
@@ -759,7 +755,7 @@
     "years": "{{count}} yaş",
     "createNamed": "Yeni hasta: {{name}}",
     "createInline": "Yeni hasta kaydet",
-    "createInlineHint": "Şimdilik ad ve telefon numarası yeterli; dosyanın geri kalanı hasta geldiğinde alınır.",
+    "createInlineHint": "Şimdilik ad yeterli; dosyanın geri kalanı hasta geldiğinde alınır.",
     "phoneTaken": "Bu numara zaten şu hastaya kayıtlı: {{name}}",
     "useExisting": "Bu hastayı kullan",
     "firstName": "Ad",
@@ -773,8 +769,7 @@
     "assignedDoctor": "Sorumlu doktor",
     "assignedDoctorHint": "Bu hastayı takip eden doktor. Sonradan değiştirilebilir.",
     "doctorFilter": "Doktor",
-    "allDoctors": "Tüm doktorlar",
-    "nationalId": "Kimlik numarası"
+    "allDoctors": "Tüm doktorlar"
   },
   "chart": {
     "title": "Diş şeması",
@@ -943,7 +938,8 @@
       "payment": "Ödeme",
       "onAccount": "Hesaba",
       "recordedHint": "Bu ziyarette kaydedilen tedavilerin toplamı. Tutarı tedavilerden değiştirin veya iptal edin."
-    }
+    },
+    "patient": "Hasta"
   },
   "treatmentPlans": {
     "empty": "Henüz tedavi yok",
@@ -2250,7 +2246,9 @@
       },
       "drag": "{{name}} bileşenini taşımak için sürükleyin",
       "moveHint": "Ok tuşları bileşeni öne veya geriye alır, alanın sınırında bir sonraki alana taşır",
-      "resize": "{{name}} genişliği"
+      "resize": "{{name}} genişliği",
+      "edit": "{{name}} düzenle",
+      "quickActions": "Gösterilen düğmeler, bu sırayla"
     },
     "widgets": {
       "greeting": {
@@ -2294,6 +2292,7 @@
     },
     "quick": {
       "patient": "Yeni hasta",
+      "appointment": "Yeni randevu",
       "visit": "Ziyaret kaydet",
       "payment": "Ödeme kaydet"
     },

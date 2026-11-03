@@ -579,8 +579,7 @@
       "passwordMin": "Password must be at least 8 characters",
       "yearOutOfRange": "That year is not right — use a date between 1900 and 2100",
       "dateInFuture": "This date cannot be in the future",
-      "dateInPast": "This date cannot be in the past",
-      "nationalIdInvalid": "Not a valid national ID"
+      "dateInPast": "This date cannot be in the past"
     },
     "clinicalDelete": {
       "hasPayments": "Cannot delete — payments cover it. Reverse the payments first, or record a correction."
@@ -675,9 +674,6 @@
     "clinic": {
       "currencyLocked": "The currency cannot change once the clinic has recorded an amount.",
       "suspended": "The clinic's subscription is suspended: you can view records but not change them. Contact your provider to renew it."
-    },
-    "patient": {
-      "nationalIdInvalid": "The national ID is not valid for the clinic's country"
     }
   },
   "patients": {
@@ -759,7 +755,7 @@
     "years": "{{count}} years",
     "createNamed": "New patient: {{name}}",
     "createInline": "Register a New Patient",
-    "createInlineHint": "A name and a phone number are enough for now — the rest of the file is taken when they arrive.",
+    "createInlineHint": "A name is enough for now — the rest of the file is taken when they arrive.",
     "phoneTaken": "This number is already registered to {{name}}.",
     "useExisting": "Use This Patient",
     "firstName": "First Name",
@@ -773,8 +769,7 @@
     "assignedDoctor": "Treating Doctor",
     "assignedDoctorHint": "The doctor who follows this patient. It can be changed later.",
     "doctorFilter": "Doctor",
-    "allDoctors": "All doctors",
-    "nationalId": "National ID"
+    "allDoctors": "All doctors"
   },
   "chart": {
     "title": "Tooth Chart",
@@ -943,7 +938,8 @@
       "payment": "Payment",
       "onAccount": "On account",
       "recordedHint": "The total of the treatments recorded at this visit. Change or cancel it from the treatments."
-    }
+    },
+    "patient": "Patient"
   },
   "treatmentPlans": {
     "empty": "No treatments yet",
@@ -2210,9 +2206,9 @@
       "pendingCaption": "Online bookings nobody has answered",
       "overdue": "Overdue Balances",
       "overdueCaption": "{{count}} patients",
-      "visits": "Visits today",
-      "collected": "Collected today",
-      "newPatients": "New patients today"
+      "visits": "Visits Today",
+      "collected": "Collected Today",
+      "newPatients": "New Patients Today"
     },
     "lastAppointment": "Last Appointment",
     "schedule": {
@@ -2227,12 +2223,12 @@
     "subtitle": "Today at the clinic, at a glance",
     "title": "Dashboard",
     "customize": {
-      "title": "Customize the dashboard",
+      "title": "Customize the Dashboard",
       "subtitle": "What you save here is what everyone in the chosen role sees",
       "role": "Role",
-      "reset": "Restore the default",
+      "reset": "Restore the Default",
       "close": "Close",
-      "add": "Add a widget",
+      "add": "Add a Widget",
       "allShown": "Every available widget is shown",
       "hide": "Hide",
       "keyNumbers": "Numbers shown, in this order",
@@ -2250,42 +2246,44 @@
       },
       "drag": "Drag {{name}} to move it",
       "moveHint": "The arrow keys move the widget earlier or later, and past the edge of an area into the next one",
-      "resize": "Width of {{name}}"
+      "resize": "Width of {{name}}",
+      "edit": "Edit {{name}}",
+      "quickActions": "Buttons shown, in this order"
     },
     "widgets": {
       "greeting": {
         "title": "Greeting"
       },
       "keyNumbers": {
-        "title": "Key numbers"
+        "title": "Key Numbers"
       },
       "schedule": {
-        "title": "Today's schedule"
+        "title": "Today's Schedule"
       },
       "calendar": {
-        "title": "Mini calendar"
+        "title": "Mini Calendar"
       },
       "notes": {
-        "title": "Quick notes"
+        "title": "Quick Notes"
       },
       "quickActions": {
-        "title": "Quick actions"
+        "title": "Quick Actions"
       },
       "visitsToday": {
-        "title": "Today's visits"
+        "title": "Today's Visits"
       },
       "topDebts": {
-        "title": "Largest balances"
+        "title": "Largest Balances"
       },
       "newPatients": {
-        "title": "Newest patients"
+        "title": "Newest Patients"
       },
       "collections": {
-        "title": "Collections — last 7 days"
+        "title": "Collections — Last 7 Days"
       }
     },
     "layouts": {
-      "title": "The dashboard per role",
+      "title": "Dashboard per Role",
       "hint": "Choose what each role sees on the home page. The editor opens in a new tab, and nothing changes for staff until you save.",
       "shown": "Widgets shown: {{number}}",
       "customizedAt": "Changed {{when}}",
@@ -2293,9 +2291,10 @@
       "customize": "Customize"
     },
     "quick": {
-      "patient": "New patient",
-      "visit": "Record a visit",
-      "payment": "Record a payment"
+      "patient": "New Patient",
+      "appointment": "New Appointment",
+      "visit": "Record a Visit",
+      "payment": "Record a Payment"
     },
     "visits": {
       "empty": "No visits today yet",

@@ -97,6 +97,7 @@ export function usePatientProcedures(id: string): UseQueryResult<PerformedProced
   return useQuery({
     queryKey: [PATIENT_PROCEDURES_KEY, id],
     queryFn: () => patientsApi.procedures(id),
+    enabled: id !== "",
   });
 }
 
@@ -254,19 +255,23 @@ export function usePatientVisits(patientId: string): UseQueryResult<Visit[]> {
   });
 }
 
-export function useSaveVisit(patientId: string) {
+export function useSaveVisit() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, body }: { id?: string | undefined; body: CreateVisitInput }) =>
       id ? patientsApi.updateVisit(id, body as UpdateVisitInput) : patientsApi.createVisit(body),
-    onSuccess: async (_visit, { body }) => {
-      if (!body.fee) {
-        await queryClient.invalidateQueries({ queryKey: [PATIENT_VISITS_KEY, patientId] });
+    onSuccess: async (visit, { body }) => {
+      if (!body.fee && !body.newPatient) {
+        await Promise.all(
+          [[PATIENT_VISITS_KEY, visit.patientId], [DASHBOARD_KEY]].map((queryKey) =>
+            queryClient.invalidateQueries({ queryKey }),
+          ),
+        );
         return;
       }
 
-      invalidateClinical(queryClient, patientId);
+      invalidateClinical(queryClient, visit.patientId);
       await Promise.all(
         [PAYMENTS_KEY, PATIENT_KEY, PATIENTS_KEY, DASHBOARD_KEY].map((key) =>
           queryClient.invalidateQueries({ queryKey: [key] }),

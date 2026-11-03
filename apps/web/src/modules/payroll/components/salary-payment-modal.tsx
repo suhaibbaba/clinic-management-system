@@ -16,10 +16,13 @@ import { usePaySalary } from "@web/modules/payroll/queries";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { errorToast } from "@web/shared/lib/api-error";
 import { schemaErrors } from "@web/shared/lib/form-errors";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
 import { useLookupOptions } from "@web/shared/queries/lookups";
 import { useCurrency } from "@web/shared/queries/clinic";
 
 const whole = (amount: string): string => String(Math.max(0, Math.round(Number(amount))));
+
+const need = fieldNeeds(createSalaryPaymentSchema);
 
 export function SalaryPaymentModal({
   line,
@@ -112,7 +115,7 @@ export function SalaryPaymentModal({
             label="payroll.amount"
             htmlFor="payroll-payment-amount"
             error={form.errors["amount"]}
-            required
+            {...need("amount")}
           >
             <MoneyInput
               id="payroll-payment-amount"
@@ -124,7 +127,7 @@ export function SalaryPaymentModal({
           </FormField>
         </div>
 
-        <FormField label="labs.payment.method" htmlFor="payroll-payment-method">
+        <FormField label="labs.payment.method" htmlFor="payroll-payment-method" {...need("method")}>
           <Select
             id="payroll-payment-method"
             data-testid="payroll-field-payment-method"
@@ -134,7 +137,7 @@ export function SalaryPaymentModal({
           />
         </FormField>
 
-        <FormField label="labs.payment.note" htmlFor="payroll-payment-note" optional>
+        <FormField label="labs.payment.note" htmlFor="payroll-payment-note" {...need("note")}>
           <Textarea
             id="payroll-payment-note"
             data-testid="payroll-field-payment-note"

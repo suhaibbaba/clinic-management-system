@@ -69,6 +69,9 @@ import {
   ClinicLocaleSection,
   type ClinicLocaleDraft,
 } from "@web/modules/clinic/components/clinic-locale-section";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(updateClinicSchema);
 
 export function ClinicPage(): JSX.Element {
   const { t, i18n } = useTranslation();
@@ -278,7 +281,7 @@ export function ClinicPage(): JSX.Element {
                 errorKey="errors.validation.invalidPhone"
                 label="clinic.phone"
                 htmlFor="clinic-phone"
-                optional
+                {...need("phone")}
               >
                 <PhoneInput
                   placeholder={t("common.placeholders.phone")}
@@ -297,7 +300,7 @@ export function ClinicPage(): JSX.Element {
                 errorKey="errors.validation.invalidEmail"
                 label="clinic.email"
                 htmlFor="clinic-email"
-                optional
+                {...need("email")}
               >
                 <Input
                   placeholder={t("common.placeholders.email")}
@@ -320,7 +323,7 @@ export function ClinicPage(): JSX.Element {
                     label="clinic.addressIn"
                     labelValues={{ language: t(`languages.in.${code}`) }}
                     htmlFor={`clinic-address-${code}`}
-                    optional
+                    {...need("address")}
                   >
                     <Input
                       placeholder={t("common.placeholders.address")}

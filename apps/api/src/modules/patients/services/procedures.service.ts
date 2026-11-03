@@ -156,7 +156,7 @@ export class ProceduresService implements OnModuleInit {
     input: CreatePerformedProcedureInput,
     executor: DatabaseExecutor = this.db,
   ): Promise<PerformedProcedure> {
-    await this.patientAccess.requirePatientId(actor, input.patientId);
+    await this.patientAccess.requirePatientId(actor, input.patientId, executor);
     await this.requireDoctor(actor, input.doctorId);
 
     if (input.visitId) {

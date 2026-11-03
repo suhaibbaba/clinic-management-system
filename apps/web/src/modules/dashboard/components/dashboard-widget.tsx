@@ -1,4 +1,9 @@
-import { DASHBOARD_WIDGET, type DashboardKeyNumber, type DashboardWidgetId } from "@clinic/shared";
+import {
+  DASHBOARD_WIDGET,
+  type DashboardKeyNumber,
+  type DashboardQuickAction,
+  type DashboardWidgetId,
+} from "@clinic/shared";
 import type { JSX } from "react";
 import { useSession } from "@web/shared/providers/session";
 import { useClinic } from "@web/shared/queries/clinic";
@@ -19,9 +24,14 @@ import { NotesWidget } from "@web/modules/notes/components/notes-widget";
 export interface DashboardWidgetProps {
   readonly id: DashboardWidgetId;
   readonly keyNumbers: readonly DashboardKeyNumber[];
+  readonly quickActions: readonly DashboardQuickAction[];
 }
 
-export function DashboardWidget({ id, keyNumbers }: DashboardWidgetProps): JSX.Element {
+export function DashboardWidget({
+  id,
+  keyNumbers,
+  quickActions,
+}: DashboardWidgetProps): JSX.Element {
   const { user, can } = useSession();
   const clinic = useClinic();
   const summary = useDashboardSummary();
@@ -50,7 +60,7 @@ export function DashboardWidget({ id, keyNumbers }: DashboardWidgetProps): JSX.E
     case DASHBOARD_WIDGET.NOTES:
       return <NotesWidget />;
     case DASHBOARD_WIDGET.QUICK_ACTIONS:
-      return <QuickActions currency={currency} />;
+      return <QuickActions shown={quickActions} currency={currency} />;
     case DASHBOARD_WIDGET.VISITS_TODAY:
       return <VisitsToday currency={currency} />;
     case DASHBOARD_WIDGET.TOP_DEBTS:

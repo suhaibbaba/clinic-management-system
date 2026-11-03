@@ -3,9 +3,11 @@ import { and, eq } from "drizzle-orm";
 import {
   DASHBOARD_CAPABILITIES,
   DASHBOARD_KEY_NUMBERS,
+  DASHBOARD_QUICK_ACTIONS,
   DEFAULT_DASHBOARD_LAYOUT,
   USER_ROLES,
   keyNumberAvailable,
+  quickActionAvailable,
   normalizeDashboardLayout,
   type DashboardLayout,
   type DashboardLayouts,
@@ -62,6 +64,9 @@ export class DashboardLayoutsService {
             layout: normalizeDashboardLayout(row?.layout ?? DEFAULT_DASHBOARD_LAYOUT, allows),
             keyNumberOptions: DASHBOARD_KEY_NUMBERS.filter((key) =>
               keyNumberAvailable(key, allows),
+            ),
+            quickActionOptions: DASHBOARD_QUICK_ACTIONS.filter((action) =>
+              quickActionAvailable(action, allows),
             ),
             customized: row !== undefined,
             updatedAt: row?.updatedAt.toISOString() ?? null,

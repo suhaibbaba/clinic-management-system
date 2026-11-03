@@ -29,7 +29,7 @@ export function NewPatients(): JSX.Element {
       )}
 
       {patients.data && patients.data.items.length > 0 && (
-        <ul className="mt-2 flex flex-col">
+        <ul className="mt-2 flex flex-col gap-0.5">
           {patients.data.items.map((patient) => {
             const content = (
               <>
@@ -47,7 +47,7 @@ export function NewPatients(): JSX.Element {
                 {linked ? (
                   <Link
                     to={`/patients/${patient.id}`}
-                    className="flex min-h-(--control-h) items-center gap-3 py-1.5 hover:bg-inset"
+                    className="-mx-2 flex min-h-(--control-h) items-center gap-3 rounded-panel px-2 py-1.5 transition-colors duration-150 hover:bg-inset"
                   >
                     {content}
                   </Link>

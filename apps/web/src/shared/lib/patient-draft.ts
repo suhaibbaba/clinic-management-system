@@ -11,6 +11,7 @@ export interface PickedPatient {
 
 export interface PatientDraft {
   readonly firstName: string;
+  readonly middleName?: string;
   readonly lastName: string;
   readonly phone: string;
   readonly gender?: string;
@@ -28,14 +29,15 @@ export function toPatientRef(
     return { patientId: choice.patient.id };
   }
 
-  const { firstName, lastName, phone, dateOfBirth } = choice.draft;
+  const { firstName, middleName, lastName, phone, dateOfBirth } = choice.draft;
   const gender = GENDERS.find((option) => option === choice.draft.gender);
 
   return {
     newPatient: {
       firstName: firstName.trim(),
+      ...(middleName?.trim() && { middleName: middleName.trim() }),
       lastName: lastName.trim(),
-      phone: phone.trim(),
+      ...(phone.trim() && { phone: phone.trim() }),
       ...(gender && { gender }),
       ...(dateOfBirth && { dateOfBirth }),
     },
@@ -54,6 +56,4 @@ export const isDraftComplete = (choice: PatientChoice | null): boolean =>
   choice === null
     ? false
     : choice.kind === "existing" ||
-      (choice.draft.firstName.trim() !== "" &&
-        choice.draft.lastName.trim() !== "" &&
-        choice.draft.phone.trim() !== "");
+      (choice.draft.firstName.trim() !== "" && choice.draft.lastName.trim() !== "");

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { USER_ROLES } from "@shared/enums";
 import {
   DASHBOARD_KEY_NUMBERS,
+  DASHBOARD_QUICK_ACTIONS,
   DASHBOARD_WIDGET_IDS,
   DASHBOARD_WIDTHS,
   DASHBOARD_ZONES,
@@ -63,6 +64,10 @@ export type DashboardWidgetPlacement = z.infer<typeof dashboardWidgetPlacementSc
 export const dashboardLayoutSchema = z.object({
   widgets: z.array(dashboardWidgetPlacementSchema).max(DASHBOARD_WIDGET_IDS.length * 2),
   keyNumbers: z.array(z.enum(DASHBOARD_KEY_NUMBERS)).max(DASHBOARD_KEY_NUMBERS.length * 2),
+  quickActions: z
+    .array(z.enum(DASHBOARD_QUICK_ACTIONS))
+    .max(DASHBOARD_QUICK_ACTIONS.length * 2)
+    .optional(),
 });
 
 export type DashboardLayout = z.infer<typeof dashboardLayoutSchema>;
@@ -71,6 +76,7 @@ export const dashboardRoleLayoutSchema = z.object({
   role: z.enum(USER_ROLES),
   layout: dashboardLayoutSchema,
   keyNumberOptions: z.array(z.enum(DASHBOARD_KEY_NUMBERS)),
+  quickActionOptions: z.array(z.enum(DASHBOARD_QUICK_ACTIONS)),
   customized: z.boolean(),
   updatedAt: z.string().nullable(),
 });

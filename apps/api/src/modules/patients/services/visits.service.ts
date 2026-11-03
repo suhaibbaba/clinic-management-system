@@ -33,6 +33,7 @@ import { PaymentsService } from "@api/modules/billing/services/payments.service"
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { ProceduresService } from "@api/modules/patients/services/procedures.service";
+import { PatientRegistrationService } from "@api/modules/patients/services/patient-registration.service";
 import { toVisit, VisitRow } from "@api/common/lib/visits";
 
 @Injectable()
@@ -47,6 +48,7 @@ export class VisitsService implements OnModuleInit {
     private readonly procedures: ProceduresService,
     private readonly payments: PaymentsService,
     private readonly permissions: PermissionsService,
+    private readonly registration: PatientRegistrationService,
   ) {}
 
   onModuleInit(): void {
@@ -99,19 +101,33 @@ export class VisitsService implements OnModuleInit {
   }
 
   async create(actor: AuthenticatedUser, input: CreateVisitInput): Promise<Visit> {
-    await this.patientAccess.requirePatientId(actor, input.patientId);
+    if (input.patientId) {
+      await this.patientAccess.requirePatientId(actor, input.patientId);
+    }
+
     await this.requireDoctor(actor, input.doctorId);
 
     if (input.fee) {
       await this.requireFeeCapabilities(actor, input.fee);
     }
 
-    return this.db.transaction(async (tx) => {
+    return this.registration.withPatient(actor, input, (executor, patientId) =>
+      this.insertVisit(executor, actor, input, patientId),
+    );
+  }
+
+  private async insertVisit(
+    executor: DatabaseExecutor,
+    actor: AuthenticatedUser,
+    input: CreateVisitInput,
+    patientId: string,
+  ): Promise<Visit> {
+    return executor.transaction(async (tx) => {
       const [row] = await tx
         .insert(visits)
         .values({
           clinicId: actor.clinicId,
-          patientId: input.patientId,
+          patientId,
           doctorId: input.doctorId,
           visitDate: input.visitDate ? new Date(input.visitDate) : new Date(),
           complaint: input.complaint ?? null,

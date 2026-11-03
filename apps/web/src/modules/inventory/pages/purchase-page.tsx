@@ -3,7 +3,9 @@ import {
   DISCOUNT_KIND,
   LOOKUP_LIST,
   addDays,
+  createPurchaseRequestSchema,
   localDate,
+  postPurchaseSchema,
   toMinorUnits,
   type PurchaseRequest,
 } from "@clinic/shared";
@@ -80,6 +82,7 @@ import { DiscountInput } from "@web/modules/inventory/components/discount-input"
 import { PurchaseLineRow } from "@web/modules/inventory/components/purchase-line-row";
 import { PurchaseReviewModal } from "@web/modules/inventory/components/purchase-review-modal";
 import { PurchaseTotalBar } from "@web/modules/inventory/components/purchase-total-bar";
+import { fieldNeed, fieldNeeds } from "@web/shared/lib/schema-fields";
 import {
   EXPIRY_MIN_DAYS_AHEAD,
   MODE_PARAM,
@@ -94,6 +97,8 @@ import {
 } from "@web/modules/inventory/constants";
 
 const newKey = (): string => crypto.randomUUID();
+const postNeed = fieldNeeds(postPurchaseSchema);
+const orderNeed = fieldNeeds(createPurchaseRequestSchema);
 
 export function PurchasePage(): JSX.Element {
   const { t } = useTranslation();
@@ -385,7 +390,11 @@ export function PurchasePage(): JSX.Element {
           )}
         >
           <div className="@xl:col-span-2 @min-[44rem]:col-span-1">
-            <FormField label="inventory.movement.supplier" htmlFor="purchase-supplier" optional>
+            <FormField
+              label="inventory.movement.supplier"
+              htmlFor="purchase-supplier"
+              {...(ordering ? orderNeed("supplierId") : postNeed("supplierId"))}
+            >
               <Select
                 searchable
                 id="purchase-supplier"
@@ -401,7 +410,11 @@ export function PurchasePage(): JSX.Element {
             </FormField>
           </div>
           {ordering ? (
-            <FormField label="inventory.requests.neededBy" htmlFor="purchase-needed-by" optional>
+            <FormField
+              label="inventory.requests.neededBy"
+              htmlFor="purchase-needed-by"
+              {...orderNeed("neededBy")}
+            >
               <DatePicker
                 id="purchase-needed-by"
                 data-testid="purchase-field-needed-by"
@@ -412,7 +425,11 @@ export function PurchasePage(): JSX.Element {
               />
             </FormField>
           ) : (
-            <FormField label="inventory.purchase.date" htmlFor="purchase-date" required>
+            <FormField
+              label="inventory.purchase.date"
+              htmlFor="purchase-date"
+              {...postNeed("date")}
+            >
               <DatePicker
                 id="purchase-date"
                 data-testid="purchase-field-date"
@@ -425,7 +442,11 @@ export function PurchasePage(): JSX.Element {
             </FormField>
           )}
           {withInvoice && (
-            <FormField label="inventory.purchase.supplierRef" htmlFor="purchase-ref" optional>
+            <FormField
+              label="inventory.purchase.supplierRef"
+              htmlFor="purchase-ref"
+              {...fieldNeed(postPurchaseSchema, "invoice.supplierRef")}
+            >
               <Input
                 id="purchase-ref"
                 data-testid="purchase-field-ref"
@@ -533,7 +554,7 @@ export function PurchasePage(): JSX.Element {
             <FormField
               label="inventory.purchase.invoiceDiscount"
               htmlFor="purchase-discount"
-              optional
+              {...fieldNeed(postPurchaseSchema, "invoice.discount")}
             >
               <DiscountInput
                 id="purchase-discount"
@@ -545,7 +566,11 @@ export function PurchasePage(): JSX.Element {
                 onValueChange={(discountValue) => change({ discountValue })}
               />
             </FormField>
-            <FormField label="inventory.purchase.charges" htmlFor="purchase-charges" optional>
+            <FormField
+              label="inventory.purchase.charges"
+              htmlFor="purchase-charges"
+              {...fieldNeed(postPurchaseSchema, "invoice.charges")}
+            >
               <MoneyInput
                 cents
                 id="purchase-charges"
@@ -556,7 +581,11 @@ export function PurchasePage(): JSX.Element {
                 onChange={(event) => change({ charges: event.target.value })}
               />
             </FormField>
-            <FormField label="inventory.purchase.taxRate" htmlFor="purchase-tax-rate" optional>
+            <FormField
+              label="inventory.purchase.taxRate"
+              htmlFor="purchase-tax-rate"
+              {...fieldNeed(postPurchaseSchema, "invoice.taxRate")}
+            >
               <Input
                 id="purchase-tax-rate"
                 data-testid="purchase-field-tax-rate"
@@ -568,7 +597,11 @@ export function PurchasePage(): JSX.Element {
                 onChange={(event) => change({ taxRate: event.target.value })}
               />
             </FormField>
-            <FormField label="inventory.purchase.taxAmount" htmlFor="purchase-tax-amount" optional>
+            <FormField
+              label="inventory.purchase.taxAmount"
+              htmlFor="purchase-tax-amount"
+              {...fieldNeed(postPurchaseSchema, "invoice.taxAmount")}
+            >
               <MoneyInput
                 cents
                 id="purchase-tax-amount"
@@ -584,7 +617,11 @@ export function PurchasePage(): JSX.Element {
       )}
 
       <div className="max-w-(--form-max)">
-        <FormField label="inventory.notes" htmlFor="purchase-note" optional>
+        <FormField
+          label="inventory.notes"
+          htmlFor="purchase-note"
+          {...(ordering ? orderNeed("note") : postNeed("note"))}
+        >
           <Textarea
             id="purchase-note"
             data-testid="purchase-field-note"

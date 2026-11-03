@@ -1,8 +1,8 @@
-import { type InlinePatientInput } from "@clinic/shared";
+import { type CreatePatientInput } from "@clinic/shared";
 
 export interface PatientRef {
   readonly patientId?: string | undefined;
-  readonly newPatient?: InlinePatientInput | undefined;
+  readonly newPatient?: CreatePatientInput | undefined;
 }
 
 export function isUniqueViolation(error: unknown): boolean {

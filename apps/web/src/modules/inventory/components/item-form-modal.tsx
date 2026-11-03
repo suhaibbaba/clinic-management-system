@@ -22,6 +22,9 @@ import { useCreateItem, useSuppliers, useUpdateItem } from "@web/modules/invento
 import { errorToast } from "@web/shared/lib/api-error";
 import { schemaErrors } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createInventoryItemSchema);
 
 export function ItemFormModal({
   open,
@@ -145,7 +148,7 @@ export function ItemFormModal({
             label="inventory.item.name"
             htmlFor="item-name"
             hint="inventory.item.nameHint"
-            required
+            {...need("name")}
           >
             <Input
               id="item-name"
@@ -163,7 +166,7 @@ export function ItemFormModal({
               error={form.errors["category"]}
               label="inventory.item.category"
               htmlFor="item-category"
-              required
+              {...need("category")}
             >
               <Select
                 id="item-category"
@@ -179,7 +182,7 @@ export function ItemFormModal({
               error={form.errors["unit"]}
               label="inventory.item.unit"
               htmlFor="item-unit"
-              {...(item ? { hint: t("inventory.item.unitLocked") } : { required: true })}
+              {...(item ? { hint: t("inventory.item.unitLocked") } : need("unit"))}
             >
               <Select
                 id="item-unit"
@@ -199,6 +202,7 @@ export function ItemFormModal({
               label="inventory.item.minQuantity"
               htmlFor="item-min"
               hint={t("inventory.item.minHint")}
+              {...need("minQuantity")}
             >
               <QuantityInput
                 id="item-min"
@@ -215,7 +219,7 @@ export function ItemFormModal({
               error={form.errors["defaultSupplierId"]}
               label="inventory.item.supplier"
               htmlFor="item-supplier"
-              optional
+              {...need("defaultSupplierId")}
             >
               <Select
                 id="item-supplier"
@@ -236,7 +240,7 @@ export function ItemFormModal({
             error={form.errors["notes"]}
             label="inventory.notes"
             htmlFor="item-notes"
-            optional
+            {...need("notes")}
           >
             <Textarea
               id="item-notes"

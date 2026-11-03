@@ -27,6 +27,9 @@ import {
   toRegimenInput,
   type RegimenInput,
 } from "@web/shared/lib/regimen";
+import { fieldNeed, fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(createPrescriptionSchema);
 
 interface PrescriptionFormModalProps {
   readonly "data-testid"?: string | undefined;
@@ -264,7 +267,7 @@ export function PrescriptionFormModal({
                   label="prescriptions.drug"
                   htmlFor={`prescription-drug-${index}`}
                   error={errors.items?.[index]?.drug}
-                  required
+                  {...fieldNeed(createPrescriptionSchema, "items.drug")}
                 >
                   <Controller
                     name={`items.${index}.drug`}
@@ -327,7 +330,7 @@ export function PrescriptionFormModal({
                     label="prescriptions.instructions"
                     htmlFor={`prescription-note-${index}`}
                     error={errors.items?.[index]?.note}
-                    optional
+                    {...fieldNeed(createPrescriptionSchema, "items.note")}
                   >
                     <Textarea
                       rows={2}
@@ -364,7 +367,7 @@ export function PrescriptionFormModal({
           {t("prescriptions.addDrug")}
         </Button>
 
-        <FormField label="prescriptions.notes" htmlFor="prescription-notes" optional>
+        <FormField label="prescriptions.notes" htmlFor="prescription-notes" {...need("notes")}>
           <Textarea
             id="prescription-notes"
             data-testid="prescription-field-notes"

@@ -1,14 +1,20 @@
 import {
   createVisitSchema,
+  visitDetailsSchema,
   LOOKUP_LIST,
   type CreateVisitInput,
   type Doctor,
   type ProcedureCatalogItem,
   type Visit,
 } from "@clinic/shared";
-import { useEffect, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { revealFirstError } from "@web/shared/lib/form-errors";
+import {
+  nestedErrors,
+  REQUIRED,
+  revealFirstError,
+  schemaErrors,
+} from "@web/shared/lib/form-errors";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -16,6 +22,7 @@ import {
   FormField,
   Icon,
   InfoTip,
+  Input,
   Modal,
   Money,
   MoneyInput,
@@ -26,10 +33,19 @@ import {
   useToast,
 } from "@clinic/ui";
 import {
+  usePatient,
   usePatientProcedures,
   useProcedureCatalog,
   useSaveVisit,
 } from "@web/modules/patients/queries";
+import { PatientPicker } from "@web/shared/components/patient-picker";
+import {
+  isDraftComplete,
+  patientPhoneClash,
+  toPatientRef,
+  type PatientChoice,
+  type PickedPatient,
+} from "@web/shared/lib/patient-draft";
 import { treatmentsTotal } from "@web/modules/patients/lib/treatments/treatments";
 import { lastFeeProcedure, rememberFeeProcedure } from "@web/modules/patients/lib/visit-fee-memory";
 import { wholePrice } from "@web/modules/patients/lib/price-list";
@@ -42,12 +58,15 @@ import { useCurrency } from "@web/shared/queries/clinic";
 import { errorToast } from "@web/shared/lib/api-error";
 import { payloadResolver } from "@web/shared/lib/payload-resolver";
 import { ellipsis } from "@web/i18n/ellipsis";
+import { fieldNeeds } from "@web/shared/lib/schema-fields";
+
+const need = fieldNeeds(visitDetailsSchema);
 
 interface VisitFormModalProps {
   "data-testid"?: string | undefined;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  patientId: string;
+  patientId?: string | undefined;
   doctors: readonly Doctor[];
   visit: Visit | null;
 }
@@ -66,7 +85,7 @@ const splitLocal = (value: string): { date: string; time: string } => {
 const joinLocal = (date: string, time: string): string =>
   date === "" ? "" : `${date}T${time === "" ? "09:00" : time}`;
 
-type VisitFormValues = Omit<CreateVisitInput, "visitDate" | "fee"> & {
+type VisitFormValues = Omit<CreateVisitInput, "visitDate" | "fee" | "patientId" | "newPatient"> & {
   visitDate: string;
   feeProcedureId: string;
   feePrice: string;
@@ -94,7 +113,11 @@ export function VisitFormModal({
   const { t } = useTranslation();
   const doctorName = usePersonName();
   const toast = useToast();
-  const saveVisit = useSaveVisit(patientId);
+  const saveVisit = useSaveVisit();
+  const fixedPatient = usePatient(patientId ?? "");
+  const [choice, setChoice] = useState<PatientChoice | null>(null);
+  const [clash, setClash] = useState<PickedPatient | null>(null);
+  const patientRef = patientId ? { patientId } : choice ? toPatientRef(choice) : {};
   const { can } = useSession();
   const localized = useLocalized();
   const currency = useCurrency();
@@ -106,7 +129,7 @@ export function VisitFormModal({
   const catalog = useProcedureCatalog();
   const feeItems = charges ? (catalog.data ?? []) : [];
   const methods = useLookupOptions(LOOKUP_LIST.PAYMENT_METHOD);
-  const procedures = usePatientProcedures(patientId);
+  const procedures = usePatientProcedures(visit ? (patientId ?? "") : "");
   const visitProcedures = visit
     ? (procedures.data ?? []).filter((procedure) => procedure.visitId === visit.id)
     : [];
@@ -121,12 +144,12 @@ export function VisitFormModal({
     reset,
     setValue,
     getValues,
-    formState: { errors, isSubmitting, isValid },
+    formState: { errors, isSubmitting, isSubmitted, isValid },
     control,
     watch,
   } = useForm<VisitFormValues>({
     mode: "onTouched",
-    resolver: payloadResolver(createVisitSchema, (values: VisitFormValues) => toPayload(values)),
+    resolver: payloadResolver(visitDetailsSchema, (values: VisitFormValues) => toPayload(values)),
   });
 
   function toPayload(values: VisitFormValues) {
@@ -134,7 +157,6 @@ export function VisitFormModal({
 
     return {
       ...visitValues,
-      patientId,
       ...(values.visitDate ? { visitDate: new Date(values.visitDate).toISOString() } : {}),
       ...(charges &&
         feeProcedureId && {
@@ -155,7 +177,6 @@ export function VisitFormModal({
     reset(
       visit
         ? {
-            patientId,
             doctorId: visit.doctorId,
             visitDate: toLocalInput(visit.visitDate),
             complaint: visit.complaint,
@@ -164,7 +185,6 @@ export function VisitFormModal({
             notes: visit.notes,
           }
         : {
-            patientId,
             doctorId: doctors[0]?.id ?? "",
             visitDate: toLocalInput(new Date().toISOString()),
             complaint: "",
@@ -176,7 +196,23 @@ export function VisitFormModal({
             payMethod: DEFAULT_PAYMENT_METHOD,
           },
     );
-  }, [open, visit, patientId, reset]);
+    setChoice(null);
+    setClash(null);
+  }, [open, visit, reset]);
+
+  const choose = (next: PatientChoice | null): void => {
+    setChoice(next);
+    setClash(null);
+  };
+
+  const patientErrors = isSubmitted
+    ? nestedErrors(
+        schemaErrors(createVisitSchema, { ...toPayload(getValues()), ...patientRef }),
+        "newPatient",
+      )
+    : {};
+  const missingPatient = isSubmitted && !patientId && choice === null;
+  const patientReady = patientId !== undefined || isDraftComplete(choice);
 
   useEffect(() => {
     if (!open || visit || feeItems.length === 0 || getValues("feeProcedureId") !== NO_FEE) {
@@ -201,7 +237,13 @@ export function VisitFormModal({
 
   const onSubmit = handleSubmit(
     async (values) => {
-      const parsed = createVisitSchema.parse(toPayload(values));
+      const checked = createVisitSchema.safeParse({ ...toPayload(values), ...patientRef });
+
+      if (!checked.success) {
+        return;
+      }
+
+      const parsed = checked.data;
 
       try {
         await saveVisit.mutateAsync({
@@ -216,6 +258,13 @@ export function VisitFormModal({
         toast.success(visit ? "visits.updated" : "visits.created");
         onOpenChange(false);
       } catch (error) {
+        const existing = patientPhoneClash(error);
+
+        if (existing) {
+          setClash(existing);
+          return;
+        }
+
         toast.error(...errorToast(error));
       }
     },
@@ -242,7 +291,7 @@ export function VisitFormModal({
           <Button
             icon={<Icon name="check" />}
             type="submit"
-            aria-disabled={!isValid || isSubmitting || undefined}
+            aria-disabled={!isValid || !patientReady || isSubmitting || undefined}
             form="visit-form"
             data-testid={`${testId}-save`}
             isLoading={isSubmitting}
@@ -259,6 +308,40 @@ export function VisitFormModal({
         onSubmit={onSubmit}
         noValidate
       >
+        {!visit && (
+          <div className="sm:col-span-full">
+            <FormField
+              label="visits.patient"
+              htmlFor="visit-patient"
+              error={missingPatient ? REQUIRED : undefined}
+              required
+            >
+              {patientId ? (
+                <Input
+                  id="visit-patient"
+                  data-testid="visit-field-patient"
+                  adornment="user"
+                  value={
+                    fixedPatient.data
+                      ? `${fixedPatient.data.fullName} · ${fixedPatient.data.fileNumber}`
+                      : ""
+                  }
+                  readOnly
+                  disabled
+                />
+              ) : (
+                <PatientPicker
+                  id="visit-patient"
+                  value={choice}
+                  clash={clash}
+                  errors={patientErrors}
+                  onChange={choose}
+                />
+              )}
+            </FormField>
+          </div>
+        )}
+
         <div
           className={
             choosesDoctor
@@ -267,7 +350,12 @@ export function VisitFormModal({
           }
         >
           {choosesDoctor && (
-            <FormField label="visits.doctor" htmlFor="visit-doctor" error={errors.doctorId}>
+            <FormField
+              label="visits.doctor"
+              htmlFor="visit-doctor"
+              error={errors.doctorId}
+              {...need("doctorId")}
+            >
               <Controller
                 name="doctorId"
                 control={control}
@@ -354,7 +442,12 @@ export function VisitFormModal({
         </div>
 
         <div className="sm:col-span-full">
-          <FormField label="visits.notes" htmlFor="visit-notes" error={errors.notes} optional>
+          <FormField
+            label="visits.notes"
+            htmlFor="visit-notes"
+            error={errors.notes}
+            {...need("notes")}
+          >
             <Textarea
               placeholder={ellipsis(t("common.placeholders.visitNotes"))}
               id="visit-notes"
@@ -374,7 +467,7 @@ export function VisitFormModal({
               label="visits.fee.title"
               htmlFor="visit-fee-item"
               hint="visits.fee.itemHint"
-              optional
+              {...need("fee")}
             >
               <Controller
                 name="feeProcedureId"
