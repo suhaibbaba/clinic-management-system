@@ -30,14 +30,14 @@ function ContactChip({
 }): JSX.Element {
   const body = (
     <>
-      <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-pill bg-primary-600 text-ink-inverse shadow-float">
+      <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-pill bg-primary-50 text-primary-600 md:size-12 md:bg-primary-600 md:text-ink-inverse md:shadow-float">
         <SiteIcon name={icon} className="size-5" />
       </span>
-      <span className="flex min-w-0 flex-col">
+      <span className="flex w-full min-w-0 flex-col md:w-auto">
         <span
           className={cx(
             "font-bold wrap-anywhere text-primary-900",
-            long ? "text-meta" : "truncate text-section",
+            long ? "text-meta" : "truncate text-label md:text-section",
           )}
         >
           {children}
@@ -47,7 +47,7 @@ function ContactChip({
     </>
   );
   const className =
-    "flex min-w-0 items-center gap-3 rounded-[2.25rem] bg-surface py-2.5 ps-2.5 pe-6 shadow-float";
+    "flex min-w-0 flex-col items-center gap-2 rounded-card bg-surface p-3 text-center shadow-float md:flex-row md:gap-3 md:rounded-[2.25rem] md:py-2.5 md:ps-2.5 md:pe-6 md:text-start";
 
   return href ? (
     <a
@@ -78,7 +78,7 @@ export function BookingBand(): JSX.Element {
     <section
       data-testid="site-booking-band"
       aria-labelledby="booking-band-title"
-      className="relative isolate overflow-hidden bg-primary-50"
+      className="relative isolate overflow-hidden from-surface from-50% to-primary-50 to-50% max-md:bg-linear-to-b md:bg-primary-50"
     >
       {image && (
         <div className="site-band-photo absolute inset-y-0 start-0 hidden w-[42%] lg:block">
@@ -87,7 +87,7 @@ export function BookingBand(): JSX.Element {
       )}
       <div
         className={cx(
-          "site-wave-bottom relative overflow-hidden from-primary-900 via-primary-700 via-55% to-primary-500 text-ink-inverse ltr:bg-linear-to-l rtl:bg-linear-to-r",
+          "relative overflow-hidden max-md:site-wave-both md:site-wave-bottom from-primary-900 via-primary-700 via-55% to-primary-500 text-ink-inverse ltr:bg-linear-to-l rtl:bg-linear-to-r",
           image && "lg:ms-[22%] lg:rounded-s-[14rem]",
         )}
       >
@@ -95,9 +95,9 @@ export function BookingBand(): JSX.Element {
           aria-hidden
           className="pointer-events-none absolute -top-24 start-1/4 size-[28rem] rounded-pill bg-primary-300/25 blur-3xl"
         />
-        <BandWave className="pointer-events-none absolute inset-x-0 bottom-10 h-24 w-full text-ink-inverse/10" />
-        <div className="relative grid pb-16 md:grid-cols-[auto_minmax(0,1fr)_14rem] lg:grid-cols-[auto_minmax(0,1fr)_17rem]">
-          <div className="relative flex min-w-0 flex-col justify-center gap-4 px-5 pt-8 md:w-80 md:py-12 md:ps-10 md:pe-2 lg:w-96 lg:ps-16">
+        <BandWave className="pointer-events-none absolute inset-x-0 bottom-10 hidden h-24 w-full text-ink-inverse/10 md:block" />
+        <div className="relative grid pt-6 pb-20 md:pt-0 md:pb-16 md:grid-cols-[auto_minmax(0,1fr)_14rem] lg:grid-cols-[auto_minmax(0,1fr)_17rem]">
+          <div className="relative grid min-w-0 auto-cols-fr grid-flow-col gap-3 px-5 pt-8 md:flex md:w-80 md:flex-col md:justify-center md:gap-4 md:py-12 md:ps-10 md:pe-2 lg:w-96 lg:ps-16">
             {clinic.phone && (
               <ContactChip
                 icon="phone"

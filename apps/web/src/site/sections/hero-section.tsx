@@ -1,7 +1,7 @@
 import { SITE_SECTION } from "@clinic/shared";
 import type { JSX } from "react";
 import { cx } from "@web/booking/ui";
-import { HeroRibbon, HeroSwoosh, HeroWave } from "@web/site/components/curves";
+import { HeroDipRibbon, HeroRibbon, HeroSwoosh, HeroWave } from "@web/site/components/curves";
 import { Dots } from "@web/site/components/dots";
 import { PillLink } from "@web/site/components/pill-link";
 import { SiteIcon } from "@web/site/components/site-icon";
@@ -60,7 +60,7 @@ export function HeroSection(): JSX.Element {
           onMouseEnter={() => hold(true)}
           onMouseLeave={() => hold(false)}
         >
-          <div className="absolute inset-0 overflow-hidden lg:site-hero-arc">
+          <div className="absolute inset-0 overflow-hidden max-lg:site-hero-dip lg:site-hero-arc">
             {slides.length === 0 ? (
               <SiteImage
                 src={null}
@@ -87,11 +87,12 @@ export function HeroSection(): JSX.Element {
               className="absolute inset-0 hidden from-transparent from-55% to-surface/50 lg:block ltr:bg-linear-to-l rtl:bg-linear-to-r"
             />
           </div>
+          <HeroDipRibbon className="absolute inset-0 size-full overflow-visible lg:hidden" />
           <HeroRibbon className="absolute inset-0 hidden size-full overflow-visible lg:block" />
           {hero.stat.value && (
             <div
               data-testid="site-hero-stat"
-              className="absolute end-4 bottom-4 flex flex-col items-center gap-0.5 rounded-t-[999px] rounded-b-card border border-surface/80 bg-surface/70 px-7 pt-5 pb-3 shadow-float backdrop-blur-md lg:start-[13%] lg:end-auto lg:bottom-24"
+              className="absolute end-4 bottom-[16%] flex flex-col items-center gap-0.5 rounded-t-[999px] rounded-b-card border border-surface/80 bg-surface/70 px-7 pt-5 pb-3 shadow-float backdrop-blur-md lg:start-[13%] lg:end-auto lg:bottom-24"
             >
               <bdi className="text-title font-bold text-primary-700">{hero.stat.value}</bdi>
               {statLabel && <span className="text-label text-ink-muted">{statLabel}</span>}
@@ -122,7 +123,7 @@ export function HeroSection(): JSX.Element {
                 {eyebrow}
               </p>
             )}
-            <h1 id="home-title" className="text-headline font-bold text-primary-900 md:text-hero">
+            <h1 id="home-title" className="text-hero font-bold text-primary-900">
               {lead}
               {accent && <span className="block text-primary-600">{accent}</span>}
             </h1>
@@ -141,7 +142,6 @@ export function HeroSection(): JSX.Element {
                   to={SITE_PATH.SERVICES}
                   size="lg"
                   tone="outline"
-                  arrow={false}
                   data-testid="site-hero-services"
                 >
                   <SiteIcon name="play" />

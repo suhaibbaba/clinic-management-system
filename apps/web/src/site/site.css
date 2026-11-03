@@ -187,6 +187,26 @@ html {
   }
 }
 
+@utility site-hero-dip {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V58C86 60 72 68 60 76C45 86 25 90 0 88Z'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+
+  [dir="ltr"] & {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M100 0H0V58C14 60 28 68 40 76C55 86 75 90 100 88Z'/%3E%3C/svg%3E");
+  }
+}
+
+@utility site-wave-dip {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V80C82 70 66 72 52 82C38 92 20 92 0 80Z'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+
+  [dir="ltr"] & {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M100 0H0V80C18 70 34 72 48 82C62 92 80 92 100 80Z'/%3E%3C/svg%3E");
+  }
+}
+
 @utility site-lobe-arc {
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H74C84 8 92 24 93 42C94 62 86 84 66 100H0Z'/%3E%3C/svg%3E");
   mask-size: 100% 100%;
@@ -205,6 +225,12 @@ html {
 
 @utility site-wave-bottom {
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V82C84 94 66 100 46 93C30 87 14 84 0 90Z'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+}
+
+@utility site-wave-both {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 9C20 1 40 1 60 6C76 10 88 9 100 3V88C84 97 66 100 46 95C30 91 14 90 0 94Z'/%3E%3C/svg%3E");
   mask-size: 100% 100%;
   mask-repeat: no-repeat;
 }

@@ -1,5 +1,6 @@
 import { SITE_SECTION, type SiteSection } from "@clinic/shared";
 import { useEffect, useRef, useState, type JSX } from "react";
+import { createPortal } from "react-dom";
 import { cx } from "@web/booking/ui";
 import { PortalUserMenu } from "@web/site/components/portal/portal-user-menu";
 import { SiteIcon } from "@web/site/components/site-icon";
@@ -53,6 +54,8 @@ export function SiteHeader(): JSX.Element {
   const portal = site.content.sections.includes(SITE_SECTION.PORTAL);
   const header = useRef<HTMLElement>(null);
   const height = useMeasuredHeight(header);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (height === undefined) {
@@ -79,13 +82,16 @@ export function SiteHeader(): JSX.Element {
       }
     };
     const root = document.documentElement;
+    const opener = trigger.current;
 
     root.style.overflow = "hidden";
+    panel.current?.focus({ preventScroll: true });
     window.addEventListener("keydown", close);
 
     return () => {
       root.style.overflow = "";
       window.removeEventListener("keydown", close);
+      opener?.focus({ preventScroll: true });
     };
   }, [open]);
 
@@ -167,56 +173,106 @@ export function SiteHeader(): JSX.Element {
           )}
 
           <button
+            ref={trigger}
             type="button"
             data-testid="site-menu"
             aria-expanded={open}
             aria-controls="site-menu-panel"
             aria-label={t("nav.menu")}
-            onClick={() => setOpen((value) => !value)}
+            onClick={() => setOpen(true)}
             className="inline-flex size-(--control-h) cursor-pointer items-center justify-center rounded-control text-ink-muted hover:bg-primary-50 lg:hidden"
           >
-            <SiteIcon name={open ? "x" : "menu"} />
+            <SiteIcon name="menu" />
           </button>
         </div>
       </div>
 
-      {open && (
-        <button
-          type="button"
-          tabIndex={-1}
-          aria-hidden
-          data-testid="site-menu-backdrop"
-          onClick={() => setOpen(false)}
-          className="absolute inset-x-0 top-full h-dvh cursor-default bg-primary-900/30 backdrop-blur-sm lg:hidden"
-        />
-      )}
-
-      <nav
-        id="site-menu-panel"
-        aria-label={t("nav.label")}
-        data-testid="site-menu-panel"
-        className={cx(
-          "absolute inset-x-0 top-full border-t border-line bg-surface shadow-float lg:hidden",
-          !open && "hidden",
-        )}
-      >
-        <ul className="mx-auto flex max-w-6xl flex-col px-4 py-2">
-          {links.map((link) => (
-            <li key={link.to}>
-              <SiteLink
-                to={link.to}
+      {createPortal(
+        <div className="lg:hidden">
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-hidden
+            data-testid="site-menu-backdrop"
+            onClick={() => setOpen(false)}
+            className={cx(
+              "fixed inset-0 z-40 cursor-default bg-primary-900/40 backdrop-blur-sm transition-opacity duration-300",
+              open ? "opacity-100" : "pointer-events-none opacity-0",
+            )}
+          />
+          <div
+            ref={panel}
+            id="site-menu-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t("nav.menu")}
+            data-testid="site-menu-panel"
+            tabIndex={-1}
+            inert={!open}
+            className={cx(
+              "fixed inset-y-0 end-0 z-50 flex w-[min(20rem,86vw)] flex-col bg-surface shadow-drawer transition-[translate,visibility] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+              open
+                ? "visible translate-x-0"
+                : "invisible ltr:translate-x-full rtl:-translate-x-full",
+            )}
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
+              <span className="flex max-w-44 min-w-0 items-center">
+                <SiteLogo url={site.clinic.logoUrl} name={name} />
+              </span>
+              <button
+                type="button"
+                data-testid="site-menu-close"
+                aria-label={t("nav.close")}
                 onClick={() => setOpen(false)}
-                {...(link.pages.includes(page.kind) && {
-                  "aria-current": "page" as const,
-                })}
-                className="block rounded-control px-3 py-3 text-value font-medium text-ink hover:bg-primary-50 aria-[current=page]:bg-primary-50 aria-[current=page]:text-primary-800"
+                className="inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill text-ink-muted hover:bg-primary-50 hover:text-primary-800"
               >
-                {t(link.label)}
-              </SiteLink>
-            </li>
-          ))}
-        </ul>
-      </nav>
+                <SiteIcon name="x" />
+              </button>
+            </div>
+            <nav aria-label={t("nav.label")} className="flex-1 overflow-y-auto px-3 py-4">
+              <ul className="flex flex-col gap-1">
+                {links.map((link, position) => (
+                  <li
+                    key={link.to}
+                    style={{ transitionDelay: open ? `${120 + position * 45}ms` : "0ms" }}
+                    className={cx(
+                      "transition-[opacity,translate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                      open ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
+                    )}
+                  >
+                    <SiteLink
+                      to={link.to}
+                      onClick={() => setOpen(false)}
+                      {...(link.pages.includes(page.kind) && {
+                        "aria-current": "page" as const,
+                      })}
+                      className="flex items-center justify-between rounded-control px-4 py-3 text-value font-medium text-ink hover:bg-primary-50 aria-[current=page]:bg-primary-50 aria-[current=page]:font-bold aria-[current=page]:text-primary-800"
+                    >
+                      {t(link.label)}
+                      <SiteIcon name="chevron-end" className="size-4 text-ink-subtle" />
+                    </SiteLink>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            {bookable && (
+              <div className="border-t border-line p-4">
+                <SiteLink
+                  to={SITE_PATH.BOOKING}
+                  onClick={() => setOpen(false)}
+                  data-testid="site-menu-book"
+                  className="pill-text flex min-h-(--control-h) items-center justify-center gap-2 rounded-pill bg-primary-600 px-6 text-label font-medium text-ink-inverse shadow-nav-active hover:bg-primary-700"
+                >
+                  <SiteIcon name="calendar" />
+                  {t("nav.book")}
+                </SiteLink>
+              </div>
+            )}
+          </div>
+        </div>,
+        document.body,
+      )}
     </header>
   );
 }

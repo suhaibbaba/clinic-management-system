@@ -77,6 +77,66 @@ export function HeroRibbon({ className }: { readonly className?: string }): JSX.
   );
 }
 
+export function HeroDipRibbon({ className }: { readonly className?: string }): JSX.Element {
+  const band = useId();
+
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      fill="none"
+      className={cx("pointer-events-none ltr:-scale-x-100", className)}
+    >
+      <defs>
+        <linearGradient id={band} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" style={{ stopColor: "var(--color-primary-200)", stopOpacity: 0.2 }} />
+          <stop offset="0.5" style={{ stopColor: "var(--color-primary-500)", stopOpacity: 0.7 }} />
+          <stop offset="1" style={{ stopColor: "var(--color-primary-700)", stopOpacity: 0.9 }} />
+        </linearGradient>
+      </defs>
+      <path
+        d="M0 91C25 94 45 94 60 87C72 81 86 74 100 72L100 79C86 81 72 88 60 93C45 100 25 100 0 96Z"
+        style={{ fill: "var(--color-primary-100)", fillOpacity: 0.7 }}
+      />
+      <path
+        d="M0 89C25 91 45 87 60 77C72 69 86 61 100 59L100 71C86 72 72 79 60 86C45 94 25 93 0 90Z"
+        fill={`url(#${band})`}
+      />
+    </svg>
+  );
+}
+
+export function WaveRibbon({ className }: { readonly className?: string }): JSX.Element {
+  const band = useId();
+
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      fill="none"
+      className={cx("pointer-events-none ltr:-scale-x-100", className)}
+    >
+      <defs>
+        <linearGradient id={band} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" style={{ stopColor: "var(--color-primary-200)", stopOpacity: 0.4 }} />
+          <stop offset="0.5" style={{ stopColor: "var(--color-primary-500)", stopOpacity: 0.85 }} />
+          <stop offset="1" style={{ stopColor: "var(--color-primary-200)", stopOpacity: 0.4 }} />
+        </linearGradient>
+      </defs>
+      <path
+        d="M0 88C20 99 38 99 52 92C66 84 82 82 100 89L100 93C82 87 66 89 52 96C38 100 20 100 0 92Z"
+        style={{ fill: "var(--color-primary-100)", fillOpacity: 0.7 }}
+      />
+      <path
+        d="M0 81C20 93 38 93 52 83C66 73 82 71 100 81L100 85C82 77 66 80 52 90C38 99 20 98 0 85Z"
+        fill={`url(#${band})`}
+      />
+    </svg>
+  );
+}
+
 export function HeroWave({ className }: { readonly className?: string }): JSX.Element {
   const fill = useId();
 

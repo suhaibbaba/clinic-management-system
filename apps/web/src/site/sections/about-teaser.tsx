@@ -1,6 +1,6 @@
 import { SITE_SECTION } from "@clinic/shared";
 import type { JSX } from "react";
-import { GlassLobe } from "@web/site/components/curves";
+import { GlassLobe, WaveRibbon } from "@web/site/components/curves";
 import { PillLink } from "@web/site/components/pill-link";
 import { SiteIcon } from "@web/site/components/site-icon";
 import { SiteImage } from "@web/site/components/site-image";
@@ -37,7 +37,7 @@ export function AboutTeaser(): JSX.Element | null {
       )}
       <div className="relative flex flex-col lg:block lg:min-h-[32rem]">
         <div className="relative aspect-[4/3] lg:absolute lg:inset-y-0 lg:end-0 lg:aspect-auto lg:w-[50%]">
-          <div className="absolute inset-0 overflow-hidden lg:site-lobe-arc">
+          <div className="absolute inset-0 overflow-hidden max-lg:site-wave-dip lg:site-lobe-arc">
             <SiteImage
               src={image}
               layer
@@ -45,6 +45,7 @@ export function AboutTeaser(): JSX.Element | null {
               fallback={<SiteIcon name="smile" className="size-16" />}
             />
           </div>
+          <WaveRibbon className="absolute inset-0 size-full overflow-visible lg:hidden" />
           <GlassLobe className="absolute inset-0 hidden size-full overflow-visible lg:block" />
           {badge && (
             <p

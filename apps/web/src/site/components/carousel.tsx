@@ -48,7 +48,7 @@ export function Carousel({
         aria-label={label}
         onScroll={track}
         className={cx(
-          "relative -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pt-1 pb-3 [scrollbar-width:none] sm:mx-0 [&::-webkit-scrollbar]:hidden sm:overflow-visible sm:p-0",
+          "relative -mx-4 flex snap-x snap-mandatory scroll-px-4 -mb-5 gap-4 overflow-x-auto px-4 pt-2 pb-8 sm:mb-0 [scrollbar-width:none] sm:mx-0 [&::-webkit-scrollbar]:hidden sm:overflow-visible sm:p-0",
           grid,
         )}
       >
