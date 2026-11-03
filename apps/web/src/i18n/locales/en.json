@@ -579,8 +579,7 @@
       "passwordMin": "Password must be at least 8 characters",
       "yearOutOfRange": "That year is not right — use a date between 1900 and 2100",
       "dateInFuture": "This date cannot be in the future",
-      "dateInPast": "This date cannot be in the past",
-      "nationalIdInvalid": "Not a valid national ID"
+      "dateInPast": "This date cannot be in the past"
     },
     "clinicalDelete": {
       "hasPayments": "Cannot delete — payments cover it. Reverse the payments first, or record a correction."
@@ -675,9 +674,6 @@
     "clinic": {
       "currencyLocked": "The currency cannot change once the clinic has recorded an amount.",
       "suspended": "The clinic's subscription is suspended: you can view records but not change them. Contact your provider to renew it."
-    },
-    "patient": {
-      "nationalIdInvalid": "The national ID is not valid for the clinic's country"
     }
   },
   "patients": {
@@ -773,8 +769,7 @@
     "assignedDoctor": "Treating Doctor",
     "assignedDoctorHint": "The doctor who follows this patient. It can be changed later.",
     "doctorFilter": "Doctor",
-    "allDoctors": "All doctors",
-    "nationalId": "National ID"
+    "allDoctors": "All doctors"
   },
   "chart": {
     "title": "Tooth Chart",

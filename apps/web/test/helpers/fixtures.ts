@@ -829,7 +829,6 @@ export function makePatient(overrides: Partial<PatientClinicalView> = {}): Patie
     dateOfBirth: "1988-03-14",
     gender: "male",
     address: "المزة، دمشق",
-    nationalId: null,
     emergencyContactName: null,
     emergencyContactPhone: null,
     notes: null,

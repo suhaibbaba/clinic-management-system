@@ -91,7 +91,6 @@ export const patients = pgTable(
     dateOfBirth: date("date_of_birth"),
     gender: genderEnum("gender"),
     address: text("address"),
-    nationalId: text("national_id"),
     emergencyContactName: text("emergency_contact_name"),
     emergencyContactPhone: text("emergency_contact_phone"),
     notes: text("notes"),

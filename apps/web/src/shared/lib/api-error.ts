@@ -1,7 +1,6 @@
 import {
   APPOINTMENT_ERROR,
   CLINIC_ERROR,
-  PATIENT_ERROR,
   PAYROLL_ERROR,
   APPOINTMENT_TIMING_ERROR,
   AUTH_ERROR,
@@ -48,7 +47,6 @@ const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [APPOINTMENT_ERROR.NOT_ARRIVED]: "errors.appointment.notArrived",
   [CLINIC_ERROR.CURRENCY_LOCKED]: "errors.clinic.currencyLocked",
   [CLINIC_ERROR.SUSPENDED]: "errors.clinic.suspended",
-  [PATIENT_ERROR.NATIONAL_ID_INVALID]: "errors.patient.nationalIdInvalid",
   [PAYROLL_ERROR.MONTH_CLOSED]: "errors.payroll.monthClosed",
   [PAYROLL_ERROR.ALREADY_CLOSED]: "errors.payroll.alreadyClosed",
   [PAYROLL_ERROR.NOT_EMPLOYEE]: "errors.payroll.notEmployee",

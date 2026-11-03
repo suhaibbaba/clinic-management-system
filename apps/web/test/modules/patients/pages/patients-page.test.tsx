@@ -282,7 +282,7 @@ describe("Patients list", () => {
       });
     });
 
-    it("stores every number international: the clinic's code by default, another when picked", async () => {
+    it("stores the phone international, in the clinic's code by default", async () => {
       const api = await renderList(USER_ROLE.RECEPTIONIST, {
         "POST /patients": { status: 201, body: makePatient() },
       });
@@ -293,18 +293,13 @@ describe("Patients list", () => {
       await userEvent.type(within(dialog).getByLabelText(ar.patients.firstName), "سامر");
       await userEvent.type(within(dialog).getByLabelText(ar.patients.lastName), "التلاوي");
       await userEvent.type(within(dialog).getByRole("textbox", { name: new RegExp(`^${ar.patients.phone}`) }), "0599 123 456");
-      await choose(within(dialog).getByTestId("patient-field-whatsapp-country"), /\+962/);
-      await userEvent.type(
-        within(dialog).getByRole("textbox", { name: new RegExp(ar.patients.whatsapp) }),
-        "0791234567",
-      );
       await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
 
       await waitFor(() => {
         const call = api.calls.find(
           (entry) => entry.method === "POST" && entry.url.endsWith("/patients"),
         );
-        expect(call?.body).toMatchObject({ phone: "+970599123456", whatsapp: "+962791234567" });
+        expect(call?.body).toMatchObject({ phone: "+970599123456" });
       });
     });
 
