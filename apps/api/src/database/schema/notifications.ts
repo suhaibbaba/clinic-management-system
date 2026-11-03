@@ -1,5 +1,4 @@
 import {
-  NOTIFICATION_CHANNELS,
   NOTIFICATION_STATUSES,
   NOTIFICATION_TEMPLATES,
   WHATSAPP_STATUS_SOURCES,
@@ -17,10 +16,9 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { appointments } from "@api/database/schema/appointments";
-import { clinics } from "@api/database/schema/core";
+import { clinics, notificationChannelEnum } from "@api/database/schema/core";
 import { patients } from "@api/database/schema/patients";
 
-export const notificationChannelEnum = pgEnum("notification_channel", NOTIFICATION_CHANNELS);
 export const notificationTemplateEnum = pgEnum("notification_template", NOTIFICATION_TEMPLATES);
 export const notificationStatusEnum = pgEnum("notification_status", NOTIFICATION_STATUSES);
 

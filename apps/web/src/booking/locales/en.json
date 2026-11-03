@@ -73,6 +73,7 @@
   "otp": {
     "heading": "Enter the confirmation code",
     "headingWhatsapp": "Check your WhatsApp",
+    "headingSms": "Check your text messages",
     "inputLabel": "6-digit confirmation code",
     "digitLabel": "Digit {{index}} of 6",
     "verify": "Confirm",
@@ -84,6 +85,7 @@
     "skipHint": "You can skip this step, and the clinic receptionist will contact you to confirm the appointment.",
     "skip": "Skip this step",
     "sentWhatsapp": "We sent a 6-digit confirmation code on WhatsApp to",
+    "sentSms": "We sent a 6-digit confirmation code by text message to",
     "notArrived": "Didn't get the code?",
     "skipIn": "You can skip in {{seconds}} seconds"
   },

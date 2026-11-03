@@ -5,7 +5,7 @@ import { COUNTRY_PRESETS } from "@shared/locale/countries";
 import { phoneSchema } from "@shared/schemas/common";
 import { passwordSchema } from "@shared/schemas/auth";
 import { CLINIC_MODULES, missingModules } from "@shared/constants/permissions";
-import { SPECIALTY_CODE, SUBSCRIPTION_STATUSES } from "@shared/enums";
+import { NOTIFICATION_CHANNELS, SPECIALTY_CODE, SUBSCRIPTION_STATUSES } from "@shared/enums";
 import { paginationQuerySchema } from "@shared/schemas/common";
 
 const modulesSchema = z
@@ -196,8 +196,14 @@ export const subscriptionEventSchema = z.object({
 });
 export type SubscriptionEvent = z.infer<typeof subscriptionEventSchema>;
 
+export const saveClinicMessageChannelSchema = z.object({
+  channel: z.enum(NOTIFICATION_CHANNELS),
+});
+export type SaveClinicMessageChannelInput = z.infer<typeof saveClinicMessageChannelSchema>;
+
 export const vendorClinicDetailSchema = vendorClinicSummarySchema.extend({
   keys: vendorClinicKeysSchema,
+  messageChannel: z.enum(NOTIFICATION_CHANNELS),
   doctors: z.number().int().min(0),
   events: z.array(subscriptionEventSchema),
 });

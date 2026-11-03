@@ -7,6 +7,7 @@ import {
   saveClinicAppDomainSchema,
   saveClinicDomainSchema,
   saveClinicKeysSchema,
+  saveClinicMessageChannelSchema,
   saveClinicModulesSchema,
   specialtyParamSchema,
   saveSubscriptionSchema,
@@ -36,6 +37,8 @@ export class SaveClinicDomainDto extends createZodDto(saveClinicDomainSchema) {}
 export class SaveClinicAppDomainDto extends createZodDto(saveClinicAppDomainSchema) {}
 
 export class SaveClinicKeysDto extends createZodDto(saveClinicKeysSchema) {}
+
+export class SaveClinicMessageChannelDto extends createZodDto(saveClinicMessageChannelSchema) {}
 
 export class CreateClinicDto extends createZodDto(createClinicSchema) {}
 

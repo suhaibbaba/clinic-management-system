@@ -680,6 +680,20 @@
       "when": 1793686981398,
       "tag": "0096_drop_patient_national_id",
       "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "7",
+      "when": 1793723492565,
+      "tag": "0097_clinic_message_channel",
+      "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "7",
+      "when": 1793723497459,
+      "tag": "0098_copy_clinic_message_channel",
+      "breakpoints": true
     }
   ]
 }

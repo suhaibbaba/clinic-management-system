@@ -1,4 +1,5 @@
 import { foldDigits } from "@clinic/shared";
+import { NOTIFICATION_CHANNEL, type NotificationChannel } from "@shared/enums";
 import {
   useEffect,
   useRef,
@@ -19,6 +20,7 @@ const digitsOnly = (value: string): string => foldDigits(value).replace(/\D/g, "
 
 export function OtpStep({
   phone,
+  channel,
   onVerify,
   onResend,
   onSkip,
@@ -27,6 +29,7 @@ export function OtpStep({
   attemptsLeft,
 }: {
   readonly phone: string;
+  readonly channel: NotificationChannel;
   readonly onVerify: (code: string) => void;
   readonly onResend: () => void;
   readonly onSkip: () => void;
@@ -62,6 +65,7 @@ export function OtpStep({
   }, [skipIn]);
 
   const code = digits.join("");
+  const whatsapp = channel === NOTIFICATION_CHANNEL.WHATSAPP;
 
   const write = (next: string[]): void => {
     setDigits(next);
@@ -129,13 +133,22 @@ export function OtpStep({
       <div data-testid="otp-sent-to" className="flex flex-col items-center gap-3 pt-2 text-center">
         <span
           aria-hidden
-          className="inline-flex size-16 items-center justify-center rounded-pill bg-success-50 text-success-600"
+          className={cx(
+            "inline-flex size-16 items-center justify-center rounded-pill",
+            whatsapp ? "bg-success-50 text-success-600" : "bg-primary-50 text-primary-600",
+          )}
         >
-          <Glyph path={GLYPH.whatsapp} filled className="size-8" />
+          <Glyph
+            path={whatsapp ? GLYPH.whatsapp : GLYPH.message}
+            filled={whatsapp}
+            className="size-8"
+          />
         </span>
-        <h3 className="text-heading font-bold text-primary-900">{t("otp.headingWhatsapp")}</h3>
+        <h3 className="text-heading font-bold text-primary-900">
+          {t(whatsapp ? "otp.headingWhatsapp" : "otp.headingSms")}
+        </h3>
         <p className="text-value text-ink-muted">
-          {t("otp.sentWhatsapp")}{" "}
+          {t(whatsapp ? "otp.sentWhatsapp" : "otp.sentSms")}{" "}
           <bdi dir="ltr" className="font-bold whitespace-nowrap text-ink tabular-nums">
             {phone}
           </bdi>

@@ -27,6 +27,7 @@ import {
   SaveClinicAppDomainDto,
   SaveClinicDomainDto,
   SaveClinicKeysDto,
+  SaveClinicMessageChannelDto,
   VendorIdParamDto,
   SaveSubscriptionDto,
   VendorClinicsQueryDto,
@@ -126,6 +127,16 @@ export class VendorClinicsController {
     @VendorSession() session: VendorSessionContext,
   ): Promise<void> {
     return this.clinics.saveKeys(params.id, body, session.vendorUserId);
+  }
+
+  @Put("clinics/:id/message-channel")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  saveMessageChannel(
+    @Param() params: VendorIdParamDto,
+    @Body() body: SaveClinicMessageChannelDto,
+    @VendorSession() session: VendorSessionContext,
+  ): Promise<void> {
+    return this.clinics.saveMessageChannel(params.id, body.channel, session.vendorUserId);
   }
 
   @Put("clinics/:id/modules")

@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 import {
   APPOINTMENT_STATUS,
   BOOKING_CONFIRMATION_MODE,
-  NOTIFICATION_CHANNEL,
   NOTIFICATION_TEMPLATE,
   USER_ROLE,
   addDays,
@@ -92,7 +91,6 @@ describe("Public booking (e2e)", () => {
     booking: { ...bookingSettings, ...overrides },
     notifications: {
       enabled: true,
-      channel: NOTIFICATION_CHANNEL.SMS,
       remind24h: true,
       remind2h: true,
       templates: {},

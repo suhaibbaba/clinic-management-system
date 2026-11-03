@@ -25,6 +25,7 @@ import {
   VENDOR_MISSING_MODULES,
   missingModules,
   type ClinicModule,
+  type NotificationChannel,
   READ_ONLY_SUBSCRIPTION_STATUSES,
   SUBSCRIPTION_EVENT,
   SUBSCRIPTION_STATUS,
@@ -150,7 +151,7 @@ export class VendorClinicsService {
 
   async detail(id: string): Promise<VendorClinicDetail> {
     const [row] = await this.db
-      .select(SUMMARY_COLUMNS)
+      .select({ ...SUMMARY_COLUMNS, messageChannel: clinics.messageChannel })
       .from(clinics)
       .leftJoin(subscriptions, eq(subscriptions.clinicId, clinics.id))
       .leftJoin(plans, eq(plans.id, subscriptions.planId))
@@ -191,6 +192,7 @@ export class VendorClinicsService {
     return {
       ...summary,
       keys,
+      messageChannel: row.messageChannel,
       doctors: doctorCount?.value ?? 0,
       events: events.map((event) => ({ ...event, createdAt: event.createdAt.toISOString() })),
     };
@@ -253,6 +255,41 @@ export class VendorClinicsService {
     } catch (error) {
       throw conflictFor(error) ?? error;
     }
+  }
+
+  async saveMessageChannel(
+    clinicId: string,
+    channel: NotificationChannel,
+    actorId: string,
+  ): Promise<void> {
+    await this.db.transaction(async (tx) => {
+      const [clinic] = await tx
+        .select({ channel: clinics.messageChannel })
+        .from(clinics)
+        .where(and(eq(clinics.id, clinicId), isNull(clinics.deletedAt)))
+        .limit(1);
+
+      if (!clinic) {
+        throw new NotFoundException("Clinic not found");
+      }
+
+      if (clinic.channel === channel) {
+        return;
+      }
+
+      await tx
+        .update(clinics)
+        .set({ messageChannel: channel, updatedAt: new Date() })
+        .where(eq(clinics.id, clinicId));
+      await this.subscriptions.record(
+        tx,
+        clinicId,
+        actorId,
+        SUBSCRIPTION_EVENT.MESSAGE_CHANNEL_CHANGED,
+        { channel: clinic.channel },
+        { channel },
+      );
+    });
   }
 
   async saveAppDomain(clinicId: string, appDomain: string | null, actorId: string): Promise<void> {

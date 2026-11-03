@@ -238,7 +238,8 @@
       "modules_changed": "Modüller değişti",
       "specialty_revoked": "Uzmanlık kapatıldı",
       "app_domain_changed": "Panel alan adı değişti",
-      "keys_changed": "E-posta veya Google anahtarları değişti"
+      "keys_changed": "E-posta veya Google anahtarları değişti",
+      "message_channel_changed": "Hasta mesaj kanalı değişti"
     },
     "modules": {
       "appointments": "Randevular",
@@ -385,6 +386,12 @@
         "clientSecret": "İstemci gizli anahtarı",
         "clearTitle": "Kliniğin Google anahtarları kaldırılsın mı?",
         "clearBody": "Google ile giriş kliniğin panel alan adından kalkar."
+      },
+      "channel": {
+        "title": "Hasta mesajları",
+        "body": "Kliniğin mesajlarının hastalara ulaştığı kanal: randevu kodu, onaylar ve hatırlatmalar. Randevu sayfası buna uyar.",
+        "whatsapp": "WhatsApp",
+        "sms": "SMS"
       }
     }
   },

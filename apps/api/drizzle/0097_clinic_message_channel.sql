@@ -1,0 +1,1 @@
+ALTER TABLE "clinics" ADD COLUMN "message_channel" "notification_channel" DEFAULT 'sms' NOT NULL;

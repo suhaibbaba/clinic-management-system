@@ -1321,6 +1321,7 @@ export const SUBSCRIPTION_EVENT = {
   DOMAIN_CHANGED: "domain_changed",
   APP_DOMAIN_CHANGED: "app_domain_changed",
   KEYS_CHANGED: "keys_changed",
+  MESSAGE_CHANNEL_CHANGED: "message_channel_changed",
   CLINIC_CREATED: "clinic_created",
   CLINIC_REMOVED: "clinic_removed",
   CLINIC_RESTORED: "clinic_restored",

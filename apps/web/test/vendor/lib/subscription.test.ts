@@ -1,5 +1,6 @@
 import {
   CLINIC_MODULE,
+  NOTIFICATION_CHANNEL,
   SUBSCRIPTION_STATUS,
   type Plan,
   type VendorClinicDetail,
@@ -32,6 +33,7 @@ const clinic = (overrides: Partial<VendorClinicDetail> = {}): VendorClinicDetail
   name: { en: "Clinic" },
   domain: null,
   appDomain: null,
+  messageChannel: NOTIFICATION_CHANNEL.SMS,
   logoUrl: null,
   removedAt: null,
   modules: [],

@@ -3,7 +3,6 @@ import {
   CLINIC_MODULE,
   STANDARD_CLINIC_MODULES,
   DEFAULT_NOTIFICATION_TEMPLATES,
-  NOTIFICATION_CHANNEL,
   PROCEDURE_OUTCOME,
   USER_ROLE,
   type LocalizedText,
@@ -120,7 +119,6 @@ export const CLINIC_DEFAULTS = {
     },
     notifications: {
       enabled: true,
-      channel: NOTIFICATION_CHANNEL.SMS,
       remind24h: true,
       remind2h: true,
       templates: { ...DEFAULT_NOTIFICATION_TEMPLATES.ar },

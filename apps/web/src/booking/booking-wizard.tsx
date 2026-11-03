@@ -617,6 +617,7 @@ export function BookingWizard({
             {t("board.editDetails")}
           </button>
           <OtpStep
+            channel={clinic.data.messageChannel}
             phone={joinPhone(details.country, details.phone) ?? details.phone}
             busy={busy}
             error={otpError}
