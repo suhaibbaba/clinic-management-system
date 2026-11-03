@@ -28,7 +28,7 @@ const NOTE_MIN = 3;
 
 const NOTE_MAX = 500;
 
-const HOLD_SECONDS = 5;
+const HOLD_SECONDS = 3;
 
 export function ConfirmDialog({
   open,
