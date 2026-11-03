@@ -51,6 +51,15 @@ import { procedureIcon } from "@web/modules/patients/lib/chart/charts";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { useDoctors } from "@web/shared/queries/doctors";
 import { useLocalized } from "@web/shared/hooks/use-localized";
+import { useCreateLabOrders, usePatientLabOrders } from "@web/shared/queries/lab-orders";
+import {
+  canCreateLabOrder,
+  canPriceLabWork,
+  canSeeLabCost,
+  canSeeLabOrders,
+} from "@web/shared/permissions/labs";
+import { labWorkOrder, type LabWorkDraft } from "@web/shared/lib/lab-work";
+import { afterLabCost, labCostOf, labCostOfAll } from "@web/shared/lib/lab-cost";
 
 export interface TreatmentsPanelProps {
   readonly patientId: string;
@@ -60,11 +69,20 @@ export interface TreatmentsPanelProps {
   readonly startAdding?: boolean | undefined;
   readonly showTotal?: boolean | undefined;
   readonly layout?: "list" | "grid" | undefined;
-  readonly onSendToLab?: ((treatment: PerformedProcedure) => void) | undefined;
   readonly "data-testid": string;
 }
 
-type Editing = { readonly treatment: PerformedProcedure | null };
+type Editing = {
+  readonly treatment: PerformedProcedure | null;
+  readonly withLab?: boolean;
+  readonly session: string;
+};
+
+const opening = (treatment: PerformedProcedure | null, withLab = false): Editing => ({
+  treatment,
+  withLab,
+  session: crypto.randomUUID(),
+});
 
 export function TreatmentsPanel({
   patientId,
@@ -74,7 +92,6 @@ export function TreatmentsPanel({
   startAdding = false,
   showTotal = true,
   layout = "list",
-  onSendToLab,
   "data-testid": testId,
 }: TreatmentsPanelProps): JSX.Element {
   const { t } = useTranslation();
@@ -90,7 +107,9 @@ export function TreatmentsPanel({
   const update = useUpdateProcedure(patientId);
   const remove = useDeleteProcedure(patientId);
 
-  const [editing, setEditing] = useState<Editing | null>(startAdding ? { treatment: null } : null);
+  const [editing, setEditing] = useState<Editing | null>(() =>
+    startAdding ? opening(null) : null,
+  );
   const [deleting, setDeleting] = useState<PerformedProcedure | null>(null);
   const [formValid, setFormValid] = useState(false);
 
@@ -101,6 +120,22 @@ export function TreatmentsPanel({
   const doctorPay = usePatientSettlementStatus(patientId, canSeeDoctorPay(can));
   const doctorList = doctors.data?.items ?? [];
   const ordered = newestTreatmentsFirst(treatments);
+  const labOrders = usePatientLabOrders(patientId, canSeeLabOrders(can));
+  const createLabOrders = useCreateLabOrders();
+  const showLabCost = showPrices && canSeeLabCost(can);
+  const labCostFor = (treatment: PerformedProcedure) =>
+    showLabCost && labOrders.data ? labCostOf(labOrders.data, treatment.id) : undefined;
+  const labOrdersOf = (treatment: PerformedProcedure | null | undefined) =>
+    treatment
+      ? (labOrders.data ?? []).filter((order) => order.performedProcedureId === treatment.id)
+      : undefined;
+  const total = treatmentsTotal(ordered);
+  const totalLabCost = labCostOfAll(
+    showLabCost ? (labOrders.data ?? []) : [],
+    ordered
+      .filter((treatment) => treatment.status !== PERFORMED_PROCEDURE_STATUS.CANCELLED)
+      .map((treatment) => treatment.id),
+  );
 
   const nameOf = (procedureId: string): string =>
     text(catalog.data?.find((item) => item.id === procedureId)?.name) || t("chart.panel.procedure");
@@ -144,17 +179,32 @@ export function TreatmentsPanel({
       "treatments.moved.done",
     );
 
-  const save = async (values: TreatmentFormValues): Promise<void> => {
+  const save = async (
+    values: TreatmentFormValues,
+    labWork: readonly LabWorkDraft[],
+  ): Promise<void> => {
     const current = editing?.treatment;
 
     try {
-      if (current) {
-        await update.mutateAsync({ id: current.id, body: values });
-        toast.success("treatments.updated");
-      } else {
-        await create.mutateAsync({ ...values, patientId });
-        toast.success("treatments.recorded");
+      const saved = current
+        ? await update.mutateAsync({ id: current.id, body: values })
+        : await create.mutateAsync({ ...values, patientId });
+
+      if (labWork.length > 0) {
+        const target = { patientId, doctorId: saved.doctorId, performedProcedureId: saved.id };
+
+        try {
+          await createLabOrders.mutateAsync(
+            labWork.map((draft) => labWorkOrder(draft, target, canPriceLabWork(can))),
+          );
+        } catch (error) {
+          setEditing((open) => open && { ...open, treatment: saved });
+          toast.error(...errorToast(error));
+          return;
+        }
       }
+
+      toast.success(current ? "treatments.updated" : "treatments.recorded");
       setEditing(null);
     } catch (error) {
       toast.error(...errorToast(error));
@@ -167,7 +217,21 @@ export function TreatmentsPanel({
         {showTotal && showPrices && ordered.length > 0 ? (
           <p data-testid={`${testId}-total`} className="text-meta text-ink-muted">
             {t("treatments.total")}:{" "}
-            <Money amount={treatmentsTotal(ordered)} currency={currency} className="text-ink" />
+            <Money amount={total} currency={currency} className="text-ink" />
+            {Number(totalLabCost) !== 0 && (
+              <>
+                {" · "}
+                {t("treatments.labCost")}:{" "}
+                <Money amount={totalLabCost} currency={currency} className="text-ink" />
+                {" · "}
+                {t("treatments.afterLab")}:{" "}
+                <Money
+                  amount={afterLabCost(total, totalLabCost)}
+                  currency={currency}
+                  className="font-medium text-ink"
+                />
+              </>
+            )}
           </p>
         ) : (
           <span />
@@ -209,7 +273,7 @@ export function TreatmentsPanel({
               variant="secondary"
               icon={<Icon name="plus" />}
               data-testid={`${testId}-add`}
-              onClick={() => setEditing({ treatment: null })}
+              onClick={() => setEditing(opening(null))}
             >
               {t("treatments.add")}
             </Button>
@@ -241,10 +305,13 @@ export function TreatmentsPanel({
               mayChange={mayChange}
               mayDelete={mayDelete}
               onMove={(status) => move(treatment, status)}
-              onEdit={() => setEditing({ treatment })}
+              onEdit={() => setEditing(opening(treatment))}
               onDelete={() => setDeleting(treatment)}
-              {...(onSendToLab && { onSendToLab: () => onSendToLab(treatment) })}
+              {...(canCreateLabOrder(can) && {
+                onSendToLab: () => setEditing(opening(treatment, true)),
+              })}
               doctorPay={doctorPay.data?.filter((pay) => pay.treatmentId === treatment.id)}
+              labCost={labCostFor(treatment)}
             />
           ))}
         </ol>
@@ -260,7 +327,7 @@ export function TreatmentsPanel({
           footer={
             <TreatmentFormActions
               formId={TREATMENT_FORM_ID}
-              submitting={create.isPending || update.isPending}
+              submitting={create.isPending || update.isPending || createLabOrders.isPending}
               invalid={!formValid}
               onCancel={() => setEditing(null)}
             />
@@ -268,7 +335,7 @@ export function TreatmentsPanel({
         >
           {editing && (
             <TreatmentForm
-              key={editing.treatment?.id ?? "new"}
+              key={editing.session}
               formId={TREATMENT_FORM_ID}
               patientId={patientId}
               onValidityChange={setFormValid}
@@ -277,7 +344,9 @@ export function TreatmentsPanel({
               doctors={doctorList}
               defaults={defaults}
               {...(editing.treatment && { treatment: editing.treatment })}
-              onSubmit={(values) => void save(values)}
+              startWithLabWork={editing.withLab}
+              labOrders={labOrdersOf(editing.treatment)}
+              onSubmit={(values, labWork) => void save(values, labWork)}
             />
           )}
         </Modal>

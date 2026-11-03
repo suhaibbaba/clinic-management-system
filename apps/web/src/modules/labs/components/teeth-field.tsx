@@ -50,6 +50,28 @@ export function TeethField({
 
   return (
     <div data-testid="teeth-field" className="flex flex-col gap-2">
+      <Input
+        id={id}
+        data-testid="teeth-field-input"
+        dir="ltr"
+        inputMode="tel"
+        placeholder="46"
+        value={draft}
+        hasError={invalid}
+        onChange={(event) => {
+          setDraft(event.target.value);
+          setInvalid(false);
+        }}
+        onKeyDown={onKeyDown}
+        onBlur={() => draft !== "" && add(draft)}
+      />
+
+      {invalid && (
+        <p data-testid="teeth-field-invalid" className="text-label text-danger-600">
+          {t("labs.order.toothInvalid")}
+        </p>
+      )}
+
       {value.length > 0 && (
         <ul data-testid="teeth-field-list" className="flex flex-wrap gap-1.5">
           {value.map((tooth) => (
@@ -73,29 +95,6 @@ export function TeethField({
           ))}
         </ul>
       )}
-
-      <Input
-        id={id}
-        data-testid="teeth-field-input"
-        dir="ltr"
-        inputMode="tel"
-        placeholder="46"
-        value={draft}
-        hasError={invalid}
-        onChange={(event) => {
-          setDraft(event.target.value);
-          setInvalid(false);
-        }}
-        onKeyDown={onKeyDown}
-        onBlur={() => draft !== "" && add(draft)}
-      />
-
-      <p
-        data-testid="teeth-field-hint"
-        className={invalid ? "text-label text-danger-600" : "text-label text-ink-muted"}
-      >
-        {t(invalid ? "labs.order.toothInvalid" : "labs.order.toothHint")}
-      </p>
     </div>
   );
 }

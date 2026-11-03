@@ -739,6 +739,39 @@ describe("Labs (e2e)", () => {
       expect(order.performedProcedureId).toBe(performedProcedureId);
     });
 
+    it("links a sent order to its treatment, and nothing else changes after sending", async () => {
+      const procedure = await context.app.inject({
+        method: "POST",
+        url: "/performed-procedures",
+        headers: auth(tokens[USER_ROLE.DOCTOR]),
+        payload: procedurePayload({
+          patientId,
+          doctorId: fixtures.doctorId,
+          procedureId: fixtures.catalogId,
+          tooth: 25,
+        }),
+      });
+      const performedProcedureId = (procedure.json() as { id: string }).id;
+      const order = await createOrder({ teeth: [25] });
+      expect((await move(order.id, "send")).statusCode).toBe(200);
+
+      const edit = (payload: Record<string, unknown>) =>
+        context.app.inject({
+          method: "PATCH",
+          url: `/lab-orders/${order.id}`,
+          headers: auth(tokens[USER_ROLE.ADMIN]),
+          payload,
+        });
+
+      const linked = await edit({ performedProcedureId });
+      expect(linked.statusCode).toBe(200);
+      expect((linked.json() as { performedProcedureId: string }).performedProcedureId).toBe(
+        performedProcedureId,
+      );
+
+      expect((await edit({ performedProcedureId, shade: "A2" })).statusCode).toBe(400);
+    });
+
     it("refuses another patient's procedure", async () => {
       const other = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
         ...nameParts("مريض آخر"),

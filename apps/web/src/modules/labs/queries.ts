@@ -22,9 +22,9 @@ import {
 import type { ReturnLabOrderInput } from "@clinic/shared";
 import { labOrdersApi, labsApi } from "@web/modules/labs/api";
 import { uploadToStorage } from "@web/shared/lib/upload";
+import { LAB_ORDERS_KEY } from "@web/shared/constants/query-keys";
 
 export const LABS_KEY = "labs";
-export const LAB_ORDERS_KEY = "lab-orders";
 export const LAB_BALANCE_KEY = "lab-balance";
 export const LAB_STATEMENT_KEY = "lab-statement";
 export const LAB_PAYMENTS_KEY = "lab-payments";

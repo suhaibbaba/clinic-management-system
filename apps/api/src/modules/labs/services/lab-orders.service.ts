@@ -286,7 +286,11 @@ export class LabOrdersService implements OnModuleInit {
     const existing = await this.requireRow(actor.clinicId, id);
     await this.requireOwnOrder(actor, existing);
 
-    if (existing.status !== LAB_ORDER_STATUS.DRAFT) {
+    const onlyLinksProcedure = Object.entries(input).every(
+      ([field, value]) => field === "performedProcedureId" || value === undefined,
+    );
+
+    if (existing.status !== LAB_ORDER_STATUS.DRAFT && !onlyLinksProcedure) {
       throw new BadRequestException("Only a draft order can be edited");
     }
 

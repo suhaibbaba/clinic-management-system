@@ -1,4 +1,5 @@
 import {
+  LAB_ORDER_STATUS,
   VALIDATION_CODE,
   createLabOrderSchema,
   updateLabOrderSchema,
@@ -19,6 +20,7 @@ import {
   usePersonName,
   useToast,
 } from "@clinic/ui";
+import type { SelectOption } from "@clinic/ui/components/select";
 import { useSession } from "@web/shared/providers/session";
 import { useToothChart } from "@web/shared/hooks/use-tooth-chart";
 import { canPriceLabWork } from "@web/shared/permissions/labs";
@@ -49,6 +51,8 @@ import {
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { fieldNeeds } from "@web/shared/lib/schema-fields";
+import { UNLINKED_PROCEDURE } from "@web/modules/labs/constants";
+import { wholeAmount } from "@web/shared/lib/lab-work";
 
 const need = fieldNeeds(createLabOrderSchema);
 
@@ -65,6 +69,7 @@ export interface OrderFormModalProps {
   readonly onOpenChange: (open: boolean) => void;
   readonly order?: LabOrderRow | undefined;
   readonly defaults?: LabOrderDefaults | undefined;
+  readonly procedures?: readonly SelectOption[] | undefined;
 }
 
 export function OrderFormModal({
@@ -72,6 +77,7 @@ export function OrderFormModal({
   onOpenChange,
   order,
   defaults,
+  procedures,
   "data-testid": testId = "order-form-modal",
 }: OrderFormModalProps): JSX.Element {
   const { t } = useTranslation();
@@ -98,9 +104,11 @@ export function OrderFormModal({
   const [instructions, setInstructions] = useState("");
   const [expectedAt, setExpectedAt] = useState("");
   const [price, setPrice] = useState("");
+  const [procedureId, setProcedureId] = useState("");
 
   const workTypes = useLabWorkTypes(labId);
   const mayPrice = canPriceLabWork(can);
+  const linkOnly = order !== undefined && order.status !== LAB_ORDER_STATUS.DRAFT;
 
   const body: Omit<CreateLabOrderInput, "patientId" | "newPatient"> = {
     labId,
@@ -111,9 +119,7 @@ export function OrderFormModal({
     ...(material.trim() !== "" && { material: material.trim() }),
     ...(instructions.trim() !== "" && { instructions: instructions.trim() }),
     ...(expectedAt !== "" && { expectedAt }),
-    ...(defaults?.performedProcedureId && {
-      performedProcedureId: defaults.performedProcedureId,
-    }),
+    ...(procedureId !== "" && { performedProcedureId: procedureId }),
     ...(mayPrice && price.trim() !== "" && { price: price.trim() }),
   };
   const { doctorId: _doctorId, ...editable } = body;
@@ -168,7 +174,8 @@ export function OrderFormModal({
       setMaterial(order.material ?? "");
       setInstructions(order.instructions ?? "");
       setExpectedAt(order.expectedAt ? order.expectedAt.slice(0, 10) : "");
-      setPrice(order.price);
+      setPrice(wholeAmount(order.price));
+      setProcedureId(order.performedProcedureId ?? "");
       return;
     }
 
@@ -182,6 +189,7 @@ export function OrderFormModal({
     setInstructions("");
     setExpectedAt("");
     setPrice("");
+    setProcedureId(defaults?.performedProcedureId ?? "");
   }, [open, order, defaults, ownDoctorId, reset]);
 
   const chooseWorkType = (id: string): void => {
@@ -189,7 +197,7 @@ export function OrderFormModal({
 
     const listed = workTypes.data?.find((type) => type.id === id);
     if (listed) {
-      setPrice(listed.defaultPrice);
+      setPrice(wholeAmount(listed.defaultPrice));
     }
   };
 
@@ -199,10 +207,19 @@ export function OrderFormModal({
     }
 
     try {
-      if (order) {
+      if (order && linkOnly) {
         await update.mutateAsync({
           id: order.id,
-          body: { ...editable, workTypeId: workTypeId === "" ? null : workTypeId },
+          body: { performedProcedureId: procedureId === "" ? null : procedureId },
+        });
+      } else if (order) {
+        await update.mutateAsync({
+          id: order.id,
+          body: {
+            ...editable,
+            workTypeId: workTypeId === "" ? null : workTypeId,
+            ...(procedures && { performedProcedureId: procedureId === "" ? null : procedureId }),
+          },
         });
       } else if (patient) {
         await create.mutateAsync({ ...body, ...toPatientRef(patient) });
@@ -227,6 +244,7 @@ export function OrderFormModal({
       data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
+      size="lg"
       title={t(order ? "labs.order.editTitle" : "labs.order.newTitle")}
       description={t("labs.order.description")}
       footer={
@@ -283,180 +301,207 @@ export function OrderFormModal({
           </div>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div onBlur={form.leave("labId")}>
-            <FormField
-              error={form.errors["labId"]}
-              label="labs.order.lab"
-              htmlFor="lab-order-lab"
-              {...need("labId")}
-            >
-              <Select
-                id="lab-order-lab"
-                data-testid="lab-order-field-lab"
-                value={labId}
-                placeholder={t("labs.order.selectLab")}
-                onChange={(event) => {
-                  setLabId(event.target.value);
-                  setWorkTypeId("");
-                }}
-                options={(labs.data?.items ?? [])
-                  .filter((lab) => lab.isActive)
-                  .map((lab) => ({ value: lab.id, label: lab.name }))}
-              />
-            </FormField>
-          </div>
-
-          <div onBlur={form.leave("workTypeId")}>
-            <FormField
-              error={form.errors["workTypeId"]}
-              label="labs.order.workType"
-              htmlFor="lab-order-work-type"
-              hint={t("labs.order.workTypeHint")}
-            >
-              <Select
-                id="lab-order-work-type"
-                data-testid="lab-order-field-work-type"
-                value={workTypeId}
-                disabled={labId === ""}
-                placeholder={t("labs.order.selectWorkType")}
-                onChange={(event) => chooseWorkType(event.target.value)}
-                options={(workTypes.data ?? []).map((type) => ({
-                  value: type.id,
-                  label: type.name,
-                }))}
-              />
-            </FormField>
-          </div>
-
-          <div onBlur={form.leave("doctorId")}>
-            <FormField
-              error={form.errors["doctorId"]}
-              label="labs.order.doctor"
-              htmlFor="lab-order-doctor"
-              {...need("doctorId")}
-            >
-              <Select
-                id="lab-order-doctor"
-                data-testid="lab-order-field-doctor"
-                value={doctorId}
-                disabled={Boolean(order)}
-                placeholder={t("labs.order.selectDoctor")}
-                onChange={(event) => setDoctorId(event.target.value)}
-                options={(doctors.data?.items ?? []).map((doctor) => ({
-                  value: doctor.id,
-                  label: doctorName(doctor.user.name),
-                }))}
-              />
-            </FormField>
-          </div>
-
-          <div onBlur={form.leave("expectedAt")}>
-            <FormField
-              error={form.errors["expectedAt"]}
-              label="labs.order.expected"
-              htmlFor="lab-order-expected"
-              {...need("expectedAt")}
-            >
-              <DatePicker
-                id="lab-order-expected"
-                data-testid="lab-order-field-expected"
-                label={t("labs.order.expected")}
-                value={expectedAt}
-                min={todayIso()}
-                onChange={setExpectedAt}
-              />
-            </FormField>
-          </div>
-        </div>
-
-        {toothChart && (
-          <div onBlur={form.leave("teeth")}>
-            <FormField
-              error={form.errors["teeth"]}
-              label="labs.order.teeth"
-              htmlFor="lab-order-teeth"
-              {...need("teeth")}
-            >
-              <TeethField id="lab-order-teeth" value={teeth} onChange={setTeeth} />
-            </FormField>
-          </div>
+        {procedures && procedures.length > 0 && (
+          <FormField
+            label="labs.order.procedure"
+            htmlFor="lab-order-procedure"
+            hint={t("labs.order.procedureHint")}
+          >
+            <Select
+              id="lab-order-procedure"
+              data-testid="lab-order-field-procedure"
+              value={procedureId}
+              placeholder={t("labs.order.selectProcedure")}
+              onChange={(event) =>
+                setProcedureId(event.target.value === UNLINKED_PROCEDURE ? "" : event.target.value)
+              }
+              options={[
+                { value: UNLINKED_PROCEDURE, label: t("labs.order.noProcedure") },
+                ...procedures,
+              ]}
+            />
+          </FormField>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          {toothChart && (
-            <div onBlur={form.leave("shade")}>
+        {!linkOnly && (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div onBlur={form.leave("labId")}>
+                <FormField
+                  error={form.errors["labId"]}
+                  label="labs.order.lab"
+                  htmlFor="lab-order-lab"
+                  {...need("labId")}
+                >
+                  <Select
+                    id="lab-order-lab"
+                    data-testid="lab-order-field-lab"
+                    value={labId}
+                    placeholder={t("labs.order.selectLab")}
+                    onChange={(event) => {
+                      setLabId(event.target.value);
+                      setWorkTypeId("");
+                    }}
+                    options={(labs.data?.items ?? [])
+                      .filter((lab) => lab.isActive)
+                      .map((lab) => ({ value: lab.id, label: lab.name }))}
+                  />
+                </FormField>
+              </div>
+
+              <div onBlur={form.leave("workTypeId")}>
+                <FormField
+                  error={form.errors["workTypeId"]}
+                  label="labs.order.workType"
+                  htmlFor="lab-order-work-type"
+                  hint={t("labs.order.workTypeHint")}
+                >
+                  <Select
+                    id="lab-order-work-type"
+                    data-testid="lab-order-field-work-type"
+                    value={workTypeId}
+                    disabled={labId === ""}
+                    placeholder={t("labs.order.selectWorkType")}
+                    onChange={(event) => chooseWorkType(event.target.value)}
+                    options={(workTypes.data ?? []).map((type) => ({
+                      value: type.id,
+                      label: type.name,
+                    }))}
+                  />
+                </FormField>
+              </div>
+
+              <div onBlur={form.leave("doctorId")}>
+                <FormField
+                  error={form.errors["doctorId"]}
+                  label="labs.order.doctor"
+                  htmlFor="lab-order-doctor"
+                  {...need("doctorId")}
+                >
+                  <Select
+                    id="lab-order-doctor"
+                    data-testid="lab-order-field-doctor"
+                    value={doctorId}
+                    disabled={Boolean(order)}
+                    placeholder={t("labs.order.selectDoctor")}
+                    onChange={(event) => setDoctorId(event.target.value)}
+                    options={(doctors.data?.items ?? []).map((doctor) => ({
+                      value: doctor.id,
+                      label: doctorName(doctor.user.name),
+                    }))}
+                  />
+                </FormField>
+              </div>
+
+              <div onBlur={form.leave("expectedAt")}>
+                <FormField
+                  error={form.errors["expectedAt"]}
+                  label="labs.order.expected"
+                  htmlFor="lab-order-expected"
+                  {...need("expectedAt")}
+                >
+                  <DatePicker
+                    id="lab-order-expected"
+                    data-testid="lab-order-field-expected"
+                    label={t("labs.order.expected")}
+                    value={expectedAt}
+                    min={todayIso()}
+                    onChange={setExpectedAt}
+                  />
+                </FormField>
+              </div>
+            </div>
+
+            {toothChart && (
+              <div onBlur={form.leave("teeth")}>
+                <FormField
+                  error={form.errors["teeth"]}
+                  label="labs.order.teeth"
+                  htmlFor="lab-order-teeth"
+                  hint={t("labs.order.toothHint")}
+                  {...need("teeth")}
+                >
+                  <TeethField id="lab-order-teeth" value={teeth} onChange={setTeeth} />
+                </FormField>
+              </div>
+            )}
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {toothChart && (
+                <div onBlur={form.leave("shade")}>
+                  <FormField
+                    error={form.errors["shade"]}
+                    label="labs.order.shade"
+                    htmlFor="lab-order-shade"
+                    {...need("shade")}
+                  >
+                    <Input
+                      id="lab-order-shade"
+                      data-testid="lab-order-field-shade"
+                      placeholder="A2"
+                      value={shade}
+                      onChange={(event) => setShade(event.target.value)}
+                    />
+                  </FormField>
+                </div>
+              )}
+
+              <div onBlur={form.leave("material")}>
+                <FormField
+                  error={form.errors["material"]}
+                  label="labs.order.material"
+                  htmlFor="lab-order-material"
+                  {...need("material")}
+                >
+                  <Input
+                    id="lab-order-material"
+                    data-testid="lab-order-field-material"
+                    value={material}
+                    onChange={(event) => setMaterial(event.target.value)}
+                  />
+                </FormField>
+              </div>
+            </div>
+
+            {mayPrice && (
+              <div onBlur={form.leave("price")}>
+                <FormField
+                  error={form.errors["price"]}
+                  label="labs.order.price"
+                  htmlFor="lab-order-price"
+                  hint={t("labs.prices.snapshotNote")}
+                >
+                  <MoneyInput
+                    id="lab-order-price"
+                    data-testid="lab-order-field-price"
+                    currency={currency}
+                    placeholder="0"
+                    value={price}
+                    onChange={(event) => setPrice(event.target.value)}
+                  />
+                </FormField>
+              </div>
+            )}
+
+            <div onBlur={form.leave("instructions")}>
               <FormField
-                error={form.errors["shade"]}
-                label="labs.order.shade"
-                htmlFor="lab-order-shade"
-                {...need("shade")}
+                error={form.errors["instructions"]}
+                label="labs.order.instructions"
+                htmlFor="lab-order-instructions"
+                {...need("instructions")}
               >
-                <Input
-                  id="lab-order-shade"
-                  data-testid="lab-order-field-shade"
-                  placeholder="A2"
-                  value={shade}
-                  onChange={(event) => setShade(event.target.value)}
+                <Textarea
+                  id="lab-order-instructions"
+                  data-testid="lab-order-field-instructions"
+                  rows={3}
+                  placeholder={t("labs.order.instructionsPlaceholder")}
+                  value={instructions}
+                  onChange={(event) => setInstructions(event.target.value)}
                 />
               </FormField>
             </div>
-          )}
-
-          <div onBlur={form.leave("material")}>
-            <FormField
-              error={form.errors["material"]}
-              label="labs.order.material"
-              htmlFor="lab-order-material"
-              {...need("material")}
-            >
-              <Input
-                id="lab-order-material"
-                data-testid="lab-order-field-material"
-                value={material}
-                onChange={(event) => setMaterial(event.target.value)}
-              />
-            </FormField>
-          </div>
-        </div>
-
-        {mayPrice && (
-          <div onBlur={form.leave("price")}>
-            <FormField
-              error={form.errors["price"]}
-              label="labs.order.price"
-              htmlFor="lab-order-price"
-              hint={t("labs.prices.snapshotNote")}
-            >
-              <MoneyInput
-                id="lab-order-price"
-                data-testid="lab-order-field-price"
-                currency={currency}
-                placeholder="0"
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-              />
-            </FormField>
-          </div>
+          </>
         )}
-
-        <div onBlur={form.leave("instructions")}>
-          <FormField
-            error={form.errors["instructions"]}
-            label="labs.order.instructions"
-            htmlFor="lab-order-instructions"
-            {...need("instructions")}
-          >
-            <Textarea
-              id="lab-order-instructions"
-              data-testid="lab-order-field-instructions"
-              rows={3}
-              placeholder={t("labs.order.instructionsPlaceholder")}
-              value={instructions}
-              onChange={(event) => setInstructions(event.target.value)}
-            />
-          </FormField>
-        </div>
       </div>
     </Modal>
   );

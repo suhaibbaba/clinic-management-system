@@ -46,3 +46,5 @@ export const LABS_TAB_ORDERS = "orders";
 export const LABS_TAB_DONE = "done";
 
 export const LABS_TAB_DIRECTORY = "directory";
+
+export const UNLINKED_PROCEDURE = "unlinked";

@@ -814,7 +814,8 @@
       "date": "Date",
       "openFile": "Open File",
       "procedureCount_one": "1 Treatment",
-      "procedureCount_other": "{{count}} treatments"
+      "procedureCount_other": "{{count}} treatments",
+      "labOrders": "Lab Orders on This Tooth"
     },
     "kind": "Chart",
     "kinds": {
@@ -985,7 +986,11 @@
       "unpaid": "Doctor not paid yet",
       "paid": "Doctor paid",
       "adjusted": "Doctor's share needs settling"
-    }
+    },
+    "labCost": "Lab Cost",
+    "afterLab": "After Lab",
+    "priceHint": "Your price for the treatment, without the lab cost. The lab cost is added to what the patient pays.",
+    "patientPays": "Patient Pays"
   },
   "imaging": {
     "uploadTitle": "Add an X-Ray or a Document",
@@ -1461,13 +1466,31 @@
       "returnExpected": "New Expected Date",
       "costKept": "Cost Kept Despite the Cancellation",
       "labBalance": "Lab Balance",
-      "cancelReason": "Cancellation reason"
+      "cancelReason": "Cancellation reason",
+      "procedure": "Treatment",
+      "selectProcedure": "Choose the Treatment",
+      "noProcedure": "Not linked to a treatment",
+      "procedureHint": "Its cost is taken off this treatment's amount and off the doctor's share",
+      "open": "Open the Order",
+      "delete": "Delete Order",
+      "deleted": "Order Deleted",
+      "confirmDelete": {
+        "title": "Delete the “{{work}}” order?",
+        "hidden": "It leaves the patient file, the lab list and the treatment’s lab cost.",
+        "kept": "It is archived, not erased, and stays in the audit log."
+      }
     },
     "section": {
       "label": "Lab Views",
       "orders": "Work in Progress",
       "done": "Done",
       "directory": "Labs"
+    },
+    "work": {
+      "title": "Lab Work",
+      "add": "Add Lab Work",
+      "remove": "Remove This Lab Work",
+      "number": "Lab Work {{number}}"
     }
   },
   "inventory": {
@@ -3385,7 +3408,9 @@
       "paidFilters": {
         "partly": "Paid part",
         "none": "Not paid yet"
-      }
+      },
+      "net": "Net",
+      "ofNet": "{{percent}}% of the net"
     },
     "entryKinds": {
       "extra": "Bonus",
@@ -3461,7 +3486,8 @@
       },
       "share": {
         "title": "Their share",
-        "detail": "The clinic takes {{percent}}% ({{clinic}}); the rest is theirs."
+        "detail": "The clinic takes {{percent}}% ({{clinic}}); the rest is theirs.",
+        "detailMixed": "The clinic takes {{clinic}} at each treatment's own percent; the rest is theirs."
       },
       "collected": {
         "title": "What patients paid the clinic",
@@ -3471,7 +3497,7 @@
       },
       "collectedShare": {
         "title": "Their share of what patients paid",
-        "detail": "Their share is {{percent}}% of what patients paid. {{waiting}} of it is paid once the rest pay."
+        "detail": "Their share of the treatments patients have paid for. {{waiting}} of it is paid once the rest pay."
       },
       "salary": {
         "title": "Monthly salary",

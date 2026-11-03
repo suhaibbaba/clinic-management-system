@@ -28,3 +28,5 @@ export const PAYROLL_KEY = "payroll";
 
 export const WHATSAPP_CHECK_KEY = "whatsapp-check";
 export const PAYMENTS_KEY = "payments";
+
+export const LAB_ORDERS_KEY = "lab-orders";

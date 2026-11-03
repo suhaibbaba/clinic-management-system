@@ -278,11 +278,7 @@ export function PatientPage(): JSX.Element {
       <TabPanel id={activeTab} data-testid="patient-tab-panel">
         <Suspense fallback={<TabFallback />}>
           {activeTab === "chart" && (
-            <ChartTab
-              patientId={id}
-              dateOfBirth={patient.data?.dateOfBirth}
-              patient={patient.data}
-            />
+            <ChartTab patientId={id} dateOfBirth={patient.data?.dateOfBirth} />
           )}
           {activeTab === "attachments" && <ImagingTab patientId={id} />}
         </Suspense>

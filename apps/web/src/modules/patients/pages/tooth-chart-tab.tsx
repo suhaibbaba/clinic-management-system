@@ -1,4 +1,4 @@
-import { isDeciduousTooth, type PatientClinicalView } from "@clinic/shared";
+import { isDeciduousTooth, type PerformedProcedure } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { EmptyState, SegmentedControl } from "@clinic/ui";
@@ -10,11 +10,7 @@ import { deriveToothSummaries, healthyTooth } from "@web/shared/lib/tooth-state"
 import { useToothStates } from "@web/shared/hooks/use-tooth-states";
 import { useProcedureCatalog, usePatientProcedures } from "@web/modules/patients/queries";
 import { useSession } from "@web/shared/providers/session";
-import {
-  OrderFormModal,
-  type LabOrderDefaults,
-} from "@web/modules/labs/components/order-form-modal";
-import { canCreateLabOrder } from "@web/shared/permissions/labs";
+import { useLocalized } from "@web/shared/hooks/use-localized";
 import { ageInYears } from "@web/modules/patients/lib/age";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { PERMANENT_DENTITION_AGE } from "@web/modules/patients/constants";
@@ -22,18 +18,16 @@ import { PERMANENT_DENTITION_AGE } from "@web/modules/patients/constants";
 export function ToothChartTab({
   patientId,
   dateOfBirth,
-  patient,
 }: {
   readonly patientId: string;
   readonly dateOfBirth?: string | null | undefined;
-  readonly patient?: PatientClinicalView | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
-  const { user, can } = useSession();
+  const { user } = useSession();
 
   const [dentition, setDentition] = useState<Dentition>("permanent");
   const [selectedTooth, setSelectedTooth] = useState<number | null>(null);
-  const [labOrder, setLabOrder] = useState<LabOrderDefaults | undefined>();
+  const text = useLocalized();
 
   const procedures = usePatientProcedures(patientId);
   const catalog = useProcedureCatalog();
@@ -50,6 +44,10 @@ export function ToothChartTab({
     () => deriveToothSummaries(procedures.data ?? [], outcomes, states),
     [procedures.data, outcomes, states],
   );
+
+  const procedureName = (treatment: PerformedProcedure): string =>
+    text(catalog.data?.find((item) => item.id === treatment.procedureId)?.name) ||
+    t("chart.panel.procedure");
 
   const age = dateOfBirth ? ageInYears(dateOfBirth) : null;
   const hasDeciduousHistory = [...summaries.keys()].some(isDeciduousTooth);
@@ -133,32 +131,9 @@ export function ToothChartTab({
               : (summaries.get(selectedTooth) ?? healthyTooth(selectedTooth))
           }
           onClose={() => setSelectedTooth(null)}
-          {...(canCreateLabOrder(can) && {
-            onSendToLab: (input: { teeth: number[]; performedProcedureId?: string }) =>
-              setLabOrder({
-                teeth: input.teeth,
-                ...(input.performedProcedureId && {
-                  performedProcedureId: input.performedProcedureId,
-                }),
-                ...(patient && {
-                  patient: {
-                    id: patient.id,
-                    fullName: patient.fullName,
-                    phone: patient.phone,
-                    fileNumber: patient.fileNumber,
-                  },
-                }),
-              }),
-          })}
+          procedureName={procedureName}
         />
       )}
-
-      <OrderFormModal
-        data-testid="chart-lab-order-modal"
-        open={labOrder !== undefined}
-        onOpenChange={(open) => !open && setLabOrder(undefined)}
-        defaults={labOrder}
-      />
     </div>
   );
 }

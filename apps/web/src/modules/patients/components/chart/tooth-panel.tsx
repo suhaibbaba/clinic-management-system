@@ -1,7 +1,7 @@
 import { PERFORMED_PROCEDURE_STATUS, type PerformedProcedure } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Drawer, Icon, Ltr } from "@clinic/ui";
+import { Badge, Drawer, Ltr } from "@clinic/ui";
 import { SkeletonTimeline } from "@clinic/ui/components/skeleton";
 import { SurfaceSelector } from "@web/modules/patients/components/chart/surface-selector";
 import { TreatmentsPanel } from "@web/modules/patients/components/treatments/treatments-panel";
@@ -10,14 +10,18 @@ import { useToothStates } from "@web/shared/hooks/use-tooth-states";
 import { usePatientProcedures } from "@web/modules/patients/queries";
 import { treatmentTeeth } from "@web/modules/patients/lib/treatments/treatments";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
+import { usePatientLabOrders } from "@web/shared/queries/lab-orders";
+import { labOrdersOnTooth } from "@web/shared/lib/lab-cost";
+import { canSeeLabOrders } from "@web/shared/permissions/labs";
+import { ToothLabOrders } from "@web/modules/patients/components/chart/tooth-lab-orders";
+import { useSession } from "@web/shared/providers/session";
 
 export interface ToothPanelProps {
   readonly patientId: string;
   readonly tooth: number | null;
   readonly summary: ToothSummary | null;
   readonly onClose: () => void;
-  readonly onSendToLab?:
-    ((input: { teeth: number[]; performedProcedureId?: string }) => void) | undefined;
+  readonly procedureName: (treatment: PerformedProcedure) => string;
 }
 
 export function ToothPanel({
@@ -25,10 +29,12 @@ export function ToothPanel({
   tooth,
   summary,
   onClose,
-  onSendToLab,
+  procedureName,
 }: ToothPanelProps): JSX.Element {
   const { t } = useTranslation();
+  const { can } = useSession();
   const states = useToothStates();
+  const labOrders = usePatientLabOrders(patientId, canSeeLabOrders(can));
 
   const { data, isPending, isError } = usePatientProcedures(patientId);
   const onTooth =
@@ -36,6 +42,7 @@ export function ToothPanel({
       ? []
       : (data ?? []).filter((treatment) => treatmentTeeth(treatment).includes(tooth));
   const showSkeleton = useDelayedLoading(isPending);
+  const ordersOnTooth = tooth === null ? [] : labOrdersOnTooth(labOrders.data ?? [], tooth);
 
   return (
     <Drawer
@@ -98,21 +105,7 @@ export function ToothPanel({
         )}
 
         <section className="flex flex-col gap-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-label font-semibold text-ink">{t("chart.panel.history")}</h3>
-
-            {onSendToLab && tooth !== null && (
-              <Button
-                icon={<Icon name="clipboard" />}
-                size="sm"
-                variant="secondary"
-                data-testid="tooth-panel-send-to-lab"
-                onClick={() => onSendToLab({ teeth: [tooth] })}
-              >
-                {t("labs.sendToLab")}
-              </Button>
-            )}
-          </div>
+          <h3 className="text-label font-semibold text-ink">{t("chart.panel.history")}</h3>
 
           {showSkeleton && <SkeletonTimeline entries={2} />}
           {isError && (
@@ -128,13 +121,15 @@ export function ToothPanel({
               treatments={onTooth}
               defaults={{ tooth, status: PERFORMED_PROCEDURE_STATUS.PLANNED }}
               emptyTitle="chart.panel.noProcedures"
-              {...(onSendToLab && {
-                onSendToLab: (treatment: PerformedProcedure) =>
-                  onSendToLab({ teeth: [tooth], performedProcedureId: treatment.id }),
-              })}
             />
           )}
         </section>
+
+        <ToothLabOrders
+          orders={ordersOnTooth}
+          treatments={data ?? []}
+          procedureName={procedureName}
+        />
       </div>
     </Drawer>
   );
