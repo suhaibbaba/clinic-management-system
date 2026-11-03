@@ -1,6 +1,5 @@
 import { foldDigits } from "@clinic/shared";
 import { NOTIFICATION_CHANNEL, type NotificationChannel } from "@shared/enums";
-import { Icon } from "@clinic/ui/components/icon";
 import {
   useEffect,
   useRef,
@@ -10,7 +9,8 @@ import {
   type KeyboardEvent,
 } from "react";
 import { t } from "@web/booking/i18n";
-import { Alert, Button, cx } from "@web/booking/ui";
+import { GLYPH } from "@web/booking/constants";
+import { Alert, Button, cx, Glyph } from "@web/booking/ui";
 
 const LENGTH = 6;
 const RESEND_SECONDS = 60;
@@ -65,6 +65,7 @@ export function OtpStep({
   }, [skipIn]);
 
   const code = digits.join("");
+  const whatsapp = channel === NOTIFICATION_CHANNEL.WHATSAPP;
 
   const write = (next: string[]): void => {
     setDigits(next);
@@ -128,40 +129,36 @@ export function OtpStep({
   };
 
   return (
-    <div data-testid="otp-step" className="flex flex-col gap-5">
-      <div
-        data-testid="otp-sent-to"
-        className="flex flex-col items-center gap-3 rounded-card border border-line bg-surface px-4 py-5 text-center shadow-card"
-      >
+    <div data-testid="otp-step" className="flex flex-col gap-6">
+      <div data-testid="otp-sent-to" className="flex flex-col items-center gap-3 pt-2 text-center">
         <span
           aria-hidden
           className={cx(
-            "inline-flex size-12 items-center justify-center rounded-pill",
-            channel === NOTIFICATION_CHANNEL.WHATSAPP
-              ? "bg-success-50 text-success-700"
-              : "bg-primary-50 text-primary-700",
+            "inline-flex size-16 items-center justify-center rounded-pill",
+            whatsapp ? "bg-success-50 text-success-600" : "bg-primary-50 text-primary-600",
           )}
         >
-          <Icon
-            name={channel === NOTIFICATION_CHANNEL.WHATSAPP ? "whatsapp" : "message"}
-            size="md"
+          <Glyph
+            path={whatsapp ? GLYPH.whatsapp : GLYPH.message}
+            filled={whatsapp}
+            className="size-8"
           />
         </span>
+        <h3 className="text-heading font-bold text-primary-900">
+          {t(whatsapp ? "otp.headingWhatsapp" : "otp.headingSms")}
+        </h3>
         <p className="text-value text-ink-muted">
-          {t(channel === NOTIFICATION_CHANNEL.WHATSAPP ? "otp.sentWhatsapp" : "otp.sentSms")}
+          {t(whatsapp ? "otp.sentWhatsapp" : "otp.sentSms")}{" "}
+          <bdi dir="ltr" className="font-bold whitespace-nowrap text-ink tabular-nums">
+            {phone}
+          </bdi>
         </p>
-        <span
-          dir="ltr"
-          className="pill-text inline-flex min-h-(--control-h-sm) items-center rounded-pill bg-canvas px-3 text-value font-bold tabular-nums text-ink"
-        >
-          {phone}
-        </span>
       </div>
 
       <fieldset className="border-0 p-0">
         <legend className="sr-only">{t("otp.inputLabel")}</legend>
 
-        <div dir="ltr" className="flex justify-center gap-2 sm:gap-2.5">
+        <div dir="ltr" className="flex justify-center gap-2">
           {digits.map((digit, index) => (
             <input
               key={index}
@@ -177,14 +174,13 @@ export function OtpStep({
               autoComplete={index === 0 ? "one-time-code" : "off"}
               aria-label={t("otp.digitLabel", { index: index + 1 })}
               className={cx(
-                "aspect-[4/5] w-full max-w-14 min-w-0 rounded-field border-2 text-center text-title font-bold tabular-nums text-ink",
-                "transition-[border-color,background-color,box-shadow] duration-150 outline-none",
-                "focus:border-primary-600 focus:shadow-field-focus",
+                "h-14 w-full max-w-12 min-w-0 rounded-control border-[1.5px] text-center text-title font-bold text-ink tabular-nums",
+                "transition-[border-color,background-color] duration-150 outline-none focus:border-primary-600 focus:bg-surface",
                 error
-                  ? "border-danger-500 bg-danger-50"
+                  ? "border-danger-600 bg-danger-50"
                   : digit
-                    ? "border-primary-300 bg-primary-50"
-                    : "border-line-strong bg-surface",
+                    ? "border-primary-600 bg-primary-50"
+                    : "border-line bg-surface hover:border-line-strong",
               )}
             />
           ))}
@@ -203,10 +199,14 @@ export function OtpStep({
         {t("otp.verify")}
       </Button>
 
-      <div className="flex items-center justify-center gap-1.5 text-label text-ink-muted">
-        <span>{t("otp.notArrived")}</span>
+      <div className="flex flex-col items-center gap-1 text-center text-label">
+        <span className="text-ink-muted">{t("otp.notArrived")}</span>
         {seconds > 0 ? (
-          <span data-testid="otp-resend-timer" aria-live="polite" className="tabular-nums">
+          <span
+            data-testid="otp-resend-timer"
+            aria-live="polite"
+            className="text-ink-subtle tabular-nums"
+          >
             {t("otp.resendIn", { seconds })}
           </span>
         ) : (
@@ -224,18 +224,15 @@ export function OtpStep({
               boxes.current[0]?.focus();
               onResend();
             }}
-            className="cursor-pointer font-medium text-primary-700 underline-offset-4 hover:underline aria-disabled:cursor-not-allowed aria-disabled:opacity-45"
+            className="cursor-pointer font-medium text-primary-700 underline-offset-4 hover:underline aria-disabled:cursor-not-allowed aria-disabled:text-ink-subtle"
           >
             {t("otp.resend")}
           </button>
         )}
       </div>
 
-      <div
-        data-testid="otp-skip"
-        className="flex flex-col gap-3 rounded-card border border-dashed border-line-strong bg-canvas p-4"
-      >
-        <p className="text-label text-ink-muted">{t("otp.skipHint")}</p>
+      <div data-testid="otp-skip" className="flex flex-col gap-3 border-t border-line pt-5">
+        <p className="text-center text-label text-ink-muted">{t("otp.skipHint")}</p>
         <Button
           variant="secondary"
           full
@@ -244,17 +241,8 @@ export function OtpStep({
           disabled={skipIn > 0}
           onClick={onSkip}
         >
-          {t("otp.skip")}
+          {skipIn > 0 ? t("otp.skipIn", { seconds: skipIn }) : t("otp.skip")}
         </Button>
-        {skipIn > 0 && (
-          <p
-            data-testid="otp-skip-timer"
-            aria-live="polite"
-            className="text-center text-meta text-ink-muted tabular-nums"
-          >
-            {t("otp.skipIn", { seconds: skipIn })}
-          </p>
-        )}
       </div>
     </div>
   );

@@ -2,7 +2,8 @@ import type { PublicDoctor } from "@clinic/shared";
 import type { JSX } from "react";
 import { failureKey } from "@web/booking/api";
 import { t } from "@web/booking/i18n";
-import { Alert, Button, cx, Img, Skeleton } from "@web/booking/ui";
+import { GLYPH } from "@web/booking/constants";
+import { Alert, Button, cx, Glyph, Img, Skeleton } from "@web/booking/ui";
 import type { AsyncState } from "@web/booking/use-async";
 import { bookingName } from "@web/booking/format";
 
@@ -104,17 +105,7 @@ export function DoctorStep({
                   aria-hidden
                   className="absolute end-2.5 top-2.5 inline-flex size-6 items-center justify-center rounded-pill bg-primary-600 text-ink-inverse"
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={3}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="size-3.5"
-                  >
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
+                  <Glyph path={GLYPH.check} weight={3} className="size-3.5" />
                 </span>
               )}
             </button>

@@ -31,14 +31,14 @@ export function BookingPage(): JSX.Element {
 
         <div
           aria-hidden
-          className="mt-8 flex items-center gap-4 overflow-hidden rounded-card border border-line bg-surface shadow-card"
+          className="mt-8 flex flex-col overflow-hidden rounded-card sm:flex-row sm:items-center sm:gap-4 border border-line bg-surface shadow-card"
         >
           <SiteImage
             src={image}
-            className="h-24 w-36 shrink-0 sm:w-48"
+            className="aspect-[16/9] w-full shrink-0 sm:aspect-auto sm:h-24 sm:w-48"
             fallback={<SiteIcon name="calendar" className="size-10" />}
           />
-          <p className="flex items-center gap-2 py-4 pe-5 text-heading font-bold text-primary-900">
+          <p className="flex items-center gap-2 px-5 py-4 text-heading sm:ps-0 font-bold text-primary-900">
             <SiteIcon name="sparkles" className="size-5 text-primary-500" />
             {t("booking.aside")}
           </p>

@@ -34,7 +34,10 @@ export function SectionHeading({
       {eyebrow && <p className="text-section font-medium text-primary-600">{eyebrow}</p>}
       <Heading
         id={`${id}-title`}
-        className="text-title font-bold text-primary-900 md:text-headline"
+        className={cx(
+          "font-bold text-primary-900",
+          level === 1 ? "text-hero" : "text-title md:text-headline",
+        )}
       >
         {title}
       </Heading>

@@ -54,13 +54,13 @@ export class NotificationsService {
 
     const input: AddressedNotification = { ...request, to };
 
-    const { settings, language } = await this.clinicFor(input.clinicId);
+    const { settings, language, messageChannel } = await this.clinicFor(input.clinicId);
 
     if (!settings.enabled || inRehearsal()) {
       return null;
     }
 
-    const channel = input.channel ?? settings.channel;
+    const channel = input.channel ?? messageChannel;
     const vars = resolveNotificationVars(input.vars, language);
     const body = renderTemplate(this.bodyFor(settings, input.template, language), vars);
 
@@ -162,11 +162,17 @@ export class NotificationsService {
     return (await this.clinicFor(clinicId)).language;
   }
 
-  private async clinicFor(
-    clinicId: string,
-  ): Promise<{ settings: NotificationSettings; language: LanguageCode }> {
+  private async clinicFor(clinicId: string): Promise<{
+    settings: NotificationSettings;
+    language: LanguageCode;
+    messageChannel: NotificationChannel;
+  }> {
     const [row] = await this.db
-      .select({ settings: clinics.settings, country: clinics.country })
+      .select({
+        settings: clinics.settings,
+        country: clinics.country,
+        messageChannel: clinics.messageChannel,
+      })
       .from(clinics)
       .where(eq(clinics.id, clinicId))
       .limit(1);
@@ -174,6 +180,7 @@ export class NotificationsService {
     return {
       settings: notificationSettings(row?.settings),
       language: row ? documentLanguage(row) : DEFAULT_LANGUAGE,
+      messageChannel: row?.messageChannel ?? NOTIFICATION_CHANNEL.SMS,
     };
   }
 

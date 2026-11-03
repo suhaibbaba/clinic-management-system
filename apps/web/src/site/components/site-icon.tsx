@@ -127,6 +127,7 @@ const ICONS: Record<SiteIconName | UiIcon, LucideIcon> = {
 };
 
 const MIRRORED = new Set<string>(["arrow-end", "chevron-start", "chevron-end"]);
+const FORWARD = new Set<string>(["play"]);
 
 export function SiteIcon({
   name,
@@ -146,6 +147,7 @@ export function SiteIcon({
         "shrink-0",
         !className?.includes("size-") && "size-[18px]",
         MIRRORED.has(name) && "ltr:-scale-x-100",
+        FORWARD.has(name) && "rtl:-scale-x-100",
         className,
       )}
     />

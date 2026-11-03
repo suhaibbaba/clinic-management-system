@@ -7,6 +7,7 @@ import type {
   SaveClinicAppDomainInput,
   SaveClinicDomainInput,
   SaveClinicKeysInput,
+  SaveClinicMessageChannelInput,
   SaveClinicModulesInput,
   SpecialtyCode,
   SaveSubscriptionInput,
@@ -87,6 +88,8 @@ export const vendorApi = {
     request<void>("PUT", `/clinics/${id}/app-domain`, input),
   saveKeys: (id: string, input: SaveClinicKeysInput) =>
     request<void>("PUT", `/clinics/${id}/keys`, input),
+  saveMessageChannel: (id: string, input: SaveClinicMessageChannelInput) =>
+    request<void>("PUT", `/clinics/${id}/message-channel`, input),
   saveModules: (id: string, input: SaveClinicModulesInput) =>
     request<void>("PUT", `/clinics/${id}/modules`, input),
   revokeSpecialty: (id: string, code: SpecialtyCode) =>

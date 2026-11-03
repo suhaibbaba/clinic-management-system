@@ -71,7 +71,6 @@ describe("Notifications and schedulers (e2e)", () => {
     },
     notifications: {
       enabled: true,
-      channel: NOTIFICATION_CHANNEL.SMS,
       remind24h: true,
       remind2h: true,
       templates: {},
@@ -212,6 +211,34 @@ describe("Notifications and schedulers (e2e)", () => {
 
       expect(row?.status).toBe(NOTIFICATION_STATUS.SENT);
       expect(row?.channel).toBe(NOTIFICATION_CHANNEL.SMS);
+    });
+
+    it("sends over the channel the vendor set on the clinic", async () => {
+      await context.db
+        .update(clinics)
+        .set({ messageChannel: NOTIFICATION_CHANNEL.WHATSAPP })
+        .where(eq(clinics.id, clinic.id));
+
+      try {
+        const result = await notifications.send({
+          clinicId: clinic.id,
+          to: uniquePhone(),
+          template: NOTIFICATION_TEMPLATE.BOOKING_OTP,
+          vars: { clinic: "عيادة الاختبار", code: "123456", minutes: "5" },
+        });
+
+        const [row] = await context.db
+          .select({ channel: notificationsLog.channel })
+          .from(notificationsLog)
+          .where(eq(notificationsLog.id, result?.id ?? ""));
+
+        expect(row?.channel).toBe(NOTIFICATION_CHANNEL.WHATSAPP);
+      } finally {
+        await context.db
+          .update(clinics)
+          .set({ messageChannel: NOTIFICATION_CHANNEL.SMS })
+          .where(eq(clinics.id, clinic.id));
+      }
     });
 
     it("prefers the clinic wording, and leaves a placeholder it cannot fill", async () => {

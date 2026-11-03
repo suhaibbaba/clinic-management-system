@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import {
   CLINIC_ERROR,
   CLINIC_MODULE,
+  NOTIFICATION_CHANNEL,
   SUBSCRIPTION_EVENT,
   SUBSCRIPTION_STATUS,
   USER_ROLE,
@@ -442,6 +443,72 @@ describe("Vendor console (e2e)", () => {
       expect(
         (await call("GET", `/vendor/clinics/${first.id}`)).json<VendorClinicDetail>().appDomain,
       ).toBeNull();
+    });
+  });
+
+  describe("the message channel", () => {
+    it("starts on SMS, switches to WhatsApp and records the change", async () => {
+      const clinic = await context.createClinic({ modules: [] });
+
+      expect(
+        (await call("GET", `/vendor/clinics/${clinic.id}`)).json<VendorClinicDetail>()
+          .messageChannel,
+      ).toBe(NOTIFICATION_CHANNEL.SMS);
+
+      const saved = await call("PUT", `/vendor/clinics/${clinic.id}/message-channel`, {
+        channel: NOTIFICATION_CHANNEL.WHATSAPP,
+      });
+
+      expect(saved.statusCode).toBe(204);
+
+      const detail = (await call("GET", `/vendor/clinics/${clinic.id}`)).json<VendorClinicDetail>();
+
+      expect(detail.messageChannel).toBe(NOTIFICATION_CHANNEL.WHATSAPP);
+      expect(detail.events[0]).toMatchObject({
+        action: SUBSCRIPTION_EVENT.MESSAGE_CHANNEL_CHANGED,
+        oldValue: { channel: NOTIFICATION_CHANNEL.SMS },
+        newValue: { channel: NOTIFICATION_CHANNEL.WHATSAPP },
+      });
+    });
+
+    it("refuses a channel it does not know and records nothing for the same one", async () => {
+      const clinic = await context.createClinic({ modules: [] });
+
+      expect(
+        (await call("PUT", `/vendor/clinics/${clinic.id}/message-channel`, { channel: "fax" }))
+          .statusCode,
+      ).toBe(400);
+      expect(
+        (
+          await call("PUT", `/vendor/clinics/${clinic.id}/message-channel`, {
+            channel: NOTIFICATION_CHANNEL.SMS,
+          })
+        ).statusCode,
+      ).toBe(204);
+      expect(
+        (await call("GET", `/vendor/clinics/${clinic.id}`)).json<VendorClinicDetail>().events,
+      ).not.toContainEqual(
+        expect.objectContaining({ action: SUBSCRIPTION_EVENT.MESSAGE_CHANNEL_CHANGED }),
+      );
+    });
+
+    it("cannot be changed by the clinic's own admin through its settings", async () => {
+      const clinic = await context.createClinic({ modules: [] });
+      const admin = await context.login(clinic.phones[USER_ROLE.ADMIN]);
+
+      await context.app.inject({
+        method: "PATCH",
+        url: "/clinic",
+        headers: auth(admin),
+        payload: { settings: { notifications: { channel: NOTIFICATION_CHANNEL.WHATSAPP } } },
+      });
+
+      const [row] = await context.db
+        .select({ channel: clinics.messageChannel })
+        .from(clinics)
+        .where(eq(clinics.id, clinic.id));
+
+      expect(row?.channel).toBe(NOTIFICATION_CHANNEL.SMS);
     });
   });
 

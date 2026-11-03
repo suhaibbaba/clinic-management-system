@@ -1,8 +1,8 @@
 import { useEffect, type JSX, type ReactNode } from "react";
-import { STEP_KEYS } from "@web/booking/constants";
+import { GLYPH, STEP_KEYS } from "@web/booking/constants";
 import { t } from "@web/booking/i18n";
 import { LanguageMenu } from "@web/booking/language-menu";
-import { cx, Img } from "@web/booking/ui";
+import { cx, Glyph, Img } from "@web/booking/ui";
 import type { BookingLanguage } from "@web/booking/use-booking-language";
 
 export function PageShell({
@@ -72,6 +72,9 @@ export function BookingBoard({
   phone,
   inline,
   current,
+  screen,
+  direction,
+  onStep,
   choices,
   panel,
   bar,
@@ -82,6 +85,9 @@ export function BookingBoard({
   readonly phone: string | null;
   readonly inline: boolean;
   readonly current: number;
+  readonly screen: 1 | 2 | 3;
+  readonly direction: "forward" | "back";
+  readonly onStep?: ((step: number) => void) | undefined;
   readonly choices: ReactNode;
   readonly panel: ReactNode;
   readonly bar?: ReactNode;
@@ -97,14 +103,21 @@ export function BookingBoard({
         !inline && "relative -mt-16 px-4 pb-28 lg:pb-10",
       )}
     >
-      <div data-testid="booking-choices" className="flex w-full min-w-0 flex-1 flex-col gap-5">
+      <div
+        data-testid="booking-choices"
+        className={cx("flex w-full min-w-0 flex-1 flex-col gap-5", screen === 3 && "max-lg:hidden")}
+      >
         {choices}
       </div>
       <aside
         id="booking-panel"
         data-testid="booking-panel"
         aria-label={t("board.yourAppointment")}
-        className="w-full shrink-0 overflow-hidden rounded-card border border-line bg-surface shadow-float lg:sticky lg:top-[calc(var(--site-sticky-top,0rem)+1.5rem)] lg:w-96"
+        data-direction={direction}
+        className={cx(
+          "booking-screen w-full shrink-0 scroll-mt-4 overflow-hidden rounded-card border border-line bg-surface shadow-float lg:sticky lg:top-[calc(var(--site-sticky-top,0rem)+1.5rem)] lg:w-96",
+          screen < 3 && "max-lg:hidden",
+        )}
       >
         {panel}
       </aside>
@@ -113,8 +126,12 @@ export function BookingBoard({
 
   if (inline) {
     return (
-      <div data-testid="booking-shell" data-part="inline" className="flex flex-col gap-6">
-        <StepPills current={current} tone="light" />
+      <div
+        data-testid="booking-shell"
+        data-part="inline"
+        className="flex flex-col gap-6 max-lg:pb-24"
+      >
+        <StepPills current={current} onStep={onStep} tone="light" />
         {grid}
         {bar}
       </div>
@@ -155,7 +172,7 @@ export function BookingBoard({
             <h1 className="text-headline font-bold">{t("board.title")}</h1>
             <p className="text-value text-ink-inverse/80">{t("board.subtitle")}</p>
           </div>
-          <StepPills current={current} tone="dark" />
+          <StepPills current={current} onStep={onStep} tone="dark" />
         </div>
       </section>
 
@@ -169,66 +186,72 @@ export function BookingBoard({
 
 function StepPills({
   current,
+  onStep,
   tone,
 }: {
   readonly current: number;
+  readonly onStep?: ((step: number) => void) | undefined;
   readonly tone: "light" | "dark";
 }): JSX.Element {
   return (
     <ol
       data-testid="booking-stepper"
       aria-label={t("steps.counter", { current, total: STEP_KEYS.length })}
-      className="flex flex-wrap gap-2"
+      className="flex scroll-mt-4 flex-wrap gap-2"
     >
       {STEP_KEYS.map((key, index) => {
         const number = index + 1;
         const done = number < current;
         const active = number === current;
+        const reachable = done && onStep !== undefined;
 
         return (
-          <li
-            key={key}
-            data-state={done ? "done" : active ? "current" : "next"}
-            {...(active && { "aria-current": "step" as const })}
-            className={cx(
-              "pill-text inline-flex min-h-(--control-h) items-center gap-2 rounded-pill border ps-1.5 pe-3.5 text-label font-medium",
-              tone === "dark"
-                ? done || active
-                  ? "border-ink-inverse/20 bg-ink-inverse/15 text-ink-inverse"
-                  : "border-ink-inverse/15 text-ink-inverse/70"
-                : done || active
-                  ? "border-primary-200 bg-primary-50 text-primary-900"
-                  : "border-line bg-surface text-ink-muted",
-            )}
-          >
-            <span
-              aria-hidden
+          <li key={key} className="flex">
+            <button
+              type="button"
+              data-testid={`booking-step-${number}`}
+              data-state={done ? "done" : active ? "current" : "next"}
+              {...(active && { "aria-current": "step" as const })}
+              {...(!reachable && { "aria-disabled": true })}
+              onClick={() => {
+                if (reachable) {
+                  onStep(number);
+                }
+              }}
               className={cx(
-                "inline-flex size-6 items-center justify-center rounded-pill text-micro font-bold",
-                done || active
-                  ? "bg-primary-500 text-ink-inverse"
-                  : tone === "dark"
-                    ? "bg-ink-inverse/10 text-ink-inverse"
-                    : "bg-canvas text-ink-muted",
+                "pill-text inline-flex min-h-(--control-h) items-center gap-2 rounded-pill border ps-1.5 pe-3.5 text-label font-medium transition-colors",
+                reachable
+                  ? cx(
+                      "cursor-pointer",
+                      tone === "dark"
+                        ? "hover:bg-ink-inverse/25"
+                        : "hover:border-primary-300 hover:bg-primary-100",
+                    )
+                  : "cursor-not-allowed",
+                tone === "dark"
+                  ? done || active
+                    ? "border-ink-inverse/20 bg-ink-inverse/15 text-ink-inverse"
+                    : "border-ink-inverse/15 text-ink-inverse/70"
+                  : done || active
+                    ? "border-primary-200 bg-primary-50 text-primary-900"
+                    : "border-line bg-surface text-ink-muted",
               )}
             >
-              {done ? (
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="size-3.5"
-                >
-                  <path d="M20 6 9 17l-5-5" />
-                </svg>
-              ) : (
-                number
-              )}
-            </span>
-            {t(key)}
+              <span
+                aria-hidden
+                className={cx(
+                  "inline-flex size-6 items-center justify-center rounded-pill text-micro font-bold",
+                  done || active
+                    ? "bg-primary-500 text-ink-inverse"
+                    : tone === "dark"
+                      ? "bg-ink-inverse/10 text-ink-inverse"
+                      : "bg-canvas text-ink-muted",
+                )}
+              >
+                {done ? <Glyph path={GLYPH.check} weight={3} className="size-3.5" /> : number}
+              </span>
+              {t(key)}
+            </button>
           </li>
         );
       })}

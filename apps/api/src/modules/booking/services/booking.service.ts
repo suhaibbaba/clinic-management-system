@@ -16,7 +16,6 @@ import {
   bookingSettings,
   CLINIC_MODULE,
   clinicLocale,
-  notificationSettings,
   joinPatientName,
   localDate,
   shortDate,
@@ -708,6 +707,7 @@ export class BookingService {
         country: clinics.country,
         currency: clinics.currency,
         settings: clinics.settings,
+        messageChannel: clinics.messageChannel,
       })
       .from(clinics)
       .where(
@@ -734,7 +734,7 @@ export class BookingService {
       timeZone: locale.timeZone,
       locale,
       booking: bookingSettings(row.settings),
-      messageChannel: notificationSettings(row.settings).channel,
+      messageChannel: row.messageChannel,
     };
   }
 

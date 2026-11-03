@@ -33,7 +33,6 @@ import { auth, createTestContext, type TestClinic, type TestContext } from "@tes
 const notificationSettings = {
   notifications: {
     enabled: true,
-    channel: "sms",
     remind24h: true,
     remind2h: true,
     templates: {},

@@ -24,7 +24,8 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { clinics, users } from "@api/database/schema/core";
-import { notificationChannelEnum, notificationsLog } from "@api/database/schema/notifications";
+import { notificationChannelEnum } from "@api/database/schema/core";
+import { notificationsLog } from "@api/database/schema/notifications";
 import { patients } from "@api/database/schema/patients";
 
 export const aiMessageRoleEnum = pgEnum("ai_message_role", AI_MESSAGE_ROLES);

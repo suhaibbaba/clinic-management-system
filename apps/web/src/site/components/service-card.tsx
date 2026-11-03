@@ -16,7 +16,7 @@ export function ServiceCard({ service }: { readonly service: SiteService }): JSX
   return (
     <article
       data-testid={`site-service-${service.id}`}
-      className="group relative isolate flex h-full min-h-44 items-stretch overflow-hidden rounded-card border border-line bg-surface shadow-card shadow-primary-600/55 transition-[border-color,box-shadow] duration-300 hover:border-primary-700 hover:shadow-card-hover hover:shadow-primary-600/70"
+      className="group relative isolate flex h-full min-h-44 flex-col-reverse items-stretch overflow-hidden sm:flex-row rounded-card border border-line bg-surface shadow-card shadow-primary-600/55 transition-[border-color,box-shadow] duration-300 hover:border-primary-700 hover:shadow-card-hover hover:shadow-primary-600/70"
     >
       <CardFill />
       <div className="flex min-w-0 flex-1 flex-col items-start gap-2 p-5">
@@ -27,7 +27,7 @@ export function ServiceCard({ service }: { readonly service: SiteService }): JSX
       </div>
       <SiteImage
         src={imageOf(site, service.image)}
-        className="w-2/5 shrink-0"
+        className="aspect-[16/10] w-full shrink-0 sm:aspect-auto sm:w-2/5"
         fallback={<SiteIcon name={glyph} className="size-9" />}
       />
     </article>

@@ -1,4 +1,8 @@
-import { type SaveClinicKeysInput, type VendorClinicDetail } from "@clinic/shared";
+import {
+  NOTIFICATION_CHANNELS,
+  type SaveClinicKeysInput,
+  type VendorClinicDetail,
+} from "@clinic/shared";
 import { Button } from "@clinic/ui/components/button";
 import { useConfirm } from "@clinic/ui/components/confirm-dialog";
 import { FormField } from "@clinic/ui/components/form-field";
@@ -6,12 +10,13 @@ import { Icon } from "@clinic/ui/components/icon";
 import { Input } from "@clinic/ui/components/input";
 import { PasswordInput } from "@clinic/ui/components/password-input";
 import { SaveBar } from "@clinic/ui/components/save-bar";
+import { SegmentedControl } from "@clinic/ui/components/segmented-control";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { googleRedirectUri } from "@web/vendor/lib/domain";
 import { initialKeysDraft, keysChanges, keysValid, type KeysDraft } from "@web/vendor/lib/keys";
 import { vendorErrorKey } from "@web/vendor/lib/vendor-api-error";
-import { useSaveKeys } from "@web/vendor/queries";
+import { useSaveKeys, useSaveMessageChannel } from "@web/vendor/queries";
 
 type KeyGroup = "email" | "google";
 
@@ -23,6 +28,7 @@ const CLEARED: Readonly<Record<KeyGroup, SaveClinicKeysInput>> = {
 export function KeysPanel({ detail }: { readonly detail: VendorClinicDetail }): JSX.Element {
   const { t } = useTranslation();
   const save = useSaveKeys(detail.id);
+  const saveChannel = useSaveMessageChannel(detail.id);
   const { confirm, dialog } = useConfirm("vendor-keys-confirm");
   const { keys } = detail;
   const [draft, setDraft] = useState<KeysDraft>(() => initialKeysDraft(keys));
@@ -61,6 +67,40 @@ export function KeysPanel({ detail }: { readonly detail: VendorClinicDetail }): 
           {t("vendor.keys.unavailable")}
         </p>
       )}
+
+      <section
+        className="flex flex-col gap-4 rounded-card border border-line bg-surface p-5"
+        data-testid="vendor-keys-channel"
+      >
+        <div>
+          <h2 className="text-section font-semibold text-ink">{t("vendor.keys.channel.title")}</h2>
+          <p className="mt-1 text-label text-ink-muted">{t("vendor.keys.channel.body")}</p>
+        </div>
+        <SegmentedControl
+          data-testid="vendor-keys-channel-choice"
+          className="self-start"
+          label={t("vendor.keys.channel.title")}
+          value={
+            saveChannel.isPending
+              ? (saveChannel.variables ?? detail.messageChannel)
+              : detail.messageChannel
+          }
+          options={NOTIFICATION_CHANNELS.map((channel) => ({
+            value: channel,
+            label: t(`vendor.keys.channel.${channel}`),
+          }))}
+          onChange={(channel) => {
+            if (channel !== detail.messageChannel && !saveChannel.isPending) {
+              saveChannel.mutate(channel);
+            }
+          }}
+        />
+        {saveChannel.isError && (
+          <p role="alert" className="text-label text-danger-700">
+            {t(vendorErrorKey(saveChannel.error))}
+          </p>
+        )}
+      </section>
 
       <section
         className="flex flex-col gap-4 rounded-card border border-line bg-surface p-5"

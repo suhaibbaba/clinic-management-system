@@ -2,7 +2,6 @@ import { z } from "zod";
 import type { LanguageCode } from "@shared/locale/languages";
 import { localized, type LocalizedText } from "@shared/locale/localized-text";
 import {
-  NOTIFICATION_CHANNEL,
   NOTIFICATION_CHANNELS,
   NOTIFICATION_STATUSES,
   NOTIFICATION_TEMPLATE,
@@ -33,7 +32,6 @@ export type ListNotificationsQuery = z.infer<typeof listNotificationsQuerySchema
 
 export const notificationSettingsSchema = z.object({
   enabled: z.boolean().default(true),
-  channel: z.enum(NOTIFICATION_CHANNELS).default(NOTIFICATION_CHANNEL.SMS),
   remind24h: z.boolean().default(true),
   remind2h: z.boolean().default(true),
   templates: z.record(z.string(), z.string()).default({}),
@@ -148,7 +146,6 @@ export function notificationSettings(settings: unknown): NotificationSettings {
     ? parsed.data
     : {
         enabled: true,
-        channel: NOTIFICATION_CHANNEL.SMS,
         remind24h: true,
         remind2h: true,
         templates: {},

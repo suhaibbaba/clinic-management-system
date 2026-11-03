@@ -1,6 +1,8 @@
 import {
   AUDIT_ACTIONS,
   CHART_TYPES,
+  NOTIFICATION_CHANNEL,
+  NOTIFICATION_CHANNELS,
   USER_ROLES,
   type ClinicModule,
   type DashboardLayout,
@@ -30,6 +32,7 @@ import { normalizedName } from "@api/database/schema/normalized-name";
 export const userRoleEnum = pgEnum("user_role", USER_ROLES);
 export const chartTypeEnum = pgEnum("chart_type", CHART_TYPES);
 export const auditActionEnum = pgEnum("audit_action", AUDIT_ACTIONS);
+export const notificationChannelEnum = pgEnum("notification_channel", NOTIFICATION_CHANNELS);
 
 const auditColumns = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -52,6 +55,9 @@ export const clinics = pgTable(
     slug: text("slug").notNull(),
     siteDomain: text("site_domain"),
     appDomain: text("app_domain"),
+    messageChannel: notificationChannelEnum("message_channel")
+      .notNull()
+      .default(NOTIFICATION_CHANNEL.SMS),
     emailFrom: text("email_from"),
     googleClientId: text("google_client_id"),
     logoKey: text("logo_key"),

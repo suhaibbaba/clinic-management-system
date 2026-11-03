@@ -3,7 +3,8 @@ import type { JSX, ReactNode } from "react";
 import { failureKey } from "@web/booking/api";
 import { dayTitle, formatTime, weekTitle, type DayChip } from "@web/booking/format";
 import { bookingLocale, t } from "@web/booking/i18n";
-import { Alert, Button, Skeleton, cx } from "@web/booking/ui";
+import { GLYPH } from "@web/booking/constants";
+import { Alert, Button, Glyph, Skeleton, cx } from "@web/booking/ui";
 import type { AsyncState } from "@web/booking/use-async";
 
 export type SlotOption = PublicSlots["slots"][number];
@@ -14,35 +15,6 @@ const isMorning = (slot: SlotOption): boolean => Number(slot.start.split(":")[0]
 
 const slotCount = (count: number): string =>
   t(`when.count.${new Intl.PluralRules(bookingLocale().language).select(count)}`, { count });
-
-function Glyph({
-  path,
-  className,
-}: {
-  readonly path: string;
-  readonly className?: string;
-}): JSX.Element {
-  return (
-    <svg
-      aria-hidden
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.75}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={cx("size-4 shrink-0", className)}
-    >
-      <path d={path} />
-    </svg>
-  );
-}
-
-const CHEVRON = "m9 18 6-6-6-6";
-const SUN =
-  "M12 4V2m0 20v-2m8-8h2M2 12h2m13.66-5.66 1.41-1.41M4.93 19.07l1.41-1.41m0-11.32L4.93 4.93m14.14 14.14-1.41-1.41M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z";
-const MOON = "M20.99 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.78 9.79Z";
-const CHECK = "M5 12.5l4.5 4.5L19 7.5";
 
 function WeekArrow({
   direction,
@@ -72,7 +44,7 @@ function WeekArrow({
       )}
     >
       <Glyph
-        path={CHEVRON}
+        path={GLYPH.chevron}
         className={direction === "previous" ? "ltr:-scale-x-100" : "rtl:-scale-x-100"}
       />
     </button>
@@ -180,14 +152,13 @@ function SlotGroup({
                 onClick={() => onSelect(slot)}
                 dir="ltr"
                 className={cx(
-                  "inline-flex min-h-(--control-h) w-full cursor-pointer items-center justify-center gap-1.5 rounded-control border text-value font-medium tabular-nums",
+                  "inline-flex min-h-(--control-h) w-full cursor-pointer items-center justify-center rounded-control border px-1 text-value font-medium whitespace-nowrap tabular-nums",
                   "transition-[background-color,border-color,color,box-shadow,scale] duration-200 active:scale-95",
                   active
                     ? "border-primary-600 bg-primary-600 text-ink-inverse shadow-nav-active"
                     : "border-line-strong bg-surface text-ink hover:border-primary-600 hover:bg-primary-50 hover:text-primary-800",
                 )}
               >
-                {active && <Glyph path={CHECK} className="size-3.5" />}
                 {formatTime(slot.startsAt)}
               </button>
             </li>
@@ -310,14 +281,14 @@ export function WhenStep({
           <>
             <SlotGroup
               title={t("when.morning")}
-              icon={SUN}
+              icon={GLYPH.sun}
               slots={slots.filter(isMorning)}
               selected={selected}
               onSelect={onSelect}
             />
             <SlotGroup
               title={t("when.evening")}
-              icon={MOON}
+              icon={GLYPH.moon}
               slots={slots.filter((slot) => !isMorning(slot))}
               selected={selected}
               onSelect={onSelect}
@@ -339,7 +310,7 @@ export function WhenStep({
             className="inline-flex cursor-pointer items-center gap-1 text-label font-bold text-warning-800 underline-offset-4 transition-colors duration-200 hover:underline"
           >
             {t("urgent.link")}
-            <Glyph path={CHEVRON} className="size-3.5 rtl:-scale-x-100" />
+            <Glyph path={GLYPH.chevron} className="size-3.5 rtl:-scale-x-100" />
           </button>
         </div>
       )}

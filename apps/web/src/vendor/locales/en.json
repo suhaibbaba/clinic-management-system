@@ -238,7 +238,8 @@
       "modules_changed": "Modules changed",
       "specialty_revoked": "Specialty switched off",
       "app_domain_changed": "Dashboard domain changed",
-      "keys_changed": "Email or Google keys changed"
+      "keys_changed": "Email or Google keys changed",
+      "message_channel_changed": "Patient message channel changed"
     },
     "modules": {
       "appointments": "Appointments",
@@ -385,6 +386,12 @@
         "clientSecret": "Client secret",
         "clearTitle": "Remove the clinic's Google keys?",
         "clearBody": "Google sign-in disappears from the clinic's dashboard domain."
+      },
+      "channel": {
+        "title": "Patient messages",
+        "body": "How the clinic's messages reach patients: the booking code, confirmations and reminders. The booking page follows it.",
+        "whatsapp": "WhatsApp",
+        "sms": "Text message"
       }
     }
   },

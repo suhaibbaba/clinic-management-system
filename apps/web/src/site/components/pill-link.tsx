@@ -1,6 +1,5 @@
 import type { JSX, ReactNode } from "react";
 import { cx } from "@web/booking/ui";
-import { SiteIcon } from "@web/site/components/site-icon";
 import { SiteLink } from "@web/site/components/site-link";
 
 const TONES = {
@@ -19,7 +18,6 @@ export function PillLink({
   children,
   tone = "primary",
   size = "md",
-  arrow = true,
   className,
   "data-testid": testId,
 }: {
@@ -28,7 +26,6 @@ export function PillLink({
   readonly children: ReactNode;
   readonly tone?: keyof typeof TONES;
   readonly size?: "md" | "lg";
-  readonly arrow?: boolean;
   readonly className?: string;
   readonly "data-testid"?: string;
 }): JSX.Element {
@@ -38,19 +35,13 @@ export function PillLink({
       {...(params && { params })}
       data-testid={testId}
       className={cx(
-        "pill-text group/pill inline-flex min-h-(--control-h) items-center justify-center gap-2.5 rounded-pill font-medium transition-colors duration-150",
+        "pill-text inline-flex min-h-(--control-h) items-center justify-center gap-2.5 rounded-pill font-medium transition-colors duration-150",
         size === "lg" ? "px-8 text-field" : "px-5 text-label",
         TONES[tone],
         className,
       )}
     >
       {children}
-      {arrow && (
-        <SiteIcon
-          name="arrow-end"
-          className="transition-transform group-hover/pill:-translate-x-0.5 ltr:group-hover/pill:translate-x-0.5"
-        />
-      )}
     </SiteLink>
   );
 }

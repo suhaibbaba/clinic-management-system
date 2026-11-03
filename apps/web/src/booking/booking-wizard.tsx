@@ -1,7 +1,7 @@
 import type { LanguageCode, ManagedBooking, PublicDoctor } from "@clinic/shared";
 import { DEFAULT_PHONE_COUNTRY, isPhoneCountry, joinPhone } from "@shared/constants/phone";
 import { BOOKING_CONFIRMATION_MODE } from "@shared/enums";
-import { useEffect, useMemo, useState, type JSX, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX, type ReactNode } from "react";
 import { BookingError, bookingApi, failureKey } from "@web/booking/api";
 import {
   addDays,
@@ -29,7 +29,8 @@ import { OtpStep } from "@web/booking/steps/otp-step";
 import { PendingView, SuccessView } from "@web/booking/steps/success-view";
 import { UrgentSentView, UrgentStep, type UrgentDetails } from "@web/booking/steps/urgent-step";
 import { WhenStep, type SlotOption } from "@web/booking/steps/when-step";
-import { Alert, Button, cx, Skeleton } from "@web/booking/ui";
+import { GLYPH } from "@web/booking/constants";
+import { Alert, Button, cx, Glyph, Skeleton } from "@web/booking/ui";
 import { useAsync } from "@web/booking/use-async";
 import { useBookingLanguage } from "@web/booking/use-booking-language";
 
@@ -41,6 +42,17 @@ const VISIBLE_DAYS = 7;
 const OTP_ATTEMPTS = 3;
 
 type Stage = "details" | "otp" | "done" | "urgent" | "urgentSent";
+
+type BookingScreen = 1 | 2 | 3;
+type ScreenDirection = "forward" | "back";
+
+const PHONE_LAYOUT = "(max-width: 63.98rem)";
+
+const SCREEN_TARGET: Record<BookingScreen, string> = {
+  1: "booking-section-doctor",
+  2: "booking-section-when",
+  3: "booking-panel",
+};
 
 export function BookingWizard({
   slug,
@@ -65,6 +77,33 @@ export function BookingWizard({
 
   const [stage, setStage] = useState<Stage>("details");
   const [doctor, setDoctor] = useState<PublicDoctor>();
+  const [screen, setScreen] = useState<BookingScreen>(1);
+  const [direction, setDirection] = useState<ScreenDirection>("forward");
+  const view: BookingScreen = stage === "details" ? screen : 3;
+  const shownView = useRef(view);
+
+  const showScreen = (next: BookingScreen): void => {
+    setDirection(next < view ? "back" : "forward");
+    setScreen(next);
+  };
+
+  useEffect(() => {
+    if (shownView.current === view) {
+      return;
+    }
+
+    shownView.current = view;
+
+    if (window.matchMedia(PHONE_LAYOUT).matches) {
+      const target = SCREEN_TARGET[view];
+
+      requestAnimationFrame(() =>
+        document
+          .querySelector(`[data-testid="${target}"]`)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      );
+    }
+  }, [view]);
 
   useEffect(() => {
     const preselected = doctors.data?.find((candidate) => candidate.id === initialDoctorId);
@@ -74,6 +113,7 @@ export function BookingWizard({
     }
 
     setDoctor(preselected);
+    setScreen(2);
   }, [doctors.data, initialDoctorId]);
   const [from, setFrom] = useState(todayIso());
   const [date, setDate] = useState(todayIso());
@@ -100,6 +140,7 @@ export function BookingWizard({
   });
 
   const [token, setToken] = useState<string>();
+  const [sentCode, setSentCode] = useState<{ readonly key: string; readonly expiresAt: number }>();
   const [booking, setBooking] = useState<ManagedBooking>();
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState<string>();
@@ -156,7 +197,7 @@ export function BookingWizard({
     week.reload();
   };
 
-  const editDetails = async (): Promise<void> => {
+  const releaseHold = async (): Promise<void> => {
     if (token) {
       try {
         await bookingApi.cancel(token);
@@ -164,41 +205,77 @@ export function BookingWizard({
     }
 
     setToken(undefined);
+    setSentCode(undefined);
+    week.reload();
+  };
+
+  const editDetails = (): void => {
     setOtpError(undefined);
     setStage("details");
-    week.reload();
   };
 
   const startOver = (): void => {
     setToken(undefined);
+    setSentCode(undefined);
     setBooking(undefined);
     setSlot(undefined);
     setFailure(undefined);
     setStage("details");
+    setDirection("back");
+    setScreen(doctor ? 2 : 1);
     week.reload();
   };
 
-  const submit = async (): Promise<void> => {
+  const submit = async (fresh = false): Promise<void> => {
     if (!slot || !doctor) {
+      return;
+    }
+
+    const reason = details.reason.trim();
+    const request = {
+      firstName: details.firstName.trim(),
+      lastName: details.lastName.trim(),
+      phone: joinPhone(details.country, details.phone) ?? "",
+      doctorId: doctor.id,
+      startsAt: slot.startsAt,
+      ...(reason && { reason }),
+    };
+    const key = JSON.stringify(request);
+
+    if (
+      !fresh &&
+      token &&
+      sentCode?.key === key &&
+      sentCode.expiresAt > Date.now() &&
+      attemptsLeft > 0
+    ) {
+      setFailure(undefined);
+      setStage("otp");
       return;
     }
 
     setBusy(true);
     setFailure(undefined);
 
-    const reason = details.reason.trim();
-
     try {
-      const receipt = await bookingApi.book(slug, {
-        firstName: details.firstName.trim(),
-        lastName: details.lastName.trim(),
-        phone: joinPhone(details.country, details.phone) ?? "",
-        doctorId: doctor.id,
-        startsAt: slot.startsAt,
-        ...(reason && { reason }),
-      });
+      if (token) {
+        await releaseHold();
+      }
+
+      const receipt = await bookingApi.book(slug, request);
 
       setToken(receipt.token);
+      setSentCode(
+        receipt.otpExpiresInSeconds === null
+          ? undefined
+          : {
+              key,
+              expiresAt: Math.min(
+                Date.now() + receipt.otpExpiresInSeconds * 1000,
+                Date.parse(receipt.holdExpiresAt),
+              ),
+            },
+      );
       setAttemptsLeft(OTP_ATTEMPTS);
       rememberClinic(receipt.token, slug);
 
@@ -331,8 +408,7 @@ export function BookingWizard({
     setOtpError(undefined);
 
     try {
-      await bookingApi.cancel(token);
-      await submit();
+      await submit(true);
     } catch (error) {
       setFailure(t(failureKey(error)));
       backToSlots();
@@ -387,13 +463,53 @@ export function BookingWizard({
   const manualMode = clinic.data.confirmationMode === BOOKING_CONFIRMATION_MODE.MANUAL;
   const locked = stage === "otp" || stage === "done" || stage === "urgentSent";
   const current = stage === "done" ? 5 : stage === "otp" ? 4 : !doctor ? 1 : !slot ? 2 : 3;
+  const canGoBack = stage === "details" || stage === "otp" || stage === "urgent";
+
+  const goToStep = async (step: number): Promise<void> => {
+    if (step <= 2 && token) {
+      await releaseHold();
+    }
+
+    if (stage === "otp") {
+      editDetails();
+    } else if (stage === "urgent") {
+      setStage("details");
+    }
+
+    if (step <= 2) {
+      setSlot(undefined);
+    }
+
+    if (step === 1) {
+      setDoctor(undefined);
+    }
+
+    showScreen(step <= 1 ? 1 : step === 2 ? 2 : 3);
+
+    if (!window.matchMedia(PHONE_LAYOUT).matches) {
+      const section =
+        step === 1 ? "booking-section-doctor" : step === 2 ? "booking-section-when" : undefined;
+
+      if (section) {
+        document
+          .querySelector(`[data-testid="${section}"]`)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  };
 
   const choices = (
     <div
       className={cx("flex flex-col gap-5", locked && "opacity-60")}
       {...(locked && { inert: true })}
     >
-      <BoardSection number={1} title={t("board.chooseDoctor")} testId="booking-section-doctor">
+      <BoardSection
+        number={1}
+        title={t("board.chooseDoctor")}
+        testId="booking-section-doctor"
+        phoneHidden={view !== 1}
+        direction={direction}
+      >
         <DoctorStep
           doctors={doctors}
           selectedId={doctor?.id}
@@ -401,11 +517,19 @@ export function BookingWizard({
             setDoctor(next);
             setSlot(undefined);
             setFailure(undefined);
+            showScreen(2);
           }}
         />
       </BoardSection>
 
-      <BoardSection number={2} title={t("board.chooseWhen")} testId="booking-section-when">
+      <BoardSection
+        number={2}
+        title={t("board.chooseWhen")}
+        testId="booking-section-when"
+        phoneHidden={view !== 2}
+        direction={direction}
+        onBack={() => void goToStep(1)}
+      >
         {doctor ? (
           <WhenStep
             chips={chips}
@@ -445,7 +569,15 @@ export function BookingWizard({
   );
 
   const panel = (
-    <AppointmentPanel doctor={doctor} startsAt={slot?.startsAt}>
+    <AppointmentPanel
+      back={
+        stage === "details" || stage === "urgent" ? (
+          <PhoneBack onBack={() => void goToStep(2)} testId="booking-panel-back" />
+        ) : undefined
+      }
+      doctor={doctor}
+      startsAt={slot?.startsAt}
+    >
       {failure && stage !== "otp" && <Alert>{failure}</Alert>}
 
       {stage === "details" && account && (
@@ -478,21 +610,10 @@ export function BookingWizard({
           <button
             type="button"
             data-testid="booking-edit-details"
-            onClick={() => void editDetails()}
+            onClick={editDetails}
             className="inline-flex cursor-pointer items-center gap-1 self-start text-label font-medium text-primary-700 hover:text-primary-900"
           >
-            <svg
-              aria-hidden
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="size-4 ltr:-scale-x-100"
-            >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
+            <Glyph path={GLYPH.chevron} weight={2} className="size-4 ltr:-scale-x-100" />
             {t("board.editDetails")}
           </button>
           <OtpStep
@@ -532,28 +653,34 @@ export function BookingWizard({
   );
 
   const bar =
-    stage === "details" && doctor && slot ? (
+    stage === "details" && view === 2 && doctor ? (
       <div
         data-testid="booking-bar"
-        className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-float lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 rounded-t-card border-t border-line bg-surface/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-float backdrop-blur-md lg:hidden"
       >
         <div className="mx-auto flex max-w-xl items-center gap-3">
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="truncate text-value font-bold text-primary-900">
               {bookingName(doctor.name)}
             </span>
-            <span className="truncate text-label text-ink-muted">
-              {formatLongDate(slot.startsAt)} · <bdi dir="ltr">{formatTime(slot.startsAt)}</bdi>
+            <span
+              data-testid="booking-bar-when"
+              className={cx("truncate text-label", slot ? "text-primary-700" : "text-ink-muted")}
+            >
+              {slot ? (
+                <>
+                  {formatLongDate(slot.startsAt)} · <bdi dir="ltr">{formatTime(slot.startsAt)}</bdi>
+                </>
+              ) : (
+                t("board.pickTime")
+              )}
             </span>
           </span>
           <Button
             data-testid="booking-bar-continue"
-            onClick={() =>
-              document
-                .getElementById("booking-panel")
-                ?.scrollIntoView({ behavior: "smooth", block: "start" })
-            }
-            className="shrink-0 rounded-pill px-5"
+            disabled={!slot}
+            onClick={() => showScreen(3)}
+            className="shrink-0 rounded-pill px-6"
           >
             {t("board.continue")}
           </Button>
@@ -568,6 +695,9 @@ export function BookingWizard({
       phone={clinic.data.phone}
       inline={inline}
       current={current}
+      screen={view}
+      direction={direction}
+      onStep={canGoBack ? (step) => void goToStep(step) : undefined}
       choices={choices}
       panel={panel}
       bar={bar}
@@ -580,19 +710,30 @@ function BoardSection({
   number,
   title,
   testId,
+  phoneHidden,
+  direction,
+  onBack,
   children,
 }: {
   readonly number: number;
   readonly title: string;
   readonly testId: string;
+  readonly phoneHidden: boolean;
+  readonly direction: ScreenDirection;
+  readonly onBack?: (() => void) | undefined;
   readonly children: ReactNode;
 }): JSX.Element {
   return (
     <section
       data-testid={testId}
       aria-labelledby={`${testId}-title`}
-      className="flex flex-col gap-4 rounded-card border border-line bg-surface p-5 shadow-card"
+      data-direction={direction}
+      className={cx(
+        "booking-screen flex scroll-mt-4 flex-col gap-4 rounded-card border border-line bg-surface p-5 shadow-card",
+        phoneHidden && "max-lg:hidden",
+      )}
     >
+      {onBack && <PhoneBack onBack={onBack} testId={`${testId}-back`} />}
       <h2
         id={`${testId}-title`}
         className="flex items-center gap-2.5 text-heading font-bold text-primary-900"
@@ -607,5 +748,25 @@ function BoardSection({
       </h2>
       {children}
     </section>
+  );
+}
+
+function PhoneBack({
+  onBack,
+  testId,
+}: {
+  readonly onBack: () => void;
+  readonly testId: string;
+}): JSX.Element {
+  return (
+    <button
+      type="button"
+      data-testid={testId}
+      onClick={onBack}
+      className="inline-flex cursor-pointer items-center gap-1 self-start text-label font-medium text-primary-700 hover:text-primary-900 lg:hidden"
+    >
+      <Glyph path={GLYPH.chevron} className="size-4 ltr:-scale-x-100" />
+      {t("common.back")}
+    </button>
   );
 }

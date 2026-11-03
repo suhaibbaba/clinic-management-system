@@ -59,7 +59,6 @@ export function DoctorCard({
           <PillLink
             to={profilePath}
             tone="outline"
-            arrow={false}
             data-testid={`site-doctor-profile-${doctor.id}`}
             className="px-2 whitespace-nowrap"
           >

@@ -1,6 +1,7 @@
 import type {
   ClinicModule,
   CreateClinicInput,
+  NotificationChannel,
   SaveClinicKeysInput,
   SaveSubscriptionInput,
   SpecialtyCode,
@@ -146,6 +147,16 @@ export function useSaveKeys(clinicId: string) {
 
   return useMutation({
     mutationFn: (input: SaveClinicKeysInput) => vendorApi.saveKeys(clinicId, input),
+    onSuccess: refresh,
+  });
+}
+
+export function useSaveMessageChannel(clinicId: string) {
+  const refresh = useRefreshAll();
+
+  return useMutation({
+    mutationFn: (channel: NotificationChannel) =>
+      vendorApi.saveMessageChannel(clinicId, { channel }),
     onSuccess: refresh,
   });
 }
