@@ -7,6 +7,7 @@ import { FeatureListField } from "@web/modules/website/components/feature-list-f
 import { SITE_IMAGE_MIN_WIDTH } from "@web/modules/website/constants";
 import { useEditor } from "@web/modules/website/hooks/use-editor";
 import { useScoped } from "@web/modules/website/hooks/use-scoped";
+import { MODAL_FORM_GRID } from "@web/modules/website/constants";
 
 export function AboutPillarsBlockForm(): JSX.Element {
   const { t } = useTranslation();
@@ -14,7 +15,7 @@ export function AboutPillarsBlockForm(): JSX.Element {
   const { value, path, set } = useScoped<SiteBlockOf<typeof SITE_BLOCK_TYPE.ABOUT_PILLARS>>();
 
   return (
-    <div data-testid="about-pillars-block-form" className="flex flex-col gap-4">
+    <div data-testid="about-pillars-block-form" className={MODAL_FORM_GRID}>
       <p className="text-value font-medium text-ink">{t("website.fields.pillars")}</p>
       <FeatureListField
         id="pillars"

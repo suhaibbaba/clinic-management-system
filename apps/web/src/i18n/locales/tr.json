@@ -3722,6 +3722,7 @@
     },
     "editor": {
       "missing": "Eksik",
+      "translations": "Çeviriler",
       "toolbar": "Düzenleyici araçları",
       "pageShown": "Sitede gösterilir",
       "language": "Önizleme dili",

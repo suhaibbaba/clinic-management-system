@@ -3912,6 +3912,7 @@
     },
     "editor": {
       "missing": "ناقصة",
+      "translations": "الترجمات",
       "toolbar": "أدوات المحرر",
       "pageShown": "ظاهرة في الموقع",
       "language": "لغة المعاينة",

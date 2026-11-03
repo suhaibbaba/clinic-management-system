@@ -3,10 +3,11 @@ import { DraftImage } from "@web/modules/website/components/draft-image";
 import { DraftText } from "@web/modules/website/components/draft-text";
 import { StatsField } from "@web/modules/website/components/stats-field";
 import { SITE_IMAGE_MIN_WIDTH } from "@web/modules/website/constants";
+import { MODAL_FORM_GRID } from "@web/modules/website/constants";
 
 export function AboutTeaserBlockForm(): JSX.Element {
   return (
-    <div data-testid="about-teaser-block-form" className="flex flex-col gap-4">
+    <div data-testid="about-teaser-block-form" className={MODAL_FORM_GRID}>
       <DraftText path="eyebrow" label="website.fields.eyebrow" />
       <DraftText path="title" label="website.fields.title" />
       <DraftText path="body" label="website.fields.body" multiline hint="website.fields.bodyHint" />

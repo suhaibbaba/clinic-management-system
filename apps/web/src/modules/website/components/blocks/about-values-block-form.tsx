@@ -6,13 +6,14 @@ import { FeatureListField } from "@web/modules/website/components/feature-list-f
 import { SITE_IMAGE_MIN_WIDTH } from "@web/modules/website/constants";
 import { useEditor } from "@web/modules/website/hooks/use-editor";
 import { useScoped } from "@web/modules/website/hooks/use-scoped";
+import { MODAL_FORM_GRID } from "@web/modules/website/constants";
 
 export function AboutValuesBlockForm(): JSX.Element {
   const { errors, leave } = useEditor();
   const { value, path, set } = useScoped<SiteBlockOf<typeof SITE_BLOCK_TYPE.ABOUT_VALUES>>();
 
   return (
-    <div data-testid="about-values-block-form" className="flex flex-col gap-4">
+    <div data-testid="about-values-block-form" className={MODAL_FORM_GRID}>
       <DraftText path="title" label="website.fields.whyTitle" />
       <FeatureListField
         id="values"

@@ -74,3 +74,6 @@ export const SITE_ICON_GLYPHS: Record<SiteIcon, IconName> = {
   tooth: "tooth",
   bone: "bone",
 };
+
+export const MODAL_FORM_GRID =
+  "grid gap-4 md:grid-cols-2 md:[&>*]:col-span-2 md:[&>[data-span=half]]:col-span-1";

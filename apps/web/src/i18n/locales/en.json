@@ -3722,6 +3722,7 @@
     },
     "editor": {
       "missing": "Missing",
+      "translations": "Translations",
       "toolbar": "Editor tools",
       "pageShown": "Shown on the site",
       "language": "Preview language",

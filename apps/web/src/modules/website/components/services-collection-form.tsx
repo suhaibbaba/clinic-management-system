@@ -6,13 +6,14 @@ import { ServicesField } from "@web/modules/website/components/services-field";
 import { SITE_IMAGE_MIN_WIDTH } from "@web/modules/website/constants";
 import { useEditor } from "@web/modules/website/hooks/use-editor";
 import { useScoped } from "@web/modules/website/hooks/use-scoped";
+import { MODAL_FORM_GRID } from "@web/modules/website/constants";
 
 export function ServicesCollectionForm(): JSX.Element {
   const { images, remember, errors, leave } = useEditor();
   const { value, path, set } = useScoped<SiteDocument["collections"]["services"]>();
 
   return (
-    <div data-testid="services-collection-form" className="flex flex-col gap-4">
+    <div data-testid="services-collection-form" className={MODAL_FORM_GRID}>
       <ServicesField
         path={path("items")}
         items={value.items}

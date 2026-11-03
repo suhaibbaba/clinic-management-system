@@ -8,6 +8,7 @@ import { ImageSlotsField } from "@web/modules/website/components/image-slots-fie
 import { SITE_IMAGE_MIN_WIDTH } from "@web/modules/website/constants";
 import { useEditor } from "@web/modules/website/hooks/use-editor";
 import { useScoped } from "@web/modules/website/hooks/use-scoped";
+import { MODAL_FORM_GRID } from "@web/modules/website/constants";
 
 export function HeroBlockForm(): JSX.Element {
   const { t } = useTranslation();
@@ -17,7 +18,7 @@ export function HeroBlockForm(): JSX.Element {
   const statId = statPath.replaceAll(".", "-");
 
   return (
-    <div data-testid="hero-block-form" className="flex flex-col gap-4">
+    <div data-testid="hero-block-form" className={MODAL_FORM_GRID}>
       <DraftText path="eyebrow" label="website.fields.eyebrow" />
       <DraftText
         path="title"
