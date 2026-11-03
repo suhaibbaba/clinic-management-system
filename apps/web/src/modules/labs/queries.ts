@@ -21,7 +21,7 @@ import {
 } from "@clinic/shared";
 import type { ReturnLabOrderInput } from "@clinic/shared";
 import { labOrdersApi, labsApi } from "@web/modules/labs/api";
-import { uploadToStorage } from "@web/shared/lib/upload";
+import { uploadLabOrderAttachment } from "@web/shared/api/lab-orders";
 import { LAB_ORDERS_KEY } from "@web/shared/constants/query-keys";
 
 export const LABS_KEY = "labs";
@@ -190,19 +190,9 @@ export function useReturnLabOrder() {
 }
 
 export function useUploadLabOrderAttachment() {
-  return useLabMutation(async ({ orderId, file }: { orderId: string; file: File }) => {
-    const presigned = await labOrdersApi.presignAttachment(orderId, {
-      filename: file.name,
-      mime: file.type,
-    });
-
-    await uploadToStorage(presigned.uploadUrl, file);
-
-    return labOrdersApi.confirmAttachment(orderId, {
-      key: presigned.key,
-      filename: file.name,
-    });
-  });
+  return useLabMutation(({ orderId, file }: { orderId: string; file: File }) =>
+    uploadLabOrderAttachment(orderId, file),
+  );
 }
 
 export function useDeleteLabOrderAttachment() {

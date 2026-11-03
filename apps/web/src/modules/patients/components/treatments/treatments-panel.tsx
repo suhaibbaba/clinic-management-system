@@ -194,9 +194,13 @@ export function TreatmentsPanel({
         const target = { patientId, doctorId: saved.doctorId, performedProcedureId: saved.id };
 
         try {
-          await createLabOrders.mutateAsync(
+          const created = await createLabOrders.mutateAsync(
             labWork.map((draft) => labWorkOrder(draft, target, canPriceLabWork(can))),
           );
+
+          if (created.failedUploads > 0) {
+            toast.error("labs.work.uploadFailed");
+          }
         } catch (error) {
           setEditing((open) => open && { ...open, treatment: saved });
           toast.error(...errorToast(error));

@@ -4,7 +4,6 @@ import type {
   ReturnLabOrderInput,
   LabOrderStageCounts,
   LabOrderStageCountsQuery,
-  ConfirmLabAttachmentInput,
   CreateLabInput,
   CreateLabOrderInput,
   CreateLabPaymentInput,
@@ -18,8 +17,6 @@ import type {
   LabSummary,
   LabWorkType,
   ListLabOrdersQuery,
-  PresignAttachmentUploadResponse,
-  PresignLabAttachmentInput,
   ListLabsQuery,
   PaginationQuery,
   Paginated,
@@ -104,15 +101,6 @@ export const labOrdersApi = {
     apiRequest<LabOrderRow>(`/lab-orders/${id}/cancel`, { method: "PATCH", body }),
 
   attachments: (id: string) => apiRequest<LabOrderAttachment[]>(`/lab-orders/${id}/attachments`),
-
-  presignAttachment: (id: string, body: PresignLabAttachmentInput) =>
-    apiRequest<PresignAttachmentUploadResponse>(`/lab-orders/${id}/attachments/presign`, {
-      method: "POST",
-      body,
-    }),
-
-  confirmAttachment: (id: string, body: ConfirmLabAttachmentInput) =>
-    apiRequest<LabOrderAttachment>(`/lab-orders/${id}/attachments`, { method: "POST", body }),
 
   deleteAttachment: (id: string, attachmentId: string) =>
     apiRequest<void>(`/lab-orders/${id}/attachments/${attachmentId}`, { method: "DELETE" }),
