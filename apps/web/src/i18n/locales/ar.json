@@ -1493,6 +1493,7 @@
       "selectLab": "اختر المختبر",
       "workType": "نوع العمل",
       "selectWorkType": "اختر نوع العمل",
+      "selectMaterial": "اختر المادة",
       "workTypeHint": "يحدد السعر المنسوخ إلى الطلب",
       "doctor": "الطبيب",
       "selectDoctor": "اختر الطبيب",

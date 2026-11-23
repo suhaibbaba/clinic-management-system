@@ -3,6 +3,7 @@ import {
   currencySymbol,
   formatMinorUnits,
   LAB_STATEMENT_ENTRY_KIND,
+  LOOKUP_LIST,
   personName,
   toMinorUnits,
   type Money,
@@ -22,6 +23,7 @@ import { RtlPdf } from "@api/modules/billing/pdf/pdf-builder";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { doctors, labWorkTypes, labs, patients, users, labOrders } from "@api/database/schema";
+import { LookupsService } from "@api/modules/lookups/services/lookups.service";
 import { LabLedgerService } from "@api/modules/labs/services/lab-ledger.service";
 import { shortId, firstName, formatPeriod } from "@api/modules/labs/lib/lab-documents";
 
@@ -31,6 +33,7 @@ export class LabDocumentsService {
     @Inject(DATABASE) private readonly db: Database,
     private readonly letterheads: LetterheadService,
     private readonly ledger: LabLedgerService,
+    private readonly lookups: LookupsService,
   ) {}
 
   async orderSheet(actor: AuthenticatedUser, orderId: string): Promise<Buffer> {
@@ -59,6 +62,11 @@ export class LabDocumentsService {
     }
 
     const clinic = await this.letterheads.load(actor.clinicId);
+    const materials = await this.lookups.labels(
+      actor.clinicId,
+      LOOKUP_LIST.LAB_MATERIAL,
+      clinic.language,
+    );
     const strings = documentStrings(clinic.language).labOrder;
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
@@ -86,7 +94,12 @@ export class LabDocumentsService {
           value: row.order.teeth.length > 0 ? row.order.teeth.join(" · ") : "--",
           ltr: true,
         },
-        { label: strings.material, value: row.order.material ?? "--", ltr: true },
+        {
+          label: strings.material,
+          value: row.order.material
+            ? (materials.get(row.order.material) ?? row.order.material)
+            : "--",
+        },
         { label: strings.shade, value: row.order.shade ?? "--", ltr: true },
         {
           label: strings.expected,

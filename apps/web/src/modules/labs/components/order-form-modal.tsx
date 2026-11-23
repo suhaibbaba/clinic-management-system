@@ -1,5 +1,6 @@
 import {
   LAB_ORDER_STATUS,
+  LOOKUP_LIST,
   VALIDATION_CODE,
   createLabOrderSchema,
   updateLabOrderSchema,
@@ -50,6 +51,7 @@ import {
 } from "@web/shared/lib/form-errors";
 import { useFormErrors } from "@web/shared/hooks/use-form-errors";
 import { useCurrency } from "@web/shared/queries/clinic";
+import { useLookupLabels, useLookupOptions } from "@web/shared/queries/lookups";
 import { fieldNeeds } from "@web/shared/lib/schema-fields";
 import { UNLINKED_PROCEDURE } from "@web/modules/labs/constants";
 import { wholeAmount } from "@web/shared/lib/lab-work";
@@ -90,6 +92,8 @@ export function OrderFormModal({
   const create = useCreateLabOrder();
   const update = useUpdateLabOrder();
 
+  const materials = useLookupOptions(LOOKUP_LIST.LAB_MATERIAL);
+  const materialLabel = useLookupLabels(LOOKUP_LIST.LAB_MATERIAL);
   const labs = useLabs({ limit: 100 }, open);
   const doctors = useDoctors({ limit: 100 });
 
@@ -116,13 +120,18 @@ export function OrderFormModal({
     teeth: [...teeth],
     ...(workTypeId !== "" && { workTypeId }),
     ...(shade.trim() !== "" && { shade: shade.trim() }),
-    ...(material.trim() !== "" && { material: material.trim() }),
+    ...(material !== "" && { material }),
     ...(instructions.trim() !== "" && { instructions: instructions.trim() }),
     ...(expectedAt !== "" && { expectedAt }),
     ...(procedureId !== "" && { performedProcedureId: procedureId }),
     ...(mayPrice && price.trim() !== "" && { price: price.trim() }),
   };
-  const { doctorId: _doctorId, ...editable } = body;
+  const { doctorId: _doctorId, material: _material, ...editable } = body;
+  const storedMaterial = order?.material ?? "";
+  const materialOptions =
+    storedMaterial === "" || materials.some((option) => option.value === storedMaterial)
+      ? materials
+      : [...materials, { value: storedMaterial, label: materialLabel(storedMaterial) }];
   const expectedChanged = expectedAt !== (order?.expectedAt ? order.expectedAt.slice(0, 10) : "");
 
   const validate = (): FieldErrors => ({
@@ -218,6 +227,7 @@ export function OrderFormModal({
           body: {
             ...editable,
             workTypeId: workTypeId === "" ? null : workTypeId,
+            ...(material !== storedMaterial && { material: material === "" ? null : material }),
             ...(procedures && { performedProcedureId: procedureId === "" ? null : procedureId }),
           },
         });
@@ -453,11 +463,13 @@ export function OrderFormModal({
                   htmlFor="lab-order-material"
                   {...need("material")}
                 >
-                  <Input
+                  <Select
                     id="lab-order-material"
                     data-testid="lab-order-field-material"
                     value={material}
+                    placeholder={t("labs.order.selectMaterial")}
                     onChange={(event) => setMaterial(event.target.value)}
+                    options={materialOptions}
                   />
                 </FormField>
               </div>

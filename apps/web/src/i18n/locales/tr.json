@@ -1429,6 +1429,7 @@
       "selectLab": "Laboratuvar seçin",
       "workType": "İş türü",
       "selectWorkType": "İşi seçin",
+      "selectMaterial": "Malzemeyi seçin",
       "workTypeHint": "Siparişe kopyalanacak fiyatı belirler",
       "doctor": "Doktor",
       "selectDoctor": "Doktor seçin",
