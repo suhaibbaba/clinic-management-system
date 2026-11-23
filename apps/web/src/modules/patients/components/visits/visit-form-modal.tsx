@@ -92,8 +92,8 @@ type VisitFormValues = Omit<CreateVisitInput, "visitDate" | "fee" | "patientId" 
   payMethod: string;
 };
 
-const NO_FEE = "";
-const ON_ACCOUNT = "";
+const NO_FEE = "no-fee";
+const ON_ACCOUNT = "on-account";
 const DEFAULT_PAYMENT_METHOD = "cash";
 
 const priceOf = (catalog: readonly ProcedureCatalogItem[], id: string): string => {
@@ -159,7 +159,7 @@ export function VisitFormModal({
       ...visitValues,
       ...(values.visitDate ? { visitDate: new Date(values.visitDate).toISOString() } : {}),
       ...(charges &&
-        feeProcedureId && {
+        feeProcedureId !== NO_FEE && {
           fee: {
             procedureId: feeProcedureId,
             ...(feePrice !== "" && { price: feePrice }),
