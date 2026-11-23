@@ -105,7 +105,9 @@ export function ItemFormModal({
       if (item) {
         await update.mutateAsync({ id: item.id, body: shared });
       } else {
-        onCreated?.(await create.mutateAsync({ ...shared, unit }));
+        const created = await create.mutateAsync({ ...shared, unit });
+
+        onCreated?.(created);
       }
 
       toast.success(item ? "inventory.item.updated" : "inventory.item.created");

@@ -1429,6 +1429,7 @@
       "selectLab": "Choose a Lab",
       "workType": "Work Type",
       "selectWorkType": "Choose the Work",
+      "selectMaterial": "Choose the Material",
       "workTypeHint": "Sets the price copied onto the order",
       "doctor": "Doctor",
       "selectDoctor": "Choose a Doctor",

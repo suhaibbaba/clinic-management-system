@@ -1,4 +1,9 @@
-import { LAB_ORDER_STATUS, countsTowardLabBalance, type LabOrderRow } from "@clinic/shared";
+import {
+  LAB_ORDER_STATUS,
+  LOOKUP_LIST,
+  countsTowardLabBalance,
+  type LabOrderRow,
+} from "@clinic/shared";
 import { useRef, useState, type ChangeEvent, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +23,7 @@ import {
 import { useSession } from "@web/shared/providers/session";
 import { Money } from "@web/shared/components/money";
 import { useClinic } from "@web/shared/queries/clinic";
+import { useLookupLabels } from "@web/shared/queries/lookups";
 import { labOrderSource } from "@web/modules/labs/lib/documents";
 import { DocumentActions } from "@web/shared/components/document-actions";
 import { canCreateLabOrder } from "@web/shared/permissions/labs";
@@ -56,6 +62,7 @@ export function OrderDrawer({
   const navigate = useNavigate();
   const clinic = useClinic();
   const lab = useLab(order?.labId ?? "");
+  const materialLabel = useLookupLabels(LOOKUP_LIST.LAB_MATERIAL);
 
   const step = useLabOrderStep();
   const returnToLab = useReturnLabOrder();
@@ -206,7 +213,9 @@ export function OrderDrawer({
             )}
 
             {order.shade && <Field label={t("labs.order.shade")}>{order.shade}</Field>}
-            {order.material && <Field label={t("labs.order.material")}>{order.material}</Field>}
+            {order.material && (
+              <Field label={t("labs.order.material")}>{materialLabel(order.material)}</Field>
+            )}
 
             <Field label={t("labs.order.price")}>
               <Money amount={order.price} currency={clinic.data?.currency} />
