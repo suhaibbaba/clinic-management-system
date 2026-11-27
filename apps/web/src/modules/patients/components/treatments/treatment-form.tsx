@@ -395,10 +395,14 @@ export function TreatmentForm({
               currency={currency}
               total
             />
-            <PriceOperator sign="−" />
-            <PriceTerm label={t("treatments.labCost")} amount={labTotal} currency={currency} />
-            <PriceOperator sign="=" />
             <PriceTerm
+              sign="−"
+              label={t("treatments.labCost")}
+              amount={labTotal}
+              currency={currency}
+            />
+            <PriceTerm
+              sign="="
               label={t("treatments.afterLab")}
               amount={afterLabCost(patientPays, labTotal)}
               currency={currency}
@@ -432,8 +436,10 @@ function PriceTerm({
   label,
   amount,
   currency,
+  sign,
   total = false,
 }: {
+  readonly sign?: string | undefined;
   readonly label: string;
   readonly amount: string;
   readonly currency: string | undefined;
@@ -443,17 +449,14 @@ function PriceTerm({
     <div className="flex flex-col gap-0.5">
       <dt className="text-label text-ink-muted">{label}</dt>
       <dd className={total ? "text-section font-semibold text-primary-700" : "text-value text-ink"}>
+        {sign && (
+          <span aria-hidden="true" className="me-2 text-ink-subtle">
+            {sign}
+          </span>
+        )}
         <Money amount={amount} currency={currency} />
       </dd>
     </div>
-  );
-}
-
-function PriceOperator({ sign }: { readonly sign: string }): JSX.Element {
-  return (
-    <span aria-hidden="true" className="pb-0.5 text-value text-ink-subtle">
-      {sign}
-    </span>
   );
 }
 
