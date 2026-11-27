@@ -63,47 +63,12 @@ export function ScheduleTimeline({
             />
 
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <Ltr
-                  data-testid={`${testId}-time-${appointment.id}`}
-                  className="text-label font-bold text-ink tabular-nums"
-                >
-                  {formatMinute(minute)}
-                </Ltr>
-
-                {appointment.status === APPOINTMENT_STATUS.REQUESTED && (
-                  <div className="ms-auto hidden shrink-0 items-center gap-1.5 sm:flex">
-                    {onConfirm && (
-                      <QuickAction
-                        data-testid={`${testId}-confirm-${appointment.id}`}
-                        label={t("appointments.actions.confirm")}
-                        icon="check"
-                        onClick={() => onConfirm(appointment)}
-                      />
-                    )}
-                    {appointment.patientPhone && (
-                      <QuickAction
-                        data-testid={`${testId}-call-${appointment.id}`}
-                        label={t("dashboard.call")}
-                        icon="phone"
-                        href={`tel:${appointment.patientPhone.replace(/[\s-]/g, "")}`}
-                      />
-                    )}
-                  </div>
-                )}
-
-                <Badge
-                  tone={APPOINTMENT_STATUS_STYLES[appointment.status].tone}
-                  data-testid={`${testId}-status-${appointment.id}`}
-                  className="ms-auto shrink-0 gap-1.5 px-2 text-micro"
-                >
-                  {t(
-                    appointment.status === APPOINTMENT_STATUS.ARRIVED
-                      ? "dashboard.schedule.arrived"
-                      : statusLabelKey(appointment.status),
-                  )}
-                </Badge>
-              </div>
+              <Ltr
+                data-testid={`${testId}-time-${appointment.id}`}
+                className="block text-label font-bold text-ink tabular-nums"
+              >
+                {formatMinute(minute)}
+              </Ltr>
 
               {linkPatients ? (
                 <Link
@@ -130,6 +95,41 @@ export function ScheduleTimeline({
                 {typeLabel(appointment.type)} ·{" "}
                 {t("dashboard.schedule.doctor", { name: doctorName(appointment.doctorName) })}
               </span>
+            </div>
+
+            <div className="flex shrink-0 flex-col items-end gap-2 self-start">
+              <Badge
+                tone={APPOINTMENT_STATUS_STYLES[appointment.status].tone}
+                data-testid={`${testId}-status-${appointment.id}`}
+                className="gap-1.5 px-2 text-micro"
+              >
+                {t(
+                  appointment.status === APPOINTMENT_STATUS.ARRIVED
+                    ? "dashboard.schedule.arrived"
+                    : statusLabelKey(appointment.status),
+                )}
+              </Badge>
+
+              {appointment.status === APPOINTMENT_STATUS.REQUESTED && (
+                <div className="flex items-center gap-1.5">
+                  {onConfirm && (
+                    <QuickAction
+                      data-testid={`${testId}-confirm-${appointment.id}`}
+                      label={t("appointments.actions.confirm")}
+                      icon="check"
+                      onClick={() => onConfirm(appointment)}
+                    />
+                  )}
+                  {appointment.patientPhone && (
+                    <QuickAction
+                      data-testid={`${testId}-call-${appointment.id}`}
+                      label={t("dashboard.call")}
+                      icon="phone"
+                      href={`tel:${appointment.patientPhone.replace(/[\s-]/g, "")}`}
+                    />
+                  )}
+                </div>
+              )}
             </div>
           </li>
         );
