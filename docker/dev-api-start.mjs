@@ -1,9 +1,10 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const BUILDS = ["/repo/packages/shared/dist", "/repo/apps/api/dist"];
 const RAW_ALIAS = /require\("@(?:shared|api)\//;
 const POLL_MS = 200;
+const SETTLE_MS = 1500;
 
 const javascriptFiles = (directory) =>
   readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -13,18 +14,23 @@ const javascriptFiles = (directory) =>
     return entry.name.endsWith(".js") ? [path] : [];
   });
 
-const unresolved = () => {
+const latestWrite = (files) => Math.max(0, ...files.map((file) => statSync(file).mtimeMs));
+
+const ready = () => {
   try {
-    return BUILDS.flatMap(javascriptFiles).some((file) =>
-      RAW_ALIAS.test(readFileSync(file, "utf8")),
+    const files = BUILDS.flatMap(javascriptFiles);
+
+    return (
+      Date.now() - latestWrite(files) >= SETTLE_MS &&
+      !files.some((file) => RAW_ALIAS.test(readFileSync(file, "utf8")))
     );
   } catch {
-    return true;
+    return false;
   }
 };
 
 const start = () => {
-  if (unresolved()) {
+  if (!ready()) {
     setTimeout(start, POLL_MS);
     return;
   }
