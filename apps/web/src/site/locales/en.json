@@ -19,7 +19,7 @@
     "cta": "Book Now",
     "slides": "Clinic Photos",
     "slide": "Photo {{number}}",
-    "services": "Explore Our Services"
+    "services": "Explore Services"
   },
   "services": {
     "title": "Our Services",
@@ -102,6 +102,7 @@
   },
   "footer": {
     "rights": "© {{year}} {{name}}. All rights reserved.",
+    "hours": "Working hours",
     "social": "Follow Us",
     "socials": {
       "instagram": "Instagram",
@@ -135,8 +136,7 @@
     "galleryLink": "Discover More",
     "contactLink": "All Ways to Reach Us",
     "ctaTitle": "Book Your Appointment Now",
-    "ctaSubtitle": "Our team is ready to welcome you and give your teeth the best care",
-    "callNow": "Call Now"
+    "ctaSubtitle": "Our team is ready to welcome you and give your teeth the best care"
   },
   "notFound": {
     "title": "Page not found",

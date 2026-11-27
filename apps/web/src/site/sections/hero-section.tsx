@@ -45,20 +45,8 @@ export function HeroSection({
       className="site-hero-wash relative overflow-hidden lg:mb-24 lg:overflow-visible"
     >
       <div aria-hidden className="absolute inset-0 hidden overflow-hidden lg:block">
-        {slides.map((url, slide) => (
-          <SiteImage
-            key={url}
-            src={url}
-            layer
-            wash={false}
-            className={cx(
-              "scale-110 blur-2xl transition-opacity duration-[1400ms] ease-in-out",
-              slide === active ? "opacity-100" : "opacity-0",
-            )}
-          />
-        ))}
-        <span className="absolute inset-0 from-primary-50/85 via-surface/55 via-40% to-surface/10 ltr:bg-linear-to-r rtl:bg-linear-to-l" />
-        <span className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-surface/60 to-transparent" />
+        <span className="absolute -top-40 start-[6%] size-[36rem] rounded-pill bg-primary-50/70 blur-3xl" />
+        <span className="absolute -bottom-48 start-[34%] size-[32rem] rounded-pill bg-primary-50/30 blur-3xl" />
       </div>
       <HeroSwoosh className="absolute inset-y-0 start-0 hidden h-full w-1/2 opacity-80 lg:block" />
       <HeroWave className="absolute end-0 bottom-0 hidden h-40 w-[45%] lg:block" />
@@ -141,9 +129,14 @@ export function HeroSection({
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-2">
               {bookable && (
-                <PillLink to={SITE_PATH.BOOKING} size="lg" tone="dark" data-testid="site-hero-book">
-                  <SiteIcon name="calendar" />
-                  {t("hero.cta")}
+                <PillLink
+                  to={SITE_PATH.BOOKING}
+                  size="lg"
+                  tone="gradient"
+                  data-testid="site-hero-book"
+                >
+                  <SiteIcon name="calendar" className="size-5" />
+                  <span className="flex-1 font-bold">{t("hero.cta")}</span>
                 </PillLink>
               )}
               {showServices && (
@@ -184,7 +177,7 @@ export function HeroSection({
 
               return (
                 <li key={position} className="flex items-center gap-4 lg:px-5">
-                  <span className="inline-flex size-16 shrink-0 items-center justify-center rounded-pill bg-primary-50 text-primary-700">
+                  <span className="inline-flex size-16 shrink-0 items-center justify-center rounded-pill bg-primary-100 text-primary-700">
                     <SiteIcon name={feature.icon} className="size-7" />
                   </span>
                   <span className="flex min-w-0 flex-col gap-1">

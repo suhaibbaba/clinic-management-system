@@ -102,6 +102,7 @@
   },
   "footer": {
     "rights": "© {{year}} {{name}}. Tüm hakları saklıdır.",
+    "hours": "Çalışma saatleri",
     "social": "Bizi takip edin",
     "socials": {
       "instagram": "Instagram",
@@ -135,8 +136,7 @@
     "galleryLink": "Daha fazlasını keşfedin",
     "contactLink": "Bize ulaşmanın tüm yolları",
     "ctaTitle": "Hemen randevunuzu alın",
-    "ctaSubtitle": "Ekibimiz sizi ağırlamaya ve dişlerinize en iyi bakımı sunmaya hazır",
-    "callNow": "Hemen ara"
+    "ctaSubtitle": "Ekibimiz sizi ağırlamaya ve dişlerinize en iyi bakımı sunmaya hazır"
   },
   "notFound": {
     "title": "Sayfa bulunamadı",

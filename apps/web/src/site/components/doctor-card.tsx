@@ -50,6 +50,7 @@ export function DoctorCard({
             <PillLink
               to={SITE_PATH.BOOKING}
               params={{ [SITE_PARAM.DOCTOR]: doctor.id }}
+              tone="gradient"
               data-testid={`site-doctor-book-${doctor.id}`}
               className="gap-1.5 px-2 whitespace-nowrap"
             >

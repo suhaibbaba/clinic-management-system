@@ -61,6 +61,7 @@ export function DoctorPage({ id }: { readonly id: string }): JSX.Element {
               to={SITE_PATH.BOOKING}
               params={{ [SITE_PARAM.DOCTOR]: doctor.id }}
               size="lg"
+              tone="gradient"
               className="mt-3"
               data-testid="site-doctor-page-book"
             >

@@ -5,6 +5,7 @@ import {
   mapEmbed,
   mapsSearchLink,
   orDefault,
+  phoneLabel,
   pick,
   siteLanguage,
   timeLabel,
@@ -23,6 +24,14 @@ describe("site text", () => {
   it("falls back through the clinic's languages in order", () => {
     expect(pick({ ar: "مرحبا", tr: "Merhaba" }, "en", ["tr", "ar"])).toBe("Merhaba");
     expect(pick({ tr: "Merhaba" }, "ar")).toBe("Merhaba");
+  });
+
+  it("groups a phone number behind its dialling code and leaves an unknown shape alone", () => {
+    expect(phoneLabel("+970566056722")).toBe("+970 56 605 6722");
+    expect(phoneLabel("+905321234567")).toBe("+90 532 123 4567");
+    expect(phoneLabel("+33123456789")).toBe("+33123456789");
+    expect(phoneLabel("0566056722")).toBe("0566056722");
+    expect(phoneLabel("1700 100 200")).toBe("1700 100 200");
   });
 
   it("serves a requested language only when the clinic offers it", () => {

@@ -1,19 +1,26 @@
-import { SITE_SOCIALS, type SiteSocial } from "@clinic/shared";
+import { SITE_SOCIALS } from "@clinic/shared";
 import type { JSX } from "react";
 import { cx } from "@web/booking/ui";
 import { SocialIcon } from "@web/site/components/social-icon";
 import { useSite } from "@web/site/hooks/use-site";
 
-const BRAND: Record<SiteSocial, string> = {
-  instagram: "bg-social-instagram",
-  facebook: "bg-social-facebook",
-  whatsapp: "bg-social-whatsapp",
-  youtube: "bg-social-youtube",
-};
+const TONES = {
+  plain: {
+    testId: "site-social-plain",
+    list: "gap-1",
+    link: "size-(--control-h-sm) text-ink-inverse/85 hover:bg-ink-inverse/10 hover:text-ink-inverse",
+  },
+  outline: {
+    testId: "site-social",
+    list: "gap-4",
+    link: "size-(--control-h) border border-ink-inverse text-ink-inverse hover:bg-surface hover:text-primary-700",
+  },
+} as const;
 
-export function SocialLinks({ plain = false }: { readonly plain?: boolean }): JSX.Element | null {
+export function SocialLinks({ tone }: { readonly tone: keyof typeof TONES }): JSX.Element | null {
   const { siteDocument, t } = useSite();
   const links = SITE_SOCIALS.filter((name) => siteDocument.brand.social[name] !== "");
+  const { testId, list, link } = TONES[tone];
 
   if (links.length === 0) {
     return null;
@@ -22,8 +29,8 @@ export function SocialLinks({ plain = false }: { readonly plain?: boolean }): JS
   return (
     <ul
       aria-label={t("footer.social")}
-      data-testid={plain ? "site-social-plain" : "site-social"}
-      className={cx("flex items-center", plain ? "gap-1" : "gap-2")}
+      data-testid={testId}
+      className={cx("flex items-center", list)}
     >
       {links.map((name) => (
         <li key={name}>
@@ -32,16 +39,8 @@ export function SocialLinks({ plain = false }: { readonly plain?: boolean }): JS
             target="_blank"
             rel="noreferrer noopener"
             aria-label={t(`footer.socials.${name}`)}
-            data-testid={`${plain ? "site-social-plain" : "site-social"}-${name}`}
-            className={
-              plain
-                ? "inline-flex size-(--control-h-sm) items-center justify-center rounded-pill text-ink-inverse/85 hover:bg-ink-inverse/10 hover:text-ink-inverse"
-                : cx(
-                    "inline-flex size-(--control-h) items-center justify-center rounded-pill text-ink-inverse shadow-float",
-                    "transition-[translate,box-shadow,filter] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover hover:brightness-110",
-                    BRAND[name],
-                  )
-            }
+            data-testid={`${testId}-${name}`}
+            className={cx("inline-flex items-center justify-center rounded-pill", link)}
           >
             <SocialIcon name={name} />
           </a>

@@ -45,7 +45,7 @@ export function SiteTopBar(): JSX.Element {
           </p>
         )}
         <div className={cx("ms-auto hidden md:block", hours && "lg:ms-0")}>
-          <SocialLinks plain />
+          <SocialLinks tone="plain" />
         </div>
         <div className="ms-auto md:ms-0">
           <SiteLanguageMenu />
