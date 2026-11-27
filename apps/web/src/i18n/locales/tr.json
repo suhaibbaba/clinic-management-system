@@ -989,7 +989,7 @@
     },
     "labCost": "Laboratuvar Maliyeti",
     "afterLab": "Laboratuvar Sonrası",
-    "priceHint": "Laboratuvar maliyeti hariç tedavi ücretiniz. Laboratuvar maliyeti hastanın ödeyeceği tutara eklenir.",
+    "priceHint": "Hastanın tedavi için ödeyeceği toplam tutar. Laboratuvar maliyeti bu tutarın içindedir, üzerine eklenmez.",
     "patientPays": "Hastanın Ödeyeceği"
   },
   "imaging": {

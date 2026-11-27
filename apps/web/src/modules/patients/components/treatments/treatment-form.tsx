@@ -52,7 +52,7 @@ import { fieldNeeds } from "@web/shared/lib/schema-fields";
 import { LabWorkSection } from "@web/modules/labs/components/lab-work-section";
 import { canCreateLabOrder, canSeeLabCost } from "@web/shared/permissions/labs";
 import { isLabWorkReady, type LabWorkDraft } from "@web/shared/lib/lab-work";
-import { labCostOf } from "@web/shared/lib/lab-cost";
+import { afterLabCost, labCostOf } from "@web/shared/lib/lab-cost";
 
 const need = fieldNeeds(createPerformedProcedureSchema);
 
@@ -122,9 +122,7 @@ export function TreatmentForm({
   );
   const splitLab = showPrices && canSeeLabCost(can);
   const existingLabCost = treatment && splitLab ? labCostOf(labOrders ?? [], treatment.id) : "0.00";
-  const [price, setPrice] = useState(
-    treatment ? whole(subtractMoney(treatment.price, existingLabCost)) : "",
-  );
+  const [price, setPrice] = useState(treatment ? whole(treatment.price) : "");
   const [discount, setDiscount] = useState(
     treatment && Number(treatment.discount) !== 0 ? whole(treatment.discount) : "",
   );
@@ -137,8 +135,7 @@ export function TreatmentForm({
     "0.00",
   );
   const labTotal = splitLab ? addMoney(existingLabCost, draftLabCost) : "0.00";
-  const ownPrice = price.trim() === "" ? "0.00" : price.trim();
-  const charged = addMoney(ownPrice, labTotal);
+  const charged = price.trim() === "" ? "0.00" : price.trim();
 
   const context = {
     specialties: specialties.data?.items ?? [],
@@ -392,25 +389,19 @@ export function TreatmentForm({
             data-testid="treatment-price-summary"
             className="flex flex-wrap items-end gap-x-4 gap-y-2"
           >
-            <PriceTerm label={t("treatments.labCost")} amount={labTotal} currency={currency} />
-            <PriceOperator sign="+" />
-            <PriceTerm label={t("chart.panel.price")} amount={ownPrice} currency={currency} />
-            {hasDiscount && (
-              <>
-                <PriceOperator sign="−" />
-                <PriceTerm
-                  label={t("chart.panel.discount")}
-                  amount={discount}
-                  currency={currency}
-                />
-              </>
-            )}
-            <PriceOperator sign="=" />
             <PriceTerm
               label={t("treatments.patientPays")}
               amount={patientPays}
               currency={currency}
               total
+            />
+            <PriceOperator sign="−" />
+            <PriceTerm label={t("treatments.labCost")} amount={labTotal} currency={currency} />
+            <PriceOperator sign="=" />
+            <PriceTerm
+              label={t("treatments.afterLab")}
+              amount={afterLabCost(patientPays, labTotal)}
+              currency={currency}
             />
           </dl>
         )}
