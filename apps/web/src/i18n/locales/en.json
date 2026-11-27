@@ -2672,7 +2672,8 @@
         "reset": "Restore an Interface Text to Its Default"
       },
       "my-settlement": {
-        "statement": "View My Earnings from Treatments"
+        "statement": "View My Earnings from Treatments",
+        "breakdown": "See the Full Calculation of My Earnings: Deductions, Lab and Materials, and My Rate"
       },
       "patient-settlement-status": {
         "list": "See What a Doctor Was Paid for a Patient's Treatments"
@@ -3558,7 +3559,10 @@
     "earnedInPeriod": "Earned in the period",
     "paidInPeriod": "Paid in the period",
     "owedToClinic": "You Owe the Clinic",
-    "owedToClinicCaption": "You took {{held}} from patients and handed {{remitted}} to the clinic"
+    "owedToClinicCaption": "You took {{held}} from patients and handed {{remitted}} to the clinic",
+    "myPercent": "my rate {{percent}}%",
+    "myWorkShare": "my part of the work {{percent}}%",
+    "paidAndLeft": "Paid {{paid}} · left {{left}}"
   },
   "website": {
     "title": "Website",

@@ -9,6 +9,8 @@ import {
   PAYMENT_COLLECTOR,
   PAY_PLAN_KIND,
   PAYROLL_ERROR,
+  RULE,
+  SHARE_SPLIT_TOTAL,
   STAFF_PAYMENT_KIND,
   addDays,
   addMoney,
@@ -62,6 +64,7 @@ import {
 import { doctorCollects, includesShare } from "@api/modules/payroll/lib/pay-terms";
 import { monthStart, toStaffPayment, type StaffPaymentRow } from "@api/modules/payroll/lib/payroll";
 import { PayTermsService } from "@api/modules/payroll/services/pay-terms.service";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import { StaffPaymentsService } from "@api/modules/payroll/services/staff-payments.service";
 import { clinicDocumentLanguage } from "@api/common/database/clinic-language";
 
@@ -82,6 +85,7 @@ export class DoctorSettlementsService implements OnModuleInit {
     private readonly payments: StaffPaymentsService,
     private readonly terms: PayTermsService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly permissions: PermissionsService,
   ) {}
 
   onModuleInit(): void {
@@ -132,9 +136,10 @@ export class DoctorSettlementsService implements OnModuleInit {
   async ownSettlement(actor: AuthenticatedUser, query: SettlementQuery): Promise<OwnSettlement> {
     const doctor = await this.doctorOfUser(actor.clinicId, actor.id);
     const month = await this.terms.currentMonth(actor.clinicId);
-    const [statement, rules] = await Promise.all([
+    const [statement, rules, seesBreakdown] = await Promise.all([
       this.statement(actor.clinicId, doctor, query, month),
       this.terms.payRules(actor),
+      this.permissions.can(actor, RULE.OWN_PAY_BREAKDOWN),
     ]);
 
     return {
@@ -157,12 +162,31 @@ export class DoctorSettlementsService implements OnModuleInit {
         paid: line.paid,
         outstanding: line.outstanding,
         status: line.status,
+        ...(seesBreakdown && {
+          breakdown: {
+            tax: line.tax,
+            overhead: line.overhead,
+            materialCost: line.materialCost,
+            net: line.net,
+            sharePercent: SHARE_SPLIT_TOTAL - line.clinicSharePercent,
+          },
+        }),
       })),
       totals: {
         payable: statement.totals.payable,
         paid: statement.totals.paid,
         outstanding: statement.totals.outstanding,
       },
+      ...(seesBreakdown && {
+        breakdown: {
+          revenue: statement.totals.revenue,
+          tax: statement.totals.tax,
+          overhead: statement.totals.overhead,
+          materials: statement.totals.materials,
+          net: statement.totals.net,
+          doctorShare: statement.totals.doctorShare,
+        },
+      }),
       payouts: statement.payouts,
       collector: statement.collector,
       earned: statement.earned,

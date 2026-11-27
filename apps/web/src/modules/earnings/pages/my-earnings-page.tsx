@@ -19,6 +19,8 @@ import {
   Table,
   type Column,
 } from "@clinic/ui";
+import { ShareCalculation } from "@web/modules/earnings/components/share-calculation";
+import { netSteps, shareSteps } from "@web/modules/earnings/lib/share-steps";
 import { useMyEarnings } from "@web/modules/earnings/queries";
 import { SETTLEMENT_STATUS_TONES } from "@web/shared/constants/settlement";
 import { ApiError } from "@web/shared/lib/api-error";
@@ -71,32 +73,45 @@ export function MyEarningsPage(): JSX.Element {
       key: "procedure",
       header: "chart.panel.procedure",
       primary: true,
-      render: (row) => (
-        <span className="flex flex-col">
-          <span className="font-medium text-ink">{row.procedureName}</span>
-          <span className="text-meta text-ink-muted">
-            {row.patientName}
-            {row.fileNumber && (
-              <>
-                {" · "}
-                <Ltr>#{row.fileNumber}</Ltr>
-              </>
-            )}{" "}
-            · {formatDate(row.performedAt)}
-          </span>
-          {row.waivedReason && (
+      render: (row) => {
+        const steps = shareSteps(row);
+
+        return (
+          <span className="flex flex-col">
+            <span className="font-medium text-ink">{row.procedureName}</span>
             <span className="text-meta text-ink-muted">
-              {t("doctors.settlement.waivedBecause", { reason: row.waivedReason })}
+              {row.patientName}
+              {row.fileNumber && (
+                <>
+                  {" · "}
+                  <Ltr>#{row.fileNumber}</Ltr>
+                </>
+              )}{" "}
+              · {formatDate(row.performedAt)}
             </span>
-          )}
-        </span>
-      ),
+            {row.waivedReason && (
+              <span className="text-meta text-ink-muted">
+                {t("doctors.settlement.waivedBecause", { reason: row.waivedReason })}
+              </span>
+            )}
+            {steps && !row.waivedReason && (
+              <ShareCalculation
+                data-testid={`my-earnings-calculation-${row.id}`}
+                revenue={row.revenue}
+                share={row.doctorShare}
+                currency={currency}
+                {...steps}
+              />
+            )}
+          </span>
+        );
+      },
     },
     {
       key: "amount",
       header: "doctors.settlement.amount",
       align: "numeric",
-      hideOnMobile: true,
+      hideOnMobile: data?.breakdown !== undefined,
       render: (row) => <Money amount={row.revenue} currency={currency} />,
     },
     {
@@ -126,9 +141,19 @@ export function MyEarningsPage(): JSX.Element {
       key: "status",
       header: "doctors.settlement.status",
       render: (row) => (
-        <Badge tone={SETTLEMENT_STATUS_TONES[row.status]}>
-          {t(`doctors.settlement.statuses.${row.status}`)}
-        </Badge>
+        <span className="flex flex-col items-start gap-1">
+          <Badge tone={SETTLEMENT_STATUS_TONES[row.status]}>
+            {t(`doctors.settlement.statuses.${row.status}`)}
+          </Badge>
+          {Number(row.paid) !== 0 && Number(row.outstanding) !== 0 && (
+            <span className="text-meta text-ink-muted">
+              {t("earnings.paidAndLeft", {
+                paid: moneyText(row.paid, currency),
+                left: moneyText(row.outstanding, currency),
+              })}
+            </span>
+          )}
+        </span>
       ),
     },
   ];
@@ -212,6 +237,17 @@ export function MyEarningsPage(): JSX.Element {
                 />
               )}
             </div>
+          )}
+
+          {data?.breakdown && (
+            <ShareCalculation
+              data-testid="my-earnings-totals"
+              revenue={data.breakdown.revenue}
+              beforeNet={netSteps(data.breakdown)}
+              net={data.breakdown.net}
+              share={data.breakdown.doctorShare}
+              currency={currency}
+            />
           )}
 
           <Table

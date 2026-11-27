@@ -1,4 +1,5 @@
 import {
+  RULE,
   PAYROLL_ERROR,
   USER_ROLE,
   addMoney,
@@ -476,12 +477,9 @@ describe("Percentage pay (e2e)", () => {
 
       expect((await own()).statusCode).toBe(403);
 
-      const grant = (allowed: boolean) =>
-        send("PATCH", "/permissions", {
-          role: USER_ROLE.VISITING_DOCTOR,
-          capability: "my-settlement.statement",
-          allowed,
-        });
+      const allow = (capability: string, allowed: boolean) =>
+        send("PATCH", "/permissions", { role: USER_ROLE.VISITING_DOCTOR, capability, allowed });
+      const grant = (allowed: boolean) => allow("my-settlement.statement", allowed);
 
       expect((await grant(true)).statusCode).toBe(204);
 
@@ -493,7 +491,25 @@ describe("Percentage pay (e2e)", () => {
         expect(statement.lines.length).toBeGreaterThan(0);
         expect(statement.lines[0]).not.toHaveProperty("clinicShare");
         expect(statement.lines[0]).not.toHaveProperty("clinicSharePercent");
+        expect(statement.lines[0]).not.toHaveProperty("breakdown");
+        expect(statement).not.toHaveProperty("breakdown");
+
+        expect((await allow(RULE.OWN_PAY_BREAKDOWN, true)).statusCode).toBe(204);
+
+        const detailed = (await own()).json() as OwnSettlement;
+        const [line] = detailed.lines;
+
+        expect(line?.breakdown).toEqual({
+          tax: expect.any(String),
+          overhead: expect.any(String),
+          materialCost: expect.any(String),
+          net: expect.any(String),
+          sharePercent: expect.any(Number),
+        });
+        expect(line).not.toHaveProperty("clinicShare");
+        expect(detailed.breakdown?.doctorShare).toEqual(expect.any(String));
       } finally {
+        await allow(RULE.OWN_PAY_BREAKDOWN, false);
         await grant(false);
       }
     });

@@ -183,6 +183,7 @@ export const SHIPPED_CAPABILITIES: Record<UserRole, readonly string[]> = {
     "medical-histories.allergyFlags",
     "medical-histories.get",
     "medical-histories.update",
+    "my-settlement.breakdown",
     "my-settlement.statement",
     "notes.create",
     "notes.list",

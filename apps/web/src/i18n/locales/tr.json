@@ -2672,7 +2672,8 @@
         "reset": "Arayüz metnini varsayılana döndür"
       },
       "my-settlement": {
-        "statement": "Tedavilerden kazancımı gör"
+        "statement": "Tedavilerden kazancımı gör",
+        "breakdown": "Kazancımın tüm hesabını gör: kesintiler, laboratuvar ve malzeme, oranım"
       },
       "patient-settlement-status": {
         "list": "Bir hastanın tedavileri için doktora ne ödendiğini gör"
@@ -3558,7 +3559,10 @@
     "earnedInPeriod": "Dönemde kazanılan",
     "paidInPeriod": "Dönemde ödenen",
     "owedToClinic": "Kliniğe borcunuz",
-    "owedToClinicCaption": "Hastalardan {{held}} aldınız ve kliniğe {{remitted}} teslim ettiniz"
+    "owedToClinicCaption": "Hastalardan {{held}} aldınız ve kliniğe {{remitted}} teslim ettiniz",
+    "myPercent": "oranım %{{percent}}",
+    "myWorkShare": "işteki payım %{{percent}}",
+    "paidAndLeft": "Ödenen {{paid}} · kalan {{left}}"
   },
   "website": {
     "title": "Web sitesi",

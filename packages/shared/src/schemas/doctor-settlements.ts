@@ -168,23 +168,30 @@ export const createSettlementPayoutSchema = z
   });
 export type CreateSettlementPayoutInput = z.input<typeof createSettlementPayoutSchema>;
 
-export const ownSettlementLineSchema = settlementTreatmentSchema.pick({
-  id: true,
-  performedAt: true,
-  patientId: true,
-  patientName: true,
-  fileNumber: true,
-  procedureName: true,
-  revenue: true,
-  workPercent: true,
-  doctorShare: true,
-  waivedReason: true,
-  collectedPercent: true,
-  payable: true,
-  paid: true,
-  outstanding: true,
-  status: true,
-});
+export const ownSettlementBreakdownSchema = settlementTreatmentSchema
+  .pick({ tax: true, overhead: true, materialCost: true, net: true })
+  .extend({ sharePercent: z.number() });
+export type OwnSettlementBreakdown = z.infer<typeof ownSettlementBreakdownSchema>;
+
+export const ownSettlementLineSchema = settlementTreatmentSchema
+  .pick({
+    id: true,
+    performedAt: true,
+    patientId: true,
+    patientName: true,
+    fileNumber: true,
+    procedureName: true,
+    revenue: true,
+    workPercent: true,
+    doctorShare: true,
+    waivedReason: true,
+    collectedPercent: true,
+    payable: true,
+    paid: true,
+    outstanding: true,
+    status: true,
+  })
+  .extend({ breakdown: ownSettlementBreakdownSchema.optional() });
 export type OwnSettlementLine = z.infer<typeof ownSettlementLineSchema>;
 
 export const ownSettlementSchema = z.object({
@@ -193,6 +200,16 @@ export const ownSettlementSchema = z.object({
   basis: z.enum(PAY_BASES),
   lines: z.array(ownSettlementLineSchema),
   totals: settlementTotalsSchema.pick({ payable: true, paid: true, outstanding: true }),
+  breakdown: settlementTotalsSchema
+    .pick({
+      revenue: true,
+      tax: true,
+      overhead: true,
+      materials: true,
+      net: true,
+      doctorShare: true,
+    })
+    .optional(),
   payouts: z.array(settlementPayoutSchema),
   collector: z.enum(PAYMENT_COLLECTORS),
   earned: signedMoneySchema,

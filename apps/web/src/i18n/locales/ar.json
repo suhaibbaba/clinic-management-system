@@ -2804,7 +2804,8 @@
         "reset": "إعادة نص إلى أصله"
       },
       "my-settlement": {
-        "statement": "عرض أرباحي من المعالجات"
+        "statement": "عرض أرباحي من المعالجات",
+        "breakdown": "رؤية حسبة أرباحي كاملة: الخصومات، المختبر والمواد، ونسبتي"
       },
       "patient-settlement-status": {
         "list": "رؤية ما دُفع للطبيب عن معالجات المريض"
@@ -3744,7 +3745,10 @@
     "earnedInPeriod": "المستحق في الفترة",
     "paidInPeriod": "المدفوع في الفترة",
     "owedToClinic": "عليك للعيادة",
-    "owedToClinicCaption": "قبضت {{held}} من المرضى وسلّمت العيادة {{remitted}}"
+    "owedToClinicCaption": "قبضت {{held}} من المرضى وسلّمت العيادة {{remitted}}",
+    "myPercent": "نسبتي {{percent}}%",
+    "myWorkShare": "حصتي من العمل {{percent}}%",
+    "paidAndLeft": "مدفوع {{paid}} · متبقٍ {{left}}"
   },
   "website": {
     "title": "الموقع الإلكتروني",

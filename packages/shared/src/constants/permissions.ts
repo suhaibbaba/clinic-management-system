@@ -12,6 +12,7 @@ export const RULE = {
   INVENTORY_COSTS: "inventory.costs",
   REVERSE_PRICED_PURCHASE: "inventory.reversePricedPurchase",
   BACKDATE_PURCHASES: "purchasing.backdate",
+  OWN_PAY_BREAKDOWN: "my-settlement.breakdown",
 } as const;
 
 export type Rule = (typeof RULE)[keyof typeof RULE];
