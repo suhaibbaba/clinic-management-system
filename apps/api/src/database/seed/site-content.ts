@@ -83,10 +83,7 @@ export function siteContent(
         tr: "Nablus'un kalbinde tüm aile için eksiksiz diş bakımı: muayene, temizlik, estetik, implant ve ortodonti; modern cihazlar ve sizi önemseyen bir ekiple.",
       },
       images: [photo("chair"), photo("smile"), photo("whitening")],
-      stat: {
-        value: "+12,000",
-        label: { ar: "ابتسامة سعيدة", en: "happy smiles", tr: "mutlu gülüş" },
-      },
+      stat: { value: "", label: {} },
     },
     highlights: [
       {
@@ -133,7 +130,7 @@ export function siteContent(
         en: "Over twenty years of smiles in Nablus",
         tr: "Nablus'ta yirmi yılı aşkın süredir gülüşler",
       },
-      badge: { ar: "منذ 2004", en: "Since 2004", tr: "2004'ten beri" },
+      badge: {},
       image: photo("child-checkup"),
     },
     services: {

@@ -107,30 +107,62 @@ export function HeroDipRibbon({ className }: { readonly className?: string }): J
   );
 }
 
-export function WaveRibbon({ className }: { readonly className?: string }): JSX.Element {
+export function PhotoWave({ className }: { readonly className?: string }): JSX.Element {
+  const mist = useId();
+  const trail = useId();
   const band = useId();
 
   return (
     <svg
       aria-hidden="true"
-      viewBox="0 0 100 100"
+      viewBox="0 0 851 460"
       preserveAspectRatio="none"
       fill="none"
       className={cx("pointer-events-none ltr:-scale-x-100", className)}
     >
       <defs>
+        <radialGradient
+          id={mist}
+          gradientUnits="userSpaceOnUse"
+          cx="0"
+          cy="0"
+          r="1"
+          gradientTransform="translate(851 372) scale(520 190)"
+        >
+          <stop offset="0" style={{ stopColor: "var(--color-primary-100)" }} />
+          <stop offset="1" style={{ stopColor: "var(--color-primary-100)", stopOpacity: 0 }} />
+        </radialGradient>
+        <linearGradient id={trail} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" style={{ stopColor: "var(--color-primary-100)" }} />
+          <stop offset="0.5" style={{ stopColor: "var(--color-primary-200)" }} />
+          <stop offset="1" style={{ stopColor: "var(--color-primary-200)", stopOpacity: 0.2 }} />
+        </linearGradient>
         <linearGradient id={band} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" style={{ stopColor: "var(--color-primary-200)", stopOpacity: 0.4 }} />
-          <stop offset="0.5" style={{ stopColor: "var(--color-primary-500)", stopOpacity: 0.85 }} />
-          <stop offset="1" style={{ stopColor: "var(--color-primary-200)", stopOpacity: 0.4 }} />
+          <stop offset="0" style={{ stopColor: "var(--color-primary-500)" }} />
+          <stop offset="0.45" style={{ stopColor: "var(--color-primary-600)" }} />
+          <stop
+            offset="1"
+            style={{
+              stopColor:
+                "color-mix(in oklab, var(--color-primary-500) 75%, var(--color-primary-300))",
+            }}
+          />
         </linearGradient>
       </defs>
       <path
-        d="M0 88C20 99 38 99 52 92C66 84 82 82 100 89L100 93C82 87 66 89 52 96C38 100 20 100 0 92Z"
-        style={{ fill: "var(--color-primary-100)", fillOpacity: 0.7 }}
+        d="M0 346C90 410 190 436 290 436C430 436 500 395 590 365C680 330 760 306 851 304V461H0Z"
+        style={{ fill: "var(--color-surface)" }}
       />
       <path
-        d="M0 81C20 93 38 93 52 83C66 73 82 71 100 81L100 85C82 77 66 80 52 90C38 99 20 98 0 85Z"
+        d="M851 360C760 350 690 362 610 388C520 418 430 444 330 452V570H851Z"
+        fill={`url(#${mist})`}
+      />
+      <path
+        d="M0 356C90 420 190 446 290 446C320 446 350 443 375 439C330 454 260 460 200 457C120 452 50 428 0 394Z"
+        fill={`url(#${trail})`}
+      />
+      <path
+        d="M330 452C420 440 500 412 590 374C680 338 760 314 851 312V372C760 358 690 368 610 392C520 420 430 444 330 452Z"
         fill={`url(#${band})`}
       />
     </svg>
@@ -204,15 +236,15 @@ export function GlassLobe({ className }: { readonly className?: string }): JSX.E
   );
 }
 
-export function BandWave({ className }: { readonly className?: string }): JSX.Element {
+export function TitleStroke({ className }: { readonly className?: string }): JSX.Element {
   return (
     <svg
       aria-hidden="true"
-      viewBox="0 0 1440 120"
+      viewBox="0 0 206 16"
       preserveAspectRatio="none"
-      className={cx("block", className)}
+      className={cx("pointer-events-none block ltr:-scale-x-100", className)}
     >
-      <path d="M0 70C260 10 520 20 780 64S1220 118 1440 40V120H0Z" fill="currentColor" />
+      <path d="M0 15C60 0 140 -2 206 8C140 2 60 4 0 15Z" fill="currentColor" />
     </svg>
   );
 }

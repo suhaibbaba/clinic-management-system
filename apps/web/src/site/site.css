@@ -197,16 +197,6 @@ html {
   }
 }
 
-@utility site-wave-dip {
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V80C82 70 66 72 52 82C38 92 20 92 0 80Z'/%3E%3C/svg%3E");
-  mask-size: 100% 100%;
-  mask-repeat: no-repeat;
-
-  [dir="ltr"] & {
-    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M100 0H0V80C18 70 34 72 48 82C62 92 80 92 100 80Z'/%3E%3C/svg%3E");
-  }
-}
-
 @utility site-lobe-arc {
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H74C84 8 92 24 93 42C94 62 86 84 66 100H0Z'/%3E%3C/svg%3E");
   mask-size: 100% 100%;
@@ -219,33 +209,8 @@ html {
 
 @utility site-hero-wash {
   background-image:
-    radial-gradient(700px 380px at 0% 0%, var(--color-primary-100), transparent 70%),
-    linear-gradient(180deg, var(--color-primary-50), var(--color-surface));
-}
-
-@utility site-wave-bottom {
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V82C84 94 66 100 46 93C30 87 14 84 0 90Z'/%3E%3C/svg%3E");
-  mask-size: 100% 100%;
-  mask-repeat: no-repeat;
-}
-
-@utility site-wave-both {
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 9C20 1 40 1 60 6C76 10 88 9 100 3V88C84 97 66 100 46 95C30 91 14 90 0 94Z'/%3E%3C/svg%3E");
-  mask-size: 100% 100%;
-  mask-repeat: no-repeat;
-}
-
-@utility site-band-photo {
-  mask-image:
-    linear-gradient(to bottom, black 70%, transparent),
-    linear-gradient(to left, black 55%, transparent 90%);
-  mask-composite: intersect;
-
-  [dir="ltr"] & {
-    mask-image:
-      linear-gradient(to bottom, black 70%, transparent),
-      linear-gradient(to right, black 55%, transparent 90%);
-  }
+    radial-gradient(700px 380px at 0% 0%, var(--color-primary-200), transparent 70%),
+    linear-gradient(180deg, var(--color-primary-100), var(--color-primary-50));
 }
 
 @keyframes site-marquee {
@@ -308,5 +273,126 @@ html {
 
   .group:is(:hover, :focus-visible, :has(:focus-visible)) & {
     color: color-mix(in oklab, var(--color-ink-inverse) 85%, transparent);
+  }
+}
+
+:root {
+  --site-footer-unit: clamp(0.46px, 100vw / 1024, 0.76px);
+  --site-footer-panel: color-mix(in oklab, var(--color-primary-700) 45%, var(--color-primary-900));
+}
+
+@utility site-footer {
+  background-color: var(--site-footer-panel);
+}
+
+@utility site-footer-title {
+  background-image: linear-gradient(to left, var(--color-primary-900), var(--color-primary-700));
+  background-clip: text;
+  color: transparent;
+
+  [dir="ltr"] & {
+    background-image: linear-gradient(to right, var(--color-primary-900), var(--color-primary-700));
+  }
+
+  @media (forced-colors: active) {
+    color: inherit;
+  }
+}
+
+@utility site-pill-gradient {
+  background-image: linear-gradient(
+    to left,
+    var(--site-footer-panel),
+    var(--color-primary-600) 78%,
+    color-mix(in oklab, var(--color-primary-500), var(--color-primary-600))
+  );
+
+  [dir="ltr"] & {
+    background-image: linear-gradient(
+      to right,
+      var(--site-footer-panel),
+      var(--color-primary-600) 78%,
+      color-mix(in oklab, var(--color-primary-500), var(--color-primary-600))
+    );
+  }
+}
+
+@utility site-footer-tile {
+  background-image: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--color-primary-500) 70%, var(--color-primary-600)),
+    var(--color-primary-600)
+  );
+}
+
+@utility site-footer-curtain {
+  bottom: calc(var(--site-footer-unit) * -180);
+  height: calc(var(--site-footer-unit) * 480);
+}
+
+@utility site-footer-photo {
+  height: calc(var(--site-footer-unit) * 370);
+}
+
+@utility site-footer-photo-frame {
+  background-color: var(--site-footer-panel);
+  top: calc(var(--site-footer-unit) * -130);
+}
+
+@utility site-booking-arc {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H82C90 22 96 48 97 72C97.5 84 96.5 93 95 100H0Z'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+
+  [dir="ltr"] & {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M100 0H18C10 22 4 48 3 72C2.5 84 3.5 93 5 100H100Z'/%3E%3C/svg%3E");
+  }
+}
+
+@utility site-booking-rim {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H87C94 22 99.5 48 100 72C100 84 99 93 97 100H0Z'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  background-image: linear-gradient(
+    to bottom,
+    var(--color-primary-500),
+    var(--color-primary-300) 60%,
+    var(--color-primary-100)
+  );
+
+  [dir="ltr"] & {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M100 0H13C6 22 0.5 48 0 72C0 84 1 93 3 100H100Z'/%3E%3C/svg%3E");
+  }
+}
+
+@utility site-footer-gap {
+  height: calc(var(--site-footer-unit) * 180);
+}
+
+@utility site-footer-basin {
+  height: calc(var(--site-footer-unit) * 60);
+}
+
+@utility site-footer-ribbon {
+  height: calc(var(--site-footer-unit) * 100);
+}
+
+@utility site-footer-rights {
+  padding-top: calc(var(--site-footer-unit) * 78);
+}
+
+@utility site-footer-base {
+  background-image: radial-gradient(
+    60% 110% at 100% 100%,
+    color-mix(in oklab, var(--color-primary-600) 90%, transparent),
+    transparent
+  );
+
+  [dir="ltr"] & {
+    background-image: radial-gradient(
+      60% 110% at 0% 100%,
+      color-mix(in oklab, var(--color-primary-600) 90%, transparent),
+      transparent
+    );
   }
 }

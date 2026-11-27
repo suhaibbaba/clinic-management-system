@@ -30,7 +30,7 @@ export function ContactMainBlock({
     <>
       <div
         className={cx(
-          "grid grid-cols-1 items-center gap-6",
+          "mb-10 grid grid-cols-1 items-center gap-6 lg:mb-14",
           note && "lg:grid-cols-[14rem_minmax(0,1fr)]",
         )}
       >

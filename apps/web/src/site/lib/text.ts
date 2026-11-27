@@ -1,7 +1,9 @@
 import {
+  dialCodeOf,
   isLanguageCode,
   languageDefinition,
   localized,
+  splitPhone,
   type ClinicLocale,
   type DaySchedule,
   type PersonName,
@@ -119,6 +121,17 @@ export function hoursSummary(schedule: readonly DaySchedule[]): HoursSummary | n
         .sort()
         .at(-1) ?? "",
   };
+}
+
+export function phoneLabel(phone: string): string {
+  const { country, local } = splitPhone(phone);
+  const dial = dialCodeOf(country);
+
+  if (!phone.startsWith(dial) || !/^\d{8,}$/.test(local)) {
+    return phone;
+  }
+
+  return [dial, local.slice(0, -7), local.slice(-7, -4), local.slice(-4)].join(" ");
 }
 
 export const mapsLink = (latitude: number, longitude: number): string =>

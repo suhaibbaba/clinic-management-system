@@ -83,7 +83,6 @@ export function PortalNextVisit({
               data-testid="site-portal-book"
               className="pill-text inline-flex min-h-(--control-h) items-center gap-2 rounded-pill bg-primary-600 px-6 text-label font-medium text-ink-inverse shadow-nav-active transition-colors hover:bg-primary-700"
             >
-              <SiteIcon name="calendar" />
               {t("portal.bookNow")}
             </SiteLink>
           )}

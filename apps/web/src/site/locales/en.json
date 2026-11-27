@@ -11,7 +11,7 @@
     "book": "Book Now",
     "menu": "Menu",
     "close": "Close menu",
-    "account": "My Account",
+    "account": "Account",
     "language": "Language"
   },
   "hero": {
@@ -19,14 +19,14 @@
     "cta": "Book Now",
     "slides": "Clinic Photos",
     "slide": "Photo {{number}}",
-    "services": "Explore Our Services"
+    "services": "Explore Services"
   },
   "services": {
     "title": "Our Services",
     "subtitle": "Complete care for everything you need",
     "book": "Book {{name}}",
     "promo": "A consultation is where better health begins",
-    "promoCta": "Book Your Appointment",
+    "promoCta": "Book Appointment",
     "eyebrow": "Our Services",
     "pageTitle": "Complete Care for Your Smile"
   },
@@ -102,6 +102,7 @@
   },
   "footer": {
     "rights": "© {{year}} {{name}}. All rights reserved.",
+    "hours": "Working hours",
     "social": "Follow Us",
     "socials": {
       "instagram": "Instagram",
@@ -127,16 +128,15 @@
   },
   "home": {
     "statsLabel": "Our Numbers",
-    "aboutLink": "More About Us",
+    "aboutLink": "Learn More",
     "servicesAll": "All Services",
-    "doctorsAll": "Meet Our Doctors",
+    "doctorsAll": "Meet the Doctors",
     "galleryEyebrow": "Our Home",
     "galleryTitle": "A Place Designed for You",
     "galleryLink": "Discover More",
     "contactLink": "All Ways to Reach Us",
     "ctaTitle": "Book Your Appointment Now",
-    "ctaSubtitle": "Our team is ready to welcome you and give your teeth the best care",
-    "callNow": "Call Now"
+    "ctaSubtitle": "Our team is ready to welcome you and give your teeth the best care"
   },
   "notFound": {
     "title": "Page not found",
@@ -238,7 +238,7 @@
       "cancelled": "Cancelled"
     },
     "accountMenu": "Account Menu",
-    "myProfile": "My Profile",
+    "myProfile": "Profile",
     "greeting": {
       "morning": "Good morning,",
       "evening": "Good evening,"

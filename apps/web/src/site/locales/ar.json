@@ -101,7 +101,8 @@
     "hoursTime": "{{opens}} – {{closes}}"
   },
   "footer": {
-    "rights": "© {{year}} {{name}}. جميع الحقوق محفوظة.",
+    "rights": "{{year}} © {{name}}. جميع الحقوق محفوظة.",
+    "hours": "مواعيد العمل",
     "social": "تابعنا",
     "socials": {
       "instagram": "Instagram",
@@ -135,8 +136,7 @@
     "galleryLink": "اكتشف المزيد",
     "contactLink": "كل طرق التواصل",
     "ctaTitle": "احجز موعدك الآن",
-    "ctaSubtitle": "فريقنا جاهز لاستقبالك وتقديم أفضل رعاية لأسنانك",
-    "callNow": "اتصل الآن"
+    "ctaSubtitle": "فريقنا جاهز لاستقبالك وتقديم أفضل رعاية لأسنانك"
   },
   "notFound": {
     "title": "الصفحة غير موجودة",

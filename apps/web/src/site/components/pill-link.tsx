@@ -7,6 +7,7 @@ const TONES = {
   dark: "bg-primary-900 text-ink-inverse shadow-nav-active hover:bg-primary-800",
   outline:
     "border border-primary-300 bg-surface text-primary-700 hover:border-primary-600 hover:bg-primary-50",
+  gradient: "site-pill-gradient text-ink-inverse shadow-nav-active hover:brightness-110",
   inverse: "bg-surface text-primary-800 shadow-float hover:bg-primary-50",
   "outline-inverse":
     "border border-ink-inverse/60 text-ink-inverse hover:border-ink-inverse hover:bg-ink-inverse/10",

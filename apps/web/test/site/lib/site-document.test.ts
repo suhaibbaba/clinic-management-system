@@ -61,7 +61,6 @@ const filled = (): SiteContent => {
     contact: {
       ...content.contact,
       image: "contact",
-      welcomeImage: "welcome",
       topics: [{ ar: "سعر" }],
     },
   };

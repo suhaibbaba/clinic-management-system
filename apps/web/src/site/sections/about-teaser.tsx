@@ -5,7 +5,7 @@ import {
   type SiteBlockOf,
 } from "@clinic/shared";
 import type { JSX } from "react";
-import { GlassLobe, WaveRibbon } from "@web/site/components/curves";
+import { GlassLobe, PhotoWave, TitleStroke } from "@web/site/components/curves";
 import { PillLink } from "@web/site/components/pill-link";
 import { SiteIcon } from "@web/site/components/site-icon";
 import { SiteImage } from "@web/site/components/site-image";
@@ -35,7 +35,7 @@ export function AboutTeaser({
     <section
       data-testid="site-about-teaser"
       aria-labelledby="about-teaser-title"
-      className="site-hero-wash relative overflow-hidden"
+      className="relative overflow-hidden max-lg:bg-surface lg:site-hero-wash"
     >
       {image && (
         <div aria-hidden className="absolute inset-0 hidden overflow-hidden lg:block">
@@ -44,8 +44,8 @@ export function AboutTeaser({
         </div>
       )}
       <div className="relative flex flex-col lg:block lg:min-h-[32rem]">
-        <div className="relative aspect-[4/3] lg:absolute lg:inset-y-0 lg:end-0 lg:aspect-auto lg:w-[50%]">
-          <div className="absolute inset-0 overflow-hidden max-lg:site-wave-dip lg:site-lobe-arc">
+        <div className="relative aspect-[21/10] sm:aspect-[5/2] lg:absolute lg:inset-y-0 lg:end-0 lg:aspect-auto lg:w-[50%]">
+          <div className="absolute inset-0 overflow-hidden lg:site-lobe-arc">
             <SiteImage
               src={image}
               layer
@@ -53,32 +53,51 @@ export function AboutTeaser({
               fallback={<SiteIcon name="smile" className="size-16" />}
             />
           </div>
-          <WaveRibbon className="absolute inset-0 size-full overflow-visible lg:hidden" />
+          <PhotoWave className="absolute inset-0 size-full overflow-visible lg:hidden" />
           <GlassLobe className="absolute inset-0 hidden size-full overflow-visible lg:block" />
           {badge && (
             <p
               data-testid="site-about-badge"
-              className="absolute start-4 top-4 flex items-center gap-2 rounded-pill bg-surface px-4 py-2.5 text-label font-bold text-primary-900 shadow-float lg:start-auto lg:end-8 lg:top-8"
+              className="absolute start-4 top-4 flex items-center gap-2 rounded-pill bg-surface px-3.5 py-1.5 lg:px-4 lg:py-2.5 text-label font-bold text-primary-900 shadow-float lg:start-auto lg:end-8 lg:top-8"
             >
-              <SiteIcon name="award" className="size-6 text-primary-600" />
+              <SiteIcon name="award" className="size-5 text-primary-600 lg:size-6" />
               {badge}
             </p>
           )}
         </div>
 
-        <div className="relative mx-auto max-w-6xl px-4 pt-8 pb-12 lg:py-12">
-          <div data-reveal className="flex flex-col items-start gap-4 lg:max-w-[32rem]">
-            <p className="flex items-center gap-4 text-section font-medium text-primary-600">
-              <span aria-hidden className="h-px w-12 bg-primary-600" />
+        <div className="relative mx-auto max-w-6xl px-5 pt-5 pb-12 lg:px-4 lg:py-12">
+          <div
+            data-reveal
+            className="mx-auto flex max-w-xl flex-col items-center gap-4 text-center lg:mx-0 lg:max-w-[32rem] lg:items-start lg:text-start"
+          >
+            <p className="flex w-full items-center justify-center gap-3 text-section font-medium text-primary-600 lg:justify-start lg:gap-4">
+              <span
+                aria-hidden
+                className="h-px max-w-11 min-w-4 flex-1 bg-primary-600 lg:max-w-12"
+              />
               {orDefault(block.eyebrow, language, t("about.title"), languages)}
+              <span aria-hidden className="h-px max-w-11 min-w-4 flex-1 bg-primary-600 lg:hidden" />
             </p>
-            <h2 id="about-teaser-title" className="text-headline font-bold text-primary-900">
-              {lead}
-              {accent && <span className="block text-primary-600">{accent}</span>}
-            </h2>
+            <div className="flex flex-col items-center gap-1 lg:items-start">
+              <h2
+                id="about-teaser-title"
+                className="text-title font-bold text-primary-900 sm:text-headline"
+              >
+                {lead}
+                {accent && <span className="block text-primary-600">{accent}</span>}
+              </h2>
+              <TitleStroke className="h-2 w-24 text-primary-600 lg:hidden" />
+            </div>
             {summary && <p className="line-clamp-4 text-section text-ink">{summary}</p>}
-            <PillLink to={SITE_PATH.ABOUT} tone="dark" data-testid="site-about-more">
-              {t("home.aboutLink")}
+            <PillLink
+              to={SITE_PATH.ABOUT}
+              tone="gradient"
+              size="lg"
+              className="w-52"
+              data-testid="site-about-more"
+            >
+              <span className="font-bold">{t("home.aboutLink")}</span>
             </PillLink>
 
             {block.stats.length > 0 && (
@@ -86,19 +105,21 @@ export function AboutTeaser({
                 data-testid="site-stats"
                 aria-label={t("home.statsLabel")}
                 data-reveal-group
-                className="mt-2 grid w-full grid-cols-2 gap-y-6 sm:grid-cols-4 sm:divide-x sm:divide-line"
+                className="mt-2 grid w-full grid-cols-2 gap-4"
               >
                 {block.stats.map((stat, position) => (
                   <li
                     key={position}
-                    className="flex flex-col items-center gap-1.5 px-2 text-center"
+                    className="flex min-w-0 items-center gap-3 rounded-card bg-primary-50 p-3 shadow-card max-[22.4rem]:gap-2 max-[22.4rem]:p-2.5 sm:gap-4 sm:p-4"
                   >
-                    <span className="mb-1 inline-flex size-14 items-center justify-center rounded-pill bg-primary-100/70 text-primary-700">
-                      <SiteIcon name={stat.icon} className="size-6" />
+                    <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-pill bg-surface text-primary-600 shadow-card max-[22.4rem]:size-10">
+                      <SiteIcon name={stat.icon} className="size-6 max-[22.4rem]:size-5" />
                     </span>
-                    <bdi className="text-title font-bold text-primary-900">{stat.value}</bdi>
-                    <span className="text-meta text-ink-muted">
-                      {pick(stat.label, language, languages)}
+                    <span className="flex min-w-0 flex-col items-start text-start">
+                      <bdi className="text-title font-bold text-primary-900">{stat.value}</bdi>
+                      <span className="text-meta text-ink-muted">
+                        {pick(stat.label, language, languages)}
+                      </span>
                     </span>
                   </li>
                 ))}
