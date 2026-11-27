@@ -9,7 +9,7 @@ const booking = (overrides: Record<string, unknown> = {}) => ({
   startsAt: "2026-10-01T08:15:00.000Z",
   durationMinutes: 30,
   type: "checkup",
-  newPatient: { firstName: "Huda", lastName: "Saleh", phone: "+970599123456" },
+  newPatient: { firstName: "Huda", middleName: "Omar", lastName: "Saleh", phone: "+970599123456" },
   ...overrides,
 });
 
@@ -21,7 +21,9 @@ describe("form errors from the shared schema", () => {
   it("names each refused field by its path", () => {
     const errors = schemaErrors(
       createAppointmentSchema,
-      booking({ newPatient: { firstName: "Huda", lastName: "Saleh", phone: "123" } }),
+      booking({
+        newPatient: { firstName: "Huda", middleName: "Omar", lastName: "Saleh", phone: "123" },
+      }),
     );
 
     expect(Object.keys(errors)).toEqual(["newPatient.phone"]);
@@ -40,6 +42,7 @@ describe("form errors from the shared schema", () => {
       booking({
         newPatient: {
           firstName: "Huda",
+          middleName: "Omar",
           lastName: "Saleh",
           phone: "+970599123456",
           dateOfBirth: "2999-01-01",
@@ -59,7 +62,10 @@ describe("form errors from the shared schema", () => {
   it("shows a field's error only once the user has left it", () => {
     const errors = schemaErrors(
       createAppointmentSchema,
-      booking({ doctorId: "", newPatient: { firstName: "", lastName: "Saleh", phone: "123" } }),
+      booking({
+        doctorId: "",
+        newPatient: { firstName: "", middleName: "Omar", lastName: "Saleh", phone: "123" },
+      }),
     );
 
     expect(Object.keys(shownErrors(errors, []))).toEqual([]);
@@ -73,6 +79,7 @@ describe("form errors from the shared schema", () => {
       booking({
         newPatient: {
           firstName: "Huda",
+          middleName: "Omar",
           lastName: "Saleh",
           phone: "+970599123456",
           dateOfBirth: "0199-01-01",

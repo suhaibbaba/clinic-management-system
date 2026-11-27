@@ -7,12 +7,12 @@ describe("a field's need, read from its schema", () => {
 
   it("calls a field the schema insists on required", () => {
     expect(need("firstName")).toEqual({ required: true });
+    expect(need("middleName")).toEqual({ required: true });
     expect(need("lastName")).toEqual({ required: true });
   });
 
   it("calls a field the schema lets go missing optional", () => {
     expect(need("phone")).toEqual({ optional: true });
-    expect(need("middleName")).toEqual({ optional: true });
     expect(need("dateOfBirth")).toEqual({ optional: true });
   });
 });

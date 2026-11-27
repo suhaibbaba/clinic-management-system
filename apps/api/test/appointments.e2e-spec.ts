@@ -16,6 +16,7 @@ import {
   uniquePhone,
   type PatientFixtures,
   nameParts,
+  patientFullName,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 import { moveIntoPast } from "@test/helpers/appointment-time";
@@ -629,7 +630,7 @@ describe("Appointments (e2e)", () => {
 
       expect(body.from).toBe(monday);
       expect(body.appointments.length).toBeGreaterThan(0);
-      expect(body.appointments[0]?.patientName).toBe("مريض المواعيد");
+      expect(body.appointments[0]?.patientName).toBe(patientFullName("مريض المواعيد"));
       expect(body.appointments[0]?.doctorName).toBeTruthy();
       expect(body.appointments[0]?.endsAt).toBeTruthy();
     });

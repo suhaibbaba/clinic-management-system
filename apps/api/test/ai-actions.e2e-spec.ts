@@ -24,7 +24,12 @@ import {
   visits,
 } from "@api/database/schema";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
-import { createPatient, seedClinicFixtures, nameParts } from "@test/helpers/patient-fixtures";
+import {
+  createPatient,
+  seedClinicFixtures,
+  nameParts,
+  patientFullName,
+} from "@test/helpers/patient-fixtures";
 import { atClinic } from "@test/helpers/clinic-time";
 import { moveIntoPast } from "@test/helpers/appointment-time";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
@@ -230,7 +235,9 @@ describe("Assistant actions (e2e)", () => {
       });
 
       expect(result?.status).toBe("slot_taken");
-      expect(result?.["blockers"]).toEqual([expect.objectContaining({ patientName: "سمير خليل" })]);
+      expect(result?.["blockers"]).toEqual([
+        expect.objectContaining({ patientName: patientFullName("سمير خليل") }),
+      ]);
 
       const [after] = await context.db
         .select({ value: count() })
@@ -444,12 +451,15 @@ describe("Assistant actions (e2e)", () => {
     it("stops a new patient on a phone another patient has", async () => {
       const { result } = await tool(USER_ROLE.RECEPTIONIST, AI_TOOL.CREATE_PATIENT, {
         first_name: "سمر",
+        middle_name: "سامي",
         last_name: "خليل",
         phone: "+970599000111",
       });
 
       expect(result).toMatchObject({ status: "sanity_check", check: "possible_duplicate" });
-      expect(result?.["existing"]).toEqual([expect.objectContaining({ fullName: "سمير خليل" })]);
+      expect(result?.["existing"]).toEqual([
+        expect.objectContaining({ fullName: patientFullName("سمير خليل") }),
+      ]);
     });
   });
 });

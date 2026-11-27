@@ -117,6 +117,26 @@ describe("Patients (e2e)", () => {
     });
   });
 
+  describe("name", () => {
+    it("refuses a patient without the father's name", async () => {
+      const register = (middleName?: string) =>
+        context.app.inject({
+          method: "POST",
+          url: "/patients",
+          headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
+          payload: {
+            firstName: "سامر",
+            lastName: "التلاوي",
+            ...(middleName !== undefined && { middleName }),
+          },
+        });
+
+      expect((await register()).statusCode).toBe(400);
+      expect((await register("  ")).statusCode).toBe(400);
+      expect((await register("خالد")).statusCode).toBe(201);
+    });
+  });
+
   describe("phone", () => {
     it("registers patients without a phone, and two of them never clash", async () => {
       const first = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {

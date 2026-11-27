@@ -14,6 +14,7 @@ import {
   uniquePhone,
   type PatientFixtures,
   nameParts,
+  patientFullName,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
@@ -136,7 +137,7 @@ describe("Inline patient registration (e2e)", () => {
 
     expect(response.statusCode).toBe(409);
     expect(response.json()).toMatchObject({
-      existingPatient: { id: existingId, fullName: "مريض قديم" },
+      existingPatient: { id: existingId, fullName: patientFullName("مريض قديم") },
     });
   });
 
@@ -177,7 +178,7 @@ describe("Inline patient registration (e2e)", () => {
     });
 
     expect(response.statusCode).toBe(201);
-    expect(response.json()).toMatchObject({ patientName: "مريض الانتظار" });
+    expect(response.json()).toMatchObject({ patientName: patientFullName("مريض الانتظار") });
     expect(await findByPhone(phone)).toHaveLength(1);
   });
 });

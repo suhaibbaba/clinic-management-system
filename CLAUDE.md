@@ -195,7 +195,7 @@ packages/ui       components, tokens, the theme contract
 8. **Staff, clinic and list names are stored per language, patient names are not.** A
    `LocalizedText` (`{ ar?, en?, tr?, … }`, jsonb) read through `<PersonName>` / `localized()`, never
    `.ar`, never a per-screen ternary. A form shows one input per clinic language. A patient's name is
-   one language. Names are stored in parts (patient: first, optional middle, last; staff: first and
+   one language. Names are stored in parts (patient: first, middle — the father's, required from staff —, last; staff: first and
    last per language) and the API writes the full name beside them — `fullName` / `name` in every
    response, `firstName` / `lastName` where a screen is short of room. The web never splits a full
    name. Printed documents and patient messages use the clinic's document language.

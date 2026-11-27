@@ -13,6 +13,7 @@ import { PermissionsService } from "@api/modules/permissions/services/permission
 import {
   createPatient,
   nameParts,
+  patientFullName,
   seedClinicFixtures,
   uniquePhone,
   type PatientFixtures,
@@ -147,7 +148,7 @@ describe("Visit fee (e2e)", () => {
       const patient = await get<PatientView>(`/patients/${visit.patientId}`);
       const { balance } = await ledgerOf(visit.patientId);
 
-      expect(patient).toMatchObject({ fullName: "سارة يوسف", phone });
+      expect(patient).toMatchObject({ fullName: patientFullName("سارة يوسف"), phone });
       expect(balance).toMatchObject({ charged: "50.00", paid: "50.00", balance: "0.00" });
     });
 

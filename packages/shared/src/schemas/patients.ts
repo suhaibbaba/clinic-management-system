@@ -68,7 +68,7 @@ export type PatientView = PatientClinicalView | PatientPublicView;
 
 const nameParts = {
   firstName: z.string().trim().min(1).max(60),
-  middleName: z.string().trim().max(80).nullish(),
+  middleName: z.string().trim().min(1).max(80),
   lastName: z.string().trim().min(1).max(60),
 };
 

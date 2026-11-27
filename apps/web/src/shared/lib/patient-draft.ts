@@ -35,7 +35,7 @@ export function toPatientRef(
   return {
     newPatient: {
       firstName: firstName.trim(),
-      ...(middleName?.trim() && { middleName: middleName.trim() }),
+      middleName: (middleName ?? "").trim(),
       lastName: lastName.trim(),
       ...(phone.trim() && { phone: phone.trim() }),
       ...(gender && { gender }),
@@ -56,4 +56,6 @@ export const isDraftComplete = (choice: PatientChoice | null): boolean =>
   choice === null
     ? false
     : choice.kind === "existing" ||
-      (choice.draft.firstName.trim() !== "" && choice.draft.lastName.trim() !== "");
+      [choice.draft.firstName, choice.draft.middleName ?? "", choice.draft.lastName].every(
+        (part) => part.trim() !== "",
+      );

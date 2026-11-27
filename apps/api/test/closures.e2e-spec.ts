@@ -25,6 +25,7 @@ import {
   uniquePhone,
   type PatientFixtures,
   nameParts,
+  patientFullName,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
@@ -261,7 +262,7 @@ describe("Closures and time off (e2e)", () => {
 
       expect(body.error).toBe(SCHEDULE_CONFLICT_ERROR);
       expect(body.appointments).toHaveLength(1);
-      expect(body.appointments[0]?.patientName).toBe("مريض الإغلاقات");
+      expect(body.appointments[0]?.patientName).toBe(patientFullName("مريض الإغلاقات"));
 
       const rows = await context.db
         .select({ id: clinicClosures.id })

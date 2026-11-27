@@ -27,6 +27,7 @@ import {
   uniquePhone,
   type PatientFixtures,
   nameParts,
+  patientFullName,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
@@ -542,7 +543,7 @@ describe("Public booking (e2e)", () => {
         );
 
       expect(rows).toHaveLength(1);
-      expect(rows[0]?.fullName).toBe("مريض قديم");
+      expect(rows[0]?.fullName).toBe(patientFullName("مريض قديم"));
     });
 
     it("links a number booked under +972 to the patient saved under +970", async () => {

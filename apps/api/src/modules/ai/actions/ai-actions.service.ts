@@ -1960,12 +1960,12 @@ export class AiActionsService {
         tool: AI_TOOL.CREATE_PATIENT,
         kind: AI_PROPOSAL_KIND.PATIENT_CREATE,
         description:
-          "Registers a new patient with first and last name (a middle name when given) and phone; a phone already on file comes back as possible_duplicate — ask if it is the same person. Waits on a card.",
+          "Registers a new patient with first, middle (the father's) and last name and phone; ask for a missing middle name; a phone already on file comes back as possible_duplicate — ask if it is the same person. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.CREATE_PATIENT],
         capability: "patients.create",
         schema: z.object({
           first_name: z.string().trim().min(1).max(60),
-          middle_name: z.string().trim().max(80).optional(),
+          middle_name: z.string().trim().min(1).max(80),
           last_name: z.string().trim().min(1).max(60),
           phone: phoneSchema,
           date_of_birth: dateSchema.optional(),
@@ -1990,7 +1990,7 @@ export class AiActionsService {
           return {
             payload: {
               firstName: args.first_name,
-              middleName: args.middle_name || null,
+              middleName: args.middle_name,
               lastName: args.last_name,
               phone: args.phone,
               dateOfBirth: args.date_of_birth ?? null,

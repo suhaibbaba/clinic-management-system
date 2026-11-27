@@ -93,7 +93,7 @@ export function PatientFormModal({
       patient
         ? {
             firstName: patient.firstName,
-            middleName: patient.middleName,
+            middleName: patient.middleName ?? "",
             lastName: patient.lastName,
             phone: patient.phone,
             whatsapp: patient.whatsapp,

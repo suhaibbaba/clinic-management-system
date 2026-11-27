@@ -264,6 +264,7 @@ describe("Patients list", () => {
 
       const dialog = await screen.findByRole("dialog");
       await userEvent.type(within(dialog).getByLabelText(new RegExp(`^${ar.patients.firstName}`)), "سامر");
+      await userEvent.type(within(dialog).getByLabelText(new RegExp(`^${ar.patients.middleName}`)), "خالد");
       await userEvent.type(within(dialog).getByLabelText(new RegExp(`^${ar.patients.lastName}`)), "التلاوي");
       await userEvent.type(within(dialog).getByRole("textbox", { name: new RegExp(`^${ar.patients.phone}`) }), "+963944123456");
       await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
@@ -274,6 +275,7 @@ describe("Patients list", () => {
         );
         expect(call?.body).toMatchObject({
           firstName: "سامر",
+          middleName: "خالد",
           lastName: "التلاوي",
           phone: "+963944123456",
         });
@@ -290,6 +292,7 @@ describe("Patients list", () => {
 
       const dialog = await screen.findByRole("dialog");
       await userEvent.type(within(dialog).getByLabelText(new RegExp(`^${ar.patients.firstName}`)), "سامر");
+      await userEvent.type(within(dialog).getByLabelText(new RegExp(`^${ar.patients.middleName}`)), "خالد");
       await userEvent.type(within(dialog).getByLabelText(new RegExp(`^${ar.patients.lastName}`)), "التلاوي");
       await userEvent.type(within(dialog).getByRole("textbox", { name: new RegExp(`^${ar.patients.phone}`) }), "0599 123 456");
       await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));

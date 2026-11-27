@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { CHART_TYPE, PROCEDURE_OUTCOME, USER_ROLE } from "@clinic/shared";
+import { CHART_TYPE, PROCEDURE_OUTCOME, USER_ROLE, joinPatientName } from "@clinic/shared";
 import { auth, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 export interface PatientFixtures {
@@ -55,24 +55,26 @@ export async function seedClinicFixtures(
 
 export function nameParts(fullName: string): {
   firstName: string;
-  middleName?: string;
+  middleName: string;
   lastName: string;
 } {
   const words = fullName.trim().split(/\s+/);
   const firstName = words[0] ?? fullName;
 
   if (words.length < 2) {
-    return { firstName, lastName: firstName };
+    return { firstName, middleName: firstName, lastName: firstName };
   }
 
   const middle = words.slice(1, -1).join(" ");
 
   return {
     firstName,
-    ...(middle !== "" && { middleName: middle }),
+    middleName: middle === "" ? firstName : middle,
     lastName: words.at(-1) ?? firstName,
   };
 }
+
+export const patientFullName = (fullName: string): string => joinPatientName(nameParts(fullName));
 
 export async function createPatient(
   context: TestContext,
@@ -83,7 +85,7 @@ export async function createPatient(
     method: "POST",
     url: "/patients",
     headers: auth(token),
-    payload,
+    payload: { middleName: payload.firstName, ...payload },
   });
 
   if (response.statusCode !== 201) {

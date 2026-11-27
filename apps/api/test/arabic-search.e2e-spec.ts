@@ -1,6 +1,11 @@
 import { normalizeArabic, USER_ROLE, type PatientView } from "@clinic/shared";
 import { sql } from "drizzle-orm";
-import { createPatient, uniquePhone, nameParts } from "@test/helpers/patient-fixtures";
+import {
+  createPatient,
+  uniquePhone,
+  nameParts,
+  patientFullName,
+} from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 describe("Arabic-aware search (e2e)", () => {
@@ -12,8 +17,8 @@ describe("Arabic-aware search (e2e)", () => {
     ahmad: "أحمد خالد الحسن",
     fatima: "فاطمة عبد الرحمن",
     muhannad: "مهند سليم عودة",
-    mahmoud: "محمود عودة",
-    muhammad: "محمد سليم",
+    mahmoud: patientFullName("محمود عودة"),
+    muhammad: patientFullName("محمد سليم"),
   };
 
   let ahmadPhone: string;
