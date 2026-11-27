@@ -1,4 +1,5 @@
 import {
+  PAYMENT_COLLECTOR,
   SETTLEMENT_LINE_STATUSES,
   subtractMoney,
   type OwnSettlementLine,
@@ -48,6 +49,7 @@ export function MyEarningsPage(): JSX.Element {
 
   const earnings = useMyEarnings({ from, to, ...(status && { status }) }, valid);
   const data = earnings.data;
+  const doctorCollects = data?.collector === PAYMENT_COLLECTOR.DOCTOR;
   const noProfile = earnings.error instanceof ApiError && earnings.error.statusCode === 404;
 
   const setParam = (changes: Record<string, string | null>): void =>
@@ -139,7 +141,7 @@ export function MyEarningsPage(): JSX.Element {
     },
     {
       key: "status",
-      header: "doctors.settlement.status",
+      header: "earnings.paidToMe",
       render: (row) => (
         <span className="flex flex-col items-start gap-1">
           <Badge tone={SETTLEMENT_STATUS_TONES[row.status]}>
@@ -187,19 +189,72 @@ export function MyEarningsPage(): JSX.Element {
               />
             </label>
 
-            <SegmentedControl
-              data-testid="my-earnings-status"
-              label={t("doctors.settlement.status")}
-              value={status ?? ALL}
-              onChange={(next) => setParam({ status: next === ALL ? null : next })}
-              options={[ALL, ...SETTLEMENT_LINE_STATUSES].map((value) => ({
-                value,
-                label: t(value === ALL ? "common.all" : `doctors.settlement.statuses.${value}`),
-              }))}
-            />
+            {!doctorCollects && (
+              <SegmentedControl
+                data-testid="my-earnings-status"
+                label={t("earnings.paidToMe")}
+                value={status ?? ALL}
+                onChange={(next) => setParam({ status: next === ALL ? null : next })}
+                options={[ALL, ...SETTLEMENT_LINE_STATUSES].map((value) => ({
+                  value,
+                  label: t(value === ALL ? "common.all" : `doctors.settlement.statuses.${value}`),
+                }))}
+              />
+            )}
           </div>
 
-          {data && (
+          {data && doctorCollects && (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <StatCard
+                label={t("earnings.shareInPeriod")}
+                value={<Money amount={data.totals.payable} currency={currency} />}
+                caption={t(`doctors.settlement.basis.${data.basis}`)}
+                icon="stethoscope"
+                tone="primary"
+              />
+              <StatCard
+                data-testid="my-earnings-collected"
+                label={t("earnings.collected")}
+                value={<Money amount={data.held} currency={currency} />}
+                icon="money"
+                tone="success"
+              />
+              <StatCard
+                data-testid="my-earnings-handed-over"
+                label={t("earnings.handedOver")}
+                value={<Money amount={data.remitted} currency={currency} />}
+                icon="check"
+                tone="success"
+              />
+              <StatCard
+                data-testid="my-earnings-balance"
+                label={t(
+                  Number(data.balance) > 0 ? "earnings.dueFromClinic" : "earnings.owedToClinic",
+                )}
+                value={
+                  <Money
+                    amount={
+                      Number(data.balance) > 0 ? data.balance : subtractMoney("0.00", data.balance)
+                    }
+                    currency={currency}
+                  />
+                }
+                caption={t(
+                  Number(data.paid) === 0 ? "earnings.owedFormula" : "earnings.owedFormulaPaid",
+                  {
+                    held: moneyText(data.held, currency),
+                    earned: moneyText(data.earned, currency),
+                    remitted: moneyText(data.remitted, currency),
+                    paid: moneyText(data.paid, currency),
+                  },
+                )}
+                icon="money"
+                tone="warning"
+              />
+            </div>
+          )}
+
+          {data && !doctorCollects && (
             <div className="grid gap-3 sm:grid-cols-3">
               <StatCard
                 label={t("earnings.earnedInPeriod")}
@@ -214,28 +269,14 @@ export function MyEarningsPage(): JSX.Element {
                 icon="check"
                 tone="success"
               />
-              {Number(data.balance) < 0 ? (
-                <StatCard
-                  data-testid="my-earnings-balance"
-                  label={t("earnings.owedToClinic")}
-                  value={<Money amount={subtractMoney("0.00", data.balance)} currency={currency} />}
-                  caption={t("earnings.owedToClinicCaption", {
-                    held: moneyText(data.held, currency),
-                    remitted: moneyText(data.remitted, currency),
-                  })}
-                  icon="money"
-                  tone="warning"
-                />
-              ) : (
-                <StatCard
-                  data-testid="my-earnings-balance"
-                  label={t("doctors.settlement.balance")}
-                  value={<Money amount={data.balance} currency={currency} />}
-                  caption={t("doctors.settlement.balanceCaption")}
-                  icon="money"
-                  tone="warning"
-                />
-              )}
+              <StatCard
+                data-testid="my-earnings-balance"
+                label={t("earnings.balance")}
+                value={<Money amount={data.balance} currency={currency} />}
+                caption={t("earnings.balanceCaption")}
+                icon="money"
+                tone="warning"
+              />
             </div>
           )}
 
@@ -252,7 +293,7 @@ export function MyEarningsPage(): JSX.Element {
 
           <Table
             data-testid="my-earnings-table"
-            columns={columns}
+            columns={doctorCollects ? columns.filter((column) => column.key !== "status") : columns}
             rows={data?.lines ?? []}
             rowKey={(row) => row.id}
             isLoading={earnings.isPending && valid}
@@ -265,32 +306,34 @@ export function MyEarningsPage(): JSX.Element {
             }
           />
 
-          <div className="flex flex-col gap-2">
-            <h2 className="text-label font-semibold text-ink">{t("doctors.settlement.payouts")}</h2>
-            {data && data.payouts.length === 0 && (
-              <p className="text-meta text-ink-muted">{t("doctors.settlement.noPayouts")}</p>
-            )}
-            <ul className="flex flex-col gap-2">
-              {data?.payouts.map((payout) => (
-                <li
-                  key={payout.id}
-                  data-testid={`my-earnings-payout-${payout.id}`}
-                  className="flex flex-wrap items-center gap-3 rounded-panel border border-line bg-surface px-3 py-2"
-                >
-                  <Money amount={payout.amount} currency={currency} className="font-medium" />
-                  <span className="text-meta text-ink-muted">{formatDate(payout.createdAt)}</span>
-                  <Badge tone="neutral">
-                    {payout.items.length === 0
-                      ? t("doctors.settlement.advance")
-                      : t("doctors.settlement.coversTreatments", { count: payout.items.length })}
-                  </Badge>
-                  {payout.reversedAt !== null && (
-                    <Badge tone="danger">{t("doctors.settlement.reversed")}</Badge>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
+          {!(doctorCollects && data.payouts.length === 0) && (
+            <div className="flex flex-col gap-2">
+              <h2 className="text-label font-semibold text-ink">{t("earnings.payouts")}</h2>
+              {data && data.payouts.length === 0 && (
+                <p className="text-meta text-ink-muted">{t("doctors.settlement.noPayouts")}</p>
+              )}
+              <ul className="flex flex-col gap-2">
+                {data?.payouts.map((payout) => (
+                  <li
+                    key={payout.id}
+                    data-testid={`my-earnings-payout-${payout.id}`}
+                    className="flex flex-wrap items-center gap-3 rounded-panel border border-line bg-surface px-3 py-2"
+                  >
+                    <Money amount={payout.amount} currency={currency} className="font-medium" />
+                    <span className="text-meta text-ink-muted">{formatDate(payout.createdAt)}</span>
+                    <Badge tone="neutral">
+                      {payout.items.length === 0
+                        ? t("doctors.settlement.advance")
+                        : t("doctors.settlement.coversTreatments", { count: payout.items.length })}
+                    </Badge>
+                    {payout.reversedAt !== null && (
+                      <Badge tone="danger">{t("doctors.settlement.reversed")}</Badge>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </>
       )}
     </div>
