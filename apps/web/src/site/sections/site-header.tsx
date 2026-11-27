@@ -167,8 +167,7 @@ export function SiteHeader(): JSX.Element {
               data-testid="site-header-book"
               className="pill-text inline-flex min-h-(--control-h) items-center gap-2 rounded-pill bg-primary-600 px-4 text-label font-medium text-ink-inverse shadow-nav-active transition-colors hover:bg-primary-700 max-[23rem]:px-3 sm:px-6"
             >
-              <SiteIcon name="calendar" />
-              <span className="max-[23rem]:sr-only">{t("nav.book")}</span>
+              {t("nav.book")}
             </SiteLink>
           )}
 
@@ -264,7 +263,6 @@ export function SiteHeader(): JSX.Element {
                   data-testid="site-menu-book"
                   className="pill-text flex min-h-(--control-h) items-center justify-center gap-2 rounded-pill bg-primary-600 px-6 text-label font-medium text-ink-inverse shadow-nav-active hover:bg-primary-700"
                 >
-                  <SiteIcon name="calendar" />
                   {t("nav.book")}
                 </SiteLink>
               </div>

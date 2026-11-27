@@ -11,7 +11,7 @@
     "book": "Book Now",
     "menu": "Menu",
     "close": "Close menu",
-    "account": "My Account",
+    "account": "Account",
     "language": "Language"
   },
   "hero": {
@@ -26,7 +26,7 @@
     "subtitle": "Complete care for everything you need",
     "book": "Book {{name}}",
     "promo": "A consultation is where better health begins",
-    "promoCta": "Book Your Appointment",
+    "promoCta": "Book Appointment",
     "eyebrow": "Our Services",
     "pageTitle": "Complete Care for Your Smile"
   },
@@ -128,9 +128,9 @@
   },
   "home": {
     "statsLabel": "Our Numbers",
-    "aboutLink": "More About Us",
+    "aboutLink": "Learn More",
     "servicesAll": "All Services",
-    "doctorsAll": "Meet Our Doctors",
+    "doctorsAll": "Meet the Doctors",
     "galleryEyebrow": "Our Home",
     "galleryTitle": "A Place Designed for You",
     "galleryLink": "Discover More",
@@ -238,7 +238,7 @@
       "cancelled": "Cancelled"
     },
     "accountMenu": "Account Menu",
-    "myProfile": "My Profile",
+    "myProfile": "Profile",
     "greeting": {
       "morning": "Good morning,",
       "evening": "Good evening,"

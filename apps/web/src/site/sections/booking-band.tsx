@@ -3,7 +3,6 @@ import { cx } from "@web/booking/ui";
 import { FooterBasin, FooterCurtain, FooterSmile } from "@web/site/components/footer-curves";
 import { FooterMark } from "@web/site/components/footer-mark";
 import { PillLink } from "@web/site/components/pill-link";
-import { SiteIcon } from "@web/site/components/site-icon";
 import { SiteImage } from "@web/site/components/site-image";
 import { useBookable } from "@web/site/hooks/use-bookable";
 import { useSite } from "@web/site/hooks/use-site";
@@ -45,9 +44,7 @@ export function BookingBand(): JSX.Element {
               className="mt-5 w-[58%] max-w-80 min-w-56"
               data-testid="site-booking-band-book"
             >
-              <SiteIcon name="calendar" className="size-5" />
-              <span aria-hidden className="h-5 w-px bg-ink-inverse/70" />
-              <span className="flex-1 font-bold">{t("services.promoCta")}</span>
+              <span className="font-bold">{t("services.promoCta")}</span>
             </PillLink>
           )}
         </div>

@@ -381,13 +381,6 @@ export function contentToDocument(content: SiteContent): SiteDocument {
             formEnabled: contact.formEnabled,
             topics: contact.topics,
           },
-          {
-            id: "contact-welcome",
-            type: SITE_BLOCK_TYPE.CONTACT_WELCOME,
-            title: contact.welcome,
-            body: contact.welcomeBody,
-            image: contact.welcomeImage,
-          },
         ],
       },
       {

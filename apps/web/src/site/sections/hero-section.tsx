@@ -135,8 +135,7 @@ export function HeroSection({
                   tone="gradient"
                   data-testid="site-hero-book"
                 >
-                  <SiteIcon name="calendar" className="size-5" />
-                  <span className="flex-1 font-bold">{t("hero.cta")}</span>
+                  <span className="font-bold">{t("hero.cta")}</span>
                 </PillLink>
               )}
               {showServices && (
@@ -146,7 +145,6 @@ export function HeroSection({
                   tone="outline"
                   data-testid="site-hero-services"
                 >
-                  <SiteIcon name="play" />
                   {t("hero.services")}
                 </PillLink>
               )}

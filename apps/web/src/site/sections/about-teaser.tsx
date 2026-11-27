@@ -97,8 +97,7 @@ export function AboutTeaser({
               className="w-52"
               data-testid="site-about-more"
             >
-              <SiteIcon name="arrow-end" className="size-5 rtl:rotate-180" />
-              <span className="flex-1 font-bold">{t("home.aboutLink")}</span>
+              <span className="font-bold">{t("home.aboutLink")}</span>
             </PillLink>
 
             {block.stats.length > 0 && (
